@@ -1,5 +1,5 @@
 --------------------------------Purpose---------------------------------------
-This code masks a region of the simulation box, So that the external perturbation is not allowed in this region. In this way we can target particular region of the simulation box and study various energy tranfer phenamena in the masked region.
+This code masks a region of the simulation box, So that the external perturbation is not allowed in this region. In this way we can target particular region of the simulation box and study various energy tranfer phenomena in the masked region.
 
 ----------------------------Dependencies--------------------------------------
 
