@@ -1,4 +1,4 @@
--------------------------------Purface--------------------------------
+-------------------------------Purpose--------------------------------
 This code calculates generalised plasmonicity index, induced charge density, induced potential, enhanced field as a postprocessing activity for a timedependent GPAW calculation for LCAO basis. 
 The GPI can be considered as a measure of how plasmonic a excitation is in a excitated state simulation. The code also prints out the induced charge density, induced potential and field enhancement.
 
