@@ -1,5 +1,8 @@
 ---------------------------Purpose-----------------------------------
--This tool  calculates  cube files containing  the transition densities at the input frequencies (wmin to wmax) from the ground state KS wavefunctions in cube format stored in path <fpref> and the frequency or time  dependent density matrix read from "dmatw.dat" or "dmat.dat" as calculated from the Kohn Sham Decomposition tool in the working directory. The list of available frequencies or time steps as well as the list of occupied and unoccupied states
+-This tool  calculates  cube files containing  the transition densities at the input frequencies (wmin to wmax) from the ground state 
+KS wavefunctions in cube format stored in path <fpref> and the frequency or time  dependent density matrix read from "dmatw.dat" or 
+"dmat.dat" as calculated from the Kohn Sham Decomposition tool in the working directory. The list of available frequencies or time steps as well
+as the list of occupied and unoccupied states
    are read from "dmatw.dat" or "dmat.dat". 
    Optionally, 
     (a) the script also computes the total transition density over frequencies in the range
@@ -16,7 +19,8 @@
 
 ---------------------------Dependencies----------------------------
 
-This calculation requires trans_density.py and cubehandler.py. Also the  dmatw.dat or dmat.dat files as computed from the Kohn Sham decomposition tool is needed for calculating the frequency or time dependent transition densities. 
+This calculation requires trans_density.py and cubehandler.py. Also the  dmatw.dat or dmat.dat files as computed from the Kohn Sham 
+decomposition tool is needed for calculating the frequency or time dependent transition densities. 
 
 -----------------------------Usage---------------------------------
 
