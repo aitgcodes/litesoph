@@ -12,7 +12,7 @@ Dependencies
 
 Usage
 
- $  python3 vmd_python.py 5 0 90 90 0.0 0.0 0.0  /home/vignesh/Downloads/blender/blender-2.93.2-linux-x64/blender
+ $  python3 vmd_python.py 5 0.0001  /home/vignesh/Downloads/blender/blender-2.93.2-linux-x64/blender
 
    where 5 is the number of cube files. Next three numbers are rotational axes. Next Three numbers are the translational axes. Next line is the path to the blender excutable.
    
