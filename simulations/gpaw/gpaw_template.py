@@ -15,7 +15,7 @@ class ground_state_template:
     from gpaw.lcao.eigensolver import DirectLCAO
 
     # Molecule or nanostructure
-    layer = read('coordinate.xyz')
+    layer = read('{geometry}')
     layer.center(vacuum={vacuum})
 
     #Ground-state calculation
@@ -46,11 +46,11 @@ class ground_state_template:
         verbose={verbose},
         fixdensity={fixdensity},  # deprecated
         dtype={dtype},  # deprecated
-        txt='{directory}/gs.out',
+        txt='{work_dir}/gs.out',
         parallel={parallel})
 layer.calc = calc
 energy = layer.{properties}
-calc.write('{directory}/gs.gpw', mode='all')
+calc.write('{work_dir}/gs.gpw', mode='all')
 
     """
     
