@@ -1,4 +1,4 @@
-from litesoph.io import write2file as write
+from litesoph.io.IO import write2file as write
 from gpaw import GPAW
 
 
