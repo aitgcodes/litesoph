@@ -33,5 +33,5 @@ def write2file(filename, template, input_param) -> None:
     with open(filename, 'w+') as f:
 
         f.truncate()
-        f.seek(0)
+        #f.seek(0)
         f.write(template)
