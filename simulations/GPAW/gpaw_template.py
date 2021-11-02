@@ -48,7 +48,7 @@ calc = GPAW(mode='{mode}',
     fixdensity={fixdensity},  # deprecated
     dtype={dtype},  # deprecated
     txt='{work_dir}/gs.out',
-    parallel=)
+    parallel=None)
 layer.calc = calc
 energy = layer.{properties}
 calc.write('{work_dir}/gs.gpw', mode='all')
