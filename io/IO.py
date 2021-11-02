@@ -1,4 +1,4 @@
-from pathlib import Path
+import pathlib
 
 class user_input:
 
@@ -18,20 +18,22 @@ class user_input:
         'engine':None,
     }
 
-def write2file(filename, template, input_param) -> None:
+def write2file(directory,filename, template, input_param) -> None:
     """Write template to a file.
     
-    filename: str or file
-        full path of the file to write to.
+    directroy: str
+        full path of the directory to write to.
+    filename: str
+        name of the file with extension
     template: str
         script template which needs to be written to file.
     input_param: dict
         dictonary to format tempalte."""
     template = template.format(**input_param)
-    filename = Path(filename)
+    filename = pathlib.Path(directory) / filename
 
     with open(filename, 'w+') as f:
 
         f.truncate()
-        #f.seek(0)
+        f.seek(0)
         f.write(template)
