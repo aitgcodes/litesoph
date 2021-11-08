@@ -1,0 +1,46 @@
+
+Commands to run in terminal:
+
+#To export the path of litesoph type this
+export PYTHONPATH=$PYTHONPATH:'path of the litesoph'
+
+python litesoph/GUI/gui.py
+#This will lead to the landing page of LITESOPH
+
+
+Instructions for GUI :
+
+>> Click the 'Create a new project' button to create new project
+
+>> Enter the project path and name
+
+>> Click 'Create' button #the working directory will be created and all the input, output and uploaded geometry files will be saved here.
+
+>> click 'select' and upload the coordinate file
+
+>> Click 'view' button to visualise the geometry of uploaded file
+
+>> From Job Type drop down options, select the job type:(Ground State/Spectrum/Excited State/Analysis) #default is ground state calcultaion.
+
+   >> For Ground State calculation, select the job type as 'Ground State'
+   >> Click 'Proceed' button
+   >> Next window shows up. Enter the input parameters 
+   >> Click 'GS Input'. Input script for Ground State calculation will be generated
+   >> Click 'Back' to return to previous window.
+   >> Click 'Job Submission' to submit the job.
+   >> Enter the input and click 'Local' to submit the job locally.
+   >> Once the job is done, close the Job Submission window.
+
+   >> For Spectrum calculation, select the job type as 'Spectrum'
+   >> Click 'Proceed' button
+   >> Next window shows up. Enter the input parameters 
+   >> Click 'TD Input'. Input script for Spectrum calculation will be generated
+   >> Click 'Back' to return to previous window.
+   >> Click 'Job Submission' to submit the job.
+   >> Enter the input and click 'LOCAL' to submit the job locally.
+   >> Once the job is done, close the Job Submission window.
+
+>> Once both Ground State and Spectrum job is done,all the input and ouput files will be saved inside the created project folder
+>> To plot the spectrum, Click 'Plot' button. The plot shows up and saved inside the project folder as a png file.
+
+
