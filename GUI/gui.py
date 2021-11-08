@@ -85,11 +85,11 @@ class AITG(Tk):
         #else:
         #    self.show_frame(StartPage)
         
-    def open_file(self):
+    def open_file(self, outpath):
         text_file = filedialog.askopenfilename(initialdir="./", title="Open Text File", filetypes=((" Text Files", "*.xyz"),))
         text_file = open(text_file,'r')
         stuff = text_file.read()
-        out_file = open("coordinate.xyz",'w')
+        out_file = open(outpath+"/coordinate.xyz",'w')
         out_file.write(stuff)
         text_file.close()
         out_file.close()
@@ -223,7 +223,7 @@ class WorkManagerPage(Frame):
 
         self.entry_path = Entry(self.Frame1,textvariable="proj_path")
         self.entry_path['font'] = myFont
-        self.entry_path.insert(0,"/home/")
+        self.entry_path.insert(0,str(Path.home()))
         self.entry_path.place(x=200,y=10)
 
         self.label_proj = Label(self.Frame1,text="Project Name",bg="gray",fg="black")
@@ -239,7 +239,7 @@ class WorkManagerPage(Frame):
        
         #self.task.bind("<<ComboboxSelected>>",task_input)  
        
-        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[messagebox.showinfo("Message", "Done"),projpath.create_path(self.entry_path.get(),self.entry_proj.get())])
+        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),messagebox.showinfo("Message", "Creted folder '"+self.projectpath+"/"+self.projectname+"'")])
         self.button_project['font'] = myFont
         self.button_project.place(x=10,y=300)
   
@@ -261,7 +261,7 @@ class WorkManagerPage(Frame):
         self.Frame2_label_1['font'] = myFont
         self.Frame2_label_1.place(x=10,y=10)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",bg='#0052cc',fg='#ffffff',command=lambda:controller.open_file())
+        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",bg='#0052cc',fg='#ffffff',command=lambda:controller.open_file(self.getprojectdirectory()))
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=10)
 
@@ -293,7 +293,7 @@ class WorkManagerPage(Frame):
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=190)
 
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:controller.task_input(task))
+        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=300)
 
@@ -317,14 +317,14 @@ class WorkManagerPage(Frame):
 
     def geom_visual(self):
         self.init_visualization()
-        cmd=self.visn.vistool["name"] + " coordinate.xyz"
+        cmd=self.visn.vistool["name"] + " " + self.getprojectdirectory()+"/coordinate.xyz"
         os.system(cmd)
         #os.system('VESTA coordinate.xyz')
         
     def spectrum_show(self):
         # os.system('python spec_plot.py')
         plot_spectra()
-        img =Image.open('spec.png')
+        img =Image.open(self.getprojectdirectory()+'/spec.png')
         img.show()
 
 
@@ -369,6 +369,13 @@ class WorkManagerPage(Frame):
 
     def submitjob_network(self):
         pass
+
+    def retrieve_input(self):
+        self.projectpath = self.entry_path.get()
+        self.projectname = self.entry_proj.get()
+
+    def getprojectdirectory(self):
+        return self.projectpath+"/"+self.projectname
 
 class GroundState_gpaw(Frame):
 
@@ -545,7 +552,7 @@ class TimeDependent_gpaw(Frame):
         entry_Nt.place(x=600, y=300 )
 
 
-        enter = ttk.Button(self, text="TD Input", style="TButton", command=lambda:esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get()))
+        enter = ttk.Button(self, text="TD Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Spectra calculation is Created"), esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get())])
         enter.place(x=300,y=350)
 
         back = ttk.Button(self, text="BACK",style="TButton",command=lambda:controller.show_frame(WorkManagerPage))
