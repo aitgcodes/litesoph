@@ -9,7 +9,7 @@ class user_input:
         'xc': None,
         'spinpol':None,
         'tolerance':None,
-        'convergance': {},
+        'convergence': None,
         'basis':None,
         'vacuum':None,
         'h': None,
