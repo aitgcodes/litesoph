@@ -3,7 +3,7 @@
 
 from litesoph.io.IO import user_input as ui
 from litesoph.simulations.esmd import ground_state 
-from litesoph.simulations import esmd
+from litesoph.simulations import engine
 
 #  define input parameters
 input_par = {'xc':'PBE',
@@ -13,13 +13,13 @@ input_par = {'xc':'PBE',
              'properties':'get_potential_energy()',
              'work_dir':'/home/sachin/Downloads', # give path to your working directory
              'vacuum': 6,
-             'basis':'pw' }
+             'basis':'dzp'}
 
 ui.user_param.update(input_par) # update the user parameters
 user_input = ui.user_param
 print(user_input)
 
-engine = esmd.choose_engine(user_input) # decide engine from user input
+engine = engine.choose_engine(user_input) # decide engine from user input
 
 # pass engine and user_input to ground_state class
 # To create gpaw script for ground state calculation.
