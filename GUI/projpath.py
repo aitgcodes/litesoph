@@ -10,7 +10,7 @@ def create_path(projpath,projname):
     try:
         newpath.mkdir(parents=True, exist_ok=False)
     except FileExistsError:
-        print("Folder is already exists")
+        print("Folder is created")
     else:
-        print("Folder was created")
+        print("Folder already exist")
 

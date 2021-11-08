@@ -24,13 +24,13 @@ import matplotlib as mpl
 #from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 #----LITESOPH wrappers
-#from litesoph.simulations.esmd import *
+#from simulations.esmd import *
 
 #---LITESOPH modules
-from inputjob import TimeDependent_gpaw
+#from inputjob import TimeDependent_gpaw
 from menubar import MainMenu
 #from inputjob2 import *
-import esmd
+from litesoph.simulations import esmd
 import projpath
 from spec_plot import plot_spectra
 
@@ -363,8 +363,8 @@ class WorkManagerPage(Frame):
         sbj_button3.place(x=400,y=400)
 
     def submitjob_local(self):
-        os.system('mpirun -np 4 python gs.py')
-        os.system('mpirun -np 4 python td.py')
+        os.system('python gs.py')
+        os.system('python td.py')
         os.system('python spec.py')
 
     def submitjob_network(self):
