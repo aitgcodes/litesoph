@@ -1,8 +1,5 @@
 from typing import Any, Dict
-
-from ase.calculators.calculator import InputError, Parameters
 from litesoph.io.IO import write2file 
-from gpaw import GPAW
 from litesoph.simulations.GPAW import gpaw_template as gpaw
 from abc import ABC, abstractclassmethod
 
