@@ -31,12 +31,12 @@ class EngineStrategy(ABC):
     def excute():
         pass
 
-class Enginegpaw(EngineStrategy):
+class EngineGpaw(EngineStrategy):
 
-    tasks = [gpaw.gpaw_ground_state(),
-                gpaw.lr_tddft(),
-                gpaw.rt_lcao_tddft(),
-                gpaw.induced_density(),]
+    tasks = [gpaw.GpawGroundState(),
+                gpaw.LrTddft(),
+                gpaw.RtLcaoTddft(),
+                gpaw.InducedDensity(),]
 
     def engine_name():
         """retruns engine name"""
@@ -55,7 +55,7 @@ class Enginegpaw(EngineStrategy):
 
     def get_task_class(self, task: str):
         if task == "ground state":
-            return gpaw.gpaw_ground_state()
+            return gpaw.GpawGroundState()
             
     def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
@@ -70,7 +70,7 @@ class Enginegpaw(EngineStrategy):
     def excute():
         pass
 
-class Engineoctopus(EngineStrategy):
+class EngineOctopus(EngineStrategy):
 
     def engine_name():
         """retruns engine name"""
@@ -94,7 +94,7 @@ class Engineoctopus(EngineStrategy):
     def excute():
         pass
 
-class Enginenwchem(EngineStrategy):
+class EngineNwchem(EngineStrategy):
 
     def engine_name():
         """retruns engine name"""
@@ -121,9 +121,9 @@ class Enginenwchem(EngineStrategy):
 
 def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
     
-    list_engine = [Enginegpaw(),
-                    Engineoctopus(),
-                    Enginenwchem()]
+    list_engine = [EngineGpaw(),
+                    EngineOctopus(),
+                    EngineNwchem()]
 
     for engine in list_engine:
         if engine.check_compatability(user_input):

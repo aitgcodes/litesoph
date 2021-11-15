@@ -1,8 +1,8 @@
 # export the path of the directroy containing litesoph
 # export PYTHONPATH=$PYTHONPATH:path/to/directory
 
-from litesoph.io.IO import user_input as ui
-from litesoph.simulations.esmd import ground_state 
+from litesoph.io.IO import UserInput as ui
+from litesoph.simulations.esmd import GroundState
 from litesoph.simulations import engine
 
 #  define input parameters
@@ -23,4 +23,4 @@ engine = engine.choose_engine(user_input) # decide engine from user input
 
 # pass engine and user_input to ground_state class
 # To create gpaw script for ground state calculation.
-ground_state(user_input, engine)
+GroundState(user_input, engine)
