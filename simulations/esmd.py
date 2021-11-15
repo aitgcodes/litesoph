@@ -2,7 +2,7 @@ from typing import Any, Dict
 from ase.calculators.calculator import InputError
 from litesoph.simulations.engine import EngineStrategy
 
-class ground_state:
+class GroundState:
     """It takes in the user input dictionary as input. It then decides the engine and converts 
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
@@ -18,7 +18,7 @@ class ground_state:
         else:
             raise InputError("Input parameters not compatable with the engine")
 
-        
+
 class RT_TDDFT:
     pass
 
