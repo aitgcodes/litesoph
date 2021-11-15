@@ -2,7 +2,7 @@ from typing import Any, Dict
 from ase.calculators.calculator import InputError
 from litesoph.simulations.engine import EngineStrategy
 
-class GroundState:
+class ground_state:
     """It takes in the user input dictionary as input. It then decides the engine and converts 
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
