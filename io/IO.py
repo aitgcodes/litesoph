@@ -1,6 +1,6 @@
 import pathlib
 
-class user_input:
+class UserInput:
 
     user_param = {
         'work_dir': None,

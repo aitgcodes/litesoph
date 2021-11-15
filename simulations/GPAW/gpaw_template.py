@@ -1,7 +1,7 @@
 from typing import Any, Dict
 from gpaw import GPAW
 
-class gpaw_ground_state:
+class GpawGroundState:
     """This class contains the default parameters and the template for creating gpaw 
     scripts for ground state calculations."""
     default_param = GPAW.default_parameters
@@ -73,11 +73,13 @@ calc.write('{work_dir}/gs.gpw', mode='all')
         return parameters
 
      
-class rt_lcao_tddft:
+class RtLcaoTddft:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
 
-    user_input = {}
+    user_input = {'absorption_kick': None,
+                'propagate': None,
+                'directroy': None}
 
     analysis_tools = [
         'DipoleMomentWriter()',
@@ -102,7 +104,7 @@ td_calc.write('{directory}td.gpw', mode='all')
     
 
     
-class lr_tddft:
+class LrTddft:
     """This class contains the template  for creating gpaw 
     scripts for  linear response tddft calculations."""
 
@@ -111,6 +113,6 @@ class lr_tddft:
 
 
 
-class induced_density:
+class InducedDensity:
     """Contains template to calculate induced density from density matrix."""
 
