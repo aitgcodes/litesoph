@@ -42,20 +42,14 @@ class EngineGpaw(EngineStrategy):
         """retruns engine name"""
         return 'gpaw'
 
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
-        """checks the compatability of the input parameters with gpaw engine"""
-        
-        if user_param['mode'] not in ['fd', 'lcao', 'paw'] and  user_param['engine'] == 'gpaw':
-            raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
-        
-        if user_param['engine'] == 'gpaw':
-            return  True
-        else:
-            return False
-
     def get_task_class(self, task: str):
         if task == "ground state":
             return gpaw.GpawGroundState()
+
+    def check_compatability(self, user_param:Dict[str, Any], task ) -> bool:
+        """checks the compatability of the input parameters with gpaw engine"""
+        
+        return task.check(user_param)
             
     def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
