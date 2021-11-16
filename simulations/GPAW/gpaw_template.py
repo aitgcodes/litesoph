@@ -55,6 +55,15 @@ energy = layer.get_potential_energy
 calc.write('{work_dir}/gs.gpw', mode='all')
 
     """
+    def check(self, user_param):
+
+        if user_param['mode'] not in ['fd', 'lcao', 'paw'] and  user_param['engine'] == 'gpaw':
+            raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
+        
+        if user_param['engine'] == 'gpaw':
+            return  True
+        else:
+            return False
 
     def user2gpaw(self, user_input: Dict[str, Any], default_parameters: Dict[str, Any]) -> Dict[str, Any]:
         import os
