@@ -120,7 +120,8 @@ def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
                     EngineNwchem()]
 
     for engine in list_engine:
-        if engine.check_compatability(user_input):
+        task = engine.get_task_class("ground state")
+        if engine.check_compatability(user_input, task):
             return engine
         else:
             raise ValueError('engine not implemented')

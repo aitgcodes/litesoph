@@ -51,7 +51,7 @@ calc = GPAW(mode='{mode}',
     txt='{work_dir}/gs.out',
     parallel=None)
 layer.calc = calc
-energy = layer.get_potential_energy
+energy = layer.get_potential_energy()
 calc.write('{work_dir}/gs.gpw', mode='all')
 
     """
