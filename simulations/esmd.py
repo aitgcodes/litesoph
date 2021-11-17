@@ -10,16 +10,16 @@ class GroundState:
     def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy) -> None:
         self.user_input = user_input
         self.engine = engine
-        task = self.engine.get_task_class(task='ground state')
+        self.task = self.engine.get_task_class(task='ground state')
 
-        if self.engine.check_compatability(self.user_input, task):
-            parameters = self.engine.engine_input_para(user_param=self.user_input, default_param= task.default_param, task=task)
-            engine.create_script(self.user_input['work_dir'], 'gs', task.gs_template, parameters)
+        if self.engine.check_compatability(self.user_input, self.task):
+            parameters = self.engine.engine_input_para(user_param=self.user_input, default_param= self.task.default_param, task=self.task)
+            engine.create_script(self.user_input['work_dir'], 'gs', self.task.gs_template, parameters)
         else:
             raise InputError("Input parameters not compatable with the engine")
 
 
-class RT_TDDFT:
+class RT_LCAO_TDDFT:
     pass
 
 class LR_TDDFT:
