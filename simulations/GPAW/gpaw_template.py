@@ -15,6 +15,7 @@ from gpaw.eigensolvers import CG
 from gpaw import GPAW, FermiDirac
 from gpaw import Mixer, MixerSum, MixerDif
 from gpaw.lcao.eigensolver import DirectLCAO
+from numpy import inf
 
 # Molecule or nanostructure
 layer = read('{geometry}')
