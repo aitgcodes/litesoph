@@ -3,19 +3,24 @@ from litesoph.io.IO import write2file
 from litesoph.simulations.GPAW import gpaw_template as gpaw
 from abc import ABC, abstractclassmethod
 
+
 class EngineStrategy(ABC):
+    """Abstract base calss for the different engine."""
+
+    tasks =[]
+
     @abstractclassmethod
     def engine_name():
         """retruns engine name"""
         pass
-
+    
     @abstractclassmethod
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
-        """checks the compatability of the input parameters with the engine"""
+    def get_task_class( task: str):
         pass
 
     @abstractclassmethod
-    def get_task_class( task: str):
+    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
+        """checks the compatability of the input parameters with the engine"""
         pass
 
     @abstractclassmethod
@@ -36,7 +41,7 @@ class EngineGpaw(EngineStrategy):
     tasks = [gpaw.GpawGroundState(),
                 gpaw.LrTddft(),
                 gpaw.RtLcaoTddft(),
-                gpaw.InducedDensity(),]
+                gpaw.InducedDensity()]
 
     def engine_name():
         """retruns engine name"""
@@ -46,7 +51,7 @@ class EngineGpaw(EngineStrategy):
         if task == "ground state":
             return gpaw.GpawGroundState()
 
-    def check_compatability(self, user_param:Dict[str, Any], task ) -> bool:
+    def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
         
         return task.check(user_param)
@@ -66,16 +71,18 @@ class EngineGpaw(EngineStrategy):
 
 class EngineOctopus(EngineStrategy):
 
+    tasks = []
+
     def engine_name():
         """retruns engine name"""
         return 'octopus '
 
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
-        """checks the compatability of the input parameters with gpaw engine"""
-        return False
-
     def get_task_class(self, task: str):
         pass
+    
+    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
+        """checks the compatability of the input parameters with gpaw engine"""
+        return False
 
     def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
@@ -90,17 +97,19 @@ class EngineOctopus(EngineStrategy):
 
 class EngineNwchem(EngineStrategy):
 
+    tasks = []
+
     def engine_name():
         """retruns engine name"""
         return 'nwchem'
 
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
+    def get_task_class(self, task: str):
+        pass
+
+    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
 
         return False
-
-    def get_task_class(self, task: str):
-        pass
 
     def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
