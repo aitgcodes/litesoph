@@ -15,6 +15,7 @@ from gpaw.eigensolvers import CG
 from gpaw import GPAW, FermiDirac
 from gpaw import Mixer, MixerSum, MixerDif
 from gpaw.lcao.eigensolver import DirectLCAO
+from numpy import inf
 
 # Molecule or nanostructure
 layer = read('{geometry}')
@@ -51,12 +52,23 @@ calc = GPAW(mode='{mode}',
     txt='{work_dir}/gs.out',
     parallel=None)
 layer.calc = calc
-energy = layer.get_potential_energy
+energy = layer.get_potential_energy()
 calc.write('{work_dir}/gs.gpw', mode='all')
 
     """
+    def check(self, user_param)-> bool:
+        """checks whether user given input parameters is compatable with with gpaw ground state calculation"""
+
+        if user_param['mode'] not in ['fd', 'lcao', 'paw'] and  user_param['engine'] == 'gpaw':
+            raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
+        
+        if user_param['engine'] == 'gpaw':
+            return  True
+        else:
+            return False
 
     def user2gpaw(self, user_input: Dict[str, Any], default_parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """converts general user given parameters to gpaw specific parameters."""
         import os
         parameters = default_parameters
         
