@@ -3,19 +3,24 @@ from litesoph.io.IO import write2file
 from litesoph.simulations.GPAW import gpaw_template as gpaw
 from abc import ABC, abstractclassmethod
 
+
 class EngineStrategy(ABC):
+    """Abstract base calss for the different engine."""
+
+    tasks =[]
+
     @abstractclassmethod
     def engine_name():
         """retruns engine name"""
         pass
-
+    
     @abstractclassmethod
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
-        """checks the compatability of the input parameters with the engine"""
+    def get_task_class( task: str):
         pass
 
     @abstractclassmethod
-    def get_task_class( task: str):
+    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
+        """checks the compatability of the input parameters with the engine"""
         pass
 
     @abstractclassmethod
@@ -36,26 +41,20 @@ class EngineGpaw(EngineStrategy):
     tasks = [gpaw.GpawGroundState(),
                 gpaw.LrTddft(),
                 gpaw.RtLcaoTddft(),
-                gpaw.InducedDensity(),]
+                gpaw.InducedDensity()]
 
     def engine_name():
         """retruns engine name"""
         return 'gpaw'
 
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
-        """checks the compatability of the input parameters with gpaw engine"""
-        
-        if user_param['mode'] not in ['fd', 'lcao', 'paw'] and  user_param['engine'] == 'gpaw':
-            raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
-        
-        if user_param['engine'] == 'gpaw':
-            return  True
-        else:
-            return False
-
     def get_task_class(self, task: str):
         if task == "ground state":
             return gpaw.GpawGroundState()
+
+    def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
+        """checks the compatability of the input parameters with gpaw engine"""
+        
+        return task.check(user_param)
             
     def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
@@ -72,16 +71,18 @@ class EngineGpaw(EngineStrategy):
 
 class EngineOctopus(EngineStrategy):
 
+    tasks = []
+
     def engine_name():
         """retruns engine name"""
         return 'octopus '
 
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
-        """checks the compatability of the input parameters with gpaw engine"""
-        return False
-
     def get_task_class(self, task: str):
         pass
+    
+    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
+        """checks the compatability of the input parameters with gpaw engine"""
+        return False
 
     def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
@@ -96,17 +97,19 @@ class EngineOctopus(EngineStrategy):
 
 class EngineNwchem(EngineStrategy):
 
+    tasks = []
+
     def engine_name():
         """retruns engine name"""
         return 'nwchem'
 
-    def check_compatability(self, user_param:Dict[str, Any]) -> bool:
+    def get_task_class(self, task: str):
+        pass
+
+    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
 
         return False
-
-    def get_task_class(self, task: str):
-        pass
 
     def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
@@ -126,7 +129,8 @@ def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
                     EngineNwchem()]
 
     for engine in list_engine:
-        if engine.check_compatability(user_input):
+        task = engine.get_task_class("ground state")
+        if engine.check_compatability(user_input, task):
             return engine
         else:
             raise ValueError('engine not implemented')
