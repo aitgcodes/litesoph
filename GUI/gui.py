@@ -270,7 +270,7 @@ class WorkManagerPage(Frame):
      
         #self.task.bind("<<ComboboxSelected>>",task_input)  
        
-        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),messagebox.showinfo("Message", "Created folder '"+self.projectpath+"/"+self.projectname+"'")])
+        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname)])
         self.button_project['font'] = myFont
         self.button_project.place(x=10,y=300)
       
