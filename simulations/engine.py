@@ -50,6 +50,8 @@ class EngineGpaw(EngineStrategy):
     def get_task_class(self, task: str):
         if task == "ground state":
             return gpaw.GpawGroundState()
+        if task == "LCAO TDDFT":
+            return gpaw.RtLcaoTddft()
 
     def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
