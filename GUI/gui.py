@@ -20,8 +20,6 @@ from urllib.request import urlopen
 #from pandas import DataFrame
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from filehandler import *
-
 #import seaborn as sns
 #from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -33,11 +31,13 @@ from filehandler import *
 from menubar import MainMenu
 #from inputjob2 import *
 from litesoph.simulations import esmd
-import projpath
-from spec_plot import plot_spectra
+from litesoph.GUI import projpath
+from litesoph.GUI.spec_plot import plot_spectra
 from litesoph.io.IO import UserInput as ui
 from litesoph.simulations.esmd import GroundState
 from litesoph.simulations import engine
+from filehandler import *
+
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
