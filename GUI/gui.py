@@ -37,7 +37,7 @@ from litesoph.io.IO import UserInput as ui
 from litesoph.simulations.esmd import GroundState
 from litesoph.simulations import engine
 from filehandler import *
-
+from litesoph.GUI.navigation import Nav
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
@@ -59,8 +59,12 @@ class AITG(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         MainMenu(self)
+        path=str(Path.home())
+        Nav(self,path)
+        
         window = Frame(self)
-        window.pack(side="top", fill = "both", expand = True)
+        window.grid(row=0, column=2)
+        #window.pack(side="top", fill = "both", expand = True)
         window.grid_rowconfigure(700,weight=700)
         window.grid_columnconfigure(600,weight=400)
         
