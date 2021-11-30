@@ -28,11 +28,11 @@ import matplotlib as mpl
 
 #---LITESOPH modules
 #from inputjob import TimeDependent_gpaw
-from menubar import MainMenu
+from litesoph.GUI.menubar import MainMenu
 #from inputjob2 import *
 from litesoph.simulations import esmd
-import projpath
-from spec_plot import plot_spectra
+from litesoph.GUI import projpath
+from litesoph.GUI.spec_plot import plot_spectra
 
 
 TITLE_FONT = ("Helvetica", 18, "bold")
