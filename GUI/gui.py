@@ -20,7 +20,7 @@ from urllib.request import urlopen
 #from pandas import DataFrame
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-#from filehandler import *
+from filehandler import *
 
 #import seaborn as sns
 #from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -94,13 +94,44 @@ class AITG(Tk):
         text_file.close()
         out_file.close()
         
+        
     def open_existing_project(self):
         oldProject = filedialog.askdirectory()
 
-    def runjob(self,fpath:str):
+    def runpython(self,fpath:str):
         subprocess.run(["python", fpath])
- 
 
+    # def show_message(self,label_name,message):
+    #     """
+    #     Shows a update
+    #     """
+    #     label_name['text'] = message
+    #     label_name['foreground'] = 'black'    
+ 
+    def gui_inp(self,task,**gui_dict):
+        if task == 'gs':
+            ui.user_param.update(gui_dict) # update the user parameters
+            user_input = ui.user_param
+            print(user_input)
+            user_input['work_dir'] = user_path
+            user_input['geometry'] = user_path+"/coordinate.xyz"
+            print(user_input)
+            engn = engine.choose_engine(user_input)
+            GroundState(user_input, engn)
+        if task == 'td':
+            pass
+
+    # def keys2list(self):
+    #     u = ui()
+    #     user_dict = u.user_param
+    #     key_list = list(user_dict.keys())
+        
+    #     for key in key_list:
+    #         print(key)
+    #         key = StringVar()
+    #         user_dict['key']=key.get()
+    #     return user_dict    
+          
 class StartPage(Frame):
 
     def __init__(self, parent, controller):
@@ -191,7 +222,7 @@ class StartPage(Frame):
         canvas_for_project_open.image = ImageTk.PhotoImage(image_project_open.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_open.create_image(0,0, image=canvas_for_project_open.image, anchor='nw')
 
-        button_open_project = Button(mainframe,text="Open an existing project", bg="black",fg="white",command=lambda:controller.existing_project())
+        button_open_project = Button(mainframe,text="Open an existing project", bg="black",fg="white",command=lambda:controller.open_existing_project())
         button_open_project['font'] = myFont
         button_open_project.place(x=80,y=300)
 
@@ -255,9 +286,13 @@ class WorkManagerPage(Frame):
         self.Frame2_label_1['font'] = myFont
         self.Frame2_label_1.place(x=10,y=10)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",bg='#0052cc',fg='#ffffff',command=lambda:controller.open_file(self.getprojectdirectory()))
+        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",bg='#0052cc',fg='#ffffff',command=lambda:[controller.open_file(self.getprojectdirectory()),show_message(self.message_label,"Uploaded")])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=10)
+
+        self.message_label = Label(self.Frame2, text='', foreground='red')
+        self.message_label['font'] = myFont
+        self.message_label.place(x=270,y=15)
 
         self.Frame2_label_2 = Label(self.Frame2, text="Geometry",bg='gray',fg='black')        
         self.Frame2_label_2['font'] = myFont
@@ -271,10 +306,11 @@ class WorkManagerPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=130)
 
-        task =  ttk.Combobox(self.Frame2, values=["Ground State","Spectrum","Excited State","Analysis"])
+        task = ttk.Combobox(self.Frame2, values=["Ground State","Spectrum","Excited State","Analysis"])
         task.current(0)
         task['font'] = l
         task.place(x=200,y=130)
+        # task.bind("<<ComboboxSelected>>", controller.task_input(task))
                 
         self.Frame2_label_3 = Label(self.Frame2, text="Plot Spectrum",bg='gray',fg='black')
         self.Frame2_label_3['font'] = myFont
@@ -292,6 +328,7 @@ class WorkManagerPage(Frame):
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=100,y=300)
        
+           
     def init_visualization(self):
         visn = VISUAL()
         for tool in ["vmd","VMD","VESTA","vesta"]:
@@ -320,10 +357,11 @@ class WorkManagerPage(Frame):
 
 
     def submit_job(self):
+        
         top1 = Toplevel()
         top1.geometry("700x600")
         top1.title("Job Handler for Excited state properties")
-
+        #self.controller = controller
         cores_1 = StringVar()
 
         myFont = font.Font(family='Helvetica', size=15, weight='bold')
@@ -339,12 +377,15 @@ class WorkManagerPage(Frame):
         sbj_entry1.insert(0," ")
         sbj_entry1['font'] = l
         sbj_entry1.place(x=400, y=20)
-
-               
-        #sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:submitjob('gs'))
-        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=self.submitjob_local)
+             
+        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[self.submitjob_local(),show_message(msg_label1, "Job submitted locally")])
+        #sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=self.submitjob_local)
         sbj_button1['font'] = myFont
-        sbj_button1.place(x=200, y=300)
+        sbj_button1.place(x=100, y=300)
+
+        msg_label1 = Label(top1, text='', fg='#ffffff')
+        msg_label1['font'] = myFont
+        msg_label1.place(x=100,y=250)
 
         sbj_button2 = Button(top1, text="NETWORK",bg='#0052cc', fg='#ffffff',command=self.submitjob_network)
         sbj_button2['font'] = myFont
@@ -380,10 +421,13 @@ class GroundState_gpaw(Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
-        spacing   = StringVar()
-        bands = StringVar()
+        
+        h   = StringVar()
+        nbands = StringVar()
         vacuum = StringVar()
+        mode = StringVar()
+        xc = StringVar()
+        basis = StringVar()
         cores = StringVar()
         maxiter = StringVar()
         width = StringVar()
@@ -404,7 +448,7 @@ class GroundState_gpaw(Frame):
         label_mode = Label(self,text = "Mode", font =myFont,bg="grey60",fg="gainsboro")
         label_mode.place(x=5,y=10)
 
-        self.drop_mode =  ttk.Combobox(self, values=[ "lcao", "fd","pw","gaussian"])
+        self.drop_mode =  ttk.Combobox(self, textvariable= mode, values=[ "lcao", "fd","pw","gaussian"])
         self.drop_mode.current(0)
         self.drop_mode['font'] = myFont
         self.drop_mode.place(x=250,y=10)
@@ -412,7 +456,7 @@ class GroundState_gpaw(Frame):
         label_ftype = Label(self, text= "Exchange Correlation", font =myFont,bg="grey60",fg="gainsboro")
         label_ftype.place(x=5,y=50)
 
-        self.drop_ftype =  ttk.Combobox(self, values=["PBE", "LDA","B3LYP"])
+        self.drop_ftype =  ttk.Combobox(self, textvariable= xc, values=["PBE", "LDA","B3LYP"])
         self.drop_ftype.current(0)
         self.drop_ftype['font'] = myFont
         self.drop_ftype.place(x=250, y=50)
@@ -420,7 +464,7 @@ class GroundState_gpaw(Frame):
         label_basis = Label(self, text= "Basis", font =myFont,bg="grey60",fg="gainsboro" )
         label_basis.place(x=5,y=100)
 
-        self.drop_basis =  ttk.Combobox(self, values=["dzp","pvalence.dz","6-31+G*","6-31+G","6-31G*","6-31G","3-21G","cc-pvdz"])
+        self.drop_basis =  ttk.Combobox(self, textvariable= basis, values=["dzp","pvalence.dz","6-31+G*","6-31+G","6-31G*","6-31G","3-21G","cc-pvdz"])
         self.drop_basis.current(0)
         self.drop_basis['font'] = myFont
         self.drop_basis.place(x=250,y=100)
@@ -428,7 +472,7 @@ class GroundState_gpaw(Frame):
         label_spacing= Label(self, text= "Spacing (in a.u)", font =myFont,bg="grey60",fg="gainsboro"  )
         label_spacing.place(x=5,y=150)
 
-        self.entry_spacing = ttk.Entry(self,textvariable="spacing")
+        self.entry_spacing = ttk.Entry(self,textvariable= h)
         self.entry_spacing['font'] = myFont
         self.entry_spacing.insert(0,"0.3")
         self.entry_spacing.place(x= 250, y =150 )
@@ -436,49 +480,73 @@ class GroundState_gpaw(Frame):
         label_bands = Label(self, text= "Number of bands",  font =myFont,bg="grey60",fg="gainsboro"  )
         label_bands.place(x=5,y=200)
 
-        self.entry_bands=ttk.Entry(self,textvariable="bands")
+        self.entry_bands=ttk.Entry(self,textvariable= nbands)
         self.entry_bands['font']=myFont
         self.entry_bands.place(x=250,y=200)
 
         label_vacuum = Label(self,text="Vacuum size (in Angstrom)", font =myFont,bg="grey60",fg="gainsboro")
         label_vacuum.place(x=5,y=250)
 
-        self.entry_vacuum=ttk.Entry(self,textvariable="vacuum")
+        self.entry_vacuum=ttk.Entry(self,textvariable= vacuum)
         self.entry_vacuum['font'] = myFont
         self.entry_vacuum.insert(0,"6")
         self.entry_vacuum.place(x=250,y=250)
-
+               
         #enter = ttk.Button(self, text="Create Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input Created")])
-                
+            
         #enter.place(x=900,y=900)
         #enter = ttk.Button(self, text="GS Input", style="TButton", command=lambda:[esmd.dft_input_file(drop_mode.get(), drop_ftype.get(), drop_basis.get(), entry_spacing.get(), entry_bands.get(), entry_vacuum.get()), messagebox.showinfo("Message", "Input for ground state calculation is Created")])
         
-        enter = ttk.Button(self, text="GS Input", style="TButton", command=lambda:[inp2dict(),messagebox.showinfo("Message", "Input for ground state calculation is Created")])
+        enter = ttk.Button(self, text="GS Input", style="TButton", command=lambda:[controller.gui_inp('gs',**inp2dict()),messagebox.showinfo("Message", "Input for ground state calculation is Created")])
         enter.place(x=250,y=330)
         #enter = ttk.Button(self, text="Create Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input Created"), esmd.dft_input_file(drop_mode.get(), drop_ftype.get(), drop_basis.get())
         back_gpaw = ttk.Button(self, text="Back",style="TButton",command=lambda:controller.show_frame(WorkManagerPage))
         back_gpaw.place(x=450,y=330)
         #enter.place(x=900,y=900)
-                            
-                   
+        
+        # def keys2list():
+        #   u = ui()
+        #   user_dict = u.user_param
+        #    key_list = list(user_dict.keys())
+        
+        #   for key in user_dict.keys():
+        #       print(key)
+        #       key = StringVar()
+        #       user_dict['key']=key.get()
+        #   return user_dict 
+      
+      
         def inp2dict():
             inp_dict = {
-             'work_dir': user_path,
-             'mode': self.drop_mode.get(),
-             'geometry': user_path+"/coordinate.xyz",
-             'xc': self.drop_ftype.get(),
-             'basis':self.drop_basis.get(),
-             'vacuum':self.entry_vacuum.get(),
-             'h': self.entry_spacing.get(),
-             'nbands' : self.entry_bands.get(),
+             'mode': mode.get(),
+             'xc': xc.get(),
+             'basis': basis.get(),
+             'vacuum': vacuum.get(),
+             'h': h.get(),
+             'nbands' : nbands.get(),
              'properties': 'get_potential_energy()',
              'engine':'gpaw'
-                     }    
-            ui.user_param.update(inp_dict) # update the user parameters
-            user_input = ui.user_param
-            print(user_input)
-            engn = engine.choose_engine(user_input)
-            GroundState(user_input, engn)         
+                     }          
+            return inp_dict    
+                
+        # def inp2dict():
+        #     inp_dict = {
+        #      'work_dir': user_path,
+        #      'mode': self.drop_mode.get(),
+        #      'geometry': user_path+"/coordinate.xyz",
+        #      'xc': self.drop_ftype.get(),
+        #      'basis':self.drop_basis.get(),
+        #      'vacuum':self.entry_vacuum.get(),
+        #      'h': self.entry_spacing.get(),
+        #      'nbands' : self.entry_bands.get(),
+        #      'properties': 'get_potential_energy()',
+        #      'engine':'gpaw'
+        #              }    
+            # ui.user_param.update(inp_dict) # update the user parameters
+            # user_input = ui.user_param
+            # print(user_input)
+            # engn = engine.choose_engine(user_input)
+            # GroundState(user_input, engn)         
             # gui_ui =ui()
             # inp_dict = gui_ui.user_param
         
