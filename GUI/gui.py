@@ -104,22 +104,13 @@ class AITG(Tk):
 
     def runpython(self,fpath:str):
         subprocess.run(["python", fpath])
-
-    # def show_message(self,label_name,message):
-    #     """
-    #     Shows a update
-    #     """
-    #     label_name['text'] = message
-    #     label_name['foreground'] = 'black'    
- 
+     
     def gui_inp(self,task,**gui_dict):
         if task == 'gs':
             ui.user_param.update(gui_dict) # update the user parameters
             user_input = ui.user_param
-            print(user_input)
             user_input['work_dir'] = user_path
             user_input['geometry'] = user_path+"/coordinate.xyz"
-            print(user_input)
             engn = engine.choose_engine(user_input)
             GroundState(user_input, engn)
         if task == 'td':
