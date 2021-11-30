@@ -1,16 +1,28 @@
 from pathlib import Path
+from tkinter import messagebox
 
 def create_path(projpath,projname):
     path = Path(projpath)
 
     newpath = path / str(projname)
 
-    Path.mkdir(newpath)
-
     try:
         newpath.mkdir(parents=True, exist_ok=False)
     except FileExistsError:
-        print("Folder is created")
+        messagebox.showinfo("Message", f"project:{newpath} already exists")
     else:
-        print("Folder already exist")
+        messagebox.showinfo("Message", f"project:{newpath} is created successfully")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
