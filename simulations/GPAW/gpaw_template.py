@@ -89,13 +89,15 @@ class RtLcaoTddft:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
 
-    user_input = {'absorption_kick': None,
-                'propagate': None,
-                'directroy': None}
+    user_input = {'absorption_kick': [1e-5, 0.0, 0.0],
+                'propagate': (20, 1500),
+                'directory': None,
+                'module': None,
+                'analysis_tools': None}
 
     analysis_tools = [
-        'DipoleMomentWriter()',
-        'WaveFunctionWriter()',
+        ('DipoleMomentWriter()','from gpaw.lcaotddft.dipolemomemtwriter import DipoleMomentWriter'),
+        ('WaveFunctionWriter()','from gpaw.lcaotddft.wfwriter import WaveFunctionWriter')
 
     ]
     
@@ -107,12 +109,15 @@ td_calc = LCAOTDDFT('gs.gpw', txt='tdx.out')
 DipoleMomentWriter(td_calc, 'dm.dat')
 {analysis_tools}
 # Kick
-td_calc.absorption_kick([{absorption_kick}])
+td_calc.absorption_kick({absorption_kick})
 # Propagate"
-td_calc.propagate({propagate})
+td_calc.propagate{propagate}
 # Save the state for restarting later"
 td_calc.write('{directory}td.gpw', mode='all')
     """
+
+    def check():
+        pass
     
 
     

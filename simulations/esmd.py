@@ -20,8 +20,15 @@ class GroundState:
 
 
 class RT_LCAO_TDDFT:
-    pass
+    
+    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy, directory) -> None:
+        self.user_input = user_input
+        self.engine = engine
+        self.task = self.engine.get_task_class(task='LCAO TDDFT')
+        self.directory = directory
 
+        engine.create_script(self.directory, 'td', self.task.lcao_tddft_template , self.user_input)
+        
 class LR_TDDFT:
     pass
 
