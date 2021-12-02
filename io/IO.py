@@ -3,7 +3,7 @@ import pathlib
 class UserInput:
 
     user_param = {
-        'work_dir': None,
+        'directory': None,
         'mode': None,
         'geometry': None,
         'xc': None,

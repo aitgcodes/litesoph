@@ -91,7 +91,7 @@ class AITG(Tk):
         if task == 'gs':
             ui.user_param.update(gui_dict) # update the user parameters
             user_input = ui.user_param
-            user_input['work_dir'] = user_path
+            user_input['directory'] = user_path
             user_input['geometry'] = user_path+"/coordinate.xyz"
             engn = engine.choose_engine(user_input)
             GroundState(user_input, engn)

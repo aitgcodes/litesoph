@@ -14,7 +14,7 @@ class GroundState:
 
         if self.engine.check_compatability(self.user_input, self.task):
             parameters = self.engine.engine_input_para(user_param=self.user_input, default_param= self.task.default_param, task=self.task)
-            engine.create_script(self.user_input['work_dir'], 'gs', self.task.gs_template, parameters)
+            engine.create_script(self.user_input['directory'], 'gs', self.task.gs_template, parameters)
         else:
             raise InputError("Input parameters not compatable with the engine")
 
@@ -26,6 +26,7 @@ class RT_LCAO_TDDFT:
         self.engine = engine
         self.task = self.engine.get_task_class(task='LCAO TDDFT')
         self.directory = directory
+        self.user_input['directory']=self.directory
 
         engine.create_script(self.directory, 'td', self.task.lcao_tddft_template , self.user_input)
         

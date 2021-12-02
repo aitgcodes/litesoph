@@ -49,11 +49,11 @@ calc = GPAW(mode='{mode}',
     verbose={verbose},
     fixdensity={fixdensity},  # deprecated
     dtype={dtype},  # deprecated
-    txt='{work_dir}/gs.out',
+    txt='{directory}/gs.out',
     parallel=None)
 layer.calc = calc
 energy = layer.get_potential_energy()
-calc.write('{work_dir}/gs.gpw', mode='all')
+calc.write('{directory}/gs.gpw', mode='all')
 
     """
     def check(self, user_param)-> bool:
@@ -90,10 +90,15 @@ class RtLcaoTddft:
     scripts for  real time lcao tddft calculations."""
 
     user_input = {'absorption_kick': [1e-5, 0.0, 0.0],
-                'propagate': (20, 1500),
-                'directory': None,
+                'propagate': (20, 150),
                 'module': None,
-                'analysis_tools': None}
+                'analysis_tools': None,
+                'filename':'gs.gpw',
+                'propagator':None,
+                'td_potential': None,
+                'fxc':None,
+                'parallel': None,
+                'txt':'tdx.out'}
 
     analysis_tools = [
         ('DipoleMomentWriter()','from gpaw.lcaotddft.dipolemomemtwriter import DipoleMomentWriter'),
@@ -103,8 +108,15 @@ class RtLcaoTddft:
     
     lcao_tddft_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
-from gpaw.lcaotddft.dipolemomemtwriter import DipoleMomentWriter
-td_calc = LCAOTDDFT('gs.gpw', txt='tdx.out')
+import numpy as np
+from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
+{module}
+td_calc = LCAOTDDFT(filename='{filename}',
+                    propagator={propagator},
+                    td_potential={td_potential},
+                    fxc={fxc},
+                    parallel={parallel},
+                    txt='{txt}')
 
 DipoleMomentWriter(td_calc, 'dm.dat')
 {analysis_tools}
@@ -113,12 +125,33 @@ td_calc.absorption_kick({absorption_kick})
 # Propagate"
 td_calc.propagate{propagate}
 # Save the state for restarting later"
-td_calc.write('{directory}td.gpw', mode='all')
+td_calc.write('{directory}/td.gpw', mode='all')
     """
+    def __init__(self) -> None:
+        pass
 
     def check():
         pass
     
+    def pulse(pulse_para: dict)-> str:
+        para = {
+            'srength':None,
+            'time0':None,
+            'frequency': None,
+            'sigma': None,
+            'sincos':'sin',
+            'stoptime':'np.inf'
+        }
+        para.update(pulse_para)
+        
+        pulse = "pulse = GaussianPulse({strength},{time0},{frequency},{sigma},{sincos},{stoptime})".format(**para)
+        return pulse
+
+    def get_analysis_tool():
+        pass
+
+    def mask():
+        pass
 
     
 class LrTddft:
