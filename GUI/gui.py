@@ -229,8 +229,8 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=100,y=300)
         
-        self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),messagebox.showinfo("Message", "You are in"+self.projectpath+"/"+self.projectname+"'"),os.chdir(self.projectpath+"/"+self.projectname)])
-        #self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),messagebox.showinfo("Message", "You are in"+self.projectpath+"/"+self.projectname+"'"),os.chdir(user_path)])
+        self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname)])
+        #self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=270,y=300)
 
@@ -287,7 +287,8 @@ class WorkManagerPage(Frame):
         self.Frame2_Button2 = tk.Button(self.Frame2, text="Job Submission",bg='#0052cc',fg='#ffffff',command=self.submit_job)
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=100,y=300)
-             
+    def dir_check(self):
+        p = Path('/usr')         
     def init_visualization(self):
         visn = VISUAL()
         for tool in ["vmd","VMD","VESTA","vesta"]:
