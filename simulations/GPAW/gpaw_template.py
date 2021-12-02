@@ -49,11 +49,11 @@ calc = GPAW(mode='{mode}',
     verbose={verbose},
     fixdensity={fixdensity},  # deprecated
     dtype={dtype},  # deprecated
-    txt='{work_dir}/gs.out',
+    txt='{directory}/gs.out',
     parallel=None)
 layer.calc = calc
 energy = layer.get_potential_energy()
-calc.write('{work_dir}/gs.gpw', mode='all')
+calc.write('{directory}/gs.gpw', mode='all')
 
     """
     def check(self, user_param)-> bool:
