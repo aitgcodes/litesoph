@@ -68,7 +68,7 @@ class AITG(Tk):
         
         self.frames = {}
 
-        for F in (StartPage, WorkManagerPage, GroundState_gpaw, TimeDependent_gpaw):
+        for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage):
             frame = F(window,self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky ="nsew")
@@ -81,10 +81,10 @@ class AITG(Tk):
 
     def task_input(self,task):
         if task.get()  == "Ground State":
-            self.show_frame(GroundState_gpaw)
-        if task.get() == "Spectrum":
-            self.show_frame(TimeDependent_gpaw)
+            self.show_frame(GroundStatePage)
         if task.get() == "Excited State":
+            self.show_frame(TimeDependentPage)
+        if task.get() == "Spectrum Analysis":
             self.show_frame(StartPage)
                   
     def gui_inp(self,task,**gui_dict):
@@ -131,9 +131,9 @@ class StartPage(Frame):
         canvas_for_project_list_icon.grid(column=1, row=1, sticky=(W, E) ,columnspan=8,rowspan=8)
         #canvas_for_project_list_icon.place(x=5,y=5)
 
-        image_project_list = Image.open('images/project_list.png')
-        canvas_for_project_list_icon.image = ImageTk.PhotoImage(image_project_list.resize((100,100), Image.ANTIALIAS))
-        canvas_for_project_list_icon.create_image(0,0, image=canvas_for_project_list_icon.image, anchor='nw')
+        #image_project_list = Image.open('images/project_list.png')
+        #canvas_for_project_list_icon.image = ImageTk.PhotoImage(image_project_list.resize((100,100), Image.ANTIALIAS))
+        #canvas_for_project_list_icon.create_image(0,0, image=canvas_for_project_list_icon.image, anchor='nw')
         
         frame_1_label_1 = Label(frame,text="Manage Job(s)", bg="blue", fg="white")
         frame_1_label_1['font'] = myFont
@@ -167,19 +167,19 @@ class StartPage(Frame):
         canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
 
-        button_create_project = Button(mainframe,text="Create a new project", bg="black",fg="white",command=lambda: controller.show_frame(WorkManagerPage))
+        button_create_project = Button(mainframe,text="Start LITESOPH projects", bg="black",fg="white",command=lambda: controller.show_frame(WorkManagerPage))
         button_create_project['font'] = myFont
         button_create_project.place(x=80,y=200)
 
         # create a canvas to show project list icon
-        canvas_for_project_open=Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
-        canvas_for_project_open.place(x=20,y=300)
+        #canvas_for_project_open=Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
+        #canvas_for_project_open.place(x=20,y=300)
 
-        image_project_open = Image.open('images/project_open.png')
-        canvas_for_project_open.image = ImageTk.PhotoImage(image_project_open.resize((50,50), Image.ANTIALIAS))
-        canvas_for_project_open.create_image(0,0, image=canvas_for_project_open.image, anchor='nw')
+        #image_project_open = Image.open('images/project_open.png')
+        #canvas_for_project_open.image = ImageTk.PhotoImage(image_project_open.resize((50,50), Image.ANTIALIAS))
+        #canvas_for_project_open.create_image(0,0, image=canvas_for_project_open.image, anchor='nw')
 
-        button_open_project = Button(mainframe,text="Open an existing project", bg="black",fg="white",command=lambda:open_existing_project())
+        button_open_project = Button(mainframe,text="About LITESOPH", bg="black",fg="white",command=lambda:open_existing_project())
         button_open_project['font'] = myFont
         button_open_project.place(x=80,y=300)
 
@@ -228,6 +228,11 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage = Button(self.Frame1, text="Back to Main Page",bg='#0052cc',fg='#ffffff', command=lambda: controller.show_frame(StartPage))
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=100,y=300)
+        
+        self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname)])
+        #self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(user_path)])
+        self.button_project['font'] = myFont
+        self.button_project.place(x=270,y=300)
 
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
@@ -261,7 +266,7 @@ class WorkManagerPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=130)
 
-        task = ttk.Combobox(self.Frame2, values=["Ground State","Spectrum","Excited State","Analysis"])
+        task = ttk.Combobox(self.Frame2, values=["Ground State","Excited State","Spectrum Analysis"])
         task.current(0)
         task['font'] = l
         task.place(x=200,y=130)
@@ -274,14 +279,16 @@ class WorkManagerPage(Frame):
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=190)
 
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
+        #Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[controller.task_input(task)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=300)
 
         self.Frame2_Button2 = tk.Button(self.Frame2, text="Job Submission",bg='#0052cc',fg='#ffffff',command=self.submit_job)
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=100,y=300)
-             
+    def dir_check(self):
+        p = Path('/usr')         
     def init_visualization(self):
         visn = VISUAL()
         for tool in ["vmd","VMD","VESTA","vesta"]:
@@ -306,7 +313,7 @@ class WorkManagerPage(Frame):
     def submit_job(self):
         top1 = Toplevel()
         top1.geometry("700x600")
-        top1.title("Job Handler for Excited state properties")
+        top1.title("Job Handler for LITESOPH Calculations")
         cores_1 = StringVar()
 
         myFont = font.Font(family='Helvetica', size=15, weight='bold')
@@ -322,8 +329,8 @@ class WorkManagerPage(Frame):
         sbj_entry1.insert(0," ")
         sbj_entry1['font'] = l
         sbj_entry1.place(x=400, y=20)
-             
-        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[self.submitjob_local(),show_message(msg_label1, "Job submitted locally")])
+        #core = core_1.get()     
+        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local()])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=100, y=300)
 
@@ -341,6 +348,17 @@ class WorkManagerPage(Frame):
 
         
     def submitjob_local(self):
+        
+        #print("gs calculation initiated...")
+        #os.system("python gs.py")
+        #os.system("mpirun -np {} python gs.py".format(processors))
+        #print("Exited State calculation initiated...")
+        #os.system("mpirun -np {} python td.py".format(processors))
+        #print("spectrum calculation initiated...")
+        #os.system("mpirun -np {} python spec.py".format(processors))
+        #runpython(user_path+"/gs.py")
+        #runpython(user_path+"/td.py")
+        #runpython(user_path+"/spec.py")
         os.system('python gs.py')
         os.system('python td.py')
         os.system('python spec.py')
@@ -358,7 +376,7 @@ class WorkManagerPage(Frame):
         return user_path
 
 
-class GroundState_gpaw(Frame):
+class GroundStatePage(Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -446,7 +464,7 @@ class GroundState_gpaw(Frame):
             return inp_dict    
                 
                  
-class TimeDependent_gpaw(Frame):
+class TimeDependentPage(Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
@@ -521,7 +539,7 @@ class TimeDependent_gpaw(Frame):
         entry_Nt.insert(0,"2000")
         entry_Nt.place(x=600, y=300 )
 
-        enter = ttk.Button(self, text="TD Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Spectra calculation is Created"), esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get())])
+        enter = ttk.Button(self, text="ES Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Excited State calculation is Created"), esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get())])
         enter.place(x=300,y=350)
 
         back = ttk.Button(self, text="BACK",style="TButton",command=lambda:controller.show_frame(WorkManagerPage))
