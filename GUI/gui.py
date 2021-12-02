@@ -230,6 +230,7 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage.place(x=100,y=300)
         
         self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),messagebox.showinfo("Message", "You are in"+self.projectpath+"/"+self.projectname+"'"),os.chdir(self.projectpath+"/"+self.projectname)])
+        #self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),messagebox.showinfo("Message", "You are in"+self.projectpath+"/"+self.projectname+"'"),os.chdir(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=270,y=300)
 
@@ -278,7 +279,8 @@ class WorkManagerPage(Frame):
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=190)
 
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
+        #Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[controller.task_input(task)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=300)
 
@@ -326,8 +328,8 @@ class WorkManagerPage(Frame):
         sbj_entry1.insert(0," ")
         sbj_entry1['font'] = l
         sbj_entry1.place(x=400, y=20)
-        core = core_1.get()     
-        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1, "Job submitted locally"),self.submitjob_local(core)])
+        #core = core_1.get()     
+        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local()])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=100, y=300)
 
@@ -344,7 +346,7 @@ class WorkManagerPage(Frame):
         sbj_button3.place(x=400,y=400)
 
         
-    def submitjob_local(self,processors):
+    def submitjob_local(self):
         
         #print("gs calculation initiated...")
         #os.system("python gs.py")
@@ -353,7 +355,9 @@ class WorkManagerPage(Frame):
         #os.system("mpirun -np {} python td.py".format(processors))
         #print("spectrum calculation initiated...")
         #os.system("mpirun -np {} python spec.py".format(processors))
-
+        #runpython(user_path+"/gs.py")
+        #runpython(user_path+"/td.py")
+        #runpython(user_path+"/spec.py")
         os.system('python gs.py')
         os.system('python td.py')
         os.system('python spec.py')
