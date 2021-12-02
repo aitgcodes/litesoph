@@ -15,10 +15,10 @@ def create_path(projpath,projname):
         messagebox.showinfo("Message", f"project:{newpath} is created successfully")
 
 def dir_exist(projpath,projname):
-    #path = Path(projpath)
+    
     path = Path(projpath) / str(projname)
     
-        #isExist = os.path.exists(path)
+        
     if  os.path.isdir(path):
         messagebox.showinfo("Message", f"You are in Project:{path}")
     else:
