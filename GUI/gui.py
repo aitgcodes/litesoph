@@ -221,7 +221,7 @@ class WorkManagerPage(Frame):
         self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
-        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname)])
+        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname)])
         self.button_project['font'] = myFont
         self.button_project.place(x=10,y=300)
       
@@ -287,8 +287,7 @@ class WorkManagerPage(Frame):
         self.Frame2_Button2 = tk.Button(self.Frame2, text="Job Submission",bg='#0052cc',fg='#ffffff',command=self.submit_job)
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=100,y=300)
-    def dir_check(self):
-        p = Path('/usr')         
+             
     def init_visualization(self):
         visn = VISUAL()
         for tool in ["vmd","VMD","VESTA","vesta"]:
@@ -329,8 +328,8 @@ class WorkManagerPage(Frame):
         sbj_entry1.insert(0," ")
         sbj_entry1['font'] = l
         sbj_entry1.place(x=400, y=20)
-        #core = core_1.get()     
-        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local()])
+        nop = sbj_entry1.get()     
+        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local(nop)])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=100, y=300)
 
@@ -347,8 +346,8 @@ class WorkManagerPage(Frame):
         sbj_button3.place(x=400,y=400)
 
         
-    def submitjob_local(self):
-        
+    def submitjob_local(self,nop):
+        print(nop)
         #print("gs calculation initiated...")
         #os.system("python gs.py")
         #os.system("mpirun -np {} python gs.py".format(processors))
@@ -359,9 +358,9 @@ class WorkManagerPage(Frame):
         #runpython(user_path+"/gs.py")
         #runpython(user_path+"/td.py")
         #runpython(user_path+"/spec.py")
-        os.system('python gs.py')
-        os.system('python td.py')
-        os.system('python spec.py')
+        os.system("python gs.py")
+        os.system("python td.py")
+        os.system("python spec.py")
        
     def submitjob_network(self):
         pass
