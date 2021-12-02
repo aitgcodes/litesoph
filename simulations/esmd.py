@@ -26,7 +26,7 @@ class RT_LCAO_TDDFT:
         self.engine = engine
         self.task = self.engine.get_task_class(task='LCAO TDDFT')
         self.directory = directory
-       # self.user_input['directory']=self.directory
+        self.user_input['directory']=self.directory
 
         engine.create_script(self.directory, 'td', self.task.lcao_tddft_template , self.user_input)
         

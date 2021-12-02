@@ -90,7 +90,7 @@ class RtLcaoTddft:
     scripts for  real time lcao tddft calculations."""
 
     user_input = {'absorption_kick': [1e-5, 0.0, 0.0],
-                'propagate': (20, 1500),
+                'propagate': (20, 150),
                 'module': None,
                 'analysis_tools': None,
                 'filename':'gs.gpw',
@@ -109,12 +109,12 @@ class RtLcaoTddft:
     lcao_tddft_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
 import numpy as np
-from gpaw.lcaotddft.dipolemomemtwriter import DipoleMomentWriter
+from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 {module}
-td_calc = LCAOTDDFT(filname='{filename}',
+td_calc = LCAOTDDFT(filename='{filename}',
                     propagator={propagator},
                     td_potential={td_potential},
-                    fxc='{fxc}',
+                    fxc={fxc},
                     parallel={parallel},
                     txt='{txt}')
 
