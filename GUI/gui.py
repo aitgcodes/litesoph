@@ -677,12 +677,10 @@ class Laser(Frame):
         def inp2dict():
             laser_default = pre_proc()
             inp_dict = laser_default.default_dict
-            print(inp_dict)
             inp_dict['task'] = 'design'
             inp_dict['design']['inval'] = inval.get()
             #inp_dict['design']['tin'] = tin.get()
             inp_dict['design']['fwhm'] = fwhm.get()
-            print(inp_dict)
             return inp_dict
 
         def laser_calc(**gui_dict):
@@ -690,7 +688,7 @@ class Laser(Frame):
             laser_dict = laser_default.default_dict
             laser_dict.update(gui_dict)    #update input and task
             d = unpack(laser_dict)
-            print(d)
+            
 
             
             
