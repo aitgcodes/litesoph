@@ -580,7 +580,7 @@ class Laser(Frame):
         self.Frame1.configure(relief="groove")
         self.Frame1.configure(cursor="fleur")
 
-        self.Frame1_label_path = Label(self.Frame1,text="Laser Masking",bg="gray",fg="black")
+        self.Frame1_label_path = Label(self.Frame1,text="Laser Design",bg="gray",fg="black")
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.place(x=100,y=10)
        
@@ -690,34 +690,38 @@ class Laser(Frame):
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
 
-        self.Frame2_label_1 = Label(self.Frame2, text="Upload Geometry",bg='gray',fg='black')  
-        self.Frame2_label_1['font'] = myFont
-        self.Frame2_label_1.place(x=10,y=10)
+        self.Frame2_label_path = Label(self.Frame2,text="Laser Masking",bg="gray",fg="black")
+        self.Frame2_label_path['font'] = myFont
+        self.Frame2_label_path.place(x=100,y=10)
 
-        self.message_label = Label(self.Frame2, text='', foreground='red')
-        self.message_label['font'] = myFont
-        self.message_label.place(x=270,y=15)
+        #self.Frame2_label_1 = Label(self.Frame2, text="Upload Geometry",bg='gray',fg='black')  
+        #self.Frame2_label_1['font'] = myFont
+        #self.Frame2_label_1.place(x=10,y=10)
 
-        self.Frame2_label_2 = Label(self.Frame2, text="Geometry",bg='gray',fg='black')        
-        self.Frame2_label_2['font'] = myFont
-        self.Frame2_label_2.place(x=10,y=70)
+        #self.message_label = Label(self.Frame2, text='', foreground='red')
+        #self.message_label['font'] = myFont
+        #self.message_label.place(x=270,y=15)
+
+        #self.Frame2_label_2 = Label(self.Frame2, text="Geometry",bg='gray',fg='black')        
+        #self.Frame2_label_2['font'] = myFont
+        #self.Frame2_label_2.place(x=10,y=70)
 
         # self.Frame2_Button_1 = tk.Button(self.Frame2,text="View",bg='#0052cc',fg='#ffffff',command=self.geom_visual)
         # self.Frame2_Button_1['font'] = myFont
         # self.Frame2_Button_1.place(x=200,y=70)
 
-        self.label_proj = Label(self.Frame2,text="Job Type",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2,text="Type",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=130)
+        self.label_proj.place(x=10,y=100)
 
-        task = ttk.Combobox(self.Frame2, values=["Ground State","Spectrum","Excited State","Analysis"])
+        task = ttk.Combobox(self.Frame2, values=["None","Plane","Spere"])
         task.current(0)
         task['font'] = l
-        task.place(x=200,y=130)
+        task.place(x=200,y=100)
                        
-        self.Frame2_label_3 = Label(self.Frame2, text="Plot Spectrum",bg='gray',fg='black')
-        self.Frame2_label_3['font'] = myFont
-        self.Frame2_label_3.place(x=10,y=190)
+        #self.Frame2_label_3 = Label(self.Frame2, text="Plot Spectrum",bg='gray',fg='black')
+        #self.Frame2_label_3['font'] = myFont
+        #self.Frame2_label_3.place(x=10,y=190)
 
         # self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff',command=self.spectrum_show)
         # self.Frame2_Button_1['font'] = myFont
