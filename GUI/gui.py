@@ -31,14 +31,13 @@ from litesoph.simulations import esmd
 from litesoph.GUI import projpath
 from litesoph.GUI.spec_plot import plot_spectra
 from litesoph.io.IO import UserInput as ui
-from litesoph.simulations.esmd import GroundState
+from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
 from litesoph.GUI.filehandler import *
 from litesoph.GUI.navigation import Nav
-#from litesoph.GUI.laserframe import Laser
-#from litesoph.Pre_Processing.preproc import *
-
-
+from litesoph.GUI.laserframe import Laser
+from litesoph.Pre_Processing.preproc import *
+from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 
 
 
@@ -95,13 +94,16 @@ class AITG(Tk):
     def gui_inp(self,task,**gui_dict):
         if task == 'gs':
             ui.user_param.update(gui_dict) # update the user parameters
-            user_input = ui.user_param
-            user_input['directory'] = user_path
-            user_input['geometry'] = user_path+"/coordinate.xyz"
-            engn = engine.choose_engine(user_input)
-            GroundState(user_input, engn)
+            dict_input = ui.user_param
+            dict_input['directory'] = user_path
+            dict_input['geometry'] = user_path+"/coordinate.xyz"
+            engn = engine.choose_engine(dict_input)
+            GroundState(dict_input, engn)
         if task == 'td':
-            pass
+            rt.user_input.update(gui_dict)
+            dict_input = rt.user_input
+            RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),user_path)
+
               
 class StartPage(Frame):
 
@@ -449,12 +451,12 @@ class GroundStatePage(Frame):
         self.entry_vacuum.insert(0,"6")
         self.entry_vacuum.place(x=250,y=250)
                 
-        enter = ttk.Button(self, text="GS Input", style="TButton", command=lambda:[controller.gui_inp('gs',**inp2dict()),messagebox.showinfo("Message", "Input for ground state calculation is Created")])
+        enter = ttk.Button(self, text="GS Input", style="TButton", command=lambda:[controller.gui_inp('gs',**gs_inp2dict()),messagebox.showinfo("Message", "Input for ground state calculation is Created")])
         enter.place(x=250,y=330)
         back_gpaw = ttk.Button(self, text="Back",style="TButton",command=lambda:controller.show_frame(WorkManagerPage))
         back_gpaw.place(x=450,y=330)
         
-        def inp2dict():
+        def gs_inp2dict():
             inp_dict = {
              'mode': mode.get(),
              'xc': xc.get(),
@@ -472,7 +474,14 @@ class TimeDependentPage(Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
+        
+        strength = StringVar()
+        ex = StringVar()
+        ey = StringVar()
+        ez = StringVar()
+        dt = StringVar()
+        Nt = StringVar()
+        
         myFont = font.Font(family='Courier', size=30, weight ='bold')
         j=('Courier',20,'bold')
         k=('Courier',60,'bold')
@@ -513,43 +522,51 @@ class TimeDependentPage(Frame):
         label_steps=Label(self, text= "Total time steps",font=j,bg= "grey60",fg="gainsboro")
         label_steps.place(x=5,y=300)
 
-        drop_strength =  ttk.Combobox(self, values=[ "1e-5", "1e-3"])
+        drop_strength =  ttk.Combobox(self, textvariable= strength, values=[ "1e-5", "1e-3"])
         drop_strength.current(0)
         drop_strength['font'] = l
         drop_strength.place(x=600,y=10)
 
-        drop_pol_x =  ttk.Combobox(self, values=[ "0", "1"])
+        drop_pol_x =  ttk.Combobox(self, textvariable=ex, values=[ "0", "1"])
         drop_pol_x.current(0)
         drop_pol_x['font'] = l
         drop_pol_x.place(x=600, y=100)
 
-        drop_pol_y =  ttk.Combobox(self, values=[ "0", "1"])
+        drop_pol_y =  ttk.Combobox(self, textvariable=ey, values=[ "0", "1"])
         drop_pol_y.current(0)
         drop_pol_y['font'] = l
         drop_pol_y.place(x=600, y=150)
 
-        drop_pol_z =  ttk.Combobox(self, values=[ "0", "1"])
+        drop_pol_z =  ttk.Combobox(self, textvariable=ez, values=[ "0", "1"])
         drop_pol_z.current(0)
         drop_pol_z['font'] = l
         drop_pol_z.place(x=600, y=200)
 
-        entry_dt = ttk.Entry(self,textvariable="dt")
+        entry_dt = ttk.Entry(self,textvariable=dt)
         entry_dt['font']=l
         entry_dt.insert(0,"10")
         entry_dt.place(x=600, y=250 )
 
-        entry_Nt = ttk.Entry(self,textvariable="Nt")
+        entry_Nt = ttk.Entry(self,textvariable=Nt)
         entry_Nt['font']=l
         entry_Nt.insert(0,"2000")
         entry_Nt.place(x=600, y=300 )
 
-        enter = ttk.Button(self, text="ES Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Excited State calculation is Created"), esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get())])
+        #enter = ttk.Button(self, text="ES Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Excited State calculation is Created"), esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get()), td_inp2dict()])
+        enter = ttk.Button(self, text="ES Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Excited State calculation is Created"), controller.gui_inp('td', **td_inp2dict())])
         enter.place(x=300,y=350)
 
         back = ttk.Button(self, text="BACK",style="TButton",command=lambda:controller.show_frame(WorkManagerPage))
         back.place(x=500, y=350)
 
-
+        def td_inp2dict():
+            td_dict = rt.user_input
+            td_dict['absorption_kick'][0] = float(strength.get())*float(ex.get())
+            td_dict['absorption_kick'][1] = float(strength.get())*float(ey.get())
+            td_dict['absorption_kick'][2] = float(strength.get())*float(ez.get())
+            inp_list = [float(dt.get()),float(Nt.get())]
+            td_dict['propagate'] = tuple(inp_list)
+            return td_dict
 
 class Laser(Frame):
 
@@ -653,27 +670,27 @@ class Laser(Frame):
         self.entry_proj.place(x=200,y=380)
 
 
-        #self.button_project = Button(self.Frame1,text="Calculate",bg='#0052cc',fg='#ffffff',command=lambda:[laser_calc(**(inp2dict()))])
-        #self.button_project['font'] = myFont
-        #self.button_project.place(x=10,y=300)
+        self.button_project = Button(self.Frame1,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[laser_calc(**(inp2dict()))])
+        self.button_project['font'] = myFont
+        self.button_project.place(x=300,y=400)
         
-        #def inp2dict():
-            #laser_default = pre_proc()
-            #inp_dict = laser_default.default_dict
-            #print(inp_dict)
-            #inp_dict['task'] = 'design'
-            #inp_dict['design']['inval'] = inval.get()
+        def inp2dict():
+            laser_default = pre_proc()
+            inp_dict = laser_default.default_dict
+            print(inp_dict)
+            inp_dict['task'] = 'design'
+            inp_dict['design']['inval'] = inval.get()
             #inp_dict['design']['tin'] = tin.get()
-            #inp_dict['design']['fwhm'] = fwhm.get()
-            #print(inp_dict)
-            #return inp_dict
+            inp_dict['design']['fwhm'] = fwhm.get()
+            print(inp_dict)
+            return inp_dict
 
-        #def laser_calc(**gui_dict):
-            #laser_default = pre_proc()
-            #laser_dict = laser_default.default_dict
-            #laser_dict.update(gui_dict)    #update input and task
-            #d = unpack(laser_dict)
-            #print(d)
+        def laser_calc(**gui_dict):
+            laser_default = pre_proc()
+            laser_dict = laser_default.default_dict
+            laser_dict.update(gui_dict)    #update input and task
+            d = unpack(laser_dict)
+            print(d)
 
             
             
