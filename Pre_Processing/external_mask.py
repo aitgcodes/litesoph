@@ -1,4 +1,4 @@
-from litesoph.gpaw_pp.Masking.masking import Mask
+from litesoph.Pre_Processing.masking import Mask
 from gpaw.external import ExternalPotential
 
 import numpy as np
