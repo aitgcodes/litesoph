@@ -35,7 +35,7 @@ from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
 from litesoph.GUI.filehandler import *
 from litesoph.GUI.navigation import Nav
-from litesoph.GUI.laserframe import Laser
+#from litesoph.GUI.laserframe import Laser
 from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 
