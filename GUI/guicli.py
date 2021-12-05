@@ -1,7 +1,7 @@
 import subprocess
 import os 
 import pathlib
-from litesoph.GUI.gui import AITG
+
 
 class CLICommand:
     """LITESOPH's graphical user interface.
@@ -14,8 +14,12 @@ class CLICommand:
 
     @staticmethod
     def run(args):
+
+        lsroot = os.environ.get('LS_ROOT')
+        lsroot = pathlib.Path(lsroot)
         
-        app = AITG()
+        from litesoph.GUI.gui import AITG
+        app = AITG(lsroot)
         app.title("AITG - LITESOPH")
         app.resizable(True,True)
         app.mainloop()
