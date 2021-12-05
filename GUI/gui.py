@@ -333,6 +333,7 @@ class WorkManagerPage(Frame):
         top1.geometry("700x600")
         top1.title("Job Handler for LITESOPH Calculations")
         processors = StringVar()
+        job = StringVar()
 
         myFont = font.Font(family='Helvetica', size=15, weight='bold')
 
@@ -348,9 +349,16 @@ class WorkManagerPage(Frame):
         sbj_entry1['font'] = l
         sbj_entry1.place(x=400, y=20)
         
-        
+        label_job = Label(top1,text="Job Type",bg='#0052cc',fg='#ffffff')
+        label_job['font'] = myFont
+        label_job.place(x=50,y=100)
 
-        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local(sbj_entry1.get(),'gs.py')])
+        task = ttk.Combobox(top1, textvariable= job, values=["Ground State","Excited State (Delta Kick)","Excited state(With Laser)"])
+        task.current(0)
+        task['font'] = l
+        task.place(x=200,y=100)
+
+        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local(sbj_entry1.get(),job)])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=100, y=300)
 
@@ -367,10 +375,22 @@ class WorkManagerPage(Frame):
         sbj_button3.place(x=400,y=400)
 
         
-    def submitjob_local(self, processors,filename):
-        print(processors)
+    def submitjob_local(self, processors,job):
+        
         from litesoph.simulations.run_local import run_local
-        result = run_local(filename,user_path,int(processors))        
+        if job.get() == "Ground State":
+            filename = 'gs.py'
+        elif job.get() == "Excited State (Delta Kick)":
+            filename = 'td.py' 
+        elif job.get() == "Excited State (With Laser)":
+            pass
+      
+        if processors == " ":
+            result = run_local(filename,user_path)
+        else:
+            result = run_local(filename,user_path,int(processors))
+          
+              
        
     def submitjob_network(self):
         pass
