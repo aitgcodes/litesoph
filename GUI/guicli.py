@@ -15,9 +15,9 @@ class CLICommand:
     @staticmethod
     def run(args):
 
-        lsroot = os.environ.get('LS_ROOT')
-        lsroot = pathlib.Path(lsroot)
-        
+        lsroot = os.environ.get('PYTHONPATH')
+        lsroot = pathlib.Path(lsroot) 
+
         from litesoph.GUI.gui import AITG
         app = AITG(lsroot)
         app.title("AITG - LITESOPH")
