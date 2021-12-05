@@ -682,7 +682,27 @@ class LaserDesignPage(Frame):
         self.entry_proj = Entry(self.Frame1,textvariable= fwhm)
         self.entry_proj['font'] = myFont
         self.entry_proj.place(x=200,y=110)
-         
+        
+        self.button_project = Button(self.Frame1,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[laser_calc(**(inp2dict()))])
+        self.button_project['font'] = myFont
+        self.button_project.place(x=300,y=400)
+        
+        def inp2dict():
+            laser_default = pre_proc()
+            inp_dict = laser_default.default_dict
+            inp_dict['task'] = 'design'
+            inp_dict['design']['inval'] = inval.get()
+            #inp_dict['design']['tin'] = tin.get()
+            inp_dict['design']['fwhm'] = fwhm.get()
+            return inp_dict
+
+        def laser_calc(**gui_dict):
+            laser_default = pre_proc()
+            laser_dict = laser_default.default_dict
+            laser_dict.update(gui_dict)    #update input and task
+            d = unpack(laser_dict)
+
+ 
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
 
@@ -769,7 +789,8 @@ class LaserDesignPage(Frame):
         Frame2_Button1 = tk.Button(self.Frame2, text="Back",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(WorkManagerPage))
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=400)
-
+        
+        
 class PlotSpectraPage(Frame):
 
     def __init__(self, parent, controller):
