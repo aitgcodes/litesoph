@@ -10,7 +10,8 @@ from gpaw import __version__
 
 
 commands = [
-    ('run', 'litesoph.cli.run')
+    ('run', 'litesoph.cli.run'),
+    ('gui', 'litesoph.GUI.guicli')
 ]
 
 def hook(parser, args):
