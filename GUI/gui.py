@@ -175,7 +175,7 @@ class StartPage(Frame):
         canvas_for_image.place(x=30,y=5)
 
         # create image from image location resize it to 100X100 and put in on canvas
-        path1 = pathlib.PurePath(controller.lsroot) / "GUI" / "images"
+        path1 = pathlib.PurePath(controller.lsroot) / "litesoph" / "GUI" / "images"
 
         print(path1)
         image = Image.open(str(pathlib.Path(path1) / "logo_litesoph.png"))
