@@ -11,7 +11,7 @@ import tkinter as tk
 import sys
 #import base64
 import os
-from pathlib import Path
+import pathlib 
 #import platform
 import webbrowser
 from tkinter.messagebox import showinfo
@@ -31,10 +31,16 @@ from litesoph.simulations import esmd
 from litesoph.GUI import projpath
 from litesoph.GUI.spec_plot import plot_spectra
 from litesoph.io.IO import UserInput as ui
-from litesoph.simulations.esmd import GroundState
+from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
 from litesoph.GUI.filehandler import *
 from litesoph.GUI.navigation import Nav
+#from litesoph.GUI.laserframe import Laser
+from litesoph.Pre_Processing.preproc import *
+from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
+from litesoph.simulations.GPAW.spectrum import spectrum
+
+
 
 
 TITLE_FONT = ("Helvetica", 18, "bold")
@@ -54,10 +60,10 @@ class VISUAL():
 
 class AITG(Tk):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, lsroot, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         MainMenu(self)
-        path=str(Path.home())
+        path=str(pathlib.Path.home())
         Nav(self,path)
         
         window = Frame(self)
@@ -66,9 +72,10 @@ class AITG(Tk):
         window.grid_rowconfigure(700,weight=700)
         window.grid_columnconfigure(600,weight=400)
         
+        self.lsroot = lsroot
         self.frames = {}
 
-        for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage):
+        for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage, LaserDesignPage, PlotSpectraPage):
             frame = F(window,self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky ="nsew")
@@ -79,31 +86,44 @@ class AITG(Tk):
         frame = self.frames[page_name]
         frame.tkraise()
 
-    def task_input(self,task):
-        if task.get()  == "Ground State":
+    def task_input(self,sub_task):
+        if sub_task.get()  == "Ground State":
             self.show_frame(GroundStatePage)
-        if task.get() == "Excited State":
+        if sub_task.get() == "Delta Kick":
             self.show_frame(TimeDependentPage)
-        if task.get() == "Spectrum Analysis":
-            self.show_frame(StartPage)
+        if sub_task.get() == "Laser Design":
+            self.show_frame(LaserDesignPage)
+        if sub_task.get() == "Absorption Spectra":
+            self.show_frame(PlotSpectraPage)
                   
     def gui_inp(self,task,**gui_dict):
         if task == 'gs':
             ui.user_param.update(gui_dict) # update the user parameters
-            user_input = ui.user_param
-            user_input['directory'] = user_path
-            user_input['geometry'] = user_path+"/coordinate.xyz"
-            engn = engine.choose_engine(user_input)
-            GroundState(user_input, engn)
+            dict_input = ui.user_param
+            dict_input['directory'] = user_path
+            dict_input['geometry'] = pathlib.Path(user_path) / "coordinate.xyz"
+            engn = engine.choose_engine(dict_input)
+            GroundState(dict_input, engn)
         if task == 'td':
-            pass
+            rt.user_input.update(gui_dict)
+            dict_input = rt.user_input
+            RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),user_path)
+
+    def createspec(self):
+        spec = spectrum()
+        spec_dict = spec.user_input
+        spec_dict['moment_file'] = pathlib.Path(user_path) / 'dm.dat'
+        spec_dict['spectrum_file'] = pathlib.Path(user_path) / 'spec.dat'
+        spec.cal_photoabs_spectrum(spec_dict)
+
+     
               
 class StartPage(Frame):
 
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
-               
+              
         mainframe = ttk.Frame(self,padding="12 12 24 24")
         #mainframe = ttk.Frame(self)
         mainframe.grid(column=1, row=0, sticky=(N, W, E, S))
@@ -155,7 +175,10 @@ class StartPage(Frame):
         canvas_for_image.place(x=30,y=5)
 
         # create image from image location resize it to 100X100 and put in on canvas
-        image = Image.open('images/logo_litesoph.png')
+        path1 = pathlib.PurePath(controller.lsroot) / "GUI" / "images"
+
+        print(path1)
+        image = Image.open(str(pathlib.Path(path1) / "logo_litesoph.png"))
         canvas_for_image.image = ImageTk.PhotoImage(image.resize((100, 100), Image.ANTIALIAS))
         canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
 
@@ -163,7 +186,7 @@ class StartPage(Frame):
         canvas_for_project_create=Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
         canvas_for_project_create.place(x=20,y=200)
 
-        image_project_create = Image.open('images/project_create.png')
+        image_project_create = Image.open(str(pathlib.Path(path1) / "project_create.png"))
         canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
 
@@ -171,15 +194,7 @@ class StartPage(Frame):
         button_create_project['font'] = myFont
         button_create_project.place(x=80,y=200)
 
-        # create a canvas to show project list icon
-        #canvas_for_project_open=Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
-        #canvas_for_project_open.place(x=20,y=300)
-
-        #image_project_open = Image.open('images/project_open.png')
-        #canvas_for_project_open.image = ImageTk.PhotoImage(image_project_open.resize((50,50), Image.ANTIALIAS))
-        #canvas_for_project_open.create_image(0,0, image=canvas_for_project_open.image, anchor='nw')
-
-        button_open_project = Button(mainframe,text="About LITESOPH", bg="black",fg="white",command=lambda:open_existing_project())
+        button_open_project = Button(mainframe,text="About LITESOPH", bg="black",fg="white")
         button_open_project['font'] = myFont
         button_open_project.place(x=80,y=300)
 
@@ -209,7 +224,7 @@ class WorkManagerPage(Frame):
 
         self.entry_path = Entry(self.Frame1,textvariable="proj_path")
         self.entry_path['font'] = myFont
-        self.entry_path.insert(0,str(Path.home()))
+        self.entry_path.insert(0,str(pathlib.Path.home()))
         self.entry_path.place(x=200,y=10)
 
         self.label_proj = Label(self.Frame1,text="Project Name",bg="gray",fg="black")
@@ -218,10 +233,10 @@ class WorkManagerPage(Frame):
 
         self.entry_proj = Entry(self.Frame1,textvariable="proj_name")
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"graphene")
+        #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
-        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname)])
+        self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname)])
         self.button_project['font'] = myFont
         self.button_project.place(x=10,y=300)
       
@@ -229,8 +244,7 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=100,y=300)
         
-        self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname)])
-        #self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(user_path)])
+        self.button_project = Button(self.Frame1,text="Go",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname)])
         self.button_project['font'] = myFont
         self.button_project.place(x=270,y=300)
 
@@ -246,7 +260,7 @@ class WorkManagerPage(Frame):
         self.Frame2_label_1['font'] = myFont
         self.Frame2_label_1.place(x=10,y=10)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",bg='#0052cc',fg='#ffffff',command=lambda:[open_file(self.getprojectdirectory()),show_message(self.message_label,"Uploaded")])
+        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",bg='#0052cc',fg='#ffffff',command=lambda:[open_file(user_path),show_message(self.message_label,"Uploaded")])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=10)
 
@@ -266,27 +280,50 @@ class WorkManagerPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=130)
 
-        task = ttk.Combobox(self.Frame2, values=["Ground State","Excited State","Spectrum Analysis"])
+        MainTask = ["Ground State","Excited State","Spectrum"]
+
+        # Create a list of sub_task  
+        GS_task = ["Ground State"]
+        ES_task = ["Delta Kick","Laser Design"]
+        Spec_task = ["Absorption Spectra"]
+
+        def pick_task(e):
+            if task.get() == "Ground State":
+                sub_task.config(value = GS_task)
+                sub_task.current(0)
+            if task.get() == "Excited State":
+                sub_task.config(value = ES_task)
+                sub_task.current(0)
+            if task.get() == "Spectrum":
+                sub_task.config(value = Spec_task)
+                sub_task.current(0)
+            #if type_combo.get() == "Laser Masking":
+                #sub_combo.config(value = "Laser Masking")
+                #sub_combo.current(0)
+
+        task = ttk.Combobox(self.Frame2, values= MainTask)
         task.current(0)
         task['font'] = l
         task.place(x=200,y=130)
-                       
-        self.Frame2_label_3 = Label(self.Frame2, text="Plot Spectrum",bg='gray',fg='black')
+        task.bind("<<ComboboxSelected>>", pick_task)
+
+        self.Frame2_label_3 = Label(self.Frame2, text="Sub Task",bg='gray',fg='black')
         self.Frame2_label_3['font'] = myFont
         self.Frame2_label_3.place(x=10,y=190)
-
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff',command=self.spectrum_show)
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=200,y=190)
-
+          
+        sub_task = ttk.Combobox(self.Frame2, value = [" "])
+        sub_task['font'] = l
+        sub_task.current(0)
+        sub_task.place(x=200,y=190)
+                       
         #Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[controller.task_input(task)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[controller.task_input(sub_task)])
         Frame2_Button1['font'] = myFont
-        Frame2_Button1.place(x=10,y=300)
+        Frame2_Button1.place(x=10,y=310)
 
         self.Frame2_Button2 = tk.Button(self.Frame2, text="Job Submission",bg='#0052cc',fg='#ffffff',command=self.submit_job)
         self.Frame2_Button2['font'] = myFont
-        self.Frame2_Button2.place(x=100,y=300)
+        self.Frame2_Button2.place(x=100,y=310)
              
     def init_visualization(self):
         visn = VISUAL()
@@ -303,17 +340,18 @@ class WorkManagerPage(Frame):
         self.init_visualization()
         cmd=self.visn.vistool["name"] + " " + self.getprojectdirectory()+"/coordinate.xyz"
         os.system(cmd)
-                
-    def spectrum_show(self):
-        plot_spectra()
-        img =Image.open(self.getprojectdirectory()+'/spec.png')
-        img.show()
+
+    # def spectrum_show(self):
+    #     plot_spectra()
+    #     img =Image.open(self.getprojectdirectory()+'/spec.png')
+    #     img.show()
 
     def submit_job(self):
         top1 = Toplevel()
         top1.geometry("700x600")
         top1.title("Job Handler for LITESOPH Calculations")
-        cores_1 = StringVar()
+        processors = StringVar()
+        job = StringVar()
 
         myFont = font.Font(family='Helvetica', size=15, weight='bold')
 
@@ -324,12 +362,21 @@ class WorkManagerPage(Frame):
         sbj_label1 = Label(top1, text="Number of processors", bg='#0052cc', fg='#ffffff')
         sbj_label1['font'] = myFont
         sbj_label1.place(x=50,y=20)
-        sbj_entry1 = Entry(top1,textvariable="cores_1", width=20)
+        sbj_entry1 = Entry(top1,textvariable= processors, width=20)
         sbj_entry1.insert(0," ")
         sbj_entry1['font'] = l
         sbj_entry1.place(x=400, y=20)
-        nop = sbj_entry1.get()     
-        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local(nop)])
+        
+        label_job = Label(top1,text="Job Type",bg='#0052cc',fg='#ffffff')
+        label_job['font'] = myFont
+        label_job.place(x=50,y=100)
+
+        task = ttk.Combobox(top1, textvariable= job, values=["Ground State","Excited State (Delta Kick)","Excited state(With Laser)"])
+        task.current(0)
+        task['font'] = l
+        task.place(x=200,y=100)
+
+        sbj_button1 = Button(top1, text="LOCAL",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local(sbj_entry1.get(),job)])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=100, y=300)
 
@@ -346,22 +393,21 @@ class WorkManagerPage(Frame):
         sbj_button3.place(x=400,y=400)
 
         
-    def submitjob_local(self,nop):
-        print(nop)
-        #print("gs calculation initiated...")
-        #os.system("python gs.py")
-        #os.system("mpirun -np {} python gs.py".format(processors))
-        #print("Exited State calculation initiated...")
-        #os.system("mpirun -np {} python td.py".format(processors))
-        #print("spectrum calculation initiated...")
-        #os.system("mpirun -np {} python spec.py".format(processors))
-        #runpython(user_path+"/gs.py")
-        #runpython(user_path+"/td.py")
-        #runpython(user_path+"/spec.py")
-        os.system("python gs.py")
-        os.system("python td.py")
-        os.system("python spec.py")
-       
+    def submitjob_local(self, processors,job):
+        
+        from litesoph.simulations.run_local import run_local
+        if job.get() == "Ground State":
+            filename = 'gs.py'
+        elif job.get() == "Excited State (Delta Kick)":
+            filename = 'td.py' 
+        elif job.get() == "Excited State (With Laser)":
+            pass
+      
+        if processors == " ":
+            result = run_local(filename,user_path)
+        else:
+            result = run_local(filename,user_path,int(processors))
+         
     def submitjob_network(self):
         pass
 
@@ -369,10 +415,10 @@ class WorkManagerPage(Frame):
         self.projectpath = self.entry_path.get()
         self.projectname = self.entry_proj.get()
 
-    def getprojectdirectory(self):
-        global user_path
-        user_path = self.projectpath+"/"+self.projectname
-        return user_path
+def getprojectdirectory(path, name):
+    global user_path
+    user_path = pathlib.Path(path) / name
+    return user_path
 
 
 class GroundStatePage(Frame):
@@ -444,30 +490,37 @@ class GroundStatePage(Frame):
         self.entry_vacuum.insert(0,"6")
         self.entry_vacuum.place(x=250,y=250)
                 
-        enter = ttk.Button(self, text="GS Input", style="TButton", command=lambda:[controller.gui_inp('gs',**inp2dict()),messagebox.showinfo("Message", "Input for ground state calculation is Created")])
+        enter = ttk.Button(self, text="GS Input", style="TButton", command=lambda:[controller.gui_inp('gs',**gs_inp2dict()),messagebox.showinfo("Message", "Input for ground state calculation is Created")])
         enter.place(x=250,y=330)
         back_gpaw = ttk.Button(self, text="Back",style="TButton",command=lambda:controller.show_frame(WorkManagerPage))
         back_gpaw.place(x=450,y=330)
         
-        def inp2dict():
+        def gs_inp2dict():
             inp_dict = {
-             'mode': mode.get(),
-             'xc': xc.get(),
-             'basis': basis.get(),
-             'vacuum': vacuum.get(),
-             'h': h.get(),
-             'nbands' : nbands.get(),
-             'properties': 'get_potential_energy()',
-             'engine':'gpaw'
-                     }          
+                'mode': mode.get(),
+                'xc': xc.get(),
+                'basis': basis.get(),
+                'vacuum': vacuum.get(),
+                'h': h.get(),
+                'nbands' : nbands.get(),
+                'properties': 'get_potential_energy()',
+                'engine':'gpaw'
+                        }          
             return inp_dict    
-                
+            
                  
 class TimeDependentPage(Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
+        
+        strength = StringVar()
+        self.ex = StringVar()
+        self.ey = StringVar()
+        self.ez = StringVar()
+        dt = StringVar()
+        Nt = StringVar()
+        
         myFont = font.Font(family='Courier', size=30, weight ='bold')
         j=('Courier',20,'bold')
         k=('Courier',60,'bold')
@@ -508,48 +561,283 @@ class TimeDependentPage(Frame):
         label_steps=Label(self, text= "Total time steps",font=j,bg= "grey60",fg="gainsboro")
         label_steps.place(x=5,y=300)
 
-        drop_strength =  ttk.Combobox(self, values=[ "1e-5", "1e-3"])
+        drop_strength =  ttk.Combobox(self, textvariable= strength, values=[ "1e-5", "1e-3"])
         drop_strength.current(0)
         drop_strength['font'] = l
         drop_strength.place(x=600,y=10)
 
-        drop_pol_x =  ttk.Combobox(self, values=[ "0", "1"])
+        drop_pol_x =  ttk.Combobox(self, textvariable=self.ex, values=[ "0", "1"])
         drop_pol_x.current(0)
         drop_pol_x['font'] = l
         drop_pol_x.place(x=600, y=100)
 
-        drop_pol_y =  ttk.Combobox(self, values=[ "0", "1"])
+        drop_pol_y =  ttk.Combobox(self, textvariable=self.ey, values=[ "0", "1"])
         drop_pol_y.current(0)
         drop_pol_y['font'] = l
         drop_pol_y.place(x=600, y=150)
 
-        drop_pol_z =  ttk.Combobox(self, values=[ "0", "1"])
+        drop_pol_z =  ttk.Combobox(self, textvariable=self.ez, values=[ "0", "1"])
         drop_pol_z.current(0)
         drop_pol_z['font'] = l
         drop_pol_z.place(x=600, y=200)
 
-        entry_dt = ttk.Entry(self,textvariable="dt")
+        entry_dt = ttk.Entry(self,textvariable=dt)
         entry_dt['font']=l
         entry_dt.insert(0,"10")
         entry_dt.place(x=600, y=250 )
 
-        entry_Nt = ttk.Entry(self,textvariable="Nt")
+        entry_Nt = ttk.Entry(self,textvariable=Nt)
         entry_Nt['font']=l
         entry_Nt.insert(0,"2000")
         entry_Nt.place(x=600, y=300 )
 
-        enter = ttk.Button(self, text="ES Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Excited State calculation is Created"), esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get())])
+        #enter = ttk.Button(self, text="ES Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Excited State calculation is Created"), esmd.tddft_input_file(drop_strength.get(), drop_pol_x.get(), drop_pol_y.get(), drop_pol_z.get(), entry_dt.get(), entry_Nt.get()), td_inp2dict()])
+        enter = ttk.Button(self, text="ES Input", style="TButton", command=lambda:[messagebox.showinfo("Message", "Input for Excited State calculation is Created"), controller.gui_inp('td', **td_inp2dict())])
         enter.place(x=300,y=350)
 
         back = ttk.Button(self, text="BACK",style="TButton",command=lambda:controller.show_frame(WorkManagerPage))
         back.place(x=500, y=350)
 
+        def td_inp2dict():
+            td_dict = rt.user_input
+            td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
+            td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
+            td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
+            inp_list = [float(dt.get()),float(Nt.get())]
+            td_dict['propagate'] = tuple(inp_list)
+            return td_dict
 
+
+class LaserDesignPage(Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame1 = tk.Frame(self)
+        loginval = StringVar()
+        inval = StringVar()
+        pol_x = StringVar()
+        pol_y = StringVar()
+        pol_z = StringVar()
+        fwhm = StringVar()
+        freq = StringVar()
+        ts = StringVar()
+        ns = StringVar()
+        Rsig = StringVar()
+
+        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
+        self.Frame1.configure(relief='groove')
+        self.Frame1.configure(borderwidth="2")
+        self.Frame1.configure(relief="groove")
+        self.Frame1.configure(cursor="fleur")
+
+        self.Frame1_label_path = Label(self.Frame1,text="Laser Design",bg="gray",fg="black")
+        self.Frame1_label_path['font'] = myFont
+        self.Frame1_label_path.place(x=100,y=10)
+       
+        self.label_proj = Label(self.Frame1,text="log of laser strength",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=70)
+    
+        loginval = ["5","3"]
+        self.entry_proj = ttk.Combobox(self.Frame1, value = loginval)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"5")
+        self.entry_proj.place(x=200,y=70)
+        
+        self.label_proj = Label(self.Frame1,text="FWHM",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=110)
+
+        self.entry_proj = Entry(self.Frame1,textvariable= fwhm)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.place(x=200,y=110)
+        
+        self.button_project = Button(self.Frame1,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[laser_calc(**(inp2dict()))])
+        self.button_project['font'] = myFont
+        self.button_project.place(x=300,y=400)
+        
+        def inp2dict():
+            laser_default = pre_proc()
+            inp_dict = laser_default.default_dict
+            inp_dict['task'] = 'design'
+            inp_dict['design']['inval'] = inval.get()
+            #inp_dict['design']['tin'] = tin.get()
+            inp_dict['design']['fwhm'] = fwhm.get()
+            return inp_dict
+
+        def laser_calc(**gui_dict):
+            laser_default = pre_proc()
+            laser_dict = laser_default.default_dict
+            laser_dict.update(gui_dict)    #update input and task
+            d = unpack(laser_dict)
+
+ 
+        self.Frame2 = tk.Frame(self)
+        self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
+
+        self.Frame2.configure(relief='groove')
+        self.Frame2.configure(borderwidth="2")
+        self.Frame2.configure(relief="groove")
+        self.Frame2.configure(cursor="fleur")
+
+        self.Frame2_label_path = Label(self.Frame2,text="TD Input for laser Design",bg="gray",fg="black")
+        self.Frame2_label_path['font'] = myFont
+        self.Frame2_label_path.place(x=100,y=10)
+      
+        self.label_proj = Label(self.Frame2,text="laser strength",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=70)
+        
+        inval = ["1e-5","1e-3"]
+        self.entry_proj = ttk.Combobox(self.Frame2, value = inval)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"1e-5")
+        self.entry_proj.place(x=200,y=70)
+
+        self.label_pol = Label(self.Frame2, text= "Electric polarization:",bg= "grey",fg="black")
+        self.label_pol['font'] = myFont
+        self.label_pol.place(x=10,y=110)
+
+        self.label_pol_x = Label(self.Frame2, text="Select the value of x", bg= "grey",fg="black")
+        self.label_pol_x['font'] = myFont
+        self.label_pol_x.place(x=10,y=150)
+        
+        pol_x = ["0","1"]
+        self.entry_pol_x = ttk.Combobox(self.Frame2, value = pol_x)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.insert(0,"0")
+        self.entry_pol_x.place(x=200,y=150)
+
+        self.label_pol_y = Label(self.Frame2, text="Select the value of y", bg= "grey",fg="black")
+        self.label_pol_y['font'] = myFont
+        self.label_pol_y.place(x=10,y=190)
+    
+        pol_y = ["0","1"]
+        self.entry_pol_y = ttk.Combobox(self.Frame2, value = pol_y)
+        self.entry_pol_y['font'] = myFont
+        self.entry_pol_y.insert(0,"0")
+        self.entry_pol_y.place(x=200,y=190)
+
+        self.label_pol_z = Label(self.Frame2, text="Select the value of z", bg= "grey",fg="black")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.place(x=10,y=230)
+ 
+        pol_z = ["0","1"]
+        self.entry_pol_z = ttk.Combobox(self.Frame2, value = pol_z)
+        self.entry_pol_z['font'] = myFont
+        self.entry_pol_z.insert(0,"0")
+        self.entry_pol_z.place(x=200,y=230)
+
+        self.label_proj = Label(self.Frame2,text="Frequency",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=270)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= freq)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.place(x=200,y=270)
+
+        self.label_proj = Label(self.Frame2,text="time step",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=310)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= ts)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"10")
+        self.entry_proj.place(x=200,y=310)
+        
+        self.label_proj = Label(self.Frame2,text="No of steps",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=350)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= ns)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"2000")
+        self.entry_proj.place(x=200,y=350)
+         
+       
+        Frame2_Button1 = tk.Button(self.Frame2, text="Back",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame2_Button1['font'] = myFont
+        Frame2_Button1.place(x=10,y=400)
+        
+        
+class PlotSpectraPage(Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        self.axis = StringVar()
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+        
+        self.Frame = tk.Frame(self) 
+        
+        self.Frame.place(relx=0.01, rely=0.01, relheight=1.98, relwidth=0.978)
+        self.Frame.configure(relief='groove')
+        self.Frame.configure(borderwidth="2")
+        self.Frame.configure(relief="groove")
+        self.Frame.configure(cursor="fleur")
+        
+        self.Frame_label_path = Label(self.Frame,text="LITESOPH Spectrum Calculations and Plots",bg="gray",fg="black")
+        self.Frame_label_path['font'] = myFont
+        self.Frame_label_path.place(x=150,y=10)
+        
+        self.label_pol = Label(self.Frame, text= "Axis of Electric polarization:",bg= "grey",fg="black")
+        self.label_pol['font'] = myFont
+        self.label_pol.place(x=10,y=70)
+
+        self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
+        self.label_pol['font'] = myFont
+        self.label_pol.place(x=10,y=110)
+
+        ax_pol = ["x","y","z"]
+        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.insert(0,"x")
+        self.entry_pol_x.place(x=200,y=110)
+
+        Frame_Button1 = tk.Button(self.Frame, text="Back",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1['font'] = myFont
+        Frame_Button1.place(x=10,y=400)
+  
+        #self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff,command=self.spectrum_show)
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='#0052cc',fg='#ffffff', command=lambda:[controller.createspec(),self.spectrum_show(self.returnaxis())])
+        self.Frame2_Button_1['font'] = myFont
+        self.Frame2_Button_1.place(x=90,y=400)
+    
+    def returnaxis(self):
+        if self.axis.get() == "x":
+            axis = 1
+        if self.axis.get() == "y":
+            axis = 2
+        if self.axis.get() == "z":
+            axis = 3
+        return axis
+         
+
+    def spectrum_show(self, axis):
+        
+        plot_spectra(int(axis))
+        path = pathlib.Path(user_path) / "spec.png"
+        img =Image.open(path)
+        img.show()    
 #--------------------------------------------------------------------------------        
 
 
 if __name__ == '__main__':
-
+     
     app = AITG()
     #app = ThemedTk(theme="arc")
     app.title("AITG - LITESOPH")
