@@ -15,7 +15,7 @@ class CLICommand:
     @staticmethod
     def run(args):
 
-        lsroot = os.environ.get('PYTHONPATH')
+        lsroot = os.environ.get('LS_ROOT')
         lsroot = lsroot.replace(':','')
         lsroot = pathlib.Path(lsroot) 
 
