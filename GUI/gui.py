@@ -312,15 +312,6 @@ class WorkManagerPage(Frame):
         sub_task.current(0)
         sub_task.place(x=200,y=190)
                        
-        self.Frame2_label_3 = Label(self.Frame2, text="Plot Spectrum",bg='gray',fg='black')
-        self.Frame2_label_3['font'] = myFont
-        self.Frame2_label_3.place(x=10,y=250)
-
-        #self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff',command=self.spectrum_show)
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff',command=lambda:[controller.createspec()])
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=200,y=250)
-
         #Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
         Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[controller.task_input(sub_task)])
         Frame2_Button1['font'] = myFont
@@ -346,10 +337,10 @@ class WorkManagerPage(Frame):
         cmd=self.visn.vistool["name"] + " " + self.getprojectdirectory()+"/coordinate.xyz"
         os.system(cmd)
 
-    def spectrum_show(self):
-        plot_spectra()
-        img =Image.open(self.getprojectdirectory()+'/spec.png')
-        img.show()
+    # def spectrum_show(self):
+    #     plot_spectra()
+    #     img =Image.open(self.getprojectdirectory()+'/spec.png')
+    #     img.show()
 
     def submit_job(self):
         top1 = Toplevel()
@@ -412,9 +403,7 @@ class WorkManagerPage(Frame):
             result = run_local(filename,user_path)
         else:
             result = run_local(filename,user_path,int(processors))
-          
-              
-       
+         
     def submitjob_network(self):
         pass
 
@@ -614,22 +603,6 @@ class TimeDependentPage(Frame):
             td_dict['propagate'] = tuple(inp_list)
             return td_dict
 
-    # def returnaxis(self):
-    #     if int(self.ex.get()) == 1:
-    #         axis = 1
-    #     if int(self.ey.get()) == 1:
-    #         axis = 2
-    #     if int(self.ez.get()) == 1:
-    #         axis = 3
-    #     # print(axis) 
-        # return axis 
-
-# def axisvalue(value):
-#     global ax0
-#     ax0 = value
-#     print(ax0) 
-#     return ax0
-     
 
 class LaserDesignPage(Frame):
 
@@ -797,6 +770,8 @@ class PlotSpectraPage(Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
+        self.axis = StringVar()
+
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -824,7 +799,7 @@ class PlotSpectraPage(Frame):
         self.label_pol.place(x=10,y=110)
 
         ax_pol = ["x","y","z"]
-        self.entry_pol_x = ttk.Combobox(self.Frame, value = ax_pol)
+        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=200,y=110)
@@ -834,10 +809,26 @@ class PlotSpectraPage(Frame):
         Frame_Button1.place(x=10,y=400)
   
         #self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff,command=self.spectrum_show)
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='#0052cc',fg='#ffffff')
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='#0052cc',fg='#ffffff', command=lambda:[controller.createspec(),self.spectrum_show(self.returnaxis())])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=90,y=400)
+    
+    def returnaxis(self):
+        if self.axis.get() == "x":
+            axis = 1
+        if self.axis.get() == "y":
+            axis = 2
+        if self.axis.get() == "z":
+            axis = 3
+        return axis
+         
 
+    def spectrum_show(self, axis):
+        
+        plot_spectra(int(axis))
+        path = pathlib.Path(user_path) / "spec.png"
+        img =Image.open(path)
+        img.show()    
 #--------------------------------------------------------------------------------        
 
 
