@@ -229,7 +229,7 @@ class WorkManagerPage(Frame):
 
         self.entry_proj = Entry(self.Frame1,textvariable="proj_name")
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"graphene")
+        #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
         self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname)])
@@ -276,7 +276,7 @@ class WorkManagerPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=130)
 
-        MainTask = ["Ground State","Exited State","Spectrum"]
+        MainTask = ["Ground State","Excited State","Spectrum"]
 
         # Create a list of sub_task  
         GS_task = ["Ground State"]
@@ -287,7 +287,7 @@ class WorkManagerPage(Frame):
             if task.get() == "Ground State":
                 sub_task.config(value = GS_task)
                 sub_task.current(0)
-            if task.get() == "Exited State":
+            if task.get() == "Excited State":
                 sub_task.config(value = ES_task)
                 sub_task.current(0)
             if task.get() == "Spectrum":
