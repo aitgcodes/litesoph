@@ -178,7 +178,7 @@ class StartPage(Frame):
         path1 = pathlib.PurePath(controller.lsroot) / "litesoph" / "GUI" / "images"
 
         print(path1)
-        image = Image.open(str(pathlib.Path(path1) / "logo_litesoph.jpg"))
+        image = Image.open(str(pathlib.Path(path1) / "logo_ls.jpg"))
         canvas_for_image.image = ImageTk.PhotoImage(image.resize((100, 100), Image.ANTIALIAS))
         canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
 
@@ -845,7 +845,7 @@ class PlotSpectraPage(Frame):
 
 
 if __name__ == '__main__':
-     
+    #path = pathlib.Path("/home/mithun/iiser")  
     #app = AITG(path)
     app = AITG()
     app.title("AITG - LITESOPH")
