@@ -60,7 +60,7 @@ class VISUAL():
 
 class AITG(Tk):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, lsroot, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         MainMenu(self)
         path=str(pathlib.Path.home())
@@ -72,6 +72,7 @@ class AITG(Tk):
         window.grid_rowconfigure(700,weight=700)
         window.grid_columnconfigure(600,weight=400)
         
+        self.lsroot = lsroot
         self.frames = {}
 
         for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage, LaserDesignPage, PlotSpectraPage):
@@ -122,7 +123,7 @@ class StartPage(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
-               
+              
         mainframe = ttk.Frame(self,padding="12 12 24 24")
         #mainframe = ttk.Frame(self)
         mainframe.grid(column=1, row=0, sticky=(N, W, E, S))
@@ -174,7 +175,10 @@ class StartPage(Frame):
         canvas_for_image.place(x=30,y=5)
 
         # create image from image location resize it to 100X100 and put in on canvas
-        image = Image.open('images/logo_litesoph.png')
+        path1 = pathlib.PurePath(controller.lsroot) / "GUI" / "images"
+
+        print(path1)
+        image = Image.open(str(pathlib.Path(path1) / "logo_litesoph.png"))
         canvas_for_image.image = ImageTk.PhotoImage(image.resize((100, 100), Image.ANTIALIAS))
         canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
 
@@ -182,7 +186,7 @@ class StartPage(Frame):
         canvas_for_project_create=Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
         canvas_for_project_create.place(x=20,y=200)
 
-        image_project_create = Image.open('images/project_create.png')
+        image_project_create = Image.open(str(pathlib.Path(path1) / "project_create.png"))
         canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
 
@@ -229,7 +233,7 @@ class WorkManagerPage(Frame):
 
         self.entry_proj = Entry(self.Frame1,textvariable="proj_name")
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"graphene")
+        #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
         self.button_project = Button(self.Frame1,text="Create",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname)])
@@ -276,7 +280,7 @@ class WorkManagerPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=130)
 
-        MainTask = ["Ground State","Exited State","Spectrum"]
+        MainTask = ["Ground State","Excited State","Spectrum"]
 
         # Create a list of sub_task  
         GS_task = ["Ground State"]
@@ -287,7 +291,7 @@ class WorkManagerPage(Frame):
             if task.get() == "Ground State":
                 sub_task.config(value = GS_task)
                 sub_task.current(0)
-            if task.get() == "Exited State":
+            if task.get() == "Excited State":
                 sub_task.config(value = ES_task)
                 sub_task.current(0)
             if task.get() == "Spectrum":
@@ -312,15 +316,6 @@ class WorkManagerPage(Frame):
         sub_task.current(0)
         sub_task.place(x=200,y=190)
                        
-        self.Frame2_label_3 = Label(self.Frame2, text="Plot Spectrum",bg='gray',fg='black')
-        self.Frame2_label_3['font'] = myFont
-        self.Frame2_label_3.place(x=10,y=250)
-
-        #self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff',command=self.spectrum_show)
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff',command=lambda:[controller.createspec()])
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=200,y=250)
-
         #Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[os.chdir(self.projectpath+"/"+self.projectname),controller.task_input(task)])
         Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:[controller.task_input(sub_task)])
         Frame2_Button1['font'] = myFont
@@ -346,10 +341,10 @@ class WorkManagerPage(Frame):
         cmd=self.visn.vistool["name"] + " " + self.getprojectdirectory()+"/coordinate.xyz"
         os.system(cmd)
 
-    def spectrum_show(self):
-        plot_spectra()
-        img =Image.open(self.getprojectdirectory()+'/spec.png')
-        img.show()
+    # def spectrum_show(self):
+    #     plot_spectra()
+    #     img =Image.open(self.getprojectdirectory()+'/spec.png')
+    #     img.show()
 
     def submit_job(self):
         top1 = Toplevel()
@@ -412,9 +407,7 @@ class WorkManagerPage(Frame):
             result = run_local(filename,user_path)
         else:
             result = run_local(filename,user_path,int(processors))
-          
-              
-       
+         
     def submitjob_network(self):
         pass
 
@@ -614,22 +607,6 @@ class TimeDependentPage(Frame):
             td_dict['propagate'] = tuple(inp_list)
             return td_dict
 
-    # def returnaxis(self):
-    #     if int(self.ex.get()) == 1:
-    #         axis = 1
-    #     if int(self.ey.get()) == 1:
-    #         axis = 2
-    #     if int(self.ez.get()) == 1:
-    #         axis = 3
-    #     # print(axis) 
-        # return axis 
-
-# def axisvalue(value):
-#     global ax0
-#     ax0 = value
-#     print(ax0) 
-#     return ax0
-     
 
 class LaserDesignPage(Frame):
 
@@ -797,6 +774,8 @@ class PlotSpectraPage(Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
+        self.axis = StringVar()
+
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -824,7 +803,7 @@ class PlotSpectraPage(Frame):
         self.label_pol.place(x=10,y=110)
 
         ax_pol = ["x","y","z"]
-        self.entry_pol_x = ttk.Combobox(self.Frame, value = ax_pol)
+        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=200,y=110)
@@ -834,15 +813,31 @@ class PlotSpectraPage(Frame):
         Frame_Button1.place(x=10,y=400)
   
         #self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff,command=self.spectrum_show)
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='#0052cc',fg='#ffffff')
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='#0052cc',fg='#ffffff', command=lambda:[controller.createspec(),self.spectrum_show(self.returnaxis())])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=90,y=400)
+    
+    def returnaxis(self):
+        if self.axis.get() == "x":
+            axis = 1
+        if self.axis.get() == "y":
+            axis = 2
+        if self.axis.get() == "z":
+            axis = 3
+        return axis
+         
 
+    def spectrum_show(self, axis):
+        
+        plot_spectra(int(axis))
+        path = pathlib.Path(user_path) / "spec.png"
+        img =Image.open(path)
+        img.show()    
 #--------------------------------------------------------------------------------        
 
 
 if __name__ == '__main__':
-
+     
     app = AITG()
     #app = ThemedTk(theme="arc")
     app.title("AITG - LITESOPH")
