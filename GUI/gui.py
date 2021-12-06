@@ -60,7 +60,7 @@ class VISUAL():
 
 class AITG(Tk):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, lsroot, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         MainMenu(self)
         path=str(pathlib.Path.home())
@@ -72,6 +72,7 @@ class AITG(Tk):
         window.grid_rowconfigure(700,weight=700)
         window.grid_columnconfigure(600,weight=400)
         
+        self.lsroot = lsroot
         self.frames = {}
 
         for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage, LaserDesignPage, PlotSpectraPage):
@@ -122,7 +123,7 @@ class StartPage(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
-               
+              
         mainframe = ttk.Frame(self,padding="12 12 24 24")
         #mainframe = ttk.Frame(self)
         mainframe.grid(column=1, row=0, sticky=(N, W, E, S))
@@ -174,7 +175,10 @@ class StartPage(Frame):
         canvas_for_image.place(x=30,y=5)
 
         # create image from image location resize it to 100X100 and put in on canvas
-        image = Image.open('images/logo_litesoph.png')
+        path1 = pathlib.PurePath(controller.lsroot) / "GUI" / "images"
+
+        print(path1)
+        image = Image.open(str(pathlib.Path(path1) / "logo_litesoph.png"))
         canvas_for_image.image = ImageTk.PhotoImage(image.resize((100, 100), Image.ANTIALIAS))
         canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
 
@@ -182,7 +186,7 @@ class StartPage(Frame):
         canvas_for_project_create=Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
         canvas_for_project_create.place(x=20,y=200)
 
-        image_project_create = Image.open('images/project_create.png')
+        image_project_create = Image.open(str(pathlib.Path(path1) / "project_create.png"))
         canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
 
@@ -833,7 +837,7 @@ class PlotSpectraPage(Frame):
 
 
 if __name__ == '__main__':
-
+     
     app = AITG()
     #app = ThemedTk(theme="arc")
     app.title("AITG - LITESOPH")
