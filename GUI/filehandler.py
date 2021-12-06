@@ -1,12 +1,13 @@
 from tkinter import filedialog
-import subprocess 
+import subprocess
+import pathlib 
 
 
 def open_file(outpath):
         text_file = filedialog.askopenfilename(initialdir="./", title="Open Text File", filetypes=((" Text Files", "*.xyz"),))
         text_file = open(text_file,'r')
         stuff = text_file.read()
-        out_file = open(outpath+"/coordinate.xyz",'w')
+        out_file = open(pathlib.Path(outpath) / "coordinate.xyz",'w')
         out_file.write(stuff)
         text_file.close()
         out_file.close()
