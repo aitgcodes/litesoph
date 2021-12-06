@@ -845,9 +845,9 @@ class PlotSpectraPage(Frame):
 
 
 if __name__ == '__main__':
-    path = pathlib.Path('/home/mithun/iiser')  
-    app = AITG(path)
-    #app = AITG()
+     
+    #app = AITG(path)
+    app = AITG()
     app.title("AITG - LITESOPH")
     #app.geometry("1500x700")
     app.resizable(True,True)
