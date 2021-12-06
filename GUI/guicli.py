@@ -16,6 +16,7 @@ class CLICommand:
     def run(args):
 
         lsroot = os.environ.get('PYTHONPATH')
+        lsroot = lsroot.replace(':','')
         lsroot = pathlib.Path(lsroot) 
 
         from litesoph.GUI.gui import AITG
