@@ -25,3 +25,7 @@ def show_message(label_name,message):
         label_name['text'] = message
         label_name['foreground'] = 'black'    
 
+def exist_file(filepath):
+     obj = pathlib.Path(filepath)
+     x = (obj.exists())
+     return(x)
