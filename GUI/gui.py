@@ -380,23 +380,7 @@ class WorkManagerPage(Frame):
         sbj_button3 = Button(top1, text="CLOSE", bg='#0052cc', fg='#ffffff',command=top1.destroy)
         sbj_button3['font'] = myFont
         sbj_button3.place(x=400,y=400)
-
-        
-    # def submitjob_local(self, processors,job):
-        
-    #     from litesoph.simulations.run_local import run_local
-    #     if job.get() == "Ground State":
-    #         filename = 'gs.py'
-    #     elif job.get() == "Excited State (Delta Kick)":
-    #         filename = 'td.py' 
-    #     elif job.get() == "Excited State (With Laser)":
-    #         pass
       
-    #     if processors == " ":
-    #         result = run_local(filename,user_path)
-    #     else:
-    #         result = run_local(filename,user_path,int(processors))
-         
     def submitjob_network(self):
         pass
 
@@ -483,14 +467,6 @@ class GroundStatePage(Frame):
         sub_task.current(0)
         sub_task.place(x=300,y=110)
 
-        #label_mode = Label(self,text = "Mode", font =myFont,bg="gray",fg="black")
-        #label_mode.place(x=15,y=60)
-
-        #self.drop_mode =  ttk.Combobox(self, textvariable= mode, values=[ "lcao", "fd","pw","gaussian"])
-        #self.drop_mode.current(0)
-        #self.drop_mode['font'] = myFont
-        #self.drop_mode.place(x=300,y=60)
-
         label_ftype = Label(self, text= "Exchange Correlation", font =myFont,bg="gray",fg="black")
         label_ftype.place(x=15,y=160)
 
@@ -498,14 +474,6 @@ class GroundStatePage(Frame):
         self.drop_ftype.current(0)
         self.drop_ftype['font'] = myFont
         self.drop_ftype.place(x=300, y=160)
-
-        #basis = Label(self, text= "Basis", font =myFont,bg="gray",fg="black" )
-        #basis.place(x=15,y=160)
-
-        #self.drop_basis = ttk.Combobox(self, textvariable= basis, values=[" "])
-        #self.drop_basis.current(0)
-        #self.drop_basis['font'] = myFont
-        #self.drop_basis.place(x=300,y=160)
 
         label_spacing= Label(self, text= "Spacing (in a.u)", font =myFont,bg="gray",fg="black"  )
         label_spacing.place(x=15,y=210)
@@ -885,7 +853,6 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=200,y=110)
 
-        #self.Frame2_Button_1 = tk.Button(self.Frame2,text="Plot",bg='#0052cc',fg='#ffffff,command=self.spectrum_show)
         self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='#0052cc',fg='#ffffff', command=lambda:[controller.createspec(),self.spectrum_show(self.returnaxis())])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=300,y=400)
@@ -894,10 +861,6 @@ class PlotSpectraPage(Frame):
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=500,y=400)
         
-        #Frame_Button1 = tk.Button(self.Frame, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(JobSubPage))
-        #Frame_Button1['font'] = myFont
-        #Frame_Button1.place(x=700,y=400)
-
     def returnaxis(self):
         if self.axis.get() == "x":
             axis = 1
@@ -957,16 +920,6 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=110)
 
-        #label_job = Label(self,text="Job Type",bg='#0052cc',fg='#ffffff')
-        #label_job['font'] = myFont
-        #label_job.place(x=50,y=100)
-
-        #task = ttk.Combobox(self, textvariable= job, values=["Ground State","Excited State (Delta Kick)","Excited state(With Laser)"])
-        #task.current(0)
-        #task['font'] = l
-        #task.place(x=200,y=100)
-
-        #sbj_button1 = Button(self, text="Run Local",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local(sbj_entry1.get(),job)])
         sbj_button1 = Button(self, text="Run Local",bg='#0052cc', fg='#ffffff',command=lambda:[self.submitjob_local(sbj_entry1.get())])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=600, y=60)
@@ -975,33 +928,11 @@ class JobSubPage(Frame):
         self.msg_label1['font'] = myFont
         self.msg_label1.place(x=600,y=100)
 
-        #sbj_button2 = Button(self, text="NETWORK",bg='#0052cc', fg='#ffffff',command=self.submitjob_network)
-        #sbj_button2['font'] = myFont
-        #sbj_button2.place(x=300, y=300)
- 
-        #back = tk.Button(self, text="Back",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(TimeDependentPage))
-        #back['font'] = myFont
-        #back.place(x=450, y=400)
-
-        #procd = tk.Button(self, text="Proceed",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(PlotSpectraPage))
-        #procd['font'] = myFont
-        #procd.place(x=600,y=400)
-
         back = tk.Button(self, text="Back to main page",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(WorkManagerPage))
         back['font'] = myFont
         back.place(x=600,y=400)
-
-        #sbj_button3 = Button(self, text="Back", bg='#0052cc', fg='#ffffff',command=lambda:[controller.show_frame(TimeDependentPage)])
-        #sbj_button3['font'] = myFont
-        #sbj_button3.place(x=400,y=400)
-
-        #sbj_button4 = Button(self, text="Back to Main Page", bg='#0052cc', fg='#ffffff',command=lambda:[controller.show_frame(WorkManagerPage)])
-        #sbj_button4['font'] = myFont
-        #sbj_button4.place(x=7,y=400)
-
-        
+               
     def submitjob_local(self,processors):
-        
         from litesoph.simulations.run_local import run_local
        
         file1 = "gs.py"
