@@ -383,20 +383,20 @@ class WorkManagerPage(Frame):
         sbj_button3.place(x=400,y=400)
 
         
-    def submitjob_local(self, processors,job):
+    # def submitjob_local(self, processors,job):
         
-        from litesoph.simulations.run_local import run_local
-        if job.get() == "Ground State":
-            filename = 'gs.py'
-        elif job.get() == "Excited State (Delta Kick)":
-            filename = 'td.py' 
-        elif job.get() == "Excited State (With Laser)":
-            pass
+    #     from litesoph.simulations.run_local import run_local
+    #     if job.get() == "Ground State":
+    #         filename = 'gs.py'
+    #     elif job.get() == "Excited State (Delta Kick)":
+    #         filename = 'td.py' 
+    #     elif job.get() == "Excited State (With Laser)":
+    #         pass
       
-        if processors == " ":
-            result = run_local(filename,user_path)
-        else:
-            result = run_local(filename,user_path,int(processors))
+    #     if processors == " ":
+    #         result = run_local(filename,user_path)
+    #     else:
+    #         result = run_local(filename,user_path,int(processors))
          
     def submitjob_network(self):
         pass
@@ -479,7 +479,7 @@ class GroundStatePage(Frame):
         self.Frame2_label_3['font'] = myFont
         self.Frame2_label_3.place(x=15,y=110)
           
-        sub_task = ttk.Combobox(self, value = [" "])
+        sub_task = ttk.Combobox(self, textvariable= basis, value = [" "])
         sub_task['font'] = myFont
         sub_task.current(0)
         sub_task.place(x=300,y=110)
@@ -968,13 +968,13 @@ class JobSubPage(Frame):
         #task.place(x=200,y=100)
 
         #sbj_button1 = Button(self, text="Run Local",bg='#0052cc', fg='#ffffff',command=lambda:[show_message(msg_label1,"Job Done"),self.submitjob_local(sbj_entry1.get(),job)])
-        sbj_button1 = Button(self, text="Run Local",bg='#0052cc', fg='#ffffff',command=lambda:[self.submitjob_local(sbj_entry1.get(),job)])
+        sbj_button1 = Button(self, text="Run Local",bg='#0052cc', fg='#ffffff',command=lambda:[self.submitjob_local(sbj_entry1.get())])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=600, y=60)
 
-        #msg_label1 = Label(self, text='', fg='#ffffff')
-        #msg_label1['font'] = myFont
-        #msg_label1.place(x=100,y=350)
+        self.msg_label1 = Label(self, text='', fg='#ffffff')
+        self.msg_label1['font'] = myFont
+        self.msg_label1.place(x=600,y=100)
 
         #sbj_button2 = Button(self, text="NETWORK",bg='#0052cc', fg='#ffffff',command=self.submitjob_network)
         #sbj_button2['font'] = myFont
@@ -1001,21 +1001,27 @@ class JobSubPage(Frame):
         #sbj_button4.place(x=7,y=400)
 
         
-    def submitjob_local(self, processors,job):
+    def submitjob_local(self,processors):
         
         from litesoph.simulations.run_local import run_local
-        if job.get() == "Ground State":
-            filename = 'gs.py'
-        elif job.get() == "Excited State (Delta Kick)":
-            filename = 'td.py' 
-        elif job.get() == "Excited State (With Laser)":
-            pass
-      
-        if processors == " ":
-            result = run_local(filename,user_path)
-        else:
-            result = run_local(filename,user_path,int(processors))
-         
+       
+        file1 = "gs.py"
+        file2 = "td.py"
+        file_list = [file1, file2]
+        for file in file_list:
+            file_path = str(user_path)+"/"+file
+            out = exist_file(file_path)
+            if out == True:
+                if processors == " " :
+                    result = run_local(file,user_path)
+                    show_message(self.msg_label1,"Job Done")
+                    
+                else:
+                    result = run_local(file,user_path,int(processors))
+            else:
+                print("Input files not found")
+                show_message(self.msg_label1, "Input files not found")
+
     def submitjob_network(self):
         pass
 #--------------------------------------------------------------------------------        
