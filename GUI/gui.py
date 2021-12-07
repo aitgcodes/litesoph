@@ -177,7 +177,6 @@ class StartPage(Frame):
         # create image from image location resize it to 100X100 and put in on canvas
         path1 = pathlib.PurePath(controller.lsroot) / "litesoph" / "GUI" / "images"
 
-        print(path1)
         image = Image.open(str(pathlib.Path(path1) / "logo_ls.jpg"))
         canvas_for_image.image = ImageTk.PhotoImage(image.resize((100, 100), Image.ANTIALIAS))
         canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
@@ -950,7 +949,7 @@ class JobSubPage(Frame):
         sbj_label1.place(x=15,y=60)
 
         sbj_entry1 = Entry(self,textvariable= processors, width=20)
-        sbj_entry1.insert(0," ")
+        sbj_entry1.insert(0,"1")
         sbj_entry1['font'] = l
         sbj_entry1.place(x=200,y=60)
         
@@ -1012,7 +1011,7 @@ class JobSubPage(Frame):
             file_path = str(user_path)+"/"+file
             out = exist_file(file_path)
             if out == True:
-                if processors == " " :
+                if processors == "1" :
                     result = run_local(file,user_path)
                     show_message(self.msg_label1,"Job Done")
                     
