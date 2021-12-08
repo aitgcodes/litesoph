@@ -16,7 +16,9 @@ class CLIError(Exception):
 
 commands = [
     ('run', 'litesoph.cli.run'),
-    ('gui', 'litesoph.GUI.guicli')
+    ('gui', 'litesoph.GUI.guicli'),
+    ('preproc', 'litesoph.Pre_Processing.preproc_cli'),
+    ('postproc', 'litesoph.Post_Processing.postproc_cli')
 ]
 
 def hook(parser, args):
@@ -71,8 +73,7 @@ def hook(parser, args):
 def main(prog='litesoph', description='LITESOPH command line tool.',
          version=__version__, commands=commands, hook=None, args=None):
     parser = argparse.ArgumentParser(prog=prog,
-                                     description=description,
-                                     formatter_class=Formatter)
+                                     description=description)
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(version))
     parser.add_argument('-T', '--traceback', action='store_true')
@@ -106,14 +107,13 @@ def main(prog='litesoph', description='LITESOPH command line tool.',
                 long = short + '\n' + textwrap.dedent(body)
         subparser = subparsers.add_parser(
             command,
-            formatter_class=Formatter,
             help=short,
             description=long)
         cmd.add_arguments(subparser)
         functions[command] = cmd.run
         parsers[command] = subparser
-    print(functions)
-    print(parsers)
+    #print(functions)
+    #print(parsers)
     if hook:
         args = hook(parser, args)
     else:
@@ -172,4 +172,4 @@ class Formatter(argparse.HelpFormatter):
         return out[:-1]
 
 def old(args=None):
-    main(hook=hook, args=args)
+    main(args=args)
