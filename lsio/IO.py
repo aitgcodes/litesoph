@@ -18,7 +18,7 @@ class UserInput:
         'engine':None,
     }
 
-def write2file(directory,filename, template, input_param) -> None:
+def write2file(directory,filename, template) -> None:
     """Write template to a file.
     
     directroy: str
@@ -27,9 +27,8 @@ def write2file(directory,filename, template, input_param) -> None:
         name of the file with extension
     template: str
         script template which needs to be written to file.
-    input_param: dict
-        dictonary to format tempalte."""
-    template = template.format(**input_param)
+    """
+
     filename = pathlib.Path(directory) / filename
 
     with open(filename, 'w+') as f:

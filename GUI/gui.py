@@ -112,8 +112,8 @@ class AITG(Tk):
             write2status(str(user_path),'gs_inp','True')
             
         if task == 'td':
-            rt.user_input.update(gui_dict)
-            dict_input = rt.user_input
+            rt.default_input.update(gui_dict)
+            dict_input = rt.default_input
             RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),user_path)
             write2status(str(user_path),'td_inp','True')
 
@@ -625,7 +625,7 @@ class TimeDependentPage(Frame):
         Frame1_Button3.place(x=10,y=380)
 
         def td_inp2dict():
-            td_dict = rt.user_input
+            td_dict = rt.default_input
             td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
             td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
@@ -1131,7 +1131,7 @@ class TcmPage(Frame):
             # print(freqs_lst)
 
         def tcm_td_inp2dict():
-            td_dict = rt.user_input
+            td_dict = rt.default_input
             td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
             td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
