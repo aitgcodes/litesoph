@@ -56,6 +56,9 @@ energy = layer.get_potential_energy()
 calc.write('{directory}/gs.gpw', mode='all')
 
     """
+    def __init__(self, user_input) -> None:
+        pass
+
     def check(self, user_param)-> bool:
         """checks whether user given input parameters is compatable with with gpaw ground state calculation"""
 
@@ -75,30 +78,33 @@ calc.write('{directory}/gs.gpw', mode='all')
         for key in user_input:
             if key not in ['tolerance','convergance','box'] and user_input[key] is not None:
                 parameters[key] = user_input[key]
-                            
-            if key == 'work_dir' and user_input[key] is None:
-                print('The project directory is not specified so the current directory will be taken as working directory')
-                parameters.update(key = user_input['work_dir'][os.getcwd()])
 
             if key == 'geometry' and user_input[key] is None:
                 raise ValueError('The structure file is not found')
         return parameters
 
+    def format_template(self, para:dict):
+        template = self.gs_template.format(**para)
+        return template
      
 class RtLcaoTddft:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
 
-    user_input = {'absorption_kick': [1e-5, 0.0, 0.0],
+    default_input = {'absorption_kick': [1e-5, 0.0, 0.0],
                 'propagate': (20, 150),
                 'module': None,
+                'laser':None,
+                'electric_pol': None,
+                'dipole_file':'dm.dat',
                 'analysis_tools': None,
                 'filename':'gs.gpw',
                 'propagator':None,
                 'td_potential': None,
                 'fxc':None,
                 'parallel': None,
-                'txt':'tdx.out'}
+                'txt':'tdx.out',
+                'td_out':'td.gpw'}
 
     analysis_tools = [
         ('DipoleMomentWriter()','from gpaw.lcaotddft.dipolemomemtwriter import DipoleMomentWriter'),
@@ -106,36 +112,55 @@ class RtLcaoTddft:
 
     ]
     
-    lcao_tddft_template = """ 
+    delta_kick_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
 import numpy as np
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
-{module}
-td_calc = LCAOTDDFT(filename='{filename}',
-                    propagator={propagator},
-                    td_potential={td_potential},
-                    fxc={fxc},
-                    parallel={parallel},
-                    txt='{txt}')
 
-DipoleMomentWriter(td_calc, 'dm.dat')
-{analysis_tools}
+td_calc = LCAOTDDFT(filename='{filename}',txt='{txt}')
+
+DipoleMomentWriter(td_calc, '{dipole_file}')
+
 # Kick
 td_calc.absorption_kick({absorption_kick})
 # Propagate"
 td_calc.propagate{propagate}
 # Save the state for restarting later"
-td_calc.write('{directory}/td.gpw', mode='all')
+td_calc.write('{directory}/{td_out}', mode='all')
     """
-    def __init__(self) -> None:
-        pass
+    
+    laser_template = """ 
+import numpy as np
+from ase.units import Hartree, Bohr
+from gpaw.exteral import ConstantElectricField
+from gpaw.lcaotddft import LCAOTDDFT
+from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
+from gpaw.lcaotddft.laser import GaussianPulse
+pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
+ext = ConstantElectricField(Hartree / Bohr,{electric_pol} )
+td_potential = {{'ext': ext, 'laser': pulse}}
+td_calc = LCAOTDDFT(filename='{filename}',
+                    td_potential=td_potential,
+                    txt='{txt}')
+DipoleMomentWriter(td_calc, '{dipole_file}')
+# Propagate"
+td_calc.propagate{propagate}
+# Save the state for restarting later"
+td_calc.write('{directory}/{td_out}', mode='all')
+    """
+
+    def __init__(self, user_input) -> None:
+        self.user_input = user_input
+        self.laser = self.user_input['laser']
+        self.tools = self.user_input['analysis_tools']
+        self.td_potential = self.user_input['td_potential']
 
     def check():
         pass
     
     def pulse(pulse_para: dict)-> str:
         para = {
-            'srength':None,
+            'strength':None,
             'time0':None,
             'frequency': None,
             'sigma': None,
@@ -152,7 +177,15 @@ td_calc.write('{directory}/td.gpw', mode='all')
 
     def mask():
         pass
-
+    
+    def format_template(self):
+        if self.laser is None:
+            template = self.delta_kick_template.format(**self.user_input)
+            return template
+        elif self.laser is not None and self.td_potential == True:
+           self.user_input.update(self.laser)
+           template = self.laser_template.format(**self.user_input)
+           return template
     
 class LrTddft:
     """This class contains the template  for creating gpaw 
