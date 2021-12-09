@@ -718,7 +718,7 @@ class LaserDesignPage(Frame):
         self.Frame1.configure(cursor="fleur")
         self.Frame1 = tk.Frame(self)
         
-        loginval = StringVar()
+        strength = StringVar()
         inval = StringVar()
         pol_x = StringVar()
         pol_y = StringVar()
@@ -727,7 +727,8 @@ class LaserDesignPage(Frame):
         freq = StringVar()
         ts = StringVar()
         ns = StringVar()
-         
+        tin = StringVar()
+
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
@@ -738,62 +739,61 @@ class LaserDesignPage(Frame):
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.place(x=125,y=10)
       
-        self.label_proj = Label(self.Frame1,text="laser strength in a.u",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=60)
-        
-        inval = ["1e-5","1e-3"]
-        self.entry_proj = ttk.Combobox(self.Frame1, value = inval)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"1e-5")
-        self.entry_proj.place(x=250,y=60)
-
+             
         self.label_pol_x = Label(self.Frame1, text="Electric Polarisation in x axis", bg= "grey",fg="black")
         self.label_pol_x['font'] = myFont
-        self.label_pol_x.place(x=10,y=110)
+        self.label_pol_x.place(x=10,y=60)
         
         pol_list = ["0","1"]
-        self.entry_pol_x = ttk.Combobox(self.Frame1, value = pol_list)
+        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= pol_x, value = pol_list)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"0")
-        self.entry_pol_x.place(x=250,y=110)
+        self.entry_pol_x.place(x=250,y=60)
 
         self.label_pol_y = Label(self.Frame1, text="Electric Polarisation in y axis", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
-        self.label_pol_y.place(x=10,y=160)
+        self.label_pol_y.place(x=10,y=110)
     
-        self.entry_pol_y = ttk.Combobox(self.Frame1, value = pol_list)
+        self.entry_pol_y = ttk.Combobox(self.Frame1,textvariable= pol_y, value = pol_list)
         self.entry_pol_y['font'] = myFont
         self.entry_pol_y.insert(0,"0")
-        self.entry_pol_y.place(x=250,y=160)
+        self.entry_pol_y.place(x=250,y=110)
 
         self.label_pol_z = Label(self.Frame1, text="Electric Polarisation in z axis", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
-        self.label_pol_z.place(x=10,y=210)
+        self.label_pol_z.place(x=10,y=160)
  
-        self.entry_pol_z = ttk.Combobox(self.Frame1, value = pol_list)
+        self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= pol_z, value = pol_list)
         self.entry_pol_z['font'] = myFont
         self.entry_pol_z.insert(0,"0")
-        self.entry_pol_z.place(x=250,y=210)
+        self.entry_pol_z.place(x=250,y=160)
 
         self.label_proj = Label(self.Frame1,text="Frequency in eV",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=260)
+        self.label_proj.place(x=10,y=210)
 
         self.entry_proj = Entry(self.Frame1,textvariable= freq)
         self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=250,y=260)
+        self.entry_proj.place(x=250,y=210)
 
-        self.label_proj = Label(self.Frame1,text="time step in attosecond ",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame1,text="Time step in attosecond ",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=310)
+        self.label_proj.place(x=10,y=260)
 
         self.entry_proj = Entry(self.Frame1,textvariable= ts)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"10")
+        self.entry_proj.place(x=250,y=260)
+        
+        self.label_proj = Label(self.Frame1,text="Number of Steps",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=310)
+
+        self.entry_proj = Entry(self.Frame1,textvariable= ns)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"2000")
         self.entry_proj.place(x=250,y=310)
-        
-        
+ 
         Frame1_Button1 = tk.Button(self.Frame1, text="Back",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(WorkManagerPage))
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=10,y=380)
@@ -806,32 +806,47 @@ class LaserDesignPage(Frame):
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
 
-        self.label_proj = Label(self.Frame2,text="No of steps",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2,text="Time Origin (tin)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= ns)
+        self.entry_proj = Entry(self.Frame2,textvariable= tin)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"2000")
+        self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=250,y=60)
 
-        self.label_proj = Label(self.Frame2,text="log of laser strength",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2,text="Pulse Amplitute at tin",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=110)
-    
-        loginval = ["5","3"]
-        self.entry_proj = ttk.Combobox(self.Frame2, value = loginval)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"5")
-        self.entry_proj.place(x=250,y=110)
-        
-        self.label_proj = Label(self.Frame2,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
+ 
+        inval_list = ["-8", "-9"]
+        self.entry_pol_z = ttk.Combobox(self.Frame2,textvariable= inval, value = inval_list)
+        self.entry_pol_z['font'] = myFont
+        self.entry_pol_z.insert(0,"-8")
+        self.entry_pol_z.place(x=250,y=110)
+
+        #self.entry_proj = Entry(self.Frame2,textvariable= inval)
+        #self.entry_proj['font'] = myFont
+        #self.entry_proj.insert(0,"0")
+        #self.entry_proj.place(x=250,y=110)
+
+        self.label_proj = Label(self.Frame2,text="Laser Strength",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=160)
+    
+        instr = ["1e-5","1e-3"]
+        self.entry_proj = ttk.Combobox(self.Frame2,textvariable= strength, value = instr)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.current(0)
+        self.entry_proj.place(x=250,y=160)
+
+        self.label_proj = Label(self.Frame2,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=210)
 
         self.entry_proj = Entry(self.Frame2,textvariable= fwhm)
         self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=250,y=160)
+        self.entry_proj.place(x=250,y=210)
 
         self.button_project = Button(self.Frame2,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[laser_calc(**(inp2dict()))])
         self.button_project['font'] = myFont
@@ -1026,13 +1041,7 @@ class TcmPage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
 
         self.FrameTcm1 = tk.Frame(self)
-        #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-        #self.FrameTcm1.configure(relief='groove')
-        #self.FrameTcm1.configure(borderwidth="2")
-        #self.FrameTcm1.configure(relief="groove")
-        #self.FrameTcm1.configure(cursor="fleur")
-        #self.Frame1 = tk.Frame(self)
-
+        
         strength = StringVar()
         pol_x = StringVar()
         pol_y = StringVar()
@@ -1059,10 +1068,6 @@ class TcmPage(Frame):
         self.Tcm_entry_strength['font'] = myFont
         self.Tcm_entry_strength.insert(0,"1e-5")
         self.Tcm_entry_strength.place(x=200,y=70)
-
-        #self.Tcm_label_pol = Label(self.FrameTcm1, text= "Electric polarization:",bg= "grey",fg="black")
-        #self.Tcm_label_pol['font'] = myFont
-        #self.Tcm_label_pol.place(x=10,y=110)
 
         self.Tcm_label_pol_x = Label(self.FrameTcm1, text="Select the value of x", bg= "grey",fg="black")
         self.Tcm_label_pol_x['font'] = myFont
@@ -1177,7 +1182,7 @@ class TcmPage(Frame):
 
 
 if __name__ == '__main__':
-     
+    
     app = AITG()
     app.title("AITG - LITESOPH")
     #app.geometry("1500x700")
