@@ -3,6 +3,28 @@ import subprocess
 import pathlib 
 
 
+class Status():
+        status_dict = { 'gs_inp' : False,
+                    'td_inp' : False,
+                    'gs_cal' : False,
+                    'td_cal' : False
+                  }
+        status_template = """
+gs_inp = {gs_inp}
+td_inp = {td_inp}
+gs_cal = {gs_cal}
+td_cal = {td_cal}
+    """          
+                 
+
+def search_string(directory,filename, string):
+    """ Checks if a string is present in the file and returns boolean"""
+    inf = str(directory) + '/' + str(filename)
+    if string in open(inf).read():
+        return True
+    else:
+        return False     
+
 def open_file(outpath):
         text_file = filedialog.askopenfilename(initialdir="./", title="Open Text File", filetypes=((" Text Files", "*.xyz"),))
         text_file = open(text_file,'r')
@@ -25,7 +47,5 @@ def show_message(label_name,message):
         label_name['text'] = message
         label_name['foreground'] = 'black'    
 
-def exist_file(filepath):
-     obj = pathlib.Path(filepath)
-     x = (obj.exists())
-     return(x)
+
+
