@@ -39,7 +39,7 @@ from litesoph.GUI.navigation import Nav
 from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.GPAW.spectrum import spectrum
-from litesoph.lsio.IO import write2file
+from litesoph.lsio.IO import write22file
 from litesoph.GUI.filehandler import Status
 
 
@@ -127,10 +127,10 @@ class AITG(Tk):
 def write2status(path, key = None, value = None):
         stat_obj = Status()
         if key is None and value is None:
-                write2file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)
+                write22file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)
         else :
                 stat_obj.status_dict[key] = value
-                write2file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)    
+                write22file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)    
     
 class StartPage(Frame):
 
