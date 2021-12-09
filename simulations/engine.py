@@ -1,13 +1,12 @@
 from typing import Any, Dict
 from litesoph.lsio.IO import write2file 
-from litesoph.simulations.GPAW import gpaw_template as gpaw
+from litesoph.simulations.GPAW import gpaw_template as gp
 from abc import ABC, abstractclassmethod
 
 
 class EngineStrategy(ABC):
     """Abstract base calss for the different engine."""
 
-    tasks =[]
 
     @abstractclassmethod
     def engine_name():
@@ -15,7 +14,7 @@ class EngineStrategy(ABC):
         pass
     
     @abstractclassmethod
-    def get_task_class( task: str):
+    def get_task_class( task: str, user_param):
         pass
 
     @abstractclassmethod
@@ -29,7 +28,7 @@ class EngineStrategy(ABC):
         pass
 
     @abstractclassmethod
-    def create_script(self,template: str, dict:Dict[str, Any]) -> None:
+    def create_script(self, template: str) -> None:
         pass
 
     @abstractclassmethod
@@ -38,20 +37,16 @@ class EngineStrategy(ABC):
 
 class EngineGpaw(EngineStrategy):
 
-    tasks = [gpaw.GpawGroundState(),
-                gpaw.LrTddft(),
-                gpaw.RtLcaoTddft(),
-                gpaw.InducedDensity()]
 
     def engine_name():
         """retruns engine name"""
         return 'gpaw'
 
-    def get_task_class(self, task: str):
+    def get_task_class(self, task: str, user_param):
         if task == "ground state":
-            return gpaw.GpawGroundState()
+            return gp.GpawGroundState(user_param)
         if task == "LCAO TDDFT":
-            return gpaw.RtLcaoTddft()
+            return gp.RtLcaoTddft(user_param)
 
     def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
@@ -63,17 +58,17 @@ class EngineGpaw(EngineStrategy):
         parameters = task.user2gpaw(user_param, default_param)
         return parameters
     
-    def create_script(self,directory,filename,template: str, dict:Dict[str, Any]) -> None:
+    def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for gpaw"""
         filename = filename + '.py'
-        write2file(directory,filename,template, dict)
+        write2file(directory,filename,template)
 
     def excute():
         pass
 
 class EngineOctopus(EngineStrategy):
 
-    tasks = []
+    
 
     def engine_name():
         """retruns engine name"""
@@ -90,16 +85,16 @@ class EngineOctopus(EngineStrategy):
         """updates the default input parameters with the user input"""
         pass
 
-    def create_script(self,directory,filename,template: str, dict:Dict[str, Any]) -> None:
+    def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for octopus"""
-        write2file(directory,filename,template, dict)
+        write2file(directory,filename,template)
 
     def excute():
         pass
 
 class EngineNwchem(EngineStrategy):
 
-    tasks = []
+   
 
     def engine_name():
         """retruns engine name"""
@@ -117,9 +112,9 @@ class EngineNwchem(EngineStrategy):
         """updates the default input parameters with the user input"""
         pass
 
-    def create_script(self,directory,filename,template: str, dict:Dict[str, Any]) -> None:
+    def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for nwchem"""
-        write2file(directory,filename,template, dict)
+        write2file(directory,filename,template)
     
     def excute():
         pass
@@ -131,7 +126,7 @@ def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
                     EngineNwchem()]
 
     for engine in list_engine:
-        task = engine.get_task_class("ground state")
+        task = engine.get_task_class("ground state", user_input)
         if engine.check_compatability(user_input, task):
             return engine
         else:

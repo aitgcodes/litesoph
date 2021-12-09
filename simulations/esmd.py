@@ -10,11 +10,12 @@ class GroundState:
     def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy) -> None:
         self.user_input = user_input
         self.engine = engine
-        self.task = self.engine.get_task_class(task='ground state')
+        self.task = self.engine.get_task_class('ground state',self.user_input)
 
         if self.engine.check_compatability(self.user_input, self.task):
             parameters = self.engine.engine_input_para(user_param=self.user_input, default_param= self.task.default_param, task=self.task)
-            engine.create_script(self.user_input['directory'], 'gs', self.task.gs_template, parameters)
+            self.template = self.task.format_template(parameters)
+            engine.create_script(self.user_input['directory'], 'gs', self.template)
         else:
             raise InputError("Input parameters not compatable with the engine")
 
@@ -24,11 +25,12 @@ class RT_LCAO_TDDFT:
     def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy, directory) -> None:
         self.user_input = user_input
         self.engine = engine
-        self.task = self.engine.get_task_class(task='LCAO TDDFT')
+        self.task = self.engine.get_task_class('LCAO TDDFT', self.user_input)
         self.directory = directory
         self.user_input['directory']=self.directory
+        self.template = self.task.format_template()
 
-        engine.create_script(self.directory, 'td', self.task.lcao_tddft_template , self.user_input)
+        engine.create_script(self.directory, 'td', self.template)
         
 class LR_TDDFT:
     pass
