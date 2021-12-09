@@ -30,7 +30,7 @@ from litesoph.GUI.menubar import MainMenu
 from litesoph.simulations import esmd
 from litesoph.GUI import projpath
 from litesoph.GUI.spec_plot import plot_spectra
-from litesoph.io.IO import UserInput as ui
+from litesoph.lsio.IO import UserInput as ui
 from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
 from litesoph.GUI.filehandler import *

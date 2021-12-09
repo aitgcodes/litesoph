@@ -1,7 +1,7 @@
 # export the path of the directroy containing litesoph
 # export PYTHONPATH=$PYTHONPATH:path/to/directory
 
-from litesoph.io.IO import UserInput as ui
+from litesoph.lsio.IO import UserInput as ui
 from litesoph.simulations.esmd import GroundState
 from litesoph.simulations import engine
 
