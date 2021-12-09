@@ -39,6 +39,8 @@ from litesoph.GUI.navigation import Nav
 from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.GPAW.spectrum import spectrum
+from litesoph.lsio.IO import write2file
+from litesoph.GUI.filehandler import Status
 
 
 
@@ -99,6 +101,7 @@ class AITG(Tk):
             self.show_frame(TcmPage)
                   
     def gui_inp(self,task,**gui_dict):
+        
         if task == 'gs':
             ui.user_param.update(gui_dict) # update the user parameters
             dict_input = ui.user_param
@@ -106,10 +109,13 @@ class AITG(Tk):
             dict_input['geometry'] = pathlib.Path(user_path) / "coordinate.xyz"
             engn = engine.choose_engine(dict_input)
             GroundState(dict_input, engn)
+            write2status(str(user_path),'gs_inp','True')
+            
         if task == 'td':
             rt.user_input.update(gui_dict)
             dict_input = rt.user_input
             RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),user_path)
+            write2status(str(user_path),'td_inp','True')
 
     def createspec(self):
         spec = spectrum()
@@ -118,8 +124,14 @@ class AITG(Tk):
         spec_dict['spectrum_file'] = pathlib.Path(user_path) / 'spec.dat'
         spec.cal_photoabs_spectrum(spec_dict)
 
-     
-              
+def write2status(path, key = None, value = None):
+        stat_obj = Status()
+        if key is None and value is None:
+                write2file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)
+        else :
+                stat_obj.status_dict[key] = value
+                write2file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)    
+    
 class StartPage(Frame):
 
     def __init__(self, parent, controller):
@@ -938,25 +950,31 @@ class JobSubPage(Frame):
     def deletelabel(self,label):
         label.destroy()
          
-    def submitjob_local(self,processors):
+    def submitjob_local(self, processors):
+        
+        gs_check = search_string(str(user_path), 'status.txt' , 'gs_inp = True')
+        td_check = search_string(str(user_path), 'status.txt' , 'td_inp = True')
+        self.job_select(gs_check,td_check,processors)
+        
+    def job_select(self,gs_check, td_check, processors):
         from litesoph.simulations.run_local import run_local
-       
-        file1 = "gs.py"
-        file2 = "td.py"
-        file_list = [file1, file2]
-        for file in file_list:
-            file_path = str(user_path)+"/"+file
-            out = exist_file(file_path)
-            if out == True:
-                if processors == "1" :
-                    result = run_local(file,user_path)
-                   # show_message(self.msg_label1,"Job Done")
-                    
-                else:
-                    result = run_local(file,user_path,int(processors))
-            #else:
-               # print("Input files not found")
-                #show_message(self.msg_label1, "Input files not found")
+        if gs_check is False and td_check is False:
+            show_message(self.msg_label1, "Input files not found")
+
+        if gs_check is True and td_check is False:
+            if processors == "1" :
+                result = run_local('gs.py',user_path)
+                show_message(self.msg_label1,"Job Done")               
+            else:
+                result = run_local('gs.py',user_path,int(processors))
+                        
+        if gs_check is True and td_check is True:
+            if processors == "1" :
+                result = run_local('td.py',user_path)
+                show_message(self.msg_label1,"Job Done")               
+            else:
+                result = run_local('td.py',user_path,int(processors))
+                  
 
     def submitjob_network(self):
 
