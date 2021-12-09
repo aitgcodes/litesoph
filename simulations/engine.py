@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from litesoph.io.IO import write2file 
+from litesoph.lsio.IO import write2file 
 from litesoph.simulations.GPAW import gpaw_template as gpaw
 from abc import ABC, abstractclassmethod
 
