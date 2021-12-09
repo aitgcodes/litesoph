@@ -7,7 +7,6 @@ from abc import ABC, abstractclassmethod
 class EngineStrategy(ABC):
     """Abstract base calss for the different engine."""
 
-    tasks =[]
 
     @abstractclassmethod
     def engine_name():
@@ -38,10 +37,6 @@ class EngineStrategy(ABC):
 
 class EngineGpaw(EngineStrategy):
 
-    tasks = [gp.GpawGroundState(),
-                gp.LrTddft(),
-                gp.RtLcaoTddft(),
-                gp.InducedDensity()]
 
     def engine_name():
         """retruns engine name"""
@@ -73,7 +68,7 @@ class EngineGpaw(EngineStrategy):
 
 class EngineOctopus(EngineStrategy):
 
-    tasks = []
+    
 
     def engine_name():
         """retruns engine name"""
@@ -99,7 +94,7 @@ class EngineOctopus(EngineStrategy):
 
 class EngineNwchem(EngineStrategy):
 
-    tasks = []
+   
 
     def engine_name():
         """retruns engine name"""
