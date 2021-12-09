@@ -39,7 +39,7 @@ from litesoph.GUI.navigation import Nav
 from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.GPAW.spectrum import spectrum
-from litesoph.lsio.IO import write2file
+from litesoph.lsio.IO import write22file
 from litesoph.GUI.filehandler import Status
 
 
@@ -112,8 +112,8 @@ class AITG(Tk):
             write2status(str(user_path),'gs_inp','True')
             
         if task == 'td':
-            rt.user_input.update(gui_dict)
-            dict_input = rt.user_input
+            rt.default_input.update(gui_dict)
+            dict_input = rt.default_input
             RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),user_path)
             write2status(str(user_path),'td_inp','True')
 
@@ -127,10 +127,10 @@ class AITG(Tk):
 def write2status(path, key = None, value = None):
         stat_obj = Status()
         if key is None and value is None:
-                write2file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)
+                write22file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)
         else :
                 stat_obj.status_dict[key] = value
-                write2file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)    
+                write22file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)    
     
 class StartPage(Frame):
 
@@ -625,7 +625,7 @@ class TimeDependentPage(Frame):
         Frame1_Button3.place(x=10,y=380)
 
         def td_inp2dict():
-            td_dict = rt.user_input
+            td_dict = rt.default_input
             td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
             td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
@@ -1131,7 +1131,7 @@ class TcmPage(Frame):
             # print(freqs_lst)
 
         def tcm_td_inp2dict():
-            td_dict = rt.user_input
+            td_dict = rt.default_input
             td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
             td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
