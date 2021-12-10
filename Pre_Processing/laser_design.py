@@ -22,22 +22,18 @@ import math
 # print("sigma time : ", tau_0)
 # print("pulse centre :", t0)
 
-
-def laser_design(**par):
+def laser_design(strength, inval, tin, fwhm):
     import math
-    inval = 6.0                            # -log(E(0))
-    tin = 0.0                              # location of time origin
-    if 'inval' in par.keys():
-        inval = float(par['inval'])
-    if 'tin' in par.keys():
-        tin = float(par['tin'])
-    if 'fwhm' in par.keys(): 
-        fwhm = float(par['fwhm'])          # FWHM in frequency space
-
-    tau_0 = 2.0*math.sqrt(2*math.log(2.0))/fwhm       # in units of femtosecond
-    t0 = tin + math.sqrt(2.0)*tau_0*math.sqrt(inval)  # in units of femtosecond
+    tin = 0.0 
+    
+    loginval = math.log(float(strength)/float(inval))
+    tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of femtosecond
+    t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(loginval)  # in units of femtosecond
+    
     tau_0 = tau_0*0.2418                              # converted from fms to eV
-    par['sigma_time'] = tau_0    # in units of eV                     
-    par['pulse centre'] = t0     # in units of fms
-    return(par)
-
+    t0 = t0*(1e3)                                     # converted from fms to attosecond
+    laser = {}
+    laser['strength'] = strength
+    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of eV                     
+    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of as
+    return(laser)
