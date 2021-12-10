@@ -129,10 +129,10 @@ td_calc.propagate{propagate}
 td_calc.write('{directory}/{td_out}', mode='all')
     """
     
-    laser_template = """ 
+    external_field_template = """ 
 import numpy as np
 from ase.units import Hartree, Bohr
-from gpaw.exteral import ConstantElectricField
+from gpaw.external import ConstantElectricField
 from gpaw.lcaotddft import LCAOTDDFT
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 from gpaw.lcaotddft.laser import GaussianPulse
@@ -184,7 +184,7 @@ td_calc.write('{directory}/{td_out}', mode='all')
             return template
         elif self.laser is not None and self.td_potential == True:
            self.user_input.update(self.laser)
-           template = self.laser_template.format(**self.user_input)
+           template = self.external_field_template.format(**self.user_input)
            return template
     
 class LrTddft:
