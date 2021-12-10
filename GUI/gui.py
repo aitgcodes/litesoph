@@ -77,7 +77,7 @@ class AITG(Tk):
         self.lsroot = lsroot
         self.frames = {}
 
-        for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage, LaserDesignPage, PlotSpectraPage, JobSubPage, TcmPage):
+        for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage, LaserDesignPage, PlotSpectraPage, JobSubPage, TcmPage, TextViewerPage):
             frame = F(window,self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky ="nsew")
@@ -542,7 +542,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=310)
 
-        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[controller.gui_inp('gs','gs',**gs_inp2dict())])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()),controller.show_frame(TextViewerPage)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -853,7 +853,7 @@ class LaserDesignPage(Frame):
         # self.button_project['font'] = myFont
         # self.button_project.place(x=10,y=380)        
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td', self.td)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Save Input",bg='#0052cc',fg='#ffffff', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td', self.td)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=180,y=380)
         
@@ -1135,7 +1135,7 @@ class TcmPage(Frame):
         self.Tcm_label_note['font'] = myFont
         self.Tcm_label_note.place(x=10,y=370)
 
-        self.Tcm_TDInput_button = Button(self.FrameTcm1,text="Create TDInput",bg="blue",fg="black")
+        self.Tcm_TDInput_button = Button(self.FrameTcm1,text="Save Input",bg="blue",fg="black")
         self.Tcm_TDInput_button['font'] = myFont
         self.Tcm_TDInput_button.place(x=200,y=400)
 
@@ -1190,13 +1190,85 @@ class TcmPage(Frame):
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
             inp_list = [float(dt.get()),float(Nt.get())]
             td_dict['propagate'] = tuple(inp_list)
-            return td_dict    
+            return td_dict  
+
+  
+class TextViewerPage(Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        #self.axis = StringVar()
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame = tk.Frame(self)
+
+        self.Frame.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.98)
+        self.Frame.configure(relief='groove')
+        self.Frame.configure(borderwidth="2")
+        self.Frame.configure(relief="groove")
+        self.Frame.configure(cursor="fleur")
+  
+        self.FrameTcm1_label_path = Label(self, text="LITESOPH Text Viewer",fg="blue")
+        self.FrameTcm1_label_path['font'] = myFont
+        self.FrameTcm1_label_path.place(x=400,y=10)
+
+
+
+        
+        text_scroll =Scrollbar(self)
+        text_scroll.pack(side=RIGHT, fill=Y)
+
+        my_Text = Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
+        my_Text['font'] = myFont
+        my_Text.place(x=15,y=60)
+
+        
+        text_scroll.config(command= my_Text.yview)
+    
+         
+        view = tk.Button(self, text="View Text",bg='#0052cc',fg='#ffffff',command=lambda:[self.open_txt(my_Text)])
+        view['font'] = myFont
+        view.place(x=150,y=380)
+
+        save = tk.Button(self, text="Save", bg= '#0052cc',fg='#ffffff',command=lambda:[self.save_txt(my_Text)])
+        save['font'] = myFont
+        save.place(x=320, y=380)
+
+        back = tk.Button(self, text="Back",bg='#0052cc',fg='#ffffff',command=lambda:[controller.show_frame(WorkManagerPage)])
+        back['font'] = myFont
+        back.place(x=15,y=380)
+
+        jobsub = tk.Button(self, text="Run Job",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(JobSubPage))
+        jobsub['font'] = myFont
+        jobsub.place(x=800,y=380)
+
+    def open_txt(self,my_Text):
+        text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
+        self.current_file = text_file_name
+        text_file = open(text_file_name, 'r')
+        stuff = text_file.read()
+        my_Text.insert(END,stuff)
+        text_file.close()
+    
+    def save_txt(self,my_Text):
+        text_file = self.current_file
+        text_file = open(text_file,'w')
+        text_file.write(my_Text.get(1.0, END))
+        
 
 
 #--------------------------------------------------------------------------------        
 
 
 if __name__ == '__main__':
+    
     
     app = AITG()
     app.title("AITG - LITESOPH")
