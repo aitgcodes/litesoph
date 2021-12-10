@@ -100,7 +100,7 @@ class AITG(Tk):
         if sub_task.get() == "Transition Contribution Map":
             self.show_frame(TcmPage)
                   
-    def gui_inp(self,task,**gui_dict):
+    def gui_inp(self, task, filename, gui_dict):
         
         if task == 'gs':
             ui.user_param.update(gui_dict) # update the user parameters
@@ -108,13 +108,13 @@ class AITG(Tk):
             dict_input['directory'] = user_path
             dict_input['geometry'] = pathlib.Path(user_path) / "coordinate.xyz"
             engn = engine.choose_engine(dict_input)
-            GroundState(dict_input, engn)
+            GroundState(dict_input, filename, engn)
             write2status(str(user_path),'gs_inp','True')
             
         if task == 'td':
             rt.default_input.update(gui_dict)
             dict_input = rt.default_input
-            RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),user_path)
+            RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),user_path)
             write2status(str(user_path),'td_inp','True')
 
     def createspec(self):
@@ -542,7 +542,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=310)
 
-        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[controller.gui_inp('gs',**gs_inp2dict())])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[controller.gui_inp('gs','gs',**gs_inp2dict())])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -681,7 +681,7 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="Save and view Input",bg='#0052cc',fg='#ffffff',command=lambda:[controller.gui_inp('td', **td_inp2dict())])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Save and view Input",bg='#0052cc',fg='#ffffff',command=lambda:[controller.gui_inp('td','td', td_inp2dict())])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -853,7 +853,7 @@ class LaserDesignPage(Frame):
         # self.button_project['font'] = myFont
         # self.button_project.place(x=10,y=380)        
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td', **(self.td))])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td', self.td)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=180,y=380)
         
