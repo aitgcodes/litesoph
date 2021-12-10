@@ -1,4 +1,3 @@
-from _typeshed import Self
 import pathlib
 import os
 
@@ -25,14 +24,18 @@ class SETUPS:
         vistool = None
         p = self.lsroot / 'setups.in'
         with p.open() as f:
-            line = f.readline()
-            if 'vistool' in line:
-                vistool = line.strip().split("=")[1]
-            elif 'LSPROJECT' in line:
-                lsproject = line.strip().split("=")[1]
+            lines = f.readlines()
+            for line in lines:
+                if 'vistool' in line:
+                    vistool = line.strip().split("=")[1]
+                elif 'LSPROJECT' in line:
+                    lsproject = line.strip().split("=")[1]
         
         setups = {}
         setups['vistool'] = vistool
         setups['lsproject'] = lsproject
 
         return setups
+
+setu = SETUPS()
+print(setu.lsroot, setu.setups)
