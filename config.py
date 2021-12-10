@@ -36,6 +36,3 @@ class SETUPS:
         setups['lsproject'] = lsproject
 
         return setups
-
-setu = SETUPS()
-print(setu.lsroot, setu.setups)
