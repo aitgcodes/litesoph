@@ -26,7 +26,7 @@ def search_string(directory,filename, string):
         return False     
 
 def open_file(outpath):
-        text_file = filedialog.askopenfilename(initialdir="./", title="Open Text File", filetypes=((" Text Files", "*.xyz"),))
+        text_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=((" Text Files", "*.xyz"),))
         text_file = open(text_file,'r')
         stuff = text_file.read()
         out_file = open(pathlib.Path(outpath) / "coordinate.xyz",'w')
