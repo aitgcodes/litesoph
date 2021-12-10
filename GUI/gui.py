@@ -703,7 +703,7 @@ class LaserDesignPage(Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        
+        self.tdpulse_dict = rt.default_input
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -718,16 +718,16 @@ class LaserDesignPage(Frame):
         self.Frame1.configure(cursor="fleur")
         self.Frame1 = tk.Frame(self)
         
-        strength = StringVar()
-        inval = StringVar()
-        pol_x = StringVar()
-        pol_y = StringVar()
-        pol_z = StringVar()
-        fwhm = StringVar()
-        freq = StringVar()
-        ts = StringVar()
-        ns = StringVar()
-        tin = StringVar()
+        self.strength = StringVar()
+        self.inval = StringVar()
+        self.pol_x = StringVar()
+        self.pol_y = StringVar()
+        self.pol_z = StringVar()
+        self.fwhm = StringVar()
+        self.freq = StringVar()
+        self.ts = StringVar()
+        self.ns = StringVar()
+        self.tin = StringVar()
 
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -745,7 +745,7 @@ class LaserDesignPage(Frame):
         self.label_pol_x.place(x=10,y=60)
         
         pol_list = ["0","1"]
-        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= pol_x, value = pol_list)
+        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self.pol_x, value = pol_list)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"0")
         self.entry_pol_x.place(x=250,y=60)
@@ -754,7 +754,7 @@ class LaserDesignPage(Frame):
         self.label_pol_y['font'] = myFont
         self.label_pol_y.place(x=10,y=110)
     
-        self.entry_pol_y = ttk.Combobox(self.Frame1,textvariable= pol_y, value = pol_list)
+        self.entry_pol_y = ttk.Combobox(self.Frame1,textvariable= self.pol_y, value = pol_list)
         self.entry_pol_y['font'] = myFont
         self.entry_pol_y.insert(0,"0")
         self.entry_pol_y.place(x=250,y=110)
@@ -763,7 +763,7 @@ class LaserDesignPage(Frame):
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=160)
  
-        self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= pol_z, value = pol_list)
+        self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= self.pol_z, value = pol_list)
         self.entry_pol_z['font'] = myFont
         self.entry_pol_z.insert(0,"0")
         self.entry_pol_z.place(x=250,y=160)
@@ -772,7 +772,7 @@ class LaserDesignPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=210)
 
-        self.entry_proj = Entry(self.Frame1,textvariable= freq)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.freq)
         self.entry_proj['font'] = myFont
         self.entry_proj.place(x=250,y=210)
 
@@ -780,7 +780,7 @@ class LaserDesignPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=260)
 
-        self.entry_proj = Entry(self.Frame1,textvariable= ts)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.ts)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"10")
         self.entry_proj.place(x=250,y=260)
@@ -789,7 +789,7 @@ class LaserDesignPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=310)
 
-        self.entry_proj = Entry(self.Frame1,textvariable= ns)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.ns)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"2000")
         self.entry_proj.place(x=250,y=310)
@@ -810,7 +810,7 @@ class LaserDesignPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= tin)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.tin)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=250,y=60)
@@ -819,10 +819,10 @@ class LaserDesignPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=110)
  
-        inval_list = ["-8", "-9"]
-        self.entry_pol_z = ttk.Combobox(self.Frame2,textvariable= inval, value = inval_list)
+        inval_list = ["1e-8", "1e-9"]
+        self.entry_pol_z = ttk.Combobox(self.Frame2,textvariable= self.inval, value = inval_list)
         self.entry_pol_z['font'] = myFont
-        self.entry_pol_z.insert(0,"-8")
+        self.entry_pol_z.insert(0,"1e-8")
         self.entry_pol_z.place(x=250,y=110)
 
         #self.entry_proj = Entry(self.Frame2,textvariable= inval)
@@ -835,7 +835,7 @@ class LaserDesignPage(Frame):
         self.label_proj.place(x=10,y=160)
     
         instr = ["1e-5","1e-3"]
-        self.entry_proj = ttk.Combobox(self.Frame2,textvariable= strength, value = instr)
+        self.entry_proj = ttk.Combobox(self.Frame2,textvariable= self.strength, value = instr)
         self.entry_proj['font'] = myFont
         self.entry_proj.current(0)
         self.entry_proj.place(x=250,y=160)
@@ -844,36 +844,51 @@ class LaserDesignPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=210)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= fwhm)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.fwhm)
+        self.fwhm.set("2")
         self.entry_proj['font'] = myFont
         self.entry_proj.place(x=250,y=210)
 
-        self.button_project = Button(self.Frame2,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[laser_calc(**(inp2dict()))])
-        self.button_project['font'] = myFont
-        self.button_project.place(x=10,y=380)        
+        # self.button_project = Button(self.Frame2,text="Laser Design",bg='#0052cc',fg='#ffffff',command=self.laser_calc())
+        # self.button_project['font'] = myFont
+        # self.button_project.place(x=10,y=380)        
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff')
+        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td', **(self.td))])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=180,y=380)
         
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(JobSubPage))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=400,y=380)
-        
-        def inp2dict():
-            laser_default = pre_proc()
-            inp_dict = laser_default.default_dict
-            inp_dict['task'] = 'design'
-            inp_dict['design']['inval'] = loginval.get()
-            #inp_dict['design']['tin'] = tin.get()
-            inp_dict['design']['fwhm'] = fwhm.get()
-            return inp_dict
+      
+    def laser_calc(self):
+        l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
+        return(l_dict)
 
-        def laser_calc(**gui_dict):
-            laser_default = pre_proc()
-            laser_dict = laser_default.default_dict
-            laser_dict.update(gui_dict)    #update input and task
-            d = unpack(laser_dict)
+    def tdpulse_inp2dict(self):
+        self.td = self.tdpulse_dict
+        abs_x = float(self.strength.get())*float(self.pol_x.get())
+        abs_y = float(self.strength.get())*float(self.pol_y.get())
+        abs_z = float(self.strength.get())*float(self.pol_z.get())
+        abs_list = [abs_x, abs_y, abs_z]
+        inp_list = [float(self.ts.get()),int(self.ns.get())]
+        epol_list = [float(self.pol_x.get()),float(self.pol_y.get()),float(self.pol_z.get())]
+        laser_dict = self.laser_calc()
+        updatekey(laser_dict, 'frequency', self.freq.get())
+        updatekey(self.td,'absorption_kick',abs_list)
+        updatekey(self.td,'propagate', tuple(inp_list))
+        updatekey(self.td,'electric_pol',epol_list)
+        updatekey(self.td,'dipole_file','dmpulse.dat')
+        updatekey(self.td,'filename', 'gs.gpw')
+        updatekey(self.td,'td_potential', True)
+        updatekey(self.td,'txt', 'tdpulse.out')
+        updatekey(self.td,'td_out', 'tdpulse.gpw')
+        updatekey(self.td,'laser', laser_dict)
+        return(self.td)       
+
+def updatekey(dict, key, value):
+    dict[key] = value
+    return(dict)
 
 class PlotSpectraPage(Frame):
 
