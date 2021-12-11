@@ -1064,80 +1064,84 @@ class TcmPage(Frame):
         dt = StringVar()
         Nt = StringVar()
 
-        self.FrameTcm1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
+        self.FrameTcm1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.FrameTcm1.configure(relief='groove')
         self.FrameTcm1.configure(borderwidth="2")
         self.FrameTcm1.configure(relief="groove")
         self.FrameTcm1.configure(cursor="fleur")
 
-        self.FrameTcm1_label_path = Label(self.FrameTcm1,text="Input parameters for TD calculations",bg="gray",fg="black")
+        self.FrameTcm1_label_path = Label(self.FrameTcm1,text="LITESOPH TMC Input",fg="blue")
         self.FrameTcm1_label_path['font'] = myFont
-        self.FrameTcm1_label_path.place(x=10,y=10)
+        self.FrameTcm1_label_path.place(x=150,y=10)
 
         self.label_strength = Label(self.FrameTcm1,text="laser strength (in a.u)",bg="gray",fg="black")
         self.label_strength['font'] = myFont
-        self.label_strength.place(x=10,y=70)
+        self.label_strength.place(x=10,y=60)
 
         inval = ["1e-5","1e-3"]
         self.Tcm_entry_strength = ttk.Combobox(self.FrameTcm1, value = inval)
         self.Tcm_entry_strength['font'] = myFont
         self.Tcm_entry_strength.insert(0,"1e-5")
-        self.Tcm_entry_strength.place(x=200,y=70)
+        self.Tcm_entry_strength.place(x=250,y=60)
 
-        self.Tcm_label_pol_x = Label(self.FrameTcm1, text="Select the value of x", bg= "grey",fg="black")
+        self.Tcm_label_pol_x = Label(self.FrameTcm1, text="Electric Polarisation in x axis", bg= "grey",fg="black")
         self.Tcm_label_pol_x['font'] = myFont
-        self.Tcm_label_pol_x.place(x=10,y=150)
+        self.Tcm_label_pol_x.place(x=10,y=110)
 
         pol_list = ["0","1"]
-        self.Tcm_entry_pol_x = ttk.Combobox(self.FrameTcm1, value = pol_x)
+        self.Tcm_entry_pol_x = ttk.Combobox(self.FrameTcm1, value = pol_list)
         self.Tcm_entry_pol_x['font'] = myFont
         self.Tcm_entry_pol_x.insert(0,"0")
-        self.Tcm_entry_pol_x.place(x=200,y=150)
+        self.Tcm_entry_pol_x.place(x=250,y=110)
 
-        self.Tcm_label_pol_y = Label(self.FrameTcm1, text="Select the value of y", bg= "grey",fg="black")
+        self.Tcm_label_pol_y = Label(self.FrameTcm1, text="Electric Polarisation in y axis", bg= "grey",fg="black")
         self.Tcm_label_pol_y['font'] = myFont
-        self.Tcm_label_pol_y.place(x=10,y=190)
+        self.Tcm_label_pol_y.place(x=10,y=160)
 
         
-        self.Tcm_entry_pol_y = ttk.Combobox(self.FrameTcm1, value = pol_y)
+        self.Tcm_entry_pol_y = ttk.Combobox(self.FrameTcm1, value = pol_list)
         self.Tcm_entry_pol_y['font'] = myFont
         self.Tcm_entry_pol_y.insert(0,"0")
-        self.Tcm_entry_pol_y.place(x=200,y=190)
+        self.Tcm_entry_pol_y.place(x=250,y=160)
 
-        self.Tcm_label_pol_z = Label(self.FrameTcm1, text="Select the value of z", bg= "grey",fg="black")
+        self.Tcm_label_pol_z = Label(self.FrameTcm1, text="Electric Polarisation in z axis", bg= "grey",fg="black")
         self.Tcm_label_pol_z['font'] = myFont
-        self.Tcm_label_pol_z.place(x=10,y=230)
+        self.Tcm_label_pol_z.place(x=10,y=210)
 
-        self.Tcm_entry_pol_z = ttk.Combobox(self.FrameTcm1, value = pol_z)
+        self.Tcm_entry_pol_z = ttk.Combobox(self.FrameTcm1, value = pol_list)
         self.Tcm_entry_pol_z['font'] = myFont
         self.Tcm_entry_pol_z.insert(0,"1")
-        self.Tcm_entry_pol_z.place(x=200,y=230)
+        self.Tcm_entry_pol_z.place(x=250,y=210)
 
-        self.Tcm_label_ts = Label(self.FrameTcm1,text="dt (in attosecond) ",bg="gray",fg="black")
+        self.Tcm_label_ts = Label(self.FrameTcm1,text="Time step (attosecond)",bg="gray",fg="black")
         self.Tcm_label_ts['font'] = myFont
-        self.Tcm_label_ts.place(x=10,y=280)
+        self.Tcm_label_ts.place(x=10,y=260)
 
         self.Tcm_entry_ts = Entry(self.FrameTcm1,textvariable= dt)
         self.Tcm_entry_ts['font'] = myFont
         self.Tcm_entry_ts.insert(0,"10")
-        self.Tcm_entry_ts.place(x=200,y=280)
+        self.Tcm_entry_ts.place(x=250,y=260)
 
         self.Tcm_label_ns = Label(self.FrameTcm1,text="No of steps",bg="gray",fg="black")
         self.Tcm_label_ns['font'] = myFont
-        self.Tcm_label_ns.place(x=10,y=320)
+        self.Tcm_label_ns.place(x=10,y=310)
 
         self.Tcm_entry_ns = Entry(self.FrameTcm1,textvariable= Nt)
         self.Tcm_entry_ns['font'] = myFont
         self.Tcm_entry_ns.insert(0,"2000")
-        self.Tcm_entry_ns.place(x=200,y=320)
+        self.Tcm_entry_ns.place(x=250,y=310)
 
         self.Tcm_label_note = Label(self.FrameTcm1,text="Note: This input creates the TD wavefunctions (required for TCM)",bg="gray",fg="black")
         self.Tcm_label_note['font'] = myFont
-        self.Tcm_label_note.place(x=10,y=370)
+        self.Tcm_label_note.place(x=10,y=350)
 
-        self.Tcm_TDInput_button = Button(self.FrameTcm1,text="Save Input",bg="blue",fg="black")
+        self.Tcm_Button = tk.Button(self.FrameTcm1, text="Back",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(WorkManagerPage))
+        self.Tcm_Button['font'] = myFont
+        self.Tcm_Button.place(x=10,y=380)
+
+        self.Tcm_TDInput_button = Button(self.FrameTcm1,text="Save Input",bg='#0052cc',fg='#ffffff')
         self.Tcm_TDInput_button['font'] = myFont
-        self.Tcm_TDInput_button.place(x=200,y=400)
+        self.Tcm_TDInput_button.place(x=340,y=380)
 
         self.FrameTcm2 = tk.Frame(self)
         self.FrameTcm2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
@@ -1147,30 +1151,29 @@ class TcmPage(Frame):
         self.FrameTcm2.configure(relief="groove")
         self.FrameTcm2.configure(cursor="fleur")
 
-        self.FrameTcm2_label_path = Label(self.FrameTcm2,text="Frequency space density matrix",bg="gray",fg="black")
+        self.FrameTcm2_label_path = Label(self.FrameTcm2,text="Frequency space density matrix",fg="blue")
         self.FrameTcm2_label_path['font'] = myFont
-        self.FrameTcm2_label_path.place(x=100,y=10)
+        self.FrameTcm2_label_path.place(x=150,y=10)
 
         self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV) ",bg="gray",fg="black")
         self.Label_freqs['font'] = myFont
-        self.Label_freqs.place(x=10,y=100)
+        self.Label_freqs.place(x=10,y=60)
 
-        self.TextBox_freqs = Text(self.FrameTcm2, height=7, width=10)
+        self.TextBox_freqs = Text(self.FrameTcm2, height=10, width=65)
         self.TextBox_freqs['font'] = myFont
-        self.TextBox_freqs.place(x=200,y=100)
+        self.TextBox_freqs.place(x=10,y=110)
 
-        self.buttonRetrieve = Button(self.FrameTcm2, height=2, width=20, text="Retrieve Frequencies",bg='#0052cc',fg='#ffffff',command=lambda: retrieve_input())
+        self.buttonRetrieve = Button(self.FrameTcm2, text="Retrieve Freq",bg='#0052cc',fg='#ffffff',command=lambda: retrieve_input())
         self.buttonRetrieve['font'] = myFont
-        self.buttonRetrieve.place(x=320,y=150)
+        self.buttonRetrieve.place(x=10,y=380)
 
-        self.buttonInputFdm = Button(self.FrameTcm2,text="Create Input files for TCM plot",bg='#0052cc',fg='#ffffff')
+        self.buttonInputFdm = Button(self.FrameTcm2,text="View Input",bg='#0052cc',fg='#ffffff')
         self.buttonInputFdm['font'] = myFont
-        self.buttonInputFdm.place(x=10,y=300)
-
-
-        FrameTcm2_Button1 = tk.Button(self.FrameTcm2, text="Back to Work Manager Page",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(WorkManagerPage))
+        self.buttonInputFdm.place(x=200,y=380)
+        
+        FrameTcm2_Button1 = tk.Button(self.FrameTcm2, text="Run Job",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(JobSubPage))
         FrameTcm2_Button1['font'] = myFont
-        FrameTcm2_Button1.place(x=10,y=400)
+        FrameTcm2_Button1.place(x=360,y=380)
         
 
         def retrieve_input():
