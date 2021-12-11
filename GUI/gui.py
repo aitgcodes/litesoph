@@ -521,10 +521,10 @@ class GroundStatePage(Frame):
 
         self.entry_proj = Entry(self.Frame2,textvariable= energy)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0.0005")
+        self.entry_proj.insert(0,"5*10e-5")
         self.entry_proj.place(x=250,y=210)
 
-        self.Frame2_note = Label(self.Frame2,text="maxtiter",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="maxiter",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
@@ -980,7 +980,7 @@ class JobSubPage(Frame):
         self.Frame.configure(relief="groove")
         self.Frame.configure(cursor="fleur")
 
-        sbj_label1 = Label(self, text="LITESOPH Job Submission", bg='#0052cc', fg='#ffffff')
+        sbj_label1 = Label(self, text="LITESOPH Job Submission", fg='blue')
         sbj_label1['font'] = myFont
         sbj_label1.place(x=350,y=10)
 
@@ -1268,9 +1268,9 @@ class TextViewerPage(Frame):
 
 
 if __name__ == '__main__':
-    
-    
-    app = AITG()
+    path = pathlib.Path('/home/mithun/gui_chk')
+    app = AITG(path)
+    #app = AITG()
     app.title("AITG - LITESOPH")
     #app.geometry("1500x700")
     app.resizable(True,True)
