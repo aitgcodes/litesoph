@@ -9,8 +9,7 @@ from  PIL import Image,ImageTk
 import tkinter as tk
 import sys
 import os
-from pathlib import Path
-
+from litesoph.GUI.filehandler import Status
 
 class VISUAL():
 
@@ -49,7 +48,7 @@ class MainMenu():
         menubar.add_cascade(label="Edit", menu=edit)
 
         view = Menu(menubar, tearoff=0)
-        view.add_command(label="Files", command= self.text_view)
+        view.add_command(label="Files", command=self.text_view)
         view.add_command(label="Graphs")
         view.add_command(label="Images")
         view.add_command(label="Movies")
@@ -86,7 +85,7 @@ class MainMenu():
         self.init_visualization()
         cmd=self.visn.vistool["name"]
         os.system(cmd)
-    
+
     def text_view(self):
 
         top1 = Toplevel()
@@ -99,10 +98,16 @@ class MainMenu():
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
 
-        my_Text = Text(top1, width = 80, height = 25)
+        text_scroll =Scrollbar(top1)
+        text_scroll.pack(side=RIGHT, fill=Y)
+        
+        
+        my_Text = Text(top1, width = 80, height = 25, yscrollcommand= text_scroll.set)
+        #my_Text = Text(top1, width = 80, height = 25)
         my_Text['font'] = myFont
         my_Text.place(x=15,y=10)
-     
+        text_scroll.config(command= my_Text.yview)
+
         view = tk.Button(top1, text="View Text",bg='#0052cc',fg='#ffffff',command=lambda:[self.open_txt(my_Text)])
         view['font'] = myFont
         view.place(x=150,y=400)
@@ -111,8 +116,10 @@ class MainMenu():
         save['font'] = myFont
         save.place(x=320, y=400)
 
+        
+
     def open_txt(self,my_Text):
-        text_file_name = filedialog.askopenfilename(initialdir=Path.home(), title="Select File", filetypes=(("Text files","*"),))
+        text_file_name = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=(("Text files","*"),))
         #text_file_name = open_file(user_path) 
         self.current_file = text_file_name
         text_file = open(text_file_name, 'r')
@@ -124,6 +131,8 @@ class MainMenu():
         text_file = self.current_file
         text_file = open(text_file,'w')
         text_file.write(my_Text.get(1.0, END))
-            
+        
+
+    
         
 
