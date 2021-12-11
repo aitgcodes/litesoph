@@ -1271,8 +1271,9 @@ class TextViewerPage(Frame):
 
 
 if __name__ == '__main__':
-    
-    app = AITG()
+    path = pathlib.Path('/home/mithun/iiser')
+    app = AITG(path)
+    #app = AITG()
     app.title("AITG - LITESOPH")
     #app.geometry("1500x700")
     app.resizable(True,True)
