@@ -480,6 +480,10 @@ class GroundStatePage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='#0052cc',fg='#ffffff', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict())])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=350,y=380)
+
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
@@ -542,10 +546,10 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=310)
 
-        Frame2_Button1 = tk.Button(self.Frame2, text="Save and View Input",bg='#0052cc',fg='#ffffff', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()),controller.show_frame(TextViewerPage)])
-        Frame2_Button1['font'] = myFont
-        Frame2_Button1.place(x=10,y=380)
-
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",bg='#0052cc',fg='#ffffff', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage)])
+        Frame2_Button3['font'] = myFont
+        Frame2_Button3.place(x=10,y=380)
+ 
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='#0052cc',fg='#ffffff',command=lambda:controller.show_frame(JobSubPage))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
@@ -1271,8 +1275,9 @@ class TextViewerPage(Frame):
 
 
 if __name__ == '__main__':
-    
-    app = AITG()
+    path = pathlib.Path('/home/mithun/iiser')
+    app = AITG(path)
+    #app = AITG()
     app.title("AITG - LITESOPH")
     #app.geometry("1500x700")
     app.resizable(True,True)
