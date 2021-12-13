@@ -63,33 +63,42 @@ class VISUAL():
 class AITG(Tk):
 
     def __init__(self, lsconfig, *args, **kwargs):
-        Tk.__init__(self, *args, **kwargs)
+        super().__init__()
+
         self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
         self.lsroot = self.lsconfig.lsroot
         self.directory = self.lsconfig.configs['lsproject']
-
         self.nav = Nav(self,self.directory)
-        
-        window = Frame(self)
-        window.grid(row=0, column=2)
+        self.nav.grid()
+
+        self.window = Frame(self)
+        self.window.grid(row=0, column=2)
         #window.pack(side="top", fill = "both", expand = True)
-        window.grid_rowconfigure(700,weight=700)
-        window.grid_columnconfigure(800,weight=400)
+        self.window.grid_rowconfigure(700,weight=700)
+        self.window.grid_columnconfigure(800,weight=400)
         
         
-        self.frames = {}
-
-        for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage, LaserDesignPage, PlotSpectraPage, JobSubPage, TcmPage, TextViewerPage):
-            frame = F(window,self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky ="nsew")
-
         self.show_frame(StartPage)
 
+    def refresh(self, frame,path):
+        frame.destroy()
+        self.nav= Nav(self,path)
+        self.nav.grid()
+        
+
     def show_frame(self, page_name):
-        frame = self.frames[page_name]
-        frame.tkraise()
+        
+        if isinstance(page_name, Frame):
+            self.frames[page_name].destroy()
+            frame = page_name(self.window, self)
+            frame.grid(row=0, column=0, sticky ="nsew")
+            frame.tkraise()
+        else:
+            frame = page_name(self.window, self)
+            frame.grid(row=0, column=0, sticky ="nsew")
+            frame.tkraise()
+
 
     def task_input(self,sub_task):
         if sub_task.get()  == "Ground State":
@@ -241,7 +250,7 @@ class WorkManagerPage(Frame):
 
         self.entry_path = Entry(self.Frame1,textvariable="proj_path")
         self.entry_path['font'] = myFont
-        self.entry_path.insert(0,str(pathlib.Path.home()))
+        self.entry_path.insert(0,str(self.controller.directory))
         self.entry_path.place(x=200,y=10)
 
         self.label_proj = Label(self.Frame1,text="Project Name",bg="gray",fg="black")
@@ -253,7 +262,7 @@ class WorkManagerPage(Frame):
         #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
-        self.button_project = Button(self.Frame1,text="Create New Project",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname)])
+        self.button_project = Button(self.Frame1,text="Create New Project",bg='#0052cc',fg='#ffffff',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),controller.refresh(controller.nav, user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=125,y=360)
       
