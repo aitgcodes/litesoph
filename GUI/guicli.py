@@ -1,7 +1,7 @@
 import subprocess
 import os 
 import pathlib
-from litesoph.config import SETUPS
+from litesoph.config import LSCONFIG
 
 class CLICommand:
     """LITESOPH's graphical user interface.
@@ -15,14 +15,12 @@ class CLICommand:
     @staticmethod
     def run(args):
 
-        import litesoph
-        setup = SETUPS()
-        lsroot = litesoph.__file__
-        lsroot = pathlib.Path(lsroot) 
-        setup.lsroot = lsroot.parent.parent
-       
+        
+        setup = LSCONFIG()
+        setup.setups['lsproject'] = pathlib.Path.cwd()
+        
         from litesoph.GUI.gui import AITG
-        app = AITG(setup.lsroot)
+        app = AITG(setup)
         app.title("AITG - LITESOPH")
         app.resizable(True,True)
         app.mainloop()
