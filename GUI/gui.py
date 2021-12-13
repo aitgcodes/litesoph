@@ -62,11 +62,14 @@ class VISUAL():
 
 class AITG(Tk):
 
-    def __init__(self, lsroot, *args, **kwargs):
+    def __init__(self, lsconfig, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
-        MainMenu(self)
-        path=str(pathlib.Path.home())
-        Nav(self,path)
+        self.mainmenu = MainMenu(self)
+        self.lsconfig = lsconfig
+        self.lsroot = self.lsconfig.lsroot
+        self.directory = self.lsconfig.configs['lsproject']
+
+        self.nav = Nav(self,self.directory)
         
         window = Frame(self)
         window.grid(row=0, column=2)
@@ -74,7 +77,7 @@ class AITG(Tk):
         window.grid_rowconfigure(700,weight=700)
         window.grid_columnconfigure(800,weight=400)
         
-        self.lsroot = lsroot
+        
         self.frames = {}
 
         for F in (StartPage, WorkManagerPage, GroundStatePage, TimeDependentPage, LaserDesignPage, PlotSpectraPage, JobSubPage, TcmPage, TextViewerPage):
@@ -1074,7 +1077,7 @@ class TcmPage(Frame):
         self.FrameTcm1.configure(relief="groove")
         self.FrameTcm1.configure(cursor="fleur")
 
-        self.FrameTcm1_label_path = Label(self.FrameTcm1,text="LITESOPH TMC Input",fg="blue")
+        self.FrameTcm1_label_path = Label(self.FrameTcm1,text="LITESOPH TCM Input",fg="blue")
         self.FrameTcm1_label_path['font'] = myFont
         self.FrameTcm1_label_path.place(x=150,y=10)
 
