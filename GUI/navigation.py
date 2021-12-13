@@ -3,8 +3,9 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.filedialog import askopenfile
 from tkinter import filedialog
-class Nav():
+class Nav(tk.Frame):
     def __init__(self, master,path):
+        tk.Frame.__init__(self, master)
         self.nodes = dict()
         
         self.tree = ttk.Treeview(master)
