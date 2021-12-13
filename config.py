@@ -17,9 +17,9 @@ class LSCONFIG:
             print("litesoph is located at {}".format(str(lsroot)))
 
         self.lsroot = lsroot
-        self.setups = self.read_setups()
+        self.configs = self.read_configs()
 
-    def read_setups(self):
+    def read_configs(self):
 
         lsproject = pathlib.Path.home() / "Litesoph_Projects"
         vistool = None
@@ -32,8 +32,8 @@ class LSCONFIG:
                 elif 'LSPROJECT' in line:
                     lsproject = line.strip().split("=")[1]
         
-        setups = {}
-        setups['vistool'] = vistool
-        setups['lsproject'] = lsproject
+        configs = {}
+        configs['vistool'] = vistool
+        configs['lsproject'] = lsproject
 
-        return setups
+        return configs
