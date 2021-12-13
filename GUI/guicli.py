@@ -16,11 +16,11 @@ class CLICommand:
     def run(args):
 
         
-        setup = LSCONFIG()
-        setup.setups['lsproject'] = pathlib.Path.cwd()
+        lsconfig = LSCONFIG()
+        lsconfig.configs['lsproject'] = pathlib.Path.cwd()
         
         from litesoph.GUI.gui import AITG
-        app = AITG(setup)
+        app = AITG(lsconfig)
         app.title("AITG - LITESOPH")
         app.resizable(True,True)
         app.mainloop()
