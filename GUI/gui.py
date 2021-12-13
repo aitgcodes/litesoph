@@ -69,7 +69,7 @@ class AITG(Tk):
         self.lsroot = self.lsconfig.lsroot
         self.directory = self.lsconfig.configs['lsproject']
 
-        Nav(self,self.directory)
+        self.nav = Nav(self,self.directory)
         
         window = Frame(self)
         window.grid(row=0, column=2)
