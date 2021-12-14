@@ -531,7 +531,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_note = Label(self.Frame2,text="multiplicity",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Multiplicity",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
@@ -549,7 +549,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"0.0005")
         self.entry_proj.place(x=250,y=210)
 
-        self.Frame2_note = Label(self.Frame2,text="maxiter",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Maxiter",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
@@ -632,7 +632,7 @@ class TimeDependentPage(Frame):
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.place(x=150,y=10)
       
-        self.label_proj = Label(self.Frame1,text="laser strength in a.u",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame1,text="Laser strength in a.u",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
         
@@ -1106,7 +1106,7 @@ class TcmPage(Frame):
         self.FrameTcm1_label_path['font'] = myFont
         self.FrameTcm1_label_path.place(x=150,y=10)
 
-        self.label_strength = Label(self.FrameTcm1,text="laser strength (in a.u)",bg="gray",fg="black")
+        self.label_strength = Label(self.FrameTcm1,text="Laser strength (in a.u)",bg="gray",fg="black")
         self.label_strength['font'] = myFont
         self.label_strength.place(x=10,y=60)
 
@@ -1187,7 +1187,7 @@ class TcmPage(Frame):
         self.FrameTcm2_label_path['font'] = myFont
         self.FrameTcm2_label_path.place(x=150,y=10)
 
-        self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV) ",bg="gray",fg="black")
+        self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV/a.u) ",bg="gray",fg="black")
         self.Label_freqs['font'] = myFont
         self.Label_freqs.place(x=10,y=60)
 
@@ -1209,7 +1209,7 @@ class TcmPage(Frame):
         self.buttonRetrieve['font'] = myFont
         self.buttonRetrieve.place(x=10,y=380)
 
-        self.buttonInputFdm = Button(self.FrameTcm2,text="View Input",bg='blue',fg='white')
+        self.buttonInputFdm = Button(self.FrameTcm2,text="View Input",bg='blue',fg='white', command=lambda:controller.show_frame(TextViewerPage))
         self.buttonInputFdm['font'] = myFont
         self.buttonInputFdm.place(x=200,y=380)
         
