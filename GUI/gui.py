@@ -471,7 +471,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=160)
 
-        self.label_pol_y = Label(self.Frame1, text="Spacing (in a.u)", bg= "grey",fg="black")
+        self.label_pol_y = Label(self.Frame1, text="Spacing (in Angstrom)", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
         self.label_pol_y.place(x=10,y=210)
     
@@ -540,7 +540,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=250,y=160)
   
-        self.Frame2_note = Label(self.Frame2,text="Convergence",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=210)
 
@@ -558,7 +558,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"300")
         self.entry_proj.place(x=250,y=260)
      
-        self.Frame2_note = Label(self.Frame2,text="Bands",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Band Occupancy",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=310)
 
@@ -862,7 +862,7 @@ class LaserDesignPage(Frame):
         #self.entry_proj.insert(0,"0")
         #self.entry_proj.place(x=250,y=110)
 
-        self.label_proj = Label(self.Frame2,text="Laser Strength",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2,text="Laser Strength in a.u",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=160)
     
@@ -877,7 +877,7 @@ class LaserDesignPage(Frame):
         self.label_proj.place(x=10,y=210)
 
         self.entry_proj = Entry(self.Frame2,textvariable= self.fwhm)
-        self.fwhm.set("2")
+        self.fwhm.set("0.2")
         self.entry_proj['font'] = myFont
         self.entry_proj.place(x=250,y=210)
 
