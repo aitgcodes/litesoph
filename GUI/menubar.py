@@ -108,14 +108,17 @@ class MainMenu():
         my_Text.place(x=15,y=10)
         text_scroll.config(command= my_Text.yview)
 
-        view = tk.Button(top1, text="View Text",bg='#0052cc',fg='#ffffff',command=lambda:[self.open_txt(my_Text)])
+        view = tk.Button(top1, text="View Text",bg='blue',fg='white',command=lambda:[self.open_txt(my_Text)])
         view['font'] = myFont
-        view.place(x=150,y=400)
+        view.place(x=120,y=400)
 
-        save = tk.Button(top1, text="Save", bg= '#0052cc',fg='#ffffff',command=lambda:[self.save_txt(my_Text)])
+        save = tk.Button(top1, text="Save", bg= 'blue',fg='white',command=lambda:[self.save_txt(my_Text)])
         save['font'] = myFont
-        save.place(x=320, y=400)
-
+        save.place(x=280, y=400)
+        
+        close = tk.Button(top1, text="Close", bg= 'blue',fg='white',command=top1.destroy)
+        close['font'] = myFont
+        close.place(x=420, y=400)
         
 
     def open_txt(self,my_Text):
