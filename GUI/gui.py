@@ -86,26 +86,26 @@ class AITG(Tk):
     #     self.nav= Nav(self,path)
     #     self.nav.grid()
 
-    def show_frame(self, frame):
+    def show_frame(self, frame, prev = None, next = None):
         
         if isinstance(frame, Frame):
             frame.destroy()
-            frame = frame(self.window, self)
+            frame = frame(self.window, self, prev, next)
             frame.grid(row=0, column=0, sticky ="nsew")
             frame.tkraise()
         else:
-            frame = frame(self.window, self)
+            frame = frame(self.window, self, prev, next)
             frame.grid(row=0, column=0, sticky ="nsew")
             frame.tkraise()
 
 
     def task_input(self,sub_task):
         if sub_task.get()  == "Ground State":
-            self.show_frame(GroundStatePage)
+            self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
         if sub_task.get() == "Delta Kick":
-            self.show_frame(TimeDependentPage)
+            self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
         if sub_task.get() == "Gaussian Pulse":
-            self.show_frame(LaserDesignPage)
+            self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
         if sub_task.get() == "Spectrum":
             self.show_frame(PlotSpectraPage)
         if sub_task.get() == "Transition Contribution Map":
@@ -145,9 +145,11 @@ def write2status(path, key = None, value = None):
     
 class StartPage(Frame):
 
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller,prev, next):
         Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
               
         mainframe = ttk.Frame(self,padding="12 12 24 24")
         #mainframe = ttk.Frame(self)
@@ -226,10 +228,11 @@ class StartPage(Frame):
 
 class WorkManagerPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
-
+        self.prev = prev
+        self.next = next
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -379,9 +382,11 @@ def getprojectdirectory(path, name):
 
 class GroundStatePage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -597,9 +602,11 @@ class GroundStatePage(Frame):
   
 class TimeDependentPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -728,9 +735,11 @@ class TimeDependentPage(Frame):
 
 class LaserDesignPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
         self.tdpulse_dict = rt.default_input
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -924,9 +933,11 @@ def updatekey(dict, key, value):
 
 class PlotSpectraPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
 
         self.axis = StringVar()
 
@@ -989,9 +1000,11 @@ class PlotSpectraPage(Frame):
 
 class JobSubPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
 
         #self.axis = StringVar()
 
@@ -1077,10 +1090,11 @@ class JobSubPage(Frame):
 
 class TcmPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
-
+        self.prev = prev
+        self.next = next
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -1241,9 +1255,11 @@ class TcmPage(Frame):
   
 class TextViewerPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
 
         #self.axis = StringVar()
 
