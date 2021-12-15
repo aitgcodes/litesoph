@@ -427,8 +427,8 @@ class GroundStatePage(Frame):
 
         # Create a list of sub_task  
         lcao_task = ["dzp","pvalence.dz","cc-pvdz"]
-        fd_task = ["none"]
-        pw_task = ["none"]
+        fd_task = [""]
+        pw_task = [""]
         gauss_task = ["6-31+G*","6-31+G","6-31G*","6-31G","3-21G"]
 
         def pick_task(e):
@@ -526,7 +526,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=110)
    
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","Yes"])
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","True"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=110)
@@ -1163,7 +1163,7 @@ class TcmPage(Frame):
         self.Tcm_entry_ns.insert(0,"2000")
         self.Tcm_entry_ns.place(x=250,y=310)
 
-        self.Tcm_label_note = Label(self.FrameTcm1,text="Note: This input creates the TD wavefunctions (required for TCM)",bg="gray",fg="black")
+        self.Tcm_label_note = Label(self.FrameTcm1,text="Note: This input creates the TD wavefunctions (required for TCM)",fg="black")
         self.Tcm_label_note['font'] = myFont
         self.Tcm_label_note.place(x=10,y=350)
 
@@ -1196,7 +1196,8 @@ class TcmPage(Frame):
         self.TextBox_freqs.place(x=10,y=110)
         
         explanation = """Please type in the frequencies (in eV/a.u.) at which Fourier transform of density matrix is sought. For a list provide numbers separated by commas. For a range provide the details as <min value>-<max value>-<step size>"""
-   
+        
+        #self.Label_expl = tk.Label(self.FrameTcm2, justify=tk., text=explanation).pack(side="left")
         #self.Label_expl = Label(self.FrameTcm2, justify=tk.LEFT, padx = 25, text= explanation, bg="gray",fg="black").pack(side="left")
         #self.Label_expl['font'] = myFont
         #self.Label_expl.place(x=10,y=60)
