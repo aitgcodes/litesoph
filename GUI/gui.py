@@ -427,8 +427,8 @@ class GroundStatePage(Frame):
 
         # Create a list of sub_task  
         lcao_task = ["dzp","pvalence.dz","cc-pvdz"]
-        fd_task = ["none"]
-        pw_task = ["none"]
+        fd_task = [""]
+        pw_task = [""]
         gauss_task = ["6-31+G*","6-31+G","6-31G*","6-31G","3-21G"]
 
         def pick_task(e):
@@ -526,12 +526,12 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=110)
    
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","Yes"])
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","True"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_note = Label(self.Frame2,text="multiplicity",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Multiplicity",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
@@ -549,7 +549,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"0.0005")
         self.entry_proj.place(x=250,y=210)
 
-        self.Frame2_note = Label(self.Frame2,text="maxiter",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Maxiter",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
@@ -632,7 +632,7 @@ class TimeDependentPage(Frame):
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.place(x=150,y=10)
       
-        self.label_proj = Label(self.Frame1,text="laser strength in a.u",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame1,text="Laser strength in a.u",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
         
@@ -1106,7 +1106,7 @@ class TcmPage(Frame):
         self.FrameTcm1_label_path['font'] = myFont
         self.FrameTcm1_label_path.place(x=150,y=10)
 
-        self.label_strength = Label(self.FrameTcm1,text="laser strength (in a.u)",bg="gray",fg="black")
+        self.label_strength = Label(self.FrameTcm1,text="Laser strength (in a.u)",bg="gray",fg="black")
         self.label_strength['font'] = myFont
         self.label_strength.place(x=10,y=60)
 
@@ -1163,7 +1163,7 @@ class TcmPage(Frame):
         self.Tcm_entry_ns.insert(0,"2000")
         self.Tcm_entry_ns.place(x=250,y=310)
 
-        self.Tcm_label_note = Label(self.FrameTcm1,text="Note: This input creates the TD wavefunctions (required for TCM)",bg="gray",fg="black")
+        self.Tcm_label_note = Label(self.FrameTcm1,text="Note: This input creates the TD wavefunctions (required for TCM)",fg="black")
         self.Tcm_label_note['font'] = myFont
         self.Tcm_label_note.place(x=10,y=350)
 
@@ -1187,7 +1187,7 @@ class TcmPage(Frame):
         self.FrameTcm2_label_path['font'] = myFont
         self.FrameTcm2_label_path.place(x=150,y=10)
 
-        self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV) ",bg="gray",fg="black")
+        self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV/a.u) ",bg="gray",fg="black")
         self.Label_freqs['font'] = myFont
         self.Label_freqs.place(x=10,y=60)
 
@@ -1196,7 +1196,8 @@ class TcmPage(Frame):
         self.TextBox_freqs.place(x=10,y=110)
         
         explanation = """Please type in the frequencies (in eV/a.u.) at which Fourier transform of density matrix is sought. For a list provide numbers separated by commas. For a range provide the details as <min value>-<max value>-<step size>"""
-   
+        
+        #self.Label_expl = tk.Label(self.FrameTcm2, justify=tk., text=explanation).pack(side="left")
         #self.Label_expl = Label(self.FrameTcm2, justify=tk.LEFT, padx = 25, text= explanation, bg="gray",fg="black").pack(side="left")
         #self.Label_expl['font'] = myFont
         #self.Label_expl.place(x=10,y=60)
@@ -1209,7 +1210,7 @@ class TcmPage(Frame):
         self.buttonRetrieve['font'] = myFont
         self.buttonRetrieve.place(x=10,y=380)
 
-        self.buttonInputFdm = Button(self.FrameTcm2,text="View Input",bg='blue',fg='white')
+        self.buttonInputFdm = Button(self.FrameTcm2,text="View Input",bg='blue',fg='white', command=lambda:controller.show_frame(TextViewerPage))
         self.buttonInputFdm['font'] = myFont
         self.buttonInputFdm.place(x=200,y=380)
         
