@@ -570,7 +570,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=310)
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage)])
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
@@ -714,7 +714,7 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td_pulse', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td_pulse', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -892,7 +892,7 @@ class LaserDesignPage(Frame):
         # self.button_project['font'] = myFont
         # self.button_project.place(x=10,y=380)        
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td), init_status('td_inp', 2), controller.show_frame(TextViewerPage)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td), init_status('td_inp', 2), controller.show_frame(TextViewerPage, LaserDesignPage, None)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
         
@@ -1341,7 +1341,7 @@ class TextViewerPage(Frame):
         save['font'] = myFont
         save.place(x=320, y=380)
 
-        back = tk.Button(self, text="Back",bg='blue',fg='white',command=lambda:[controller.show_frame(WorkManagerPage)])
+        back = tk.Button(self, text="Back",bg='blue',fg='white',command=lambda:[controller.show_frame(self.prev)])
         back['font'] = myFont
         back.place(x=15,y=380)
 
