@@ -1341,7 +1341,7 @@ class TextViewerPage(Frame):
         save['font'] = myFont
         save.place(x=320, y=380)
 
-        back = tk.Button(self, text="Back",bg='blue',fg='white',command=lambda:[controller.show_frame(self.prev)])
+        back = tk.Button(self, text="Back",bg='blue',fg='white',command=lambda:[controller.show_frame(self.prev, WorkManagerPage, JobSubPage)])
         back['font'] = myFont
         back.place(x=15,y=380)
 
