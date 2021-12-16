@@ -255,7 +255,7 @@ class WorkManagerPage(Frame):
         #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
-        self.button_project = Button(self.Frame1,text="Create New Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname)])
+        self.button_project = Button(self.Frame1,text="Create New Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), init_status()])
         self.button_project['font'] = myFont
         self.button_project.place(x=125,y=360)
       
@@ -263,7 +263,7 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=10,y=360)
         
-        self.button_project = Button(self.Frame1,text="Open Existing Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname)])
+        self.button_project = Button(self.Frame1,text="Open Existing Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), init_status()])
         self.button_project['font'] = myFont
         self.button_project.place(x=290,y=360)
         
@@ -714,7 +714,7 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td_pulse', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -1040,7 +1040,7 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=110)
 
-        sbj_button1 = Button(self, text="Run Local",bg='blue', fg='white',command=lambda:[self.submitjob_local(sbj_entry1.get()),show_message(self.msg_label1,"Job Done")])
+        sbj_button1 = Button(self, text="Run Local",bg='blue', fg='white',command=lambda:[self.submitjob_local(sbj_entry1.get())])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=600, y=60)
 
@@ -1106,17 +1106,20 @@ class JobSubPage(Frame):
             if td_check is True and gs_cal_check is True :
                 self.run_job('td.py',str(user_path),td_cal_check,'td_cal', 1, 0, processors)                 
             else:
-                show_message(self.msg_label1, msg2) 
-        
+                if td_check is False:
+                    show_message(self.msg_label1,"Inputs not found. Please create inputs for delta kick." ) 
+                elif gs_cal_check is False:
+                    show_message(self.msg_label1, "Inputs not found. Please run GS calculation.")   
+                        
         if job == 'pulse':
-            msg2 = 'Inputs not found'
             td_check = search_string(str(user_path), 'status.txt' , '"td_inp": 2')
             gs_cal_check = search_string(str(user_path), 'status.txt' , '"gs_cal": 1')
             td_cal_check = search_string(str(user_path), 'status.txt' , '"td_cal": 2')
             if td_check is True and gs_cal_check is True:
                 self.run_job('td_pulse.py',str(user_path),td_cal_check,'td_cal', 2, 1, processors)                  
             else:
-                show_message(self.msg_label1, msg2)  
+                show_message(self.msg_label1, "Inputs not found.")
+                 
                   
 
     def submitjob_network(self):
