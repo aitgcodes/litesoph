@@ -1,21 +1,41 @@
 from tkinter import filedialog
 import subprocess
 import pathlib 
-
+import json
 
 class Status():
-        status_dict = { 'gs_inp' : False,
-                    'td_inp' : False,
-                    'gs_cal' : False,
-                    'td_cal' : False
-                  }
-        status_template = """
-gs_inp = {gs_inp}
-td_inp = {td_inp}
-gs_cal = {gs_cal}
-td_cal = {td_cal}
-    """          
-                 
+    def __init__(self, directory) -> None:
+        self.filepath = pathlib.Path(directory) / "status.txt"
+        self.status_dict = {}
+        if self.filepath.exists():
+            self.status_dict = self.read_status()
+        else:
+            self.status_dict = {
+                'gs_inp': 0,
+                'td_inp': 0,
+                'gs_cal': 0,
+                'td_cal': 0
+            }
+
+    def read_status(self):
+        with open(self.filepath, 'r') as f:
+            data = f.read()
+            data_dict = json.loads(data)
+            self.status_dict.update(data_dict)
+            return(self.status_dict)
+
+    def update_status(self, key=None, value=None):
+        if key is None and value is None:
+            dict2file(self.status_dict, self.filepath)
+        else:
+            self.status_dict[key] = value
+            dict2file(self.status_dict, self.filepath)
+            return(self.status_dict)
+
+def dict2file(dictname, filename):
+    filepath = pathlib.Path(filename)
+    with open(filepath, 'w') as status_file:
+        status_file.write(json.dumps(dictname))                 
 
 def search_string(directory,filename, string):
     """ Checks if a string is present in the file and returns boolean"""
