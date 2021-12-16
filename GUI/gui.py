@@ -504,9 +504,13 @@ class GroundStatePage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict())])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
+
+        self.label_msg = Label(self.Frame1,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=460,y=385)
 
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
