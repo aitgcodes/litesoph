@@ -35,6 +35,7 @@ from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
 from litesoph.GUI.filehandler import *
 from litesoph.GUI.navigation import Nav
+#from litesoph.GUI.navigation import TextViewerPage
 #from litesoph.GUI.laserframe import Laser
 from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
@@ -108,6 +109,8 @@ class AITG(Tk):
             self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
         if sub_task.get() == "Spectrum":
             self.show_frame(PlotSpectraPage)
+        if sub_task.get() == "Dipole Moment and Laser Pulse":
+            self.show_frame(DmLdPage)
         if sub_task.get() == "Transition Contribution Map":
             self.show_frame(TcmPage)
                   
@@ -311,7 +314,7 @@ class WorkManagerPage(Frame):
         # Create a list of sub_task  
         Pre_task = ["Ground State","Geometry"]
         Sim_task = ["Delta Kick","Gaussian Pulse"]
-        Post_task = ["Spectrum","Transition Contribution Map","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
+        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Transition Contribution Map","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         #Spec_task = ["Absorption Spectrum"]
 
         def pick_task(e):
@@ -510,7 +513,7 @@ class GroundStatePage(Frame):
 
         self.label_msg = Label(self.Frame1,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.place(x=460,y=385)
+        self.label_msg.place(x=370,y=350)
 
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
@@ -701,10 +704,13 @@ class TimeDependentPage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1)])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
 
+        self.label_msg = Label(self.Frame1,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=370,y=350)
 
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
@@ -718,7 +724,7 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td_pulse', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -837,9 +843,13 @@ class LaserDesignPage(Frame):
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td', self.td), init_status('td_inp', 2)])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td), init_status('td_inp', 2), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
+  
+        self.label_msg = Label(self.Frame1,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=370,y=350)
 
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
@@ -1129,6 +1139,90 @@ class JobSubPage(Frame):
     def submitjob_network(self):
 
         pass
+
+
+class DmLdPage(Frame):
+
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
+        self.controller = controller
+        self.prev = prev
+        self.next = next
+
+        self.plot_task = StringVar()
+        self.compo = StringVar()
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+        
+        self.Frame = tk.Frame(self) 
+        
+        self.Frame.place(relx=0.01, rely=0.01, relheight=1.98, relwidth=0.978)
+        self.Frame.configure(relief='groove')
+        self.Frame.configure(borderwidth="2")
+        self.Frame.configure(relief="groove")
+        self.Frame.configure(cursor="fleur")
+        
+        self.heading = Label(self.Frame,text="LITESOPH Dipole Moment and laser Design", fg='blue')
+        self.heading['font'] = myFont
+        self.heading.place(x=350,y=10)
+        
+        self.label_pol = Label(self.Frame, text= "Plot:",bg= "grey",fg="black")
+        self.label_pol['font'] = myFont
+        self.label_pol.place(x=10,y=60)
+
+        plot_list = ["Dipole Moment","Laser Pulse"]
+        self.entry_pol_x = ttk.Combobox(self.Frame,textvariable=self.plot_task, value = plot_list)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.insert(0,"Dipole Moment")
+        self.entry_pol_x.place(x=250,y=60)
+
+
+        #self.label_pol = Label(self.Frame, text= "Axis of Electric polarization:",fg="black")
+        #self.label_pol['font'] = myFont
+        #self.label_pol.place(x=10,y=110)
+
+        self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
+        self.label_pol['font'] = myFont
+        self.label_pol.place(x=10,y=110)
+
+        com_pol = ["x component","y component","z component","total magnitude"]
+        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.compo, value = com_pol)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.insert(0,"x component")
+        self.entry_pol_x.place(x=250,y=110)
+
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),self.spectrum_show(self.returnaxis())])
+        self.Frame2_Button_1['font'] = myFont
+        self.Frame2_Button_1.place(x=250,y=380)
+    
+        Frame_Button1 = tk.Button(self.Frame, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1['font'] = myFont
+        Frame_Button1.place(x=10,y=380)
+        
+    def returnaxis(self):
+        if self.compo.get() == "x component":
+            axis = 1
+        if self.compo.get() == "y component":
+            axis = 2
+        if self.compo.get() == "z component":
+            axis = 3
+        if self.compo.get() == "total magnitute":
+            axis = 0
+        return axis
+         
+
+    def spectrum_show(self, axis):
+        
+        plot_spectra(int(axis))
+        path = pathlib.Path(user_path) / "spec.png"
+        img =Image.open(path)
+        img.show()
+
+
 
 class TcmPage(Frame):
 
