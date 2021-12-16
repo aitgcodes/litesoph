@@ -39,7 +39,7 @@ from litesoph.GUI.navigation import Nav
 from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.GPAW.spectrum import spectrum
-from litesoph.lsio.IO import write22file
+#from litesoph.lsio.IO import write22file
 from litesoph.GUI.filehandler import Status
 
 
@@ -86,26 +86,26 @@ class AITG(Tk):
     #     self.nav= Nav(self,path)
     #     self.nav.grid()
 
-    def show_frame(self, frame):
+    def show_frame(self, frame, prev = None, next = None):
         
         if isinstance(frame, Frame):
             frame.destroy()
-            frame = frame(self.window, self)
+            frame = frame(self.window, self, prev, next)
             frame.grid(row=0, column=0, sticky ="nsew")
             frame.tkraise()
         else:
-            frame = frame(self.window, self)
+            frame = frame(self.window, self, prev, next)
             frame.grid(row=0, column=0, sticky ="nsew")
             frame.tkraise()
 
 
     def task_input(self,sub_task):
         if sub_task.get()  == "Ground State":
-            self.show_frame(GroundStatePage)
+            self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
         if sub_task.get() == "Delta Kick":
-            self.show_frame(TimeDependentPage)
+            self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
         if sub_task.get() == "Gaussian Pulse":
-            self.show_frame(LaserDesignPage)
+            self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
         if sub_task.get() == "Spectrum":
             self.show_frame(PlotSpectraPage)
         if sub_task.get() == "Transition Contribution Map":
@@ -120,34 +120,27 @@ class AITG(Tk):
             dict_input['geometry'] = pathlib.Path(user_path) / "coordinate.xyz"
             engn = engine.choose_engine(dict_input)
             GroundState(dict_input, filename, engn)
-            write2status(str(user_path),'gs_inp','True')
+            init_status('gs_inp', 1)
             
         if task == 'td':
             rt.default_input.update(gui_dict)
             dict_input = rt.default_input
             RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),user_path)
-            write2status(str(user_path),'td_inp','True')
-
+            
     def createspec(self):
         spec = spectrum()
         spec_dict = spec.user_input
         spec_dict['moment_file'] = pathlib.Path(user_path) / 'dm.dat'
         spec_dict['spectrum_file'] = pathlib.Path(user_path) / 'spec.dat'
-        spec.cal_photoabs_spectrum(spec_dict)
-
-def write2status(path, key = None, value = None):
-        stat_obj = Status()
-        if key is None and value is None:
-                write22file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)
-        else :
-                stat_obj.status_dict[key] = value
-                write22file(path,'status.txt',stat_obj.status_template, stat_obj.status_dict)    
+        spec.cal_photoabs_spectrum(spec_dict) 
     
 class StartPage(Frame):
 
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller,prev, next):
         Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
               
         mainframe = ttk.Frame(self,padding="12 12 24 24")
         #mainframe = ttk.Frame(self)
@@ -226,10 +219,11 @@ class StartPage(Frame):
 
 class WorkManagerPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
-
+        self.prev = prev
+        self.next = next
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -377,11 +371,20 @@ def getprojectdirectory(path, name):
     user_path = pathlib.Path(path) / name
     return user_path
 
+def init_status(key=None, value=None):
+    status = Status(user_path)
+    if key is None and value is None:
+        status.update_status()
+    else:
+        status.update_status(key, value)    
+
 class GroundStatePage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -571,7 +574,7 @@ class GroundStatePage(Frame):
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
 
@@ -597,9 +600,11 @@ class GroundStatePage(Frame):
   
 class TimeDependentPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -692,7 +697,7 @@ class TimeDependentPage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict())])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1)])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
 
@@ -709,11 +714,11 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), controller.show_frame(TextViewerPage)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, TimeDependentPage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
    
@@ -728,9 +733,11 @@ class TimeDependentPage(Frame):
 
 class LaserDesignPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
         self.tdpulse_dict = rt.default_input
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -826,7 +833,7 @@ class LaserDesignPage(Frame):
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td', self.td)])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td', self.td), init_status('td_inp', 2)])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
 
@@ -885,11 +892,11 @@ class LaserDesignPage(Frame):
         # self.button_project['font'] = myFont
         # self.button_project.place(x=10,y=380)        
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td', self.td), controller.show_frame(TextViewerPage)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td), init_status('td_inp', 2), controller.show_frame(TextViewerPage)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
         
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, LaserDesignPage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
       
@@ -924,9 +931,11 @@ def updatekey(dict, key, value):
 
 class PlotSpectraPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
 
         self.axis = StringVar()
 
@@ -989,9 +998,11 @@ class PlotSpectraPage(Frame):
 
 class JobSubPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
 
         #self.axis = StringVar()
 
@@ -1037,38 +1048,75 @@ class JobSubPage(Frame):
         self.msg_label1['font'] = myFont
         self.msg_label1.place(x=600,y=100)
 
-        back = tk.Button(self, text="Back to main page",bg='blue',fg='white',command=lambda:[self.deletelabel(self.msg_label1),controller.show_frame(WorkManagerPage)])
+        back = tk.Button(self, text="Back to main page",bg='blue',fg='white',command=lambda:[controller.show_frame(WorkManagerPage)])
         back['font'] = myFont
-        back.place(x=600,y=400)
-              
+        back.place(x=600,y=400)              
 
-    def deletelabel(self,label):
-        label.destroy()
+    # def deletelabel(self,label):
+    #     label.destroy()
          
     def submitjob_local(self, processors):
-        
-        gs_check = search_string(str(user_path), 'status.txt' , 'gs_inp = True')
-        td_check = search_string(str(user_path), 'status.txt' , 'td_inp = True')
-        self.job_select(gs_check,td_check,processors)
-        
-    def job_select(self,gs_check, td_check, processors):
-        from litesoph.simulations.run_local import run_local
-        if gs_check is False and td_check is False:
-            show_message(self.msg_label1, "Input files not found")
+        job = self.checkjob()
+        self.select_job(job,processors)
 
-        if gs_check is True and td_check is False:
-            if processors == "1" :
-                result = run_local('gs.py',user_path)
-                show_message(self.msg_label1,"Job Done")               
+    def checkjob(self):
+        if self.prev.__name__ == 'GroundStatePage':
+            return('gs')
+        if self.prev.__name__ == 'TimeDependentPage':
+            return('delta')   
+        if self.prev.__name__ == 'LaserDesignPage':
+            return('pulse')
+        
+    def call_run(self, filename, directory,key, value, processors):
+        from litesoph.simulations.run_local import run_local
+        if processors == "1" :
+            result = run_local(filename, directory) 
+            init_status(key, value) 
+            show_message(self.msg_label1,"Job Done")
+        else:
+            result = run_local(filename, directory,int(processors)) 
+            init_status(key, value) 
+            show_message(self.msg_label1,"Job Done")         
+    
+    def run_job(self,filename, directory, check, key, value1, value2, processors):
+        if check is False:
+            self.call_run(filename, directory,key, value1, processors) 
+        else:
+            show_message(self.msg_label1, "")
+            check_yn = messagebox.askyesno(title="Job is done",message="Do you want to redo the calculation? ")
+            if check_yn is True:
+                init_status(key, value2)
+                self.call_run(filename, directory,key, value1, processors)
+
+    def select_job(self, job, processors):
+        if job == 'gs':
+            msg2 = 'GS inputs not found'
+            gs_check = search_string(str(user_path), 'status.txt' , '"gs_inp": 1')
+            gs_cal_check = search_string(str(user_path), 'status.txt' , '"gs_cal": 1')
+            if gs_check is True :
+                self.run_job('gs.py',str(user_path),gs_cal_check, 'gs_cal', 1, 0, processors)                  
             else:
-                result = run_local('gs.py',user_path,int(processors))
-                        
-        if gs_check is True and td_check is True:
-            if processors == "1" :
-                result = run_local('td.py',user_path)
-                show_message(self.msg_label1,"Job Done")               
+                show_message(self.msg_label1, msg2)
+
+        if job == 'delta':
+            msg2 = 'Inputs not found'
+            td_check = search_string(str(user_path), 'status.txt' , '"td_inp": 1')
+            gs_cal_check = search_string(str(user_path), 'status.txt' , '"gs_cal": 1')
+            td_cal_check = search_string(str(user_path), 'status.txt' , '"td_cal": 1')
+            if td_check is True and gs_cal_check is True :
+                self.run_job('td.py',str(user_path),td_cal_check,'td_cal', 1, 0, processors)                 
             else:
-                result = run_local('td.py',user_path,int(processors))
+                show_message(self.msg_label1, msg2) 
+        
+        if job == 'pulse':
+            msg2 = 'Inputs not found'
+            td_check = search_string(str(user_path), 'status.txt' , '"td_inp": 2')
+            gs_cal_check = search_string(str(user_path), 'status.txt' , '"gs_cal": 1')
+            td_cal_check = search_string(str(user_path), 'status.txt' , '"td_cal": 2')
+            if td_check is True and gs_cal_check is True:
+                self.run_job('td_pulse.py',str(user_path),td_cal_check,'td_cal', 2, 1, processors)                  
+            else:
+                show_message(self.msg_label1, msg2)  
                   
 
     def submitjob_network(self):
@@ -1077,10 +1125,11 @@ class JobSubPage(Frame):
 
 class TcmPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
-
+        self.prev = prev
+        self.next = next
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -1241,9 +1290,11 @@ class TcmPage(Frame):
   
 class TextViewerPage(Frame):
 
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
         self.controller = controller
+        self.prev = prev
+        self.next = next
 
         #self.axis = StringVar()
 
@@ -1291,9 +1342,9 @@ class TextViewerPage(Frame):
         back['font'] = myFont
         back.place(x=15,y=380)
 
-        jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
-        jobsub['font'] = myFont
-        jobsub.place(x=800,y=380)
+        # jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
+        # jobsub['font'] = myFont
+        # jobsub.place(x=800,y=380)
 
     def open_txt(self,my_Text):
         text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
