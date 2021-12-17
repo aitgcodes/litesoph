@@ -554,7 +554,7 @@ class GroundStatePage(Frame):
 
         self.entry_proj = Entry(self.Frame2,textvariable= energy)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0.0005")
+        self.entry_proj.insert(0,"5e-05")
         self.entry_proj.place(x=250,y=210)
 
         self.Frame2_note = Label(self.Frame2,text="Maxiter",bg="gray",fg="black")
@@ -983,7 +983,7 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),spectrum_show('spec.dat','delta',self.returnaxis())])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),spectrum_show('spec.dat','delta',self.returnaxis(),'Energy (eV)','Photoabsorption (eV$^{-1}$)')])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1181,7 +1181,7 @@ class DmLdPage(Frame):
         self.entry_pol_x.insert(0,"x component")
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),spectrum_show('dmpulse.dat','dm',self.returnaxis())])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[spectrum_show('dmpulse.dat','dm',self.returnaxis(),"time(attosecond)","Dipole moment")])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1200,9 +1200,9 @@ class DmLdPage(Frame):
             axis = 1
         return axis
 
-def spectrum_show(filename, suffix, axis):
+def spectrum_show(filename, suffix, axis, x, y):
         imgfile = "spec_{}_{}.png".format(suffix, axis)
-        plot_spectra(int(axis),filename, imgfile)
+        plot_spectra(int(axis),filename, imgfile, x, y)
         path = pathlib.Path(user_path) / imgfile
         img =Image.open(path)
         img.show()         
