@@ -31,9 +31,9 @@ def laser_design(strength, inval, tin, fwhm):
     t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(loginval)  # in units of femtosecond
     
     tau_0 = tau_0*0.2418                              # converted from fms to eV
-    t0 = t0*(1e3)                                     # converted from fms to attosecond
+    #t0 = t0*(1e3)                                     # converted from fms to attosecond
     laser = {}
     laser['strength'] = strength
     laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of eV                     
-    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of as
+    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of fms
     return(laser)
