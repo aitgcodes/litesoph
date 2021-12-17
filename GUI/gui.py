@@ -278,8 +278,6 @@ class WorkManagerPage(Frame):
         #self.message_label2['font'] = myFont
         #self.message_label2.place(x=,y=15)
 
-
-
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
 
@@ -985,7 +983,7 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),self.spectrum_show(self.returnaxis())])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),spectrum_show('spec.dat','delta',self.returnaxis())])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1001,14 +999,6 @@ class PlotSpectraPage(Frame):
         if self.axis.get() == "z":
             axis = 3
         return axis
-         
-
-    def spectrum_show(self, axis):
-        
-        plot_spectra(int(axis))
-        path = pathlib.Path(user_path) / "spec.png"
-        img =Image.open(path)
-        img.show()
 
 class JobSubPage(Frame):
 
@@ -1132,14 +1122,10 @@ class JobSubPage(Frame):
             if td_check is True and gs_cal_check is True:
                 self.run_job('td_pulse.py',str(user_path),td_cal_check,'td_cal', 2, 1, processors)                  
             else:
-                show_message(self.msg_label1, "Inputs not found.")
-                 
-                  
+                show_message(self.msg_label1, "Inputs not found.")                 
 
     def submitjob_network(self):
-
         pass
-
 
 class DmLdPage(Frame):
 
@@ -1195,7 +1181,7 @@ class DmLdPage(Frame):
         self.entry_pol_x.insert(0,"x component")
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),self.spectrum_show(self.returnaxis())])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),spectrum_show('dmpulse.dat','dm',self.returnaxis())])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1205,24 +1191,21 @@ class DmLdPage(Frame):
         
     def returnaxis(self):
         if self.compo.get() == "x component":
-            axis = 1
-        if self.compo.get() == "y component":
             axis = 2
-        if self.compo.get() == "z component":
+        if self.compo.get() == "y component":
             axis = 3
-        if self.compo.get() == "total magnitute":
-            axis = 0
+        if self.compo.get() == "z component":
+            axis = 4
+        if self.compo.get() == "total magnitude":
+            axis = 1
         return axis
-         
 
-    def spectrum_show(self, axis):
-        
-        plot_spectra(int(axis))
-        path = pathlib.Path(user_path) / "spec.png"
+def spectrum_show(filename, suffix, axis):
+        imgfile = "spec_{}_{}.png".format(suffix, axis)
+        plot_spectra(int(axis),filename, imgfile)
+        path = pathlib.Path(user_path) / imgfile
         img =Image.open(path)
-        img.show()
-
-
+        img.show()         
 
 class TcmPage(Frame):
 
