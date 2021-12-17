@@ -3,8 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_spectra(axis):
-    data_ej = np.loadtxt('spec.dat')
+def plot_spectra(axis, filename, imgfile):
+    data_ej = np.loadtxt(filename)
     
     plt.figure(figsize=(8, 6))
     ax = plt.subplot(1, 1, 1)
@@ -18,4 +18,4 @@ def plot_spectra(axis):
     #plt.xlim(0, 4)
     #plt.ylim(ymin=0)
     plt.tight_layout()
-    plt.savefig('spec.png')
+    plt.savefig(imgfile)
