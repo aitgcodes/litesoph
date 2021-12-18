@@ -73,7 +73,7 @@ class AITG(Tk):
         self.directory = self.configs['lsproject']
         self.nav = Nav(self,self.directory)
         self.nav.grid()
-
+        
         self.window = Frame(self)
         self.window.grid(row=0, column=2)
         #window.pack(side="top", fill = "both", expand = True)
@@ -101,19 +101,20 @@ class AITG(Tk):
             frame.tkraise()
 
 
-    def task_input(self,sub_task):
-        if sub_task.get()  == "Ground State":
-            self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
-        if sub_task.get() == "Delta Kick":
-            self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
-        if sub_task.get() == "Gaussian Pulse":
-            self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
-        if sub_task.get() == "Spectrum":
-            self.show_frame(PlotSpectraPage)
-        if sub_task.get() == "Dipole Moment and Laser Pulse":
-            self.show_frame(DmLdPage)
-        if sub_task.get() == "Transition Contribution Map":
-            self.show_frame(TcmPage)
+    def task_input(self,sub_task, task_check):
+        if task_check is True:
+            if sub_task.get()  == "Ground State":
+               self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
+            if sub_task.get() == "Delta Kick":           
+               self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)  
+            if sub_task.get() == "Gaussian Pulse":
+               self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
+            if sub_task.get() == "Spectrum":
+               self.show_frame(PlotSpectraPage)
+            if sub_task.get() == "Dipole Moment and Laser Pulse":
+               self.show_frame(DmLdPage)
+            if sub_task.get() == "Transition Contribution Map":
+               self.show_frame(TcmPage) 
                   
     def gui_inp(self, task, filename, gui_dict):
         
@@ -342,7 +343,7 @@ class WorkManagerPage(Frame):
         sub_task.current(0)
         sub_task.place(x=200,y=130)
                        
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='blue',fg='white',command=lambda:[controller.task_input(sub_task)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='blue',fg='white',command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=360)
 
@@ -356,6 +357,26 @@ class WorkManagerPage(Frame):
     def retrieve_input(self):
         self.projectpath = self.entry_path.get()
         self.projectname = self.entry_proj.get()
+    
+    def task_check(self,sub_task):
+        if sub_task.get()  == "Ground State":
+            path = pathlib.Path(user_path) / "coordinate.xyz"
+            if path.exists() is True:
+                return True
+            else:
+                messagebox.showerror(message= "Upload geometry file")
+        elif sub_task.get() == "Delta Kick":
+            if check_status('gs_inp', 1) is True and check_status('gs_cal',1) is True:
+                return True
+            else:
+                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
+        elif sub_task.get() == "Gaussian Pulse":
+            if check_status('gs_inp', 1) is True and check_status('gs_cal',1) is True:
+                return True
+            else:
+                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
+        else:
+            return True
 
 def getprojectdirectory(path, name):
     global user_path
@@ -367,7 +388,14 @@ def init_status(key=None, value=None):
     if key is None and value is None:
         status.update_status()
     else:
-        status.update_status(key, value)    
+        status.update_status(key, value)
+
+def check_status(key, value):
+    status = Status(user_path)
+    if status.status_dict[key] == value:
+        return True
+    else:
+        return False 
 
 class GroundStatePage(Frame):
 
