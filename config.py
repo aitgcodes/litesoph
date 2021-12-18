@@ -22,18 +22,18 @@ class LSCONFIG:
     def read_configs(self):
 
         lsproject = pathlib.Path.home() / "Litesoph_Projects"
-        vistool = None
+        vmd = "vmd"
         p = pathlib.Path.home() / 'lsconfig.in'
         with p.open() as f:
             lines = f.readlines()
             for line in lines:
-                if 'vistool' in line:
-                    vistool = line.strip().split("=")[1]
+                if 'vmd' in line:
+                    vmd = line.strip().split("=")[1]
                 elif 'LSPROJECT' in line:
                     lsproject = line.strip().split("=")[1]
         
         configs = {}
-        configs['vistool'] = vistool
+        configs['vmd'] = vmd
         configs['lsproject'] = lsproject
 
         return configs

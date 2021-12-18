@@ -68,8 +68,9 @@ class AITG(Tk):
 
         self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
+        self.configs = self.lsconfig.configs
         self.lsroot = self.lsconfig.lsroot
-        self.directory = self.lsconfig.configs['lsproject']
+        self.directory = self.configs['lsproject']
         self.nav = Nav(self,self.directory)
         self.nav.grid()
 
@@ -345,23 +346,12 @@ class WorkManagerPage(Frame):
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=360)
 
-        
-    def init_visualization(self):
-        visn = VISUAL()
-        for tool in ["vmd","VMD","VESTA","vesta"]:
-            line=subprocess.run(["which", tool], capture_output=True,text=True).stdout
-            chkline = "no {} in".format(tool)
-            if not chkline in line:
-               visn.vistool["exists"] = True
-               visn.vistool["name"] = tool
-               break
-        self.visn = visn
-
     def geom_visual(self):
-        self.init_visualization()
-        cmd=self.visn.vistool["name"] + " " + str(user_path) +"/coordinate.xyz"
-        os.system(cmd)
-  
+        cmd = self.controller.configs['vmd']+ " "+"coordinate.xyz"
+        try:
+           p = subprocess.run(cmd.split(),capture_output=True, cwd=self.controller.directory)
+        except:
+            print("Unable to invoke vmd. Command used to call vmd '{}'. supply the appropriate command in lsconfig.in".format(cmd.split()[0]))
 
     def retrieve_input(self):
         self.projectpath = self.entry_path.get()
