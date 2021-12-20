@@ -1,7 +1,8 @@
 from tkinter import filedialog
 import subprocess
-import pathlib 
+import pathlib
 import json
+
 
 class Status():
     def __init__(self, directory) -> None:
@@ -16,6 +17,7 @@ class Status():
                 'gs_cal': 0,
                 'td_cal': 0
             }
+        self.update_status()
 
     def read_status(self):
         with open(self.filepath, 'r') as f:
@@ -32,40 +34,50 @@ class Status():
             dict2file(self.status_dict, self.filepath)
             return(self.status_dict)
 
+    def check_status(self, key, value):
+        if self.status_dict[key] == value:
+            return True
+        else:
+            return False
+
+
 def dict2file(dictname, filename):
     filepath = pathlib.Path(filename)
     with open(filepath, 'w') as status_file:
-        status_file.write(json.dumps(dictname))                 
+        status_file.write(json.dumps(dictname))
 
-def search_string(directory,filename, string):
+
+def search_string(directory, filename, string):
     """ Checks if a string is present in the file and returns boolean"""
     inf = str(directory) + '/' + str(filename)
     if string in open(inf).read():
         return True
     else:
-        return False     
+        return False
+
 
 def open_file(outpath):
-        text_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=((" Text Files", "*.xyz"),))
-        text_file = open(text_file,'r')
-        stuff = text_file.read()
-        out_file = open(pathlib.Path(outpath) / "coordinate.xyz",'w')
-        out_file.write(stuff)
-        text_file.close()
-        out_file.close()
-        
+    text_file = filedialog.askopenfilename(
+        initialdir="./", title="Select File", filetypes=((" Text Files", "*.xyz"),))
+    text_file = open(text_file, 'r')
+    stuff = text_file.read()
+    out_file = open(pathlib.Path(outpath) / "coordinate.xyz", 'w')
+    out_file.write(stuff)
+    text_file.close()
+    out_file.close()
+
+
 def open_existing_project():
-        oldProject = filedialog.askdirectory()
-
-def runpython(fpath:str):
-        subprocess.run(["python", fpath])
-
-def show_message(label_name,message):
-        """
-        Shows a update
-        """
-        label_name['text'] = message
-        label_name['foreground'] = 'black'    
+    oldProject = filedialog.askdirectory()
 
 
+def runpython(fpath: str):
+    subprocess.run(["python", fpath])
 
+
+def show_message(label_name, message):
+    """
+    Shows a update
+    """
+    label_name['text'] = message
+    label_name['foreground'] = 'black'
