@@ -78,11 +78,14 @@ class AITG(Tk):
         self.window.grid(row=0, column=2)
         #window.pack(side="top", fill = "both", expand = True)
         self.window.grid_rowconfigure(700,weight=700)
-        self.window.grid_columnconfigure(800,weight=400)
-        
+        self.window.grid_columnconfigure(800,weight=400)        
         
         self.show_frame(StartPage)
-
+        self.status_init(self.directory)
+    
+    def status_init(self, path):
+        self.directory = path
+        self.status = Status(self.directory)
     # def refresh(self, frame,path):
     #     frame.destroy()
     #     self.nav= Nav(self,path)
@@ -125,7 +128,7 @@ class AITG(Tk):
             dict_input['geometry'] = pathlib.Path(user_path) / "coordinate.xyz"
             engn = engine.choose_engine(dict_input)
             GroundState(dict_input, filename, engn)
-            init_status('gs_inp', 1)
+            self.status.update_status('gs_inp', 1)
             
         if task == 'td':
             rt.default_input.update(gui_dict)
@@ -229,6 +232,7 @@ class WorkManagerPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
+        self.st_var = self.controller.status
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -260,7 +264,7 @@ class WorkManagerPage(Frame):
         #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
-        self.button_project = Button(self.Frame1,text="Create New Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), init_status()])
+        self.button_project = Button(self.Frame1,text="Create New Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), controller.status_init(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=125,y=360)
       
@@ -268,7 +272,7 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=10,y=360)
         
-        self.button_project = Button(self.Frame1,text="Open Existing Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), init_status()])
+        self.button_project = Button(self.Frame1,text="Open Existing Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), controller.status_init(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=290,y=360)
         
@@ -359,6 +363,7 @@ class WorkManagerPage(Frame):
         self.projectname = self.entry_proj.get()
     
     def task_check(self,sub_task):
+        
         if sub_task.get()  == "Ground State":
             path = pathlib.Path(user_path) / "coordinate.xyz"
             if path.exists() is True:
@@ -366,15 +371,25 @@ class WorkManagerPage(Frame):
             else:
                 messagebox.showerror(message= "Upload geometry file")
         elif sub_task.get() == "Delta Kick":
-            if check_status('gs_inp', 1) is True and check_status('gs_cal',1) is True:
+            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
                 return True
             else:
                 messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
         elif sub_task.get() == "Gaussian Pulse":
-            if check_status('gs_inp', 1) is True and check_status('gs_cal',1) is True:
+            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
                 return True
             else:
                 messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
+        elif sub_task.get() == "Spectrum":
+            if self.st_var.check_status('gs_cal', 1) is True and self.st_var.check_status('td_cal',1) is True:
+                return True
+            else:
+                messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
+        elif sub_task.get() == "Dipole Moment and Laser Pulse":
+            if self.st_var.check_status('gs_cal', 1) is True and self.st_var.check_status('td_cal',2) is True:
+                return True
+            else:
+                messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
         else:
             return True
 
@@ -382,20 +397,6 @@ def getprojectdirectory(path, name):
     global user_path
     user_path = pathlib.Path(path) / name
     return user_path
-
-def init_status(key=None, value=None):
-    status = Status(user_path)
-    if key is None and value is None:
-        status.update_status()
-    else:
-        status.update_status(key, value)
-
-def check_status(key, value):
-    status = Status(user_path)
-    if status.status_dict[key] == value:
-        return True
-    else:
-        return False 
 
 class GroundStatePage(Frame):
 
@@ -720,7 +721,7 @@ class TimeDependentPage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), controller.status.update_status('td_inp', 1), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
 
@@ -740,7 +741,7 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), init_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -859,7 +860,7 @@ class LaserDesignPage(Frame):
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td), init_status('td_inp', 2), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td),controller.status.update_status('td_inp', 2), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
   
@@ -922,7 +923,7 @@ class LaserDesignPage(Frame):
         # self.button_project['font'] = myFont
         # self.button_project.place(x=10,y=380)        
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td), init_status('td_inp', 2), controller.show_frame(TextViewerPage, LaserDesignPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td),self.controller.status.update_status('td_inp', 2), controller.show_frame(TextViewerPage, LaserDesignPage, None)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
         
@@ -1093,11 +1094,11 @@ class JobSubPage(Frame):
         from litesoph.simulations.run_local import run_local
         if processors == "1" :
             result = run_local(filename, directory) 
-            init_status(key, value) 
+            self.controller.status.update_status(key, value) 
             show_message(self.msg_label1,"Job Done")
         else:
             result = run_local(filename, directory,int(processors)) 
-            init_status(key, value) 
+            self.controller.status.update_status(key, value) 
             show_message(self.msg_label1,"Job Done")         
     
     def run_job(self,filename, directory, check, key, value1, value2, processors):
@@ -1107,7 +1108,7 @@ class JobSubPage(Frame):
             show_message(self.msg_label1, "")
             check_yn = messagebox.askyesno(title="Job is done",message="Do you want to redo the calculation? ")
             if check_yn is True:
-                init_status(key, value2)
+                self.controller.status.update_status(key, value2)
                 self.call_run(filename, directory,key, value1, processors)
 
     def select_job(self, job, processors):
