@@ -109,10 +109,16 @@ class AITG(Tk):
         if task_check is True:
             if sub_task.get()  == "Ground State":
                self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
+               path1 = projpath.create_folder(self.directory, "GS")
+               os.chdir(path1)
             if sub_task.get() == "Delta Kick":           
-               self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)  
+               self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
+               path = projpath.create_folder(self.directory, "Delta Kick")
+               os.chdir(path)  
             if sub_task.get() == "Gaussian Pulse":
                self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
+               path = projpath.create_folder(self.directory, "Pulse")
+               os.chdir(path)
             if sub_task.get() == "Spectrum":
                self.show_frame(PlotSpectraPage)
             if sub_task.get() == "Dipole Moment and Laser Pulse":
@@ -125,8 +131,8 @@ class AITG(Tk):
         if task == 'gs':
             ui.user_param.update(gui_dict) # update the user parameters
             dict_input = ui.user_param
-            dict_input['directory'] = user_path
-            dict_input['geometry'] = pathlib.Path(user_path) / "coordinate.xyz"
+            dict_input['directory'] = str(self.directory)+"/GS"
+            dict_input['geometry'] = pathlib.Path(self.directory) / "coordinate.xyz"
             engn = engine.choose_engine(dict_input)
             GroundState(dict_input, filename, engn)
             self.status.update_status('gs_inp', 1)
@@ -134,13 +140,13 @@ class AITG(Tk):
         if task == 'td':
             rt.default_input.update(gui_dict)
             dict_input = rt.default_input
-            RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),user_path)
+            RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),str(self.directory)+"/Delta Kick")
             
-    def createspec(self):
+    def createspec(self, dipolefile, specfile):
         spec = spectrum()
         spec_dict = spec.user_input
-        spec_dict['moment_file'] = pathlib.Path(user_path) / 'dm.dat'
-        spec_dict['spectrum_file'] = pathlib.Path(user_path) / 'spec.dat'
+        spec_dict['moment_file'] = pathlib.Path(self.directory) / dipolefile
+        spec_dict['spectrum_file'] = pathlib.Path(self.directory) / specfile
         spec.cal_photoabs_spectrum(spec_dict) 
     
 class StartPage(Frame):
@@ -753,6 +759,8 @@ class TimeDependentPage(Frame):
    
         def td_inp2dict():
             td_dict = rt.default_input
+            path = str(controller.directory) + "/GS"
+            td_dict['filename'] = path +"/gs.gpw"
             td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
             td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
@@ -1004,7 +1012,7 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec(),spectrum_show('spec.dat','delta',self.returnaxis(),'Energy (eV)','Photoabsorption (eV$^{-1}$)')])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec('Delta Kick/dm.dat', 'Delta Kick/spec.dat'),spectrum_show(controller.directory,'Delta Kick/spec.dat','delta',self.returnaxis(),'Energy (eV)','Photoabsorption (eV$^{-1}$)')])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1114,22 +1122,25 @@ class JobSubPage(Frame):
                 self.call_run(filename, directory,key, value1, processors)
 
     def select_job(self, job, processors):
+        self.st_var = self.controller.status
         if job == 'gs':
+            path = str(self.controller.directory)+"/GS"
             msg2 = 'GS inputs not found'
-            gs_check = search_string(str(user_path), 'status.txt' , '"gs_inp": 1')
-            gs_cal_check = search_string(str(user_path), 'status.txt' , '"gs_cal": 1')
+            gs_check = self.st_var.check_status('gs_inp', 1)
+            gs_cal_check = self.st_var.check_status('gs_cal', 1)
             if gs_check is True :
-                self.run_job('gs.py',str(user_path),gs_cal_check, 'gs_cal', 1, 0, processors)                  
+                self.run_job('gs.py',path,gs_cal_check, 'gs_cal', 1, 0, processors)                  
             else:
                 show_message(self.msg_label1, msg2)
 
         if job == 'delta':
+            path = str(self.controller.directory)+"/Delta Kick"
             msg2 = 'Inputs not found'
-            td_check = search_string(str(user_path), 'status.txt' , '"td_inp": 1')
-            gs_cal_check = search_string(str(user_path), 'status.txt' , '"gs_cal": 1')
-            td_cal_check = search_string(str(user_path), 'status.txt' , '"td_cal": 1')
+            td_check = self.st_var.check_status('td_inp', 1) 
+            gs_cal_check = self.st_var.check_status('gs_cal', 1)
+            td_cal_check = self.st_var.check_status('td_cal', 1)
             if td_check is True and gs_cal_check is True :
-                self.run_job('td.py',str(user_path),td_cal_check,'td_cal', 1, 0, processors)                 
+                self.run_job('td.py',path,td_cal_check,'td_cal', 1, 0, processors)                 
             else:
                 if td_check is False:
                     show_message(self.msg_label1,"Inputs not found. Please create inputs for delta kick." ) 
@@ -1137,11 +1148,12 @@ class JobSubPage(Frame):
                     show_message(self.msg_label1, "Inputs not found. Please run GS calculation.")   
                         
         if job == 'pulse':
-            td_check = search_string(str(user_path), 'status.txt' , '"td_inp": 2')
-            gs_cal_check = search_string(str(user_path), 'status.txt' , '"gs_cal": 1')
-            td_cal_check = search_string(str(user_path), 'status.txt' , '"td_cal": 2')
+            path = str(self.controller.directory)+"/Pulse"
+            td_check = self.st_var.check_status('td_inp', 2)
+            gs_cal_check = self.st_var.check_status('gs_cal', 1)
+            td_cal_check = self.st_var.check_status('td_cal', 2)
             if td_check is True and gs_cal_check is True:
-                self.run_job('td_pulse.py',str(user_path),td_cal_check,'td_cal', 2, 1, processors)                  
+                self.run_job('td_pulse.py',path,td_cal_check,'td_cal', 2, 1, processors)                  
             else:
                 show_message(self.msg_label1, "Inputs not found.")                 
 
@@ -1221,10 +1233,11 @@ class DmLdPage(Frame):
             axis = 1
         return axis
 
-def spectrum_show(filename, suffix, axis, x, y):
+def spectrum_show(directory,filename, suffix, axis, x, y):
         imgfile = "spec_{}_{}.png".format(suffix, axis)
-        plot_spectra(int(axis),filename, imgfile, x, y)
-        path = pathlib.Path(user_path) / imgfile
+        imgpath = "/Delta Kick/"+ imgfile
+        plot_spectra(int(axis),filename, imgpath, x, y)
+        path = pathlib.Path(directory) / imgpath
         img =Image.open(path)
         img.show()         
 
