@@ -123,7 +123,7 @@ class AITG(Tk):
                os.chdir(path1)
             if sub_task.get() == "Delta Kick":           
                self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
-               path = projpath.create_folder(self.directory, "Delta Kick")
+               path = projpath.create_folder(self.directory, "Spectrum")
                os.chdir(path)  
             if sub_task.get() == "Gaussian Pulse":
                self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
@@ -150,7 +150,7 @@ class AITG(Tk):
         if task == 'td':
             rt.default_input.update(gui_dict)
             dict_input = rt.default_input
-            RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),str(self.directory)+"/Delta Kick")
+            RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),str(self.directory)+"/Spectrum")
             
     def createspec(self, dipolefile, specfile):
         spec = spectrum()
@@ -387,7 +387,7 @@ class WorkManagerPage(Frame):
         self.st_var = self.controller.status
         
         if sub_task.get()  == "Ground State":
-            path = pathlib.Path(user_path) / "coordinate.xyz"
+            path = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             if path.exists() is True:
                 return True
             else:
@@ -1026,7 +1026,7 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec('Delta Kick/dm.dat', 'Delta Kick/spec.dat'),spectrum_show(controller.directory,'Delta Kick/spec.dat','delta',self.returnaxis(),'Energy (eV)','Photoabsorption (eV$^{-1}$)')])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),spectrum_show(str(controller.directory)+'/Spectrum','spec.dat','delta',self.returnaxis(),'Energy (eV)','Photoabsorption (eV$^{-1}$)')])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1148,7 +1148,7 @@ class JobSubPage(Frame):
                 show_message(self.msg_label1, msg2)
 
         if job == 'delta':
-            path = str(self.controller.directory)+"/Delta Kick"
+            path = str(self.controller.directory)+"/Spectrum"
             msg2 = 'Inputs not found'
             td_check = self.st_var.check_status('td_inp', 1) 
             gs_cal_check = self.st_var.check_status('gs_cal', 1)
@@ -1249,9 +1249,10 @@ class DmLdPage(Frame):
 
 def spectrum_show(directory,filename, suffix, axis, x, y):
         imgfile = "spec_{}_{}.png".format(suffix, axis)
-        imgpath = "/Delta Kick/"+ imgfile
-        plot_spectra(int(axis),filename, imgpath, x, y)
-        path = pathlib.Path(directory) / imgpath
+        imgpath = str(directory) +"/" +imgfile
+        filepath = str(directory)+"/"+filename
+        plot_spectra(int(axis),filepath, imgpath, x, y)
+        path = pathlib.Path(imgpath)
         img =Image.open(path)
         img.show()         
 
