@@ -86,6 +86,7 @@ class AITG(Tk):
     def status_init(self, path):
         self.directory = path
         self.status = Status(self.directory)
+        
     # def refresh(self, frame,path):
     #     frame.destroy()
     #     self.nav= Nav(self,path)
@@ -111,7 +112,7 @@ class AITG(Tk):
             if sub_task.get() == "Delta Kick":           
                self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)  
             if sub_task.get() == "Gaussian Pulse":
-               self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
+               self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
             if sub_task.get() == "Spectrum":
                self.show_frame(PlotSpectraPage)
             if sub_task.get() == "Dipole Moment and Laser Pulse":
@@ -232,7 +233,7 @@ class WorkManagerPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
-        self.st_var = self.controller.status
+        
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -363,6 +364,7 @@ class WorkManagerPage(Frame):
         self.projectname = self.entry_proj.get()
     
     def task_check(self,sub_task):
+        self.st_var = self.controller.status
         
         if sub_task.get()  == "Ground State":
             path = pathlib.Path(user_path) / "coordinate.xyz"
