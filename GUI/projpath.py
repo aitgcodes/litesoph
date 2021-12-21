@@ -24,6 +24,15 @@ def dir_exist(projpath,projname):
     else:
         messagebox.showinfo("Message", f"project:{path} doesnot exists, please create")
 
+def create_folder(path, dir_name):
+    path = Path(path)
+    newpath = path / str(dir_name)
+    try:
+        newpath.mkdir(parents=True, exist_ok=False)
+        return newpath
+    except FileExistsError:
+        print("Folder already exists.")
+        return newpath
 
 
 
