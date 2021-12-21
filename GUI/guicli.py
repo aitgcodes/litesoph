@@ -22,6 +22,6 @@ class CLICommand:
         from litesoph.GUI.gui import AITG
         app = AITG(lsconfig)
         app.title("AITG - LITESOPH")
-        app.resizable(True,True)
+        app.resizable(0,0)
         app.mainloop()
     
