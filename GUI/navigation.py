@@ -1,26 +1,36 @@
 import os
+import pathlib
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.filedialog import askopenfile
 from tkinter import filedialog
-class Nav(tk.Frame):
+
+class Nav(ttk.Frame):
+
     def __init__(self, master,path):
-        tk.Frame.__init__(self, master)
+        super().__init__(master)
+        self.path = path
         self.nodes = dict()
-        
-        self.tree = ttk.Treeview(master)
-        ysb = ttk.Scrollbar(master, orient='vertical', command=self.tree.yview)
-        xsb = ttk.Scrollbar(master, orient='horizontal', command=self.tree.xview)
+        # self.columnconfigure(0, weight=1)
+        # self.columnconfigure(1, weight=1)
+        # self.rowconfigure(1, weight=1)
+        self.__create_treeview()
+
+    def __create_treeview(self):
+
+        self.tree = ttk.Treeview(self, height=20)
+        ysb = ttk.Scrollbar(self, orient='vertical', command=self.tree.yview)
+        xsb = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
         self.tree.configure(yscroll=ysb.set, xscroll=xsb.set)
         self.tree.heading('#0',anchor='w')
        
 
-        self.tree.grid()
+        self.tree.grid(row=0, column=0)
         ysb.grid(row=0, column=1, sticky='ns')
         xsb.grid(row=1, column=0, sticky='ew')
         
  
-        abspath = os.path.abspath(path)
+        abspath = os.path.abspath(self.path)
         self.insert_node('', abspath, abspath)
         self.tree.bind('<<TreeviewOpen>>', self.open_node)
         
@@ -39,4 +49,3 @@ class Nav(tk.Frame):
             for p in os.listdir(abspath):
                 self.insert_node(node, p, os.path.join(abspath, p))
 
-    

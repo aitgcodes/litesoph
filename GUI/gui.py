@@ -71,39 +71,49 @@ class AITG(Tk):
         self.configs = self.lsconfig.configs
         self.lsroot = self.lsconfig.lsroot
         self.directory = self.configs['lsproject']
-        self.nav = Nav(self,self.directory)
-        self.nav.grid()
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=6)
+       
+        self.nav = None
+        self.refresh_nav(self.directory)
         
         self.window = Frame(self)
-        self.window.grid(row=0, column=2)
-        #window.pack(side="top", fill = "both", expand = True)
+        self.window.grid(row=0, column=1)
+        
         self.window.grid_rowconfigure(700,weight=700)
         self.window.grid_columnconfigure(800,weight=400)        
         
         self.show_frame(StartPage)
         self.status_init(self.directory)
+        
     
     def status_init(self, path):
         self.directory = path
         self.status = Status(self.directory)
         
-    # def refresh(self, frame,path):
-    #     frame.destroy()
-    #     self.nav= Nav(self,path)
-    #     self.nav.grid()
-
+    
     def show_frame(self, frame, prev = None, next = None):
         
         if isinstance(frame, Frame):
             frame.destroy()
             frame = frame(self.window, self, prev, next)
-            frame.grid(row=0, column=0, sticky ="nsew")
+            frame.grid(row=0, column=1, sticky ="nsew")
             frame.tkraise()
         else:
             frame = frame(self.window, self, prev, next)
-            frame.grid(row=0, column=0, sticky ="nsew")
+            frame.grid(row=0, column=1, sticky ="nsew")
             frame.tkraise()
 
+    def refresh_nav(self, path):
+
+        if isinstance(self.nav, Nav):
+            self.nav.destroy()
+            self.nav = Nav(self, path)
+            self.nav.grid(row=0, column=0, sticky='nw')
+        else:
+            self.nav = Nav(self, path)
+            self.nav.grid(row=0, column=0, sticky='nw')
 
     def task_input(self,sub_task, task_check):
         if task_check is True:
@@ -151,6 +161,10 @@ class StartPage(Frame):
         self.prev = prev
         self.next = next
               
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+
         mainframe = ttk.Frame(self,padding="12 12 24 24")
         #mainframe = ttk.Frame(self)
         mainframe.grid(column=1, row=0, sticky=(N, W, E, S))
@@ -265,7 +279,7 @@ class WorkManagerPage(Frame):
         #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
-        self.button_project = Button(self.Frame1,text="Create New Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), controller.status_init(user_path)])
+        self.button_project = Button(self.Frame1,text="Create New Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=125,y=360)
       
@@ -273,7 +287,7 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=10,y=360)
         
-        self.button_project = Button(self.Frame1,text="Open Existing Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname), controller.status_init(user_path)])
+        self.button_project = Button(self.Frame1,text="Open Existing Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=290,y=360)
         
