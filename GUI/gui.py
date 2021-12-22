@@ -121,6 +121,8 @@ class AITG(Tk):
                self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
                path1 = projpath.create_folder(self.directory, "GS")
                os.chdir(path1)
+            if sub_task.get() == "Geometry Optimisation":
+               self.show_frame(GeomOptPage, WorkManagerPage, JobSubPage)
             if sub_task.get() == "Delta Kick":           
                self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
                path = projpath.create_folder(self.directory, "Spectrum")
@@ -334,15 +336,19 @@ class WorkManagerPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=70)
 
-        MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
+        MainTask = ["--Choose Job--","Preprocessing Jobs","Simulations","Postprocessing Jobs"]
 
-        # Create a list of sub_task  
-        Pre_task = ["Ground State","Geometry"]
+        # Create a list of sub_task
+        choosejob = [""]  
+        Pre_task = ["Ground State","Geometry Optimisation"]
         Sim_task = ["Delta Kick","Gaussian Pulse"]
         Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Transition Contribution Map","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         #Spec_task = ["Absorption Spectrum"]
 
         def pick_task(e):
+            if task.get() == "--Choose Job--":
+                sub_task.config(value = choosejob)
+                sub_task.current(0)
             if task.get() == "Preprocessing Jobs":
                 sub_task.config(value = Pre_task)
                 sub_task.current(0)
@@ -468,15 +474,19 @@ class GroundStatePage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
         
-        Mainmode = ["lcao","fd","pw","gaussian"]
+        Mainmode = ["--Choose Mode--","lcao","fd","pw","gaussian"]
 
         # Create a list of sub_task  
+        choosemode = [""]
         lcao_task = ["dzp","pvalence.dz","cc-pvdz"]
         fd_task = [""]
         pw_task = [""]
         gauss_task = ["6-31+G*","6-31+G","6-31G*","6-31G","3-21G"]
 
         def pick_task(e):
+            if task.get() == "--Choose Mode--":
+                sub_task.config(value = choosemode)
+                sub_task.current(0)
             if task.get() == "lcao":
                 sub_task.config(value = lcao_task)
                 sub_task.current(0)
@@ -642,6 +652,231 @@ class GroundStatePage(Frame):
                         }          
             return inp_dict  
 
+class GeomOptPage(Frame):
+
+    def __init__(self, parent, controller,prev, next):
+        Frame.__init__(self, parent)
+        self.controller = controller
+        self.prev = prev
+        self.next = next
+        
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+        
+        self.Frame1 = tk.Frame(self)
+        self.Frame1.configure(relief='groove')
+        self.Frame1.configure(borderwidth="2")
+        self.Frame1.configure(relief="groove")
+        self.Frame1.configure(cursor="fleur")
+        self.Frame1 = tk.Frame(self)
+        
+        h   = StringVar()
+        nbands = StringVar()
+        vacuum = StringVar()
+        mode = StringVar()
+        xc = StringVar()
+        basis = StringVar()
+        charge = StringVar()
+        spinpol = StringVar()
+        multip = StringVar()
+        energy = StringVar()
+        bands = StringVar()
+        maxiter = StringVar()
+
+        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame1.configure(relief='groove')
+        self.Frame1.configure(borderwidth="2")
+        self.Frame1.configure(relief="groove")
+        self.Frame1.configure(cursor="fleur")            
+        
+        self.Frame1_label_path = Label(self.Frame1,text="LITESOPH input for Geometery Optimisation",fg='blue')
+        self.Frame1_label_path['font'] = myFont
+        self.Frame1_label_path.place(x=150,y=10)
+      
+        self.label_proj = Label(self.Frame1,text="Mode",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=60)
+        
+        Mainmode = ["--Choose Mode--","lcao","fd","pw","gaussian"]
+
+        # Create a list of sub_task  
+        choosemode = [""]
+        lcao_task = ["dzp","pvalence.dz","cc-pvdz"]
+        fd_task = [""]
+        pw_task = [""]
+        gauss_task = ["6-31+G*","6-31+G","6-31G*","6-31G","3-21G"]
+
+        def pick_task(e):
+            if task.get() == "--Choose Mode--":
+                sub_task.config(value = choosemode)
+                sub_task.current(0)
+            if task.get() == "lcao":
+                sub_task.config(value = lcao_task)
+                sub_task.current(0)
+            if task.get() == "fd":
+                sub_task.config(value = fd_task)
+                sub_task.current(0)
+            if task.get() == "pw":
+                sub_task.config(value = pw_task)
+                sub_task.current(0)
+            if task.get() == "gaussian":
+                sub_task.config(value = gauss_task)
+                sub_task.current(0)
+
+        task = ttk.Combobox(self.Frame1, textvariable = mode, values= Mainmode)
+        task.current(0)
+        task['font'] = myFont
+        task.place(x=250,y=60)
+        task.bind("<<ComboboxSelected>>", pick_task)
+
+        self.Frame2_label_3 = Label(self.Frame1, text="Basis",bg='gray',fg='black')
+        self.Frame2_label_3['font'] = myFont
+        self.Frame2_label_3.place(x=10,y=110)
+          
+        sub_task = ttk.Combobox(self.Frame1, textvariable= basis, value = [" "])
+        sub_task.current(0)
+        sub_task['font'] = myFont
+        sub_task.place(x=250,y=110)
+
+        self.label = Label(self.Frame1, text="Exchange Correlation", bg= "grey",fg="black")
+        self.label['font'] = myFont
+        self.label.place(x=10,y=160)
+       
+        exch_cor = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
+
+        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= xc, value = exch_cor)
+        self.entry_pol_x.current(0)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.place(x=250,y=160)
+
+        self.label_pol_y = Label(self.Frame1, text="Spacing (in Angstrom)", bg= "grey",fg="black")
+        self.label_pol_y['font'] = myFont
+        self.label_pol_y.place(x=10,y=210)
+    
+        self.entry_proj = Entry(self.Frame1,textvariable= h)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"0.3")
+        self.entry_proj.place(x=250,y=210)
+
+        self.label_pol_z = Label(self.Frame1, text="Number of Bands", bg= "grey",fg="black")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.place(x=10,y=260)
+ 
+        self.entry_proj = Entry(self.Frame1,textvariable= nbands)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.place(x=250,y=260)
+
+        self.label_proj = Label(self.Frame1,text="Vacuum size (in Angstrom)",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=310)
+
+        self.entry_proj = Entry(self.Frame1,textvariable= vacuum)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"6")
+        self.entry_proj.place(x=250,y=310)
+        
+        Frame1_Button3 = tk.Button(self.Frame1, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button3['font'] = myFont
+        Frame1_Button3.place(x=10,y=380)
+        
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), show_message(self.label_msg, "Saved")])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=350,y=380)
+
+        self.label_msg = Label(self.Frame1,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=370,y=350)
+
+        self.Frame2 = tk.Frame(self)
+        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+
+        self.Frame2.configure(relief='groove')
+        self.Frame2.configure(borderwidth="2")
+        self.Frame2.configure(relief="groove")
+        self.Frame2.configure(cursor="fleur")
+   
+        self.label_proj = Label(self.Frame2,text="Charge",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=60)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= charge)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"0")
+        self.entry_proj.place(x=250,y=60)
+        
+        self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=110)
+   
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","True"])
+        self.entry_pol_x.current(0)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.place(x=250,y=110)
+
+        self.Frame2_note = Label(self.Frame2,text="Multiplicity",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=160)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= multip)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"0")
+        self.entry_proj.place(x=250,y=160)
+  
+        self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=210)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= energy)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"5e-05")
+        self.entry_proj.place(x=250,y=210)
+
+        self.Frame2_note = Label(self.Frame2,text="Maxiter",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=260)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= maxiter)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"300")
+        self.entry_proj.place(x=250,y=260)
+     
+        self.Frame2_note = Label(self.Frame2,text="Band Occupancy",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=310)
+
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= bands, value = ["occupied","unoccupied"])
+        self.entry_pol_x.current(0)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.place(x=250,y=310)
+
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
+        Frame2_Button3['font'] = myFont
+        Frame2_Button3.place(x=10,y=380)
+ 
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, GroundStatePage, None))
+        Frame2_Button2['font'] = myFont
+        Frame2_Button2.place(x=350,y=380)
+
+        def gs_inp2dict():
+            inp_dict = {
+                'mode': mode.get(),
+                'xc': xc.get(),
+                'basis': basis.get(),
+                'vacuum': vacuum.get(),
+                'h': h.get(),
+                'nbands' : nbands.get(),
+                'charge' : charge.get(),
+                'spinpol' : spinpol.get(),
+                'multip' : None, 
+                'convergence' : {'energy' : float(energy.get()), 'bands' : bands.get()},
+                'maxiter' : maxiter.get(),
+                'properties': 'get_potential_energy()',
+                'engine':'gpaw'
+                        }          
+            return inp_dict  
 
   
 class TimeDependentPage(Frame):
