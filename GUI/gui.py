@@ -673,18 +673,19 @@ class GeomOptPage(Frame):
         self.Frame1.configure(cursor="fleur")
         self.Frame1 = tk.Frame(self)
         
-        h   = StringVar()
-        nbands = StringVar()
+        occup   = StringVar()
+        #nbands = StringVar()
         vacuum = StringVar()
         mode = StringVar()
         xc = StringVar()
         basis = StringVar()
         charge = StringVar()
-        spinpol = StringVar()
-        multip = StringVar()
+        smear = StringVar()
+        fmax = StringVar()
         energy = StringVar()
         bands = StringVar()
         maxiter = StringVar()
+        
 
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -752,21 +753,22 @@ class GeomOptPage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=160)
 
-        self.label_pol_y = Label(self.Frame1, text="Spacing (in Angstrom)", bg= "grey",fg="black")
+        self.label_pol_y = Label(self.Frame1, text="Force Convergence", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
         self.label_pol_y.place(x=10,y=210)
     
-        self.entry_proj = Entry(self.Frame1,textvariable= h)
+        self.entry_proj = Entry(self.Frame1,textvariable= fmax)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0.3")
+        self.entry_proj.insert(0,"5e-02")
         self.entry_proj.place(x=250,y=210)
 
-        self.label_pol_z = Label(self.Frame1, text="Number of Bands", bg= "grey",fg="black")
+        self.label_pol_z = Label(self.Frame1, text="Energy Converegence", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=260)
  
-        self.entry_proj = Entry(self.Frame1,textvariable= nbands)
+        self.entry_proj = Entry(self.Frame1,textvariable= energy)
         self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"5e-05")
         self.entry_proj.place(x=250,y=260)
 
         self.label_proj = Label(self.Frame1,text="Vacuum size (in Angstrom)",bg="gray",fg="black")
@@ -807,51 +809,56 @@ class GeomOptPage(Frame):
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=250,y=60)
         
-        self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Occupations",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=110)
    
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","True"])
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= occup, value = ["FermiDirac","Gaussian"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_note = Label(self.Frame2,text="Multiplicity",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="smearing width",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= multip)
+        self.entry_proj = Entry(self.Frame2,textvariable= smear)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0")
+        self.entry_proj.insert(0,"0.0")
         self.entry_proj.place(x=250,y=160)
   
-        self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=210)
+        #self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.place(x=10,y=210)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= energy)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"5e-05")
-        self.entry_proj.place(x=250,y=210)
+        #self.entry_proj = Entry(self.Frame2,textvariable= energy)
+        #self.entry_proj['font'] = myFont
+        #self.entry_proj.insert(0,"5e-05")
+        #self.entry_proj.place(x=250,y=210)
 
         self.Frame2_note = Label(self.Frame2,text="Maxiter",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=260)
+        self.Frame2_note.place(x=10,y=210)
 
         self.entry_proj = Entry(self.Frame2,textvariable= maxiter)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"300")
-        self.entry_proj.place(x=250,y=260)
+        self.entry_proj.place(x=250,y=210)
      
         self.Frame2_note = Label(self.Frame2,text="Band Occupancy",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=310)
-
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= bands, value = ["occupied","unoccupied"])
+        self.Frame2_note.place(x=10,y=260)
+  
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= bands , value = ["occupied","unoccupied"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.place(x=250,y=310)
+        self.entry_pol_x.place(x=250,y=260)
 
+        #self.entry_proj = Entry(self.Frame2,textvariable= fmax)
+        #self.entry_proj['font'] = myFont
+        #self.entry_proj.insert(0,"0.05")
+        #self.entry_proj.place(x=250,y=310)
+        
         Frame2_Button3 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
@@ -866,12 +873,12 @@ class GeomOptPage(Frame):
                 'xc': xc.get(),
                 'basis': basis.get(),
                 'vacuum': vacuum.get(),
-                'h': h.get(),
-                'nbands' : nbands.get(),
+                'occup': occup.get(),
+                'smear' : smear.get(),
                 'charge' : charge.get(),
-                'spinpol' : spinpol.get(),
-                'multip' : None, 
-                'convergence' : {'energy' : float(energy.get()), 'bands' : bands.get()},
+                #'spinpol' : spinpol.get(),
+                #'fmax' : fmax.get(), 
+                'convergence' : {'energy' : float(energy.get()),'fmax' : float(fmax.get()), 'bands' : bands.get()},
                 'maxiter' : maxiter.get(),
                 'properties': 'get_potential_energy()',
                 'engine':'gpaw'
