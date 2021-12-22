@@ -1115,7 +1115,7 @@ class JobSubPage(Frame):
             return('pulse')
         
     def call_run(self, filename, directory,key, value, processors):
-        from litesoph.simulations.run_local import run_local
+        from litesoph.Utilities.run_local import run_local
         if processors == "1" :
             result = run_local(filename, directory) 
             self.controller.status.update_status(key, value) 

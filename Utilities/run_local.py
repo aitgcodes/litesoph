@@ -12,7 +12,7 @@ def run_local(filename, directory, processors=None):
             processors= str(processors)
             result = subprocess.run(['mpirun', '-np', processors, 'python', filename], capture_output=True, text=True)
         else:
-            raise " worng number of processors"
+            raise "wrong number of processors"
     else:
         result = subprocess.run(['python', filename], capture_output=True, text=True)
 
