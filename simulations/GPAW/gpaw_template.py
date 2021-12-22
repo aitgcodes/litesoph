@@ -1,3 +1,4 @@
+import pathlib
 from typing import Any, Dict
 from gpaw import GPAW
 
@@ -75,7 +76,7 @@ calc.write('{directory}/gs.gpw', mode='all')
         import os
         parameters = default_parameters
         
-        for key in user_input:
+        for key in user_input.keys():
             if key not in ['tolerance','convergance','box'] and user_input[key] is not None:
                 parameters[key] = user_input[key]
 
@@ -185,8 +186,18 @@ td_calc.write('{directory}/{td_out}', mode='all')
         elif self.laser is not None and self.td_potential == True:
            self.user_input.update(self.laser)
            template = self.external_field_template.format(**self.user_input)
-           return template
-    
+           return template 
+
+def write_laser(laser_input:dict, filename, directory):
+
+    from gpaw.lcaotddft.laser import GaussianPulse
+    import numpy as np
+
+    filename = filename + ".dat"
+    filename = pathlib.Path(directory) / filename
+    pulse = GaussianPulse(laser_input['strength'], laser_input['time0'], laser_input['frequency'], laser_input['sigma'], laser_input['sincos'])
+    pulse.write(filename, np.arange(laser_input['range']))
+
 class LrTddft:
     """This class contains the template  for creating gpaw 
     scripts for  linear response tddft calculations."""
