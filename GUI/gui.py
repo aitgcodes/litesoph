@@ -239,11 +239,12 @@ class StartPage(Frame):
         canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
 
-        button_create_project = Button(mainframe,text="Start LITESOPH Project", bg="black",fg="white",command=lambda: controller.show_frame(WorkManagerPage))
+        button_create_project = Button(mainframe,text="Start LITESOPH Project", command=lambda: controller.show_frame(WorkManagerPage))
         button_create_project['font'] = myFont
         button_create_project.place(x=80,y=200)
 
-        button_open_project = Button(mainframe,text="About LITESOPH", bg="black",fg="white")
+        #button_open_project = Button(mainframe,text="About LITESOPH",fg="white")
+        button_open_project = Button(mainframe,text="About LITESOPH")
         button_open_project['font'] = myFont
         button_open_project.place(x=80,y=300)
 
@@ -287,15 +288,15 @@ class WorkManagerPage(Frame):
         #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
                 
-        self.button_project = Button(self.Frame1,text="Create New Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
+        self.button_project = Button(self.Frame1,text="Create New Project",command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=125,y=360)
       
-        self.Frame1_Button_MainPage = Button(self.Frame1, text="Start Page",bg='blue',fg='white', command=lambda: controller.show_frame(StartPage))
+        self.Frame1_Button_MainPage = Button(self.Frame1, text="Start Page", command=lambda: controller.show_frame(StartPage))
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=10,y=360)
         
-        self.button_project = Button(self.Frame1,text="Open Existing Project",bg='blue',fg='white',command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
+        self.button_project = Button(self.Frame1,text="Open Existing Project",command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
         self.button_project['font'] = myFont
         self.button_project.place(x=290,y=360)
         
@@ -319,7 +320,7 @@ class WorkManagerPage(Frame):
         self.Frame2_label_1['font'] = myFont
         self.Frame2_label_1.place(x=10,y=10)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",bg='blue',fg='white',command=lambda:[open_file(user_path),show_message(self.message_label,"Uploaded")])
+        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",command=lambda:[open_file(user_path),show_message(self.message_label,"Uploaded")])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=10)
 
@@ -328,7 +329,7 @@ class WorkManagerPage(Frame):
         self.message_label.place(x=270,y=15)
 
         
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="View",bg='blue',fg='white',command=self.geom_visual)
+        self.Frame2_Button_1 = tk.Button(self.Frame2,text="View",command=self.geom_visual)
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=350,y=10)
 
@@ -336,19 +337,19 @@ class WorkManagerPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=70)
 
-        MainTask = ["--Choose Job--","Preprocessing Jobs","Simulations","Postprocessing Jobs"]
+        MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
 
         # Create a list of sub_task
-        choosejob = [""]  
+        #choosejob = [""]  
         Pre_task = ["Ground State","Geometry Optimisation"]
         Sim_task = ["Delta Kick","Gaussian Pulse"]
         Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Transition Contribution Map","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         #Spec_task = ["Absorption Spectrum"]
 
         def pick_task(e):
-            if task.get() == "--Choose Job--":
-                sub_task.config(value = choosejob)
-                sub_task.current(0)
+            #if task.get() == "--Choose Job--":
+                #sub_task.config(value = choosejob)
+                #sub_task.current(0)
             if task.get() == "Preprocessing Jobs":
                 sub_task.config(value = Pre_task)
                 sub_task.current(0)
@@ -360,7 +361,7 @@ class WorkManagerPage(Frame):
                 sub_task.current(0)
             
         task = ttk.Combobox(self.Frame2,width= 30, values= MainTask)
-        task.current(0)
+        task.set("--choose job task--")
         task['font'] = myFont
         task.place(x=200,y=70)
         task.bind("<<ComboboxSelected>>", pick_task)
@@ -374,7 +375,7 @@ class WorkManagerPage(Frame):
         sub_task.current(0)
         sub_task.place(x=200,y=130)
                        
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",bg='blue',fg='white',command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=360)
 
@@ -474,19 +475,19 @@ class GroundStatePage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
         
-        Mainmode = ["--Choose Mode--","lcao","fd","pw","gaussian"]
+        Mainmode = ["lcao","fd","pw","gaussian"]
 
         # Create a list of sub_task  
-        choosemode = [""]
+        #choosemode = [""]
         lcao_task = ["dzp","pvalence.dz","cc-pvdz"]
         fd_task = [""]
         pw_task = [""]
-        gauss_task = ["6-31+G*","6-31+G","6-31G*","6-31G","3-21G"]
+        gauss_task = ["STO-3G","STO-4G","6-31+G*","6-31+G","6-31G*","6-31G","6-311G","cc-pVDZ"]
 
         def pick_task(e):
-            if task.get() == "--Choose Mode--":
-                sub_task.config(value = choosemode)
-                sub_task.current(0)
+            #if task.get() == "--Choose Mode--":
+                #sub_task.config(value = choosemode)
+                #sub_task.current(0)
             if task.get() == "lcao":
                 sub_task.config(value = lcao_task)
                 sub_task.current(0)
@@ -501,7 +502,7 @@ class GroundStatePage(Frame):
                 sub_task.current(0)
 
         task = ttk.Combobox(self.Frame1, textvariable = mode, values= Mainmode)
-        task.current(0)
+        task.set("--choose mode--")
         task['font'] = myFont
         task.place(x=250,y=60)
         task.bind("<<ComboboxSelected>>", pick_task)
@@ -552,11 +553,11 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"6")
         self.entry_proj.place(x=250,y=310)
         
-        Frame1_Button3 = tk.Button(self.Frame1, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button3 = tk.Button(self.Frame1, text="Back",command=lambda:controller.show_frame(WorkManagerPage))
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
 
@@ -626,11 +627,11 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=310)
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, GroundStatePage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
 
@@ -673,18 +674,19 @@ class GeomOptPage(Frame):
         self.Frame1.configure(cursor="fleur")
         self.Frame1 = tk.Frame(self)
         
-        h   = StringVar()
-        nbands = StringVar()
+        occup   = StringVar()
+        #nbands = StringVar()
         vacuum = StringVar()
         mode = StringVar()
         xc = StringVar()
         basis = StringVar()
         charge = StringVar()
-        spinpol = StringVar()
-        multip = StringVar()
+        smear = StringVar()
+        fmax = StringVar()
         energy = StringVar()
         bands = StringVar()
         maxiter = StringVar()
+        
 
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -700,19 +702,19 @@ class GeomOptPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
         
-        Mainmode = ["--Choose Mode--","lcao","fd","pw","gaussian"]
+        Mainmode = ["lcao","fd","pw","gaussian"]
 
         # Create a list of sub_task  
-        choosemode = [""]
-        lcao_task = ["dzp","pvalence.dz","cc-pvdz"]
+        #choosemode = [""]
+        lcao_task = ["dzp","pvalence.dz"]
         fd_task = [""]
         pw_task = [""]
-        gauss_task = ["6-31+G*","6-31+G","6-31G*","6-31G","3-21G"]
+        gauss_task = ["STO-3G","6-31+G*","6-31+G","6-31G*","6-31G","3-21G","cc-pVDZ"]
 
         def pick_task(e):
-            if task.get() == "--Choose Mode--":
-                sub_task.config(value = choosemode)
-                sub_task.current(0)
+            #if task.get() == "--Choose Mode--":
+                #sub_task.config(value = choosemode)
+                #sub_task.current(0)
             if task.get() == "lcao":
                 sub_task.config(value = lcao_task)
                 sub_task.current(0)
@@ -727,7 +729,7 @@ class GeomOptPage(Frame):
                 sub_task.current(0)
 
         task = ttk.Combobox(self.Frame1, textvariable = mode, values= Mainmode)
-        task.current(0)
+        task.set("--choose mode--")
         task['font'] = myFont
         task.place(x=250,y=60)
         task.bind("<<ComboboxSelected>>", pick_task)
@@ -752,21 +754,22 @@ class GeomOptPage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=160)
 
-        self.label_pol_y = Label(self.Frame1, text="Spacing (in Angstrom)", bg= "grey",fg="black")
+        self.label_pol_y = Label(self.Frame1, text="Force Convergence", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
         self.label_pol_y.place(x=10,y=210)
     
-        self.entry_proj = Entry(self.Frame1,textvariable= h)
+        self.entry_proj = Entry(self.Frame1,textvariable= fmax)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0.3")
+        self.entry_proj.insert(0,"5e-02")
         self.entry_proj.place(x=250,y=210)
 
-        self.label_pol_z = Label(self.Frame1, text="Number of Bands", bg= "grey",fg="black")
+        self.label_pol_z = Label(self.Frame1, text="Energy Converegence", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=260)
  
-        self.entry_proj = Entry(self.Frame1,textvariable= nbands)
+        self.entry_proj = Entry(self.Frame1,textvariable= energy)
         self.entry_proj['font'] = myFont
+        self.entry_proj.insert(0,"5e-05")
         self.entry_proj.place(x=250,y=260)
 
         self.label_proj = Label(self.Frame1,text="Vacuum size (in Angstrom)",bg="gray",fg="black")
@@ -778,11 +781,11 @@ class GeomOptPage(Frame):
         self.entry_proj.insert(0,"6")
         self.entry_proj.place(x=250,y=310)
         
-        Frame1_Button3 = tk.Button(self.Frame1, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button3 = tk.Button(self.Frame1, text="Back",command=lambda:controller.show_frame(WorkManagerPage))
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input", command=lambda:[controller.gui_inp('opt','opt',opt_inp2dict()), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
 
@@ -807,71 +810,76 @@ class GeomOptPage(Frame):
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=250,y=60)
         
-        self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Occupations",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=110)
    
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","True"])
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= occup, value = ["FermiDirac","Gaussian"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_note = Label(self.Frame2,text="Multiplicity",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="smearing width",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= multip)
+        self.entry_proj = Entry(self.Frame2,textvariable= smear)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0")
+        self.entry_proj.insert(0,"0.0")
         self.entry_proj.place(x=250,y=160)
   
-        self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=210)
+        #self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.place(x=10,y=210)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= energy)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"5e-05")
-        self.entry_proj.place(x=250,y=210)
+        #self.entry_proj = Entry(self.Frame2,textvariable= energy)
+        #self.entry_proj['font'] = myFont
+        #self.entry_proj.insert(0,"5e-05")
+        #self.entry_proj.place(x=250,y=210)
 
         self.Frame2_note = Label(self.Frame2,text="Maxiter",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=260)
+        self.Frame2_note.place(x=10,y=210)
 
         self.entry_proj = Entry(self.Frame2,textvariable= maxiter)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"300")
-        self.entry_proj.place(x=250,y=260)
+        self.entry_proj.place(x=250,y=210)
      
         self.Frame2_note = Label(self.Frame2,text="Band Occupancy",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=310)
-
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= bands, value = ["occupied","unoccupied"])
+        self.Frame2_note.place(x=10,y=260)
+  
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= bands , value = ["occupied","unoccupied"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.place(x=250,y=310)
+        self.entry_pol_x.place(x=250,y=260)
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[controller.gui_inp('gs','gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
+        #self.entry_proj = Entry(self.Frame2,textvariable= fmax)
+        #self.entry_proj['font'] = myFont
+        #self.entry_proj.insert(0,"0.05")
+        #self.entry_proj.place(x=250,y=310)
+        
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input", command=lambda:[controller.gui_inp('opt','opt',opt_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, GroundStatePage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
 
-        def gs_inp2dict():
+        def opt_inp2dict():
             inp_dict = {
                 'mode': mode.get(),
                 'xc': xc.get(),
                 'basis': basis.get(),
                 'vacuum': vacuum.get(),
-                'h': h.get(),
-                'nbands' : nbands.get(),
+                'occup': occup.get(),
+                'smear' : smear.get(),
                 'charge' : charge.get(),
-                'spinpol' : spinpol.get(),
-                'multip' : None, 
-                'convergence' : {'energy' : float(energy.get()), 'bands' : bands.get()},
+                #'spinpol' : spinpol.get(),
+                #'fmax' : fmax.get(), 
+                'convergence' : {'energy' : float(energy.get()),'fmax' : float(fmax.get()), 'bands' : bands.get()},
                 'maxiter' : maxiter.get(),
                 'properties': 'get_potential_energy()',
                 'engine':'gpaw'
@@ -974,11 +982,11 @@ class TimeDependentPage(Frame):
         self.entry_proj.insert(0,"200")
         self.entry_proj.place(x=250,y=310)
         
-        Frame1_Button3 = tk.Button(self.Frame1, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button3 = tk.Button(self.Frame1, text="Back",command=lambda:controller.show_frame(WorkManagerPage))
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()), controller.status.update_status('td_inp', 1), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",command=lambda:[controller.gui_inp('td','td', td_inp2dict()), controller.status.update_status('td_inp', 1), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
 
@@ -998,11 +1006,11 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white',command=lambda:[controller.gui_inp('td','td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",command=lambda:[controller.gui_inp('td','td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, TimeDependentPage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",command=lambda:controller.show_frame(self.next, TimeDependentPage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
    
@@ -1115,11 +1123,11 @@ class LaserDesignPage(Frame):
         self.entry_proj.insert(0,"2000")
         self.entry_proj.place(x=250,y=310)
  
-        Frame1_Button1 = tk.Button(self.Frame1, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button1 = tk.Button(self.Frame1, text="Back",command=lambda:controller.show_frame(WorkManagerPage))
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td),controller.status.update_status('td_inp', 2), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input", command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td),controller.status.update_status('td_inp', 2), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=350,y=380)
   
@@ -1182,11 +1190,11 @@ class LaserDesignPage(Frame):
         # self.button_project['font'] = myFont
         # self.button_project.place(x=10,y=380)        
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",bg='blue',fg='white', command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td),self.controller.status.update_status('td_inp', 2), controller.show_frame(TextViewerPage, LaserDesignPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input", command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td','td_pulse', self.td),self.controller.status.update_status('td_inp', 2), controller.show_frame(TextViewerPage, LaserDesignPage, None)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
         
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(self.next, LaserDesignPage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",command=lambda:controller.show_frame(self.next, LaserDesignPage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=350,y=380)
       
@@ -1261,11 +1269,11 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=250,y=110)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",bg='blue',fg='white', command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),spectrum_show(str(controller.directory)+'/Spectrum','spec.dat','delta',self.returnaxis(),'Energy (eV)','Photoabsorption (eV$^{-1}$)')])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot", command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),spectrum_show(str(controller.directory)+'/Spectrum','spec.dat','delta',self.returnaxis(),'Energy (eV)','Photoabsorption (eV$^{-1}$)')])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
-        Frame_Button1 = tk.Button(self.Frame, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1 = tk.Button(self.Frame, text="Back",command=lambda:controller.show_frame(WorkManagerPage))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
         
@@ -1322,7 +1330,7 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=110)
 
-        sbj_button1 = Button(self, text="Run Local",bg='blue', fg='white',command=lambda:[self.submitjob_local(sbj_entry1.get())])
+        sbj_button1 = Button(self, text="Run Local",command=lambda:[self.submitjob_local(sbj_entry1.get())])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=600, y=60)
 
@@ -1330,7 +1338,7 @@ class JobSubPage(Frame):
         self.msg_label1['font'] = myFont
         self.msg_label1.place(x=600,y=100)
 
-        back = tk.Button(self, text="Back to main page",bg='blue',fg='white',command=lambda:[controller.show_frame(WorkManagerPage)])
+        back = tk.Button(self, text="Back to main page",command=lambda:[controller.show_frame(WorkManagerPage)])
         back['font'] = myFont
         back.place(x=600,y=400)              
 
@@ -1467,7 +1475,7 @@ class DmLdPage(Frame):
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
-        Frame_Button1 = tk.Button(self.Frame, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1 = tk.Button(self.Frame, text="Back",command=lambda:controller.show_frame(WorkManagerPage))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
         
@@ -1584,11 +1592,11 @@ class TcmPage(Frame):
         self.Tcm_label_note['font'] = myFont
         self.Tcm_label_note.place(x=10,y=350)
 
-        self.Tcm_Button = tk.Button(self.FrameTcm1, text="Back",bg='blue',fg='white',command=lambda:controller.show_frame(WorkManagerPage))
+        self.Tcm_Button = tk.Button(self.FrameTcm1, text="Back",command=lambda:controller.show_frame(WorkManagerPage))
         self.Tcm_Button['font'] = myFont
         self.Tcm_Button.place(x=10,y=380)
 
-        self.Tcm_TDInput_button = Button(self.FrameTcm1,text="Save Input",bg='blue',fg='white')
+        self.Tcm_TDInput_button = Button(self.FrameTcm1,text="Save Input")
         self.Tcm_TDInput_button['font'] = myFont
         self.Tcm_TDInput_button.place(x=340,y=380)
 
@@ -1612,6 +1620,10 @@ class TcmPage(Frame):
         self.TextBox_freqs['font'] = myFont
         self.TextBox_freqs.place(x=10,y=110)
         
+        #self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV/a.u) ",bg="gray",fg="black")
+        #self.Label_freqs['font'] = myFont
+        #self.Label_freqs.place(x=10,y=60)
+
         explanation = """Please type in the frequencies (in eV/a.u.) at which Fourier transform of density matrix is sought. For a list provide numbers separated by commas. For a range provide the details as <min value>-<max value>-<step size>"""
         
         #self.Label_expl = tk.Label(self.FrameTcm2, justify=tk., text=explanation).pack(side="left")
@@ -1623,15 +1635,15 @@ class TcmPage(Frame):
         #self.Tcm_label_note['font'] = myFont
         #self.Tcm_label_note.place(x=10,y=300)
 
-        self.buttonRetrieve = Button(self.FrameTcm2, text="Retrieve Freq",bg='blue',fg='white',command=lambda: retrieve_input())
+        self.buttonRetrieve = Button(self.FrameTcm2, text="Retrieve Freq",command=lambda: retrieve_input())
         self.buttonRetrieve['font'] = myFont
         self.buttonRetrieve.place(x=10,y=380)
 
-        self.buttonInputFdm = Button(self.FrameTcm2,text="View Input",bg='blue',fg='white', command=lambda:controller.show_frame(TextViewerPage))
+        self.buttonInputFdm = Button(self.FrameTcm2,text="View Input", command=lambda:controller.show_frame(TextViewerPage))
         self.buttonInputFdm['font'] = myFont
         self.buttonInputFdm.place(x=200,y=380)
         
-        FrameTcm2_Button1 = tk.Button(self.FrameTcm2, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
+        FrameTcm2_Button1 = tk.Button(self.FrameTcm2, text="Run Job",command=lambda:controller.show_frame(JobSubPage))
         FrameTcm2_Button1['font'] = myFont
         FrameTcm2_Button1.place(x=360,y=380)
         
@@ -1698,7 +1710,7 @@ class TextViewerPage(Frame):
         text_scroll.config(command= my_Text.yview)
     
          
-        view = tk.Button(self, text="View Text",bg='blue',fg='white',command=lambda:[self.open_txt(my_Text)])
+        view = tk.Button(self, text="View",bg='blue',fg='white',command=lambda:[self.open_txt(my_Text)])
         view['font'] = myFont
         view.place(x=150,y=380)
 
