@@ -15,7 +15,7 @@ class CLIError(Exception):
     the error() method of the argument parser."""
 
 commands = [
-    ('run', 'litesoph.cli.run'),
+    #('run', 'litesoph.cli.run'),
     ('gui', 'litesoph.GUI.guicli'),
     ('preproc', 'litesoph.Pre_Processing.preproc_cli'),
     ('postproc', 'litesoph.Post_Processing.postproc_cli')
