@@ -31,7 +31,7 @@ def create_folder(path, dir_name):
         newpath.mkdir(parents=True, exist_ok=False)
         return newpath
     except FileExistsError:
-        print("Folder already exists.")
+        #print("Folder already exists.")
         return newpath
 
 
