@@ -276,17 +276,19 @@ class WorkManagerPage(Frame):
 
         self.entry_path = Entry(self.Frame1,textvariable="proj_path")
         self.entry_path['font'] = myFont
+        self.entry_path.delete(0, END)
         self.entry_path.insert(0,str(self.controller.directory))
-        self.entry_path.place(x=200,y=10)
+        self.entry_path.place(x=200,y=10)     
 
         self.label_proj = Label(self.Frame1,text="Project Name",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=70)
-
+        
         self.entry_proj = Entry(self.Frame1,textvariable="proj_name")
         self.entry_proj['font'] = myFont
         #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
+        self.entry_proj.delete(0, END)
                 
         self.button_project = Button(self.Frame1,text="Create New Project",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
         self.button_project['font'] = myFont
