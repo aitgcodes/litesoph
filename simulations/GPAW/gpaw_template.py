@@ -195,7 +195,7 @@ def write_laser(laser_input:dict, filename, directory):
 
     filename = filename + ".dat"
     filename = pathlib.Path(directory) / filename
-    pulse = GaussianPulse(laser_input['strength'], laser_input['time0'], laser_input['frequency'], laser_input['sigma'], laser_input['sincos'])
+    pulse = GaussianPulse(float(laser_input['strength']), float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])
     pulse.write(filename, np.arange(laser_input['range']))
 
 class LrTddft:
