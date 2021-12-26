@@ -93,15 +93,15 @@ class AITG(Tk):
         self.status = Status(self.directory)
         
     
-    def show_frame(self, frame, prev = None, next = None):
+    def show_frame(self, frame, prev = None, next = None, **kwargs):
         
         if isinstance(frame, Frame):
             frame.destroy()
-            frame = frame(self.window, self, prev, next)
+            frame = frame(self.window, self, prev, next, **kwargs)
             frame.grid(row=0, column=1, sticky ="nsew")
             frame.tkraise()
         else:
-            frame = frame(self.window, self, prev, next)
+            frame = frame(self.window, self, prev, next, **kwargs)
             frame.grid(row=0, column=1, sticky ="nsew")
             frame.tkraise()
 
@@ -156,6 +156,8 @@ class AITG(Tk):
             rt.default_input.update(gui_dict)
             dict_input = rt.default_input
             RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),str(self.directory)+"/"+str(dir))
+
+        return dict_input['directory'] + "/" + filename + ".py"
             
     def createspec(self, dipolefile, specfile):
         spec = spectrum()
@@ -633,7 +635,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=250,y=310)
         self.entry_pol_x['state'] = 'readonly'
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('gs',"GS",'gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, GroundStatePage, None, defaultfile=controller.gui_inp('gs',"GS",'gs',gs_inp2dict()))])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
@@ -1017,7 +1019,8 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        # Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, TimeDependentPage, None, defaultfile=controller.gui_inp('td',"Spectrum",'td', td_inp2dict())),self.controller.status.update_status('td_inp', 1)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -1205,7 +1208,7 @@ class LaserDesignPage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=10,y=350)
  
-        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td',"Pulse",'td_pulse', self.td),self.controller.status.update_status('td_inp', 2), controller.show_frame(TextViewerPage, LaserDesignPage, None)])
+        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(), controller.show_frame(TextViewerPage, LaserDesignPage, None, defaultfile=controller.gui_inp('td',"Pulse",'td_pulse', self.td)),self.controller.status.update_status('td_inp', 2)])
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=170,y=380)
         
@@ -1752,7 +1755,7 @@ class TcmPage(Frame):
   
 class TextViewerPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
+    def __init__(self, parent, controller,prev, next, defaultfile=None):
         Frame.__init__(self, parent)
         self.controller = controller
         self.prev = prev
@@ -1787,14 +1790,16 @@ class TextViewerPage(Frame):
         my_Text = Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
         my_Text['font'] = myFont
         my_Text.place(x=15,y=60)
-
+        if defaultfile is not None:
+            self.inserttextfromfile(defaultfile, my_Text)
+            self.current_file = defaultfile
         
         text_scroll.config(command= my_Text.yview)
     
          
-        view = tk.Button(self, text="View",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
-        view['font'] = myFont
-        view.place(x=150,y=380)
+        #view = tk.Button(self, text="View",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+        #view['font'] = myFont
+        #view.place(x=150,y=380)
 
         save = tk.Button(self, text="Save",activebackground="#78d6ff",command=lambda:[self.save_txt(my_Text)])
         save['font'] = myFont
@@ -1802,25 +1807,28 @@ class TextViewerPage(Frame):
 
         back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[controller.show_frame(self.prev, WorkManagerPage, JobSubPage)])
         back['font'] = myFont
-        back.place(x=15,y=380)
+        back.place(x=30,y=380)
 
         # jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
         # jobsub['font'] = myFont
         # jobsub.place(x=800,y=380)
 
-    def open_txt(self,my_Text):
-        text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
-        self.current_file = text_file_name
-        text_file = open(text_file_name, 'r')
+    #def open_txt(self,my_Text):
+        #text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
+        #self.current_file = text_file_name
+        #self.inserttextfromfile(text_file_name, my_Text)
+    
+   
+    def inserttextfromfile(self, filename, my_Text):
+        text_file = open(filename, 'r')
         stuff = text_file.read()
         my_Text.insert(END,stuff)
         text_file.close()
-    
-    def save_txt(self,my_Text):
+ 
+    def save_txt(self, my_Text):
         text_file = self.current_file
         text_file = open(text_file,'w')
         text_file.write(my_Text.get(1.0, END))
-        
 
 
 #--------------------------------------------------------------------------------        
