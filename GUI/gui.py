@@ -93,15 +93,15 @@ class AITG(Tk):
         self.status = Status(self.directory)
         
     
-    def show_frame(self, frame, prev = None, next = None):
+    def show_frame(self, frame, prev = None, next = None, **kwargs):
         
         if isinstance(frame, Frame):
             frame.destroy()
-            frame = frame(self.window, self, prev, next)
+            frame = frame(self.window, self, prev, next, **kwargs)
             frame.grid(row=0, column=1, sticky ="nsew")
             frame.tkraise()
         else:
-            frame = frame(self.window, self, prev, next)
+            frame = frame(self.window, self, prev, next, **kwargs)
             frame.grid(row=0, column=1, sticky ="nsew")
             frame.tkraise()
 
@@ -156,6 +156,8 @@ class AITG(Tk):
             rt.default_input.update(gui_dict)
             dict_input = rt.default_input
             RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),str(self.directory)+"/"+str(dir))
+
+        return dict_input['directory'] + "/" + filename + ".py"
             
     def createspec(self, dipolefile, specfile):
         spec = spectrum()
@@ -367,6 +369,7 @@ class WorkManagerPage(Frame):
         task['font'] = myFont
         task.place(x=200,y=70)
         task.bind("<<ComboboxSelected>>", pick_task)
+        task['state'] = 'readonly'
 
         self.Frame2_label_3 = Label(self.Frame2, text="Sub Task",bg='gray',fg='black')
         self.Frame2_label_3['font'] = myFont
@@ -376,7 +379,8 @@ class WorkManagerPage(Frame):
         sub_task['font'] = myFont
         sub_task.current(0)
         sub_task.place(x=200,y=130)
-                       
+        sub_task['state'] = 'readonly'   
+           
         Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",activebackground="#78d6ff",command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=360)
@@ -505,6 +509,7 @@ class GroundStatePage(Frame):
         task['font'] = myFont
         task.place(x=250,y=60)
         task.bind("<<ComboboxSelected>>", pick_task)
+        task['state'] = 'readonly'
 
         self.Frame2_label_3 = Label(self.Frame1, text="Basis",bg='gray',fg='black')
         self.Frame2_label_3['font'] = myFont
@@ -514,6 +519,7 @@ class GroundStatePage(Frame):
         sub_task.current(0)
         sub_task['font'] = myFont
         sub_task.place(x=250,y=110)
+        sub_task['state'] = 'readonly'
 
         self.label = Label(self.Frame1, text="Exchange Correlation", bg= "grey",fg="black")
         self.label['font'] = myFont
@@ -525,6 +531,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=160)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.label_pol_y = Label(self.Frame1, text="Spacing (in Angstrom)", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
@@ -589,7 +596,8 @@ class GroundStatePage(Frame):
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=110)
-
+        self.entry_pol_x['state'] = 'readonly'
+ 
         self.Frame2_note = Label(self.Frame2,text="Multiplicity",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
@@ -625,8 +633,9 @@ class GroundStatePage(Frame):
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=310)
+        self.entry_pol_x['state'] = 'readonly'
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('gs',"GS",'gs',gs_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, GroundStatePage, None, defaultfile=controller.gui_inp('gs',"GS",'gs',gs_inp2dict()))])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
@@ -728,6 +737,7 @@ class GeomOptPage(Frame):
         task['font'] = myFont
         task.place(x=250,y=60)
         task.bind("<<ComboboxSelected>>", pick_task)
+        task['state'] = 'readonly'
 
         self.Frame2_label_3 = Label(self.Frame1, text="Basis",bg='gray',fg='black')
         self.Frame2_label_3['font'] = myFont
@@ -737,6 +747,7 @@ class GeomOptPage(Frame):
         sub_task.current(0)
         sub_task['font'] = myFont
         sub_task.place(x=250,y=110)
+        sub_task['state'] = 'readonly'
 
         self.label = Label(self.Frame1, text="Exchange Correlation", bg= "grey",fg="black")
         self.label['font'] = myFont
@@ -748,6 +759,7 @@ class GeomOptPage(Frame):
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=160)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.label_pol_y = Label(self.Frame1, text="Force Convergence (in eV/Angstrom)", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
@@ -813,6 +825,7 @@ class GeomOptPage(Frame):
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=110)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.Frame2_note = Label(self.Frame2,text="smearing width",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -849,6 +862,7 @@ class GeomOptPage(Frame):
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=250,y=260)
+        self.entry_pol_x['state'] = 'readonly'
 
         #self.entry_proj = Entry(self.Frame2,textvariable= fmax)
         #self.entry_proj['font'] = myFont
@@ -930,6 +944,7 @@ class TimeDependentPage(Frame):
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"1e-5")
         self.entry_proj.place(x=250,y=60)
+        self.entry_proj['state'] = 'readonly'
 
         self.label_pol_x = Label(self.Frame1, text="Electric Polarisation in x axis", bg= "grey",fg="black")
         self.label_pol_x['font'] = myFont
@@ -940,6 +955,7 @@ class TimeDependentPage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"0")
         self.entry_pol_x.place(x=250,y=110)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.label_pol_y = Label(self.Frame1, text="Electric Polarisation in y axis", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
@@ -949,6 +965,7 @@ class TimeDependentPage(Frame):
         self.entry_pol_y['font'] = myFont
         self.entry_pol_y.insert(0,"0")
         self.entry_pol_y.place(x=250,y=160)
+        self.entry_pol_y['state'] = 'readonly'
 
         self.label_pol_z = Label(self.Frame1, text="Electric Polarisation in z axis", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
@@ -958,6 +975,7 @@ class TimeDependentPage(Frame):
         self.entry_pol_z['font'] = myFont
         self.entry_pol_z.insert(0,"0")
         self.entry_pol_z.place(x=250,y=210)
+        self.entry_pol_z['state'] = 'readonly'
 
         self.label_proj = Label(self.Frame1,text="Propagation time step (in attosecond)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
@@ -1001,7 +1019,8 @@ class TimeDependentPage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=10)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        # Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, TimeDependentPage, None, defaultfile=controller.gui_inp('td',"Spectrum",'td', td_inp2dict())),self.controller.status.update_status('td_inp', 1)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
@@ -1081,6 +1100,7 @@ class LaserDesignPage(Frame):
         self.entry_pol_z['font'] = myFont
         self.entry_pol_z.insert(0,"1e-8")
         self.entry_pol_z.place(x=250,y=100)
+        self.entry_pol_z['state'] = 'readonly'
 
         self.label_proj = Label(self.Frame1,text="Laser Strength in a.u",bg="gray",fg="black")
         self.label_proj['font'] = myFont
@@ -1091,6 +1111,7 @@ class LaserDesignPage(Frame):
         self.entry_proj['font'] = myFont
         self.entry_proj.current(0)
         self.entry_proj.place(x=250,y=140)
+        self.entry_proj['state'] = 'readonly'
 
         self.label_proj = Label(self.Frame1,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
@@ -1157,6 +1178,7 @@ class LaserDesignPage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"0")
         self.entry_pol_x.place(x=250,y=60)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.label_pol_y = Label(self.Frame2, text="Electric Polarisation in y axis", bg= "grey",fg="black")
         self.label_pol_y['font'] = myFont
@@ -1166,6 +1188,7 @@ class LaserDesignPage(Frame):
         self.entry_pol_y['font'] = myFont
         self.entry_pol_y.insert(0,"0")
         self.entry_pol_y.place(x=250,y=110)
+        self.entry_pol_y['state'] = 'readonly'
 
         self.label_pol_z = Label(self.Frame2, text="Electric Polarisation in z axis", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
@@ -1175,6 +1198,7 @@ class LaserDesignPage(Frame):
         self.entry_pol_z['font'] = myFont
         self.entry_pol_z.insert(0,"0")
         self.entry_pol_z.place(x=250,y=160) 
+        self.entry_pol_z['state'] = 'readonly'
 
         self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td',"Pulse",'td_pulse', self.td),controller.status.update_status('td_inp', 2), show_message(self.label_msg, "Saved")])
         self.Frame2_Button1['font'] = myFont
@@ -1182,9 +1206,9 @@ class LaserDesignPage(Frame):
 
         self.label_msg = Label(self.Frame2,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.place(x=10,y=320)
+        self.label_msg.place(x=10,y=350)
  
-        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td',"Pulse",'td_pulse', self.td),self.controller.status.update_status('td_inp', 2), controller.show_frame(TextViewerPage, LaserDesignPage, None)])
+        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(), controller.show_frame(TextViewerPage, LaserDesignPage, None, defaultfile=controller.gui_inp('td',"Pulse",'td_pulse', self.td)),self.controller.status.update_status('td_inp', 2)])
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=170,y=380)
         
@@ -1332,6 +1356,7 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"x")
         self.entry_pol_x.place(x=250,y=110)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),plot_spectra(self.returnaxis(),str(controller.directory)+'/Spectrum/spec.dat',str(controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
         self.Frame2_Button_1['font'] = myFont
@@ -1399,7 +1424,7 @@ class JobSubPage(Frame):
 
         back = tk.Button(self, text="Back to main page",activebackground="#78d6ff",command=lambda:[controller.show_frame(WorkManagerPage)])
         back['font'] = myFont
-        back.place(x=600,y=400)              
+        back.place(x=600,y=380)              
 
     def submitjob_local(self, processors):
         job = self.checkjob()
@@ -1506,11 +1531,12 @@ class DmLdPage(Frame):
         self.label_pol['font'] = myFont
         self.label_pol.place(x=10,y=60)
 
-        plot_list = ["Dipole Moment","Laser Pulse"]
+        plot_list = ["Dipole Moment"]
         self.entry_pol_x = ttk.Combobox(self.Frame,textvariable=self.plot_task, value = plot_list)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"Dipole Moment")
         self.entry_pol_x.place(x=250,y=60)
+        self.entry_pol_x['state'] = 'readonly'
 
         #self.label_pol = Label(self.Frame, text= "Axis of Electric polarization:",fg="black")
         #self.label_pol['font'] = myFont
@@ -1525,6 +1551,7 @@ class DmLdPage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"x component")
         self.entry_pol_x.place(x=250,y=110)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff", command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Pulse/dmpulse.dat',str(self.controller.directory)+'/Pulse/dmpulse.png',"Time (fs)","Dipole moment (au)", au_to_fs)])
         self.Frame2_Button_1['font'] = myFont
@@ -1595,6 +1622,7 @@ class TcmPage(Frame):
         self.Tcm_entry_strength['font'] = myFont
         self.Tcm_entry_strength.insert(0,"1e-5")
         self.Tcm_entry_strength.place(x=250,y=60)
+        self.Tcm_entry_strength['state'] = 'readonly'
 
         self.Tcm_label_pol_x = Label(self.FrameTcm1, text="Electric Polarisation in x axis", bg= "grey",fg="black")
         self.Tcm_label_pol_x['font'] = myFont
@@ -1605,6 +1633,7 @@ class TcmPage(Frame):
         self.Tcm_entry_pol_x['font'] = myFont
         self.Tcm_entry_pol_x.insert(0,"0")
         self.Tcm_entry_pol_x.place(x=250,y=110)
+        self.Tcm_entry_pol_x['state'] = 'readonly'
 
         self.Tcm_label_pol_y = Label(self.FrameTcm1, text="Electric Polarisation in y axis", bg= "grey",fg="black")
         self.Tcm_label_pol_y['font'] = myFont
@@ -1614,6 +1643,7 @@ class TcmPage(Frame):
         self.Tcm_entry_pol_y['font'] = myFont
         self.Tcm_entry_pol_y.insert(0,"0")
         self.Tcm_entry_pol_y.place(x=250,y=160)
+        self.Tcm_entry_pol_y['state'] = 'readonly'
 
         self.Tcm_label_pol_z = Label(self.FrameTcm1, text="Electric Polarisation in z axis", bg= "grey",fg="black")
         self.Tcm_label_pol_z['font'] = myFont
@@ -1623,6 +1653,7 @@ class TcmPage(Frame):
         self.Tcm_entry_pol_z['font'] = myFont
         self.Tcm_entry_pol_z.insert(0,"1")
         self.Tcm_entry_pol_z.place(x=250,y=210)
+        self.Tcm_entry_pol_z['state'] = 'readonly'
 
         self.Tcm_label_ts = Label(self.FrameTcm1,text="Time step (attosecond)",bg="gray",fg="black")
         self.Tcm_label_ts['font'] = myFont
@@ -1724,7 +1755,7 @@ class TcmPage(Frame):
   
 class TextViewerPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
+    def __init__(self, parent, controller,prev, next, defaultfile=None):
         Frame.__init__(self, parent)
         self.controller = controller
         self.prev = prev
@@ -1759,14 +1790,16 @@ class TextViewerPage(Frame):
         my_Text = Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
         my_Text['font'] = myFont
         my_Text.place(x=15,y=60)
-
+        if defaultfile is not None:
+            self.inserttextfromfile(defaultfile, my_Text)
+            self.current_file = defaultfile
         
         text_scroll.config(command= my_Text.yview)
     
          
-        view = tk.Button(self, text="View",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
-        view['font'] = myFont
-        view.place(x=150,y=380)
+        #view = tk.Button(self, text="View",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+        #view['font'] = myFont
+        #view.place(x=150,y=380)
 
         save = tk.Button(self, text="Save",activebackground="#78d6ff",command=lambda:[self.save_txt(my_Text)])
         save['font'] = myFont
@@ -1774,25 +1807,28 @@ class TextViewerPage(Frame):
 
         back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[controller.show_frame(self.prev, WorkManagerPage, JobSubPage)])
         back['font'] = myFont
-        back.place(x=15,y=380)
+        back.place(x=30,y=380)
 
         # jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
         # jobsub['font'] = myFont
         # jobsub.place(x=800,y=380)
 
-    def open_txt(self,my_Text):
-        text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
-        self.current_file = text_file_name
-        text_file = open(text_file_name, 'r')
+    #def open_txt(self,my_Text):
+        #text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
+        #self.current_file = text_file_name
+        #self.inserttextfromfile(text_file_name, my_Text)
+    
+   
+    def inserttextfromfile(self, filename, my_Text):
+        text_file = open(filename, 'r')
         stuff = text_file.read()
         my_Text.insert(END,stuff)
         text_file.close()
-    
-    def save_txt(self,my_Text):
+ 
+    def save_txt(self, my_Text):
         text_file = self.current_file
         text_file = open(text_file,'w')
         text_file.write(my_Text.get(1.0, END))
-        
 
 
 #--------------------------------------------------------------------------------        
