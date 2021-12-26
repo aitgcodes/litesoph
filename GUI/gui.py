@@ -82,8 +82,10 @@ class AITG(Tk):
         self.window.grid(row=0, column=1)
         
         self.window.grid_rowconfigure(700,weight=700)
-        self.window.grid_columnconfigure(800,weight=400)        
-        
+        self.window.grid_columnconfigure(800,weight=400)  
+
+        self.frames = {}
+
         self.show_frame(StartPage)
         self.status_init(self.directory)
         
@@ -93,17 +95,16 @@ class AITG(Tk):
         self.status = Status(self.directory)
         
     
-    def show_frame(self, frame, prev = None, next = None, **kwargs):
+    def show_frame(self, frame, prev = None, next = None,refresh=True, **kwargs):
         
-        if isinstance(frame, Frame):
-            frame.destroy()
-            frame = frame(self.window, self, prev, next, **kwargs)
-            frame.grid(row=0, column=1, sticky ="nsew")
+        if frame in self.frames.keys() and refresh is False:
+            frame = self.frames[frame]
             frame.tkraise()
         else:
-            frame = frame(self.window, self, prev, next, **kwargs)
-            frame.grid(row=0, column=1, sticky ="nsew")
-            frame.tkraise()
+            int_frame = frame(self.window, self, prev, next, **kwargs)
+            self.frames[frame]= int_frame
+            int_frame.grid(row=0, column=1, sticky ="nsew")
+            int_frame.tkraise()
 
     def refresh_nav(self, path):
 
@@ -1215,7 +1216,10 @@ class LaserDesignPage(Frame):
         self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, LaserDesignPage, None))
         self.Frame2_Button3['font'] = myFont
         self.Frame2_Button3.place(x=350,y=380)
+        self.Frame3 = None
+        self.button_refresh()
 
+    def create_frame3(self):
         self.Frame3 = tk.Frame(self)
         self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
@@ -1223,8 +1227,6 @@ class LaserDesignPage(Frame):
         self.Frame3.configure(borderwidth="2")
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
-
-        self.button_refresh() 
     
     def laser_design(self):
         write_laser(self.laser_pulse(), 'pulse', str(user_path)+"/Pulse")
@@ -1239,6 +1241,11 @@ class LaserDesignPage(Frame):
         figure = Figure(figsize=(5, 3), dpi=100)
         data_ej = np.loadtxt(filename) 
         #plt.figure(figsize=(5, 3), dpi=100)
+
+        if self.Frame3 is not None:
+            self.Frame3.destroy()
+            
+        self.create_frame3()
         self.ax = figure.add_subplot(1, 1, 1)
         self.ax.plot(data_ej[:, 0]*au_to_fs, data_ej[:, axis], 'k')
         self.ax.spines['right'].set_visible(False)
@@ -1805,7 +1812,7 @@ class TextViewerPage(Frame):
         save['font'] = myFont
         save.place(x=320, y=380)
 
-        back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[controller.show_frame(self.prev, WorkManagerPage, JobSubPage)])
+        back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[controller.show_frame(self.prev, WorkManagerPage, JobSubPage, refresh=False)])
         back['font'] = myFont
         back.place(x=30,y=380)
 
