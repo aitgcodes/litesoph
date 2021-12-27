@@ -1658,7 +1658,7 @@ class TcmPage(Frame):
 
         self.Tcm_entry_pol_z = ttk.Combobox(self.FrameTcm1, value = pol_list)
         self.Tcm_entry_pol_z['font'] = myFont
-        self.Tcm_entry_pol_z.insert(0,"1")
+        self.Tcm_entry_pol_z.insert(0,"0")
         self.Tcm_entry_pol_z.place(x=280,y=210)
         self.Tcm_entry_pol_z['state'] = 'readonly'
 
@@ -1704,28 +1704,32 @@ class TcmPage(Frame):
         self.FrameTcm2_label_path['font'] = myFont
         self.FrameTcm2_label_path.place(x=150,y=10)
 
-        self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV/a.u) ",bg="gray",fg="black")
+        self.Label_freqs = Label(self.FrameTcm2,text="List the Frequencies (in eV/a.u) at which density matrix is sought",bg="gray",fg="black")
         self.Label_freqs['font'] = myFont
         self.Label_freqs.place(x=10,y=60)
 
-        self.TextBox_freqs = Text(self.FrameTcm2, height=10, width=65)
+        self.TextBox_freqs = Text(self.FrameTcm2, height=6, width=65)
         self.TextBox_freqs['font'] = myFont
         self.TextBox_freqs.place(x=10,y=110)
         
-        #self.Label_freqs = Label(self.FrameTcm2,text="Frequencies (in eV/a.u) ",bg="gray",fg="black")
-        #self.Label_freqs['font'] = myFont
-        #self.Label_freqs.place(x=10,y=60)
-
-        explanation = """Please type in the frequencies (in eV/a.u.) at which Fourier transform of density matrix is sought. For a list provide numbers separated by commas. For a range provide the details as <min value>-<max value>-<step size>"""
-        
-        #self.Label_expl = tk.Label(self.FrameTcm2, justify=tk., text=explanation).pack(side="left")
-        #self.Label_expl = Label(self.FrameTcm2, justify=tk.LEFT, padx = 25, text= explanation, bg="gray",fg="black").pack(side="left")
-        #self.Label_expl['font'] = myFont
-        #self.Label_expl.place(x=10,y=60)
-
-        #self.Tcm_label_note = Label(self.FrameTcm2,text="Please type in the frequencies (in eV/a.u.) at which Fourier transform of density matrix is sought. For a list provide numbers separated by commas. For a range provide the details as <min value>-<max value>-<step size>",bg="gray",fg="black")
-        #self.Tcm_label_note['font'] = myFont
-        #self.Tcm_label_note.place(x=10,y=300)
+        self.Label_freqs = Label(self.FrameTcm2,text="Or provide a range as <min value>-<max value>-<step size> respectively",bg="gray",fg="black")
+        self.Label_freqs['font'] = myFont
+        self.Label_freqs.place(x=10,y=210)
+ 
+        self.Tcm_entry_ns = Entry(self.FrameTcm2)
+        self.Tcm_entry_ns['font'] = myFont
+        self.Tcm_entry_ns.insert(INSERT,"min value")
+        self.Tcm_entry_ns.place(x=10,y=260)
+       
+        self.Tcm_entry_ns = Entry(self.FrameTcm2)
+        self.Tcm_entry_ns['font'] = myFont
+        self.Tcm_entry_ns.insert(INSERT,"max value")
+        self.Tcm_entry_ns.place(x=200,y=260)
+      
+        self.Tcm_entry_ns = Entry(self.FrameTcm2, width= 8)
+        self.Tcm_entry_ns['font'] = myFont
+        self.Tcm_entry_ns.insert(INSERT,"step size")
+        self.Tcm_entry_ns.place(x=390,y=260)
 
         self.buttonRetrieve = Button(self.FrameTcm2, text="Retrieve Freq",activebackground="#78d6ff",command=lambda: retrieve_input())
         self.buttonRetrieve['font'] = myFont
