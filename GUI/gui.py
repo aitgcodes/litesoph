@@ -1017,16 +1017,16 @@ class TimeDependentPage(Frame):
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
    
-        #self.Frame2_note = Label(self.Frame2,text="Optional Input Parameters",bg="gray",fg="black")
-        #self.Frame2_note['font'] = myFont
-        #self.Frame2_note.place(x=10,y=10)
+        self.Frame2_note = Label(self.Frame2,text="Note: Please select wavefunction for TCM calculation",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=70)
         
         # Tkinter string variable
         # able to store any string value
-        v = StringVar(self.Frame2, "1")
+        v = StringVar()
 
         # Dictionary to create multiple buttons
-        values = {"Dipole Moment" : "1","Wavefunction" : "2",}
+        values = {"Dipole Moment" :"1","Wavefunction": "2"}
 
         # Loop is used to create multiple Radiobuttons
         # rather than creating each button separately
@@ -1050,6 +1050,7 @@ class TimeDependentPage(Frame):
             td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
             td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
+            #td_dict['analysis_tools'] = 
             inp_list = [float(dt.get()),float(Nt.get())]
             td_dict['propagate'] = tuple(inp_list)
             return td_dict
