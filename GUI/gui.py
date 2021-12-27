@@ -30,7 +30,7 @@ import matplotlib as mpl
 from litesoph.GUI.menubar import MainMenu
 from litesoph.simulations import esmd
 from litesoph.GUI import projpath
-from litesoph.GUI.spec_plot import plot_spectra
+from litesoph.GUI.spec_plot import plot_spectra, plot_files
 from litesoph.lsio.IO import UserInput as ui
 from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
@@ -1553,7 +1553,7 @@ class DmLdPage(Frame):
         self.label_pol['font'] = myFont
         self.label_pol.place(x=10,y=60)
 
-        plot_list = ["Dipole Moment"]
+        plot_list = ["Dipole Moment", "Dipole Moment and Laser"]
         self.entry_pol_x = ttk.Combobox(self.Frame,textvariable=self.plot_task, value = plot_list)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"Dipole Moment")
@@ -1568,14 +1568,14 @@ class DmLdPage(Frame):
         self.label_pol['font'] = myFont
         self.label_pol.place(x=10,y=110)
 
-        com_pol = ["x component","y component","z component","total magnitude"]
+        com_pol = ["x component","y component","z component"]
         self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.compo, value = com_pol)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"x component")
         self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff", command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Pulse/dmpulse.dat',str(self.controller.directory)+'/Pulse/dmpulse.png',"Time (fs)","Dipole moment (au)", au_to_fs)])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff", command=lambda:[self.plot_button()])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1590,9 +1590,15 @@ class DmLdPage(Frame):
             axis = 3
         if self.compo.get() == "z component":
             axis = 4
-        if self.compo.get() == "total magnitude":
-            axis = 1
         return axis
+
+    def plot_button(self):
+        from gpaw.tddft.units import au_to_fs
+        if self.plot_task.get() == "Dipole Moment":
+            plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Pulse/dmpulse.dat',str(self.controller.directory)+'/Pulse/dmpulse.png',"Time (fs)","Dipole moment (au)", au_to_fs)
+        if self.plot_task.get() == "Dipole Moment and Laser":
+            plot_files(str(self.controller.directory)+'/Pulse/pulse.dat',str(self.controller.directory)+'/Pulse/dmpulse.dat',1, self.returnaxis())
+   
 
 def spectrum_show(directory,filename, suffix, axis, x, y):
         imgfile = "spec_{}_{}.png".format(suffix, axis)
