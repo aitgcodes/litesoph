@@ -1629,46 +1629,50 @@ class TcmPage(Frame):
 
         self.FrameTcm2_label_path = Label(self.Frame,text="Frequency space density matrix",fg="blue")
         self.FrameTcm2_label_path['font'] = myFont
-        self.FrameTcm2_label_path.place(x=150,y=10)
+        self.FrameTcm2_label_path.place(x=10,y=50)
 
-        self.Label_freqs = Label(self.Frame,text="List the Frequencies (in eV/a.u) at which density matrix is sought",bg="gray",fg="black")
+        self.Label_freqs = Label(self.Frame,text="List the Frequencies (in eV/a.u) at which Fourier transform of density matrix is sought",bg="gray",fg="black")
         self.Label_freqs['font'] = myFont
-        self.Label_freqs.place(x=10,y=60)
+        self.Label_freqs.place(x=10,y=80)
 
-        self.TextBox_freqs = Text(self.Frame, height=6, width=65)
+        self.TextBox_freqs = Text(self.Frame, height=4, width=65)
         self.TextBox_freqs['font'] = myFont
         self.TextBox_freqs.place(x=10,y=110)
         
         self.Label_freqs = Label(self.Frame,text="Or provide a range as <min value>-<max value>-<step size> respectively",bg="gray",fg="black")
         self.Label_freqs['font'] = myFont
-        self.Label_freqs.place(x=10,y=210)
+        self.Label_freqs.place(x=10,y=195)
  
         self.Tcm_entry_ns = Entry(self.Frame)
         self.Tcm_entry_ns['font'] = myFont
         self.Tcm_entry_ns.insert(INSERT,"min value")
-        self.Tcm_entry_ns.place(x=10,y=260)
+        self.Tcm_entry_ns.place(x=10,y=230)
        
         self.Tcm_entry_ns = Entry(self.Frame)
         self.Tcm_entry_ns['font'] = myFont
         self.Tcm_entry_ns.insert(INSERT,"max value")
-        self.Tcm_entry_ns.place(x=200,y=260)
+        self.Tcm_entry_ns.place(x=200,y=230)
       
-        self.Tcm_entry_ns = Entry(self.Frame, width= 8)
+        self.Tcm_entry_ns = Entry(self.Frame, width= 10)
         self.Tcm_entry_ns['font'] = myFont
         self.Tcm_entry_ns.insert(INSERT,"step size")
-        self.Tcm_entry_ns.place(x=390,y=260)
+        self.Tcm_entry_ns.place(x=390,y=230)
+
+        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1['font'] = myFont
+        Frame_Button1.place(x=10,y=380)
 
         self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda: retrieve_input())
         self.buttonRetrieve['font'] = myFont
-        self.buttonRetrieve.place(x=10,y=380)
+        self.buttonRetrieve.place(x=180,y=380)
 
         self.buttonInputFdm = Button(self.Frame,text="View Input",activebackground="#78d6ff",command=lambda:controller.show_frame(TextViewerPage))
         self.buttonInputFdm['font'] = myFont
-        self.buttonInputFdm.place(x=200,y=380)
+        self.buttonInputFdm.place(x=390,y=380)
         
         FrameTcm2_Button1 = tk.Button(self.Frame, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage))
         FrameTcm2_Button1['font'] = myFont
-        FrameTcm2_Button1.place(x=350,y=380)
+        FrameTcm2_Button1.place(x=580,y=380)
         
 
         def retrieve_input():
