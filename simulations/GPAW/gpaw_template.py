@@ -63,7 +63,7 @@ calc.write('{directory}/gs.gpw', mode='all')
     def check(self, user_param)-> bool:
         """checks whether user given input parameters is compatable with with gpaw ground state calculation"""
 
-        if user_param['mode'] not in ['fd', 'lcao', 'paw'] and  user_param['engine'] == 'gpaw':
+        if user_param['mode'] not in ['fd', 'lcao', 'pw'] and  user_param['engine'] == 'gpaw':
             raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
         
         if user_param['engine'] == 'gpaw':
@@ -98,6 +98,7 @@ class RtLcaoTddft:
                 'laser':None,
                 'electric_pol': None,
                 'dipole_file':'dm.dat',
+                'wavefunction_file':'wf.ulm',
                 'analysis_tools': None,
                 'filename':'gs.gpw',
                 'propagator':None,
@@ -116,6 +117,7 @@ class RtLcaoTddft:
     delta_kick_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
 import numpy as np
+from gpaw.lcaotddft.wfwriter import WaveFunctionWriter
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 
 td_calc = LCAOTDDFT(filename='{filename}',txt='{txt}')
@@ -180,9 +182,18 @@ td_calc.write('{directory}/{td_out}', mode='all')
         pass
     
     def format_template(self):
+
         if self.laser is None:
             template = self.delta_kick_template.format(**self.user_input)
-            return template
+
+            if self.tools is None:
+                return template
+            elif self.tools == "wavefunction":
+                tlines = template.splitlines()
+                tlines[8] = "WaveFunctionWriter(td_cal, 'wf.ulm')"
+                template = """\n""".join(tlines)
+                return template
+
         elif self.laser is not None and self.td_potential == True:
            self.user_input.update(self.laser)
            template = self.external_field_template.format(**self.user_input)
@@ -197,6 +208,89 @@ def write_laser(laser_input:dict, filename, directory):
     filename = pathlib.Path(directory) / filename
     pulse = GaussianPulse(float(laser_input['strength']), float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])
     pulse.write(filename, np.arange(laser_input['range']))
+
+class Cal_TCM:
+
+    def __init__(self, gfilename, wfilename, frequencies:list, name:str) -> None:
+        self.gfilename = gfilename
+        self.wfilename = wfilename
+        self.frequencies = frequencies
+        self.name = name
+
+    def create_frequency_density_matrix(self):
+        #fdm_filename = fdm_filename + ".ulm"
+        from gpaw.lcaotddft import LCAOTDDFT
+        from gpaw.lcaotddft.densitymatrix import DensityMatrix
+        from gpaw.lcaotddft.frequencydensitymatrix import FrequencyDensityMatrix
+        from gpaw.tddft.folding import frequencies
+
+        td_calc = LCAOTDDFT(self.gfilename)
+
+        dmat = DensityMatrix(td_calc)
+        freqs = frequencies(self.frequencies, 'Gauss', 0.1)
+        fdm = FrequencyDensityMatrix(td_calc, dmat, frequencies=freqs)
+
+        td_calc.replay(name=self.wfilename, update='none')
+
+        fdm.write('fdm.ulm')
+        return fdm
+        
+    def read_unocc(self):
+        from gpaw import GPAW
+        calc = GPAW(self.gfilename, txt=None)
+        return calc
+
+    def cal_unoccupied_states(self,calc):
+        calc = calc.fixed_density(nbands='nao', txt='unocc.out')
+        calc.write('unocc.gpw', mode='all')
+        return calc
+    
+    def create_ks_basis(self, calc):
+        from gpaw.lcaotddft.ksdecomposition import KohnShamDecomposition
+        ksd = KohnShamDecomposition(calc)
+        ksd.initialize(calc)
+        ksd.write('ksd.ulm')
+        return ksd
+
+    def plot_tcm(self, ksd, fdm,fnum, title):
+        import numpy as np
+        from matplotlib import pyplot as plt
+        from gpaw.tddft.units import au_to_eV
+        from gpaw.lcaotddft.tcm import TCMPlotter
+
+        rho_uMM = fdm.FReDrho_wuMM[fnum]
+        freq = fdm.freq_w[fnum]
+        frequency = freq.freq * au_to_eV
+
+        rho_up = ksd.transform(rho_uMM)
+
+        dmrho_vp = ksd.get_dipole_moment_contributions(rho_up)
+        weight_p = 2 * freq.freq / np.pi * dmrho_vp[0].imag / au_to_eV * 1e5
+
+        de = 0.01
+        energy_o = np.arange(-3, 0.1 + 1e-6, de)
+        energy_u = np.arange(-0.1, 3 + 1e-6, de)
+        plt.clf()
+        plotter = TCMPlotter(ksd, energy_o, energy_u, sigma=0.1)
+        plotter.plot_TCM(weight_p)
+        plotter.plot_DOS(fill={'color': '0.8'}, line={'color': 'k'})
+        plotter.plot_TCM_diagonal(freq.freq * au_to_eV, color='k')
+        plotter.set_title(f'Photoabsorption TCM of {title} at {frequency:.2f} eV')
+
+        # Check that TCM integrates to correct absorption
+        tcm_ou = ksd.get_TCM(weight_p, ksd.get_eig_n()[0],
+                            energy_o, energy_u, sigma=0.1)
+        print(f'TCM absorption: {np.sum(tcm_ou) * de ** 2:.2f} eV^-1')
+        plt.show()
+
+    def plot(self,fnum):
+        fdm = self.create_frequency_density_matrix()
+        calc = self.read_unocc()
+        calc = self.cal_unoccupied_states(calc)
+        ksd = self.create_ks_basis(calc)
+        self.plot_tcm(ksd,fdm,fnum, self.name)
+
+
 
 class LrTddft:
     """This class contains the template  for creating gpaw 
