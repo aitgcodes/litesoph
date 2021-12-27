@@ -3,6 +3,7 @@ from tkinter import ttk                  # importing ttk which is used for styli
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
 from tkinter import scrolledtext
+#from tkinter.ttk import *
 #from ttkthemes import ThemedTk
 import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
 import subprocess                        # importing subprocess to run command line jobs as in terminal.
@@ -1016,9 +1017,22 @@ class TimeDependentPage(Frame):
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
    
-        self.Frame2_note = Label(self.Frame2,text="Optional Input Parameters",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=10)
+        #self.Frame2_note = Label(self.Frame2,text="Optional Input Parameters",bg="gray",fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.place(x=10,y=10)
+        
+        # Tkinter string variable
+        # able to store any string value
+        v = StringVar(self.Frame2, "1")
+
+        # Dictionary to create multiple buttons
+        values = {"Dipole Moment" : "1","Wavefunction" : "2",}
+
+        # Loop is used to create multiple Radiobuttons
+        # rather than creating each button separately
+        for (text, value) in values.items():
+            Radiobutton(self.Frame2, text = text, variable = v,
+                value = value).pack(side = TOP, anchor=NW, ipady = 5)
  
         # Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
         Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, TimeDependentPage, None, defaultfile=controller.gui_inp('td',"Spectrum",'td', td_inp2dict())),self.controller.status.update_status('td_inp', 1)])
