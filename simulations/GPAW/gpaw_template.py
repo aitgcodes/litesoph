@@ -149,7 +149,7 @@ DipoleMomentWriter(td_calc, '{dipole_file}')
 # Propagate"
 td_calc.propagate{propagate}
 # Save the state for restarting later"
-td_calc.write('{directory}/{td_out}', mode='all')
+td_calc.write('{td_out}', mode='all')
     """
 
     def __init__(self, user_input) -> None:
