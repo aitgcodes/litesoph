@@ -186,7 +186,7 @@ td_calc.write('{td_out}', mode='all')
         if self.laser is None:
             template = self.delta_kick_template.format(**self.user_input)
 
-            if self.tools is None:
+            if self.tools == "dipolemoment":
                 return template
             elif self.tools == "wavefunction":
                 tlines = template.splitlines()
