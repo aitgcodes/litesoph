@@ -2,33 +2,18 @@ from tkinter import *                    # importing tkinter, a standart python 
 from tkinter import ttk                  # importing ttk which is used for styling widgets.
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
-from tkinter import scrolledtext
-#from tkinter.ttk import *
-#from ttkthemes import ThemedTk
+
 import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
 import subprocess                        # importing subprocess to run command line jobs as in terminal.
 from  PIL import Image,ImageTk
 import tkinter as tk
-import sys
-#import base64
+
 import os
 import pathlib 
-#import platform
-import webbrowser
-from tkinter.messagebox import showinfo
-from urllib.request import urlopen
-#import pandas as pd
-#from pandas import DataFrame
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-#import seaborn as sns
-#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 
 #---LITESOPH modules
 
 from litesoph.GUI.menubar import MainMenu
-from litesoph.simulations import esmd
 from litesoph.GUI import projpath
 from litesoph.GUI.spec_plot import plot_spectra, plot_files
 from litesoph.lsio.IO import UserInput as ui
@@ -36,30 +21,14 @@ from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
 from litesoph.GUI.filehandler import *
 from litesoph.GUI.navigation import Nav
-#from litesoph.GUI.navigation import TextViewerPage
-#from litesoph.GUI.laserframe import Laser
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.GPAW.spectrum import spectrum
-#from litesoph.lsio.IO import write22file
 from litesoph.GUI.filehandler import Status
 from litesoph.simulations.GPAW.gpaw_template import write_laser
 
 
 
 TITLE_FONT = ("Helvetica", 18, "bold")
-
-class VISUAL():
-
-     def __init__(self, tool="None", toolpath="/usr/local/bin"):
-       
-         self.vistool={}
-         if tool == "None":
-            self.vistool["name"]="None"
-            self.vistool["exists"]=False
-            self.vistool["params"]=""
-         else:
-            self.vistool["name"]=tool
-            self.vistool["exists"]=True
 
 class AITG(Tk):
 
@@ -88,7 +57,6 @@ class AITG(Tk):
 
         self.show_frame(StartPage)
     
-        
     
     def status_init(self):
         self.status = Status(self.directory)
@@ -1690,7 +1658,7 @@ class TcmPage(Frame):
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
 
-        self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda: retrieve_input())
+        self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:self.retrieve_input())
         self.buttonRetrieve['font'] = myFont
         self.buttonRetrieve.place(x=180,y=380)
 
@@ -1703,24 +1671,13 @@ class TcmPage(Frame):
         FrameTcm2_Button1.place(x=580,y=380)
         
 
-        def retrieve_input():
-            inputValues = self.TextBox_freqs.get("1.0", "end-1c")
-            freqs = inputValues.split()
+    def retrieve_input(self):
+        inputValues = self.TextBox_freqs.get("1.0", "end-1c")
+        freqs = inputValues.split()
 
-            freqs_lst = []
-            for freq in freqs[0:]:
-                freqs_lst.append(float(freq))
-
-            # print(freqs_lst)
-
-        def tcm_td_inp2dict():
-            td_dict = rt.default_input
-            td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
-            td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
-            td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
-            inp_list = [float(dt.get()),float(Nt.get())]
-            td_dict['propagate'] = tuple(inp_list)
-            return td_dict  
+        freqs_lst = []
+        for freq in freqs[0:]:
+            freqs_lst.append(float(freq))
 
   
 class TextViewerPage(Frame):
