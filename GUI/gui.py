@@ -38,7 +38,6 @@ from litesoph.GUI.filehandler import *
 from litesoph.GUI.navigation import Nav
 #from litesoph.GUI.navigation import TextViewerPage
 #from litesoph.GUI.laserframe import Laser
-from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.GPAW.spectrum import spectrum
 #from litesoph.lsio.IO import write22file
@@ -926,7 +925,7 @@ class TimeDependentPage(Frame):
         self.ez = StringVar()
         dt = StringVar()
         Nt = StringVar()    
-                
+        self.v = StringVar()        
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
@@ -1002,6 +1001,7 @@ class TimeDependentPage(Frame):
         Frame1_Button3.place(x=10,y=380)
 
         Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()), controller.status.update_status('td_inp', 1), show_message(self.label_msg, "Saved")])
+        #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[td_inp2dict()])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=300,y=380)
 
@@ -1020,21 +1020,16 @@ class TimeDependentPage(Frame):
         self.Frame2_note = Label(self.Frame2,text="Note: Please select wavefunction for TCM calculation",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=70)
-        
-        # Tkinter string variable
-        # able to store any string value
-        v = StringVar()
-
-        # Dictionary to create multiple buttons
+    
         values = {"Dipole Moment" :"1","Wavefunction": "2"}
-
+        self.v.set("1")
         # Loop is used to create multiple Radiobuttons
         # rather than creating each button separately
         for (text, value) in values.items():
-            Radiobutton(self.Frame2, text = text, variable = v,
+            Radiobutton(self.Frame2, text = text, variable = self.v,
                 value = value).pack(side = TOP, anchor=NW, ipady = 5)
  
-        # Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
         Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, TimeDependentPage, None, defaultfile=controller.gui_inp('td',"Spectrum",'td', td_inp2dict())),self.controller.status.update_status('td_inp', 1)])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
@@ -1050,10 +1045,16 @@ class TimeDependentPage(Frame):
             td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
             td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
             td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
-            #td_dict['analysis_tools'] = 
+            td_dict['analysis_tools'] = self.analysis_tool()
             inp_list = [float(dt.get()),float(Nt.get())]
             td_dict['propagate'] = tuple(inp_list)
             return td_dict
+
+    def analysis_tool(self): 
+        if self.v.get() == "1":
+            return("dipolemoment")
+        elif self.v.get() == "2":
+            return("wavefunction")
 
 class LaserDesignPage(Frame):
 
@@ -1173,7 +1174,7 @@ class LaserDesignPage(Frame):
         self.button_project.place(x=350,y=380)
 
         #self.button_project = Button(self.Frame1,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[write_laser(self.laser_pulse(), 'pulse', str(user_path)+"/Pulse"),plot_spectra(1,str(user_path)+"/"+'Pulse/pulse.dat','pulse.png','time(in au)','Laser strength(in au)')])
-        self.button_project = Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_design()])
+        self.button_project = Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
         self.button_project['font'] = myFont
         self.button_project.place(x=170,y=380)
 
@@ -1243,8 +1244,8 @@ class LaserDesignPage(Frame):
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
     
-    def laser_design(self):
-        write_laser(self.laser_pulse(), 'pulse', str(user_path)+"/Pulse")
+    def laser_button(self):
+        write_laser(self.laser_pulse(), 'pulse', str(self.controller.directory)+"/Pulse")
         self.plot_canvas(str(self.controller.directory)+"/Pulse/pulse.dat", 1, 'time(in fs)','Laser strength(in au)')
        
 
@@ -1299,7 +1300,7 @@ class LaserDesignPage(Frame):
             self.controller.show_frame(LaserDesignPage,WorkManagerPage,JobSubPage)
 
     def laser_pulse(self):
-        l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
+        l_dict = self.laser_calc()
         l_dict['frequency'] = self.freq.get()
         l_dict['time0'] ="{}e3".format(l_dict['time0'])
         range = int(self.ns.get())* float(self.ts.get())
@@ -1308,6 +1309,7 @@ class LaserDesignPage(Frame):
         return(l_dict)              
       
     def laser_calc(self):
+        from litesoph.Pre_Processing.laser_design import laser_design
         l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
         return(l_dict)
 
