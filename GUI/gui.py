@@ -87,11 +87,10 @@ class AITG(Tk):
         self.frames = {}
 
         self.show_frame(StartPage)
-        self.status_init(self.directory)
+    
         
     
-    def status_init(self, path):
-        self.directory = path
+    def status_init(self):
         self.status = Status(self.directory)
         
     
@@ -262,7 +261,9 @@ class WorkManagerPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
-        
+
+        self.proj_path = StringVar()
+        self.proj_name = StringVar()
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -280,23 +281,22 @@ class WorkManagerPage(Frame):
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.place(x=10,y=10)
 
-        self.entry_path = Entry(self.Frame1,textvariable="proj_path")
+        self.entry_path = Entry(self.Frame1,textvariable=self.proj_path)
         self.entry_path['font'] = myFont
         self.entry_path.delete(0, END)
-        self.entry_path.insert(0,str(self.controller.directory))
+        self.proj_path.set(self.controller.directory)
         self.entry_path.place(x=200,y=10)     
 
         self.label_proj = Label(self.Frame1,text="Project Name",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=70)
         
-        self.entry_proj = Entry(self.Frame1,textvariable="proj_name")
+        self.entry_proj = Entry(self.Frame1,textvariable=self.proj_name)
         self.entry_proj['font'] = myFont
-        #self.entry_proj.insert(0,"graphene")
         self.entry_proj.place(x=200,y=70)
         self.entry_proj.delete(0, END)
                 
-        self.button_project = Button(self.Frame1,text="Create New Project",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),projpath.create_path(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
+        self.button_project = Button(self.Frame1,text="Create New Project",activebackground="#78d6ff",command=lambda:[self.create_project(),self.controller.refresh_nav(self.controller.directory), self.controller.status_init()])
         self.button_project['font'] = myFont
         self.button_project.place(x=125,y=360)
       
@@ -304,7 +304,7 @@ class WorkManagerPage(Frame):
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=10,y=360)
         
-        self.button_project = Button(self.Frame1,text="Open Existing Project",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),projpath.dir_exist(self.projectpath,self.projectname),os.chdir(self.projectpath+"/"+self.projectname),getprojectdirectory(self.projectpath,self.projectname),self.controller.refresh_nav(user_path), controller.status_init(user_path)])
+        self.button_project = Button(self.Frame1,text="Open Existing Project",activebackground="#78d6ff",command=lambda:[self.open_project(),self.update_dirPath(),self.controller.refresh_nav(self.controller.directory),self.controller.status_init()])
         self.button_project['font'] = myFont
         self.button_project.place(x=290,y=360)
         
@@ -328,7 +328,7 @@ class WorkManagerPage(Frame):
         self.Frame2_label_1['font'] = myFont
         self.Frame2_label_1.place(x=10,y=10)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",activebackground="#78d6ff",command=lambda:[open_file(user_path),show_message(self.message_label,"Uploaded")])
+        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",activebackground="#78d6ff",command=lambda:[open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=200,y=10)
 
@@ -353,7 +353,7 @@ class WorkManagerPage(Frame):
         Sim_task = ["Delta Kick","Gaussian Pulse"]
         Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Transition Contribution Map","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         
-
+        
         def pick_task(e):
             if task.get() == "Preprocessing Jobs":
                 sub_task.config(value = Pre_task)
@@ -385,6 +385,30 @@ class WorkManagerPage(Frame):
         Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",activebackground="#78d6ff",command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=360)
+    
+    def change_directory(self,path):
+        self.controller.directory = pathlib.Path(path)
+        os.chdir(self.controller.directory) 
+
+    def update_dirPath(self):
+        self.proj_path.set(self.controller.directory.parent)
+        self.entry_path.config(textvariable=self.proj_path)
+        self.proj_name.set(self.controller.directory.name)
+        self.entry_proj.config(textvariable=self.proj_name)
+
+    def open_project(self):
+        project_path = filedialog.askdirectory()
+        self.change_directory(project_path)
+        
+    def create_project(self):
+        project_path = pathlib.Path(self.entry_path.get()) / self.entry_proj.get()
+        try:
+            project_path.mkdir(parents=True, exist_ok=False)
+        except FileExistsError:
+            messagebox.showinfo("Message", f"project:{project_path} already exists, please open the existing project")
+        else:
+            messagebox.showinfo("Message", f"project:{project_path} is created successfully")
+            self.change_directory(project_path)
 
     def geom_visual(self):
         cmd = self.controller.configs['vmd']+ " "+"coordinate.xyz"
@@ -393,10 +417,8 @@ class WorkManagerPage(Frame):
         except:
             print("Unable to invoke vmd. Command used to call vmd '{}'. supply the appropriate command in lsconfig.in".format(cmd.split()[0]))
 
-    def retrieve_input(self):
-        self.projectpath = self.entry_path.get()
-        self.projectname = self.entry_proj.get()
     
+
     def task_check(self,sub_task):
         self.st_var = self.controller.status
         
@@ -430,10 +452,7 @@ class WorkManagerPage(Frame):
         else:
             return True
 
-def getprojectdirectory(path, name):
-    global user_path
-    user_path = pathlib.Path(path) / name
-    return user_path
+    
 
 class GroundStatePage(Frame):
 
