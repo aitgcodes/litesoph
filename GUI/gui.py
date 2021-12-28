@@ -38,7 +38,6 @@ from litesoph.GUI.filehandler import *
 from litesoph.GUI.navigation import Nav
 #from litesoph.GUI.navigation import TextViewerPage
 #from litesoph.GUI.laserframe import Laser
-from litesoph.Pre_Processing.preproc import *
 from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.GPAW.spectrum import spectrum
 #from litesoph.lsio.IO import write22file
@@ -1175,7 +1174,7 @@ class LaserDesignPage(Frame):
         self.button_project.place(x=350,y=380)
 
         #self.button_project = Button(self.Frame1,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[write_laser(self.laser_pulse(), 'pulse', str(user_path)+"/Pulse"),plot_spectra(1,str(user_path)+"/"+'Pulse/pulse.dat','pulse.png','time(in au)','Laser strength(in au)')])
-        self.button_project = Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_design()])
+        self.button_project = Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
         self.button_project['font'] = myFont
         self.button_project.place(x=170,y=380)
 
@@ -1245,8 +1244,8 @@ class LaserDesignPage(Frame):
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
     
-    def laser_design(self):
-        write_laser(self.laser_pulse(), 'pulse', str(user_path)+"/Pulse")
+    def laser_button(self):
+        write_laser(self.laser_pulse(), 'pulse', str(self.controller.directory)+"/Pulse")
         self.plot_canvas(str(self.controller.directory)+"/Pulse/pulse.dat", 1, 'time(in fs)','Laser strength(in au)')
        
 
@@ -1301,7 +1300,7 @@ class LaserDesignPage(Frame):
             self.controller.show_frame(LaserDesignPage,WorkManagerPage,JobSubPage)
 
     def laser_pulse(self):
-        l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
+        l_dict = self.laser_calc()
         l_dict['frequency'] = self.freq.get()
         l_dict['time0'] ="{}e3".format(l_dict['time0'])
         range = int(self.ns.get())* float(self.ts.get())
@@ -1310,6 +1309,7 @@ class LaserDesignPage(Frame):
         return(l_dict)              
       
     def laser_calc(self):
+        from litesoph.Pre_Processing.laser_design import laser_design
         l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
         return(l_dict)
 
