@@ -4,7 +4,7 @@ import pathlib
 
 import litesoph
 
-lsroot = litesoph.Pre_Processing.__file__
+lsroot = litesoph.pre_processing.__file__
 lsroot = pathlib.Path(lsroot) 
 lsroot = lsroot.parent
 
