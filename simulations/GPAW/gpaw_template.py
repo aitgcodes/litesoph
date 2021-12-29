@@ -1,11 +1,49 @@
 import pathlib
 from typing import Any, Dict
-from gpaw import GPAW
+
 
 class GpawGroundState:
     """This class contains the default parameters and the template for creating gpaw 
     scripts for ground state calculations."""
-    default_param = GPAW.default_parameters
+    default_param =  {
+        'mode': 'fd',
+        'xc': 'LDA',
+        'occupations': None,
+        'poissonsolver': None,
+        'h': None,  # Angstrom
+        'gpts': None,
+        'kpts': [(0.0, 0.0, 0.0)],
+        'nbands': None,
+        'charge': 0,
+        'setups': {},
+        'basis': {},
+        'spinpol': None,
+        'filter': None,
+        'mixer': None,
+        'eigensolver': None,
+        'background_charge': None,
+        'experimental': {'reuse_wfs_method': 'paw',
+                         'niter_fixdensity': 0,
+                         'magmoms': None,
+                         'soc': None,
+                         'kpt_refine': None},
+        'external': None,
+        'random': False,
+        'hund': False,
+        'maxiter': 333,
+        'idiotproof': True,
+        'symmetry': {'point_group': True,
+                     'time_reversal': True,
+                     'symmorphic': True,
+                     'tolerance': 1e-7,
+                     'do_not_symmetrize_the_density': None},  # deprecated
+        'convergence': {'energy': 0.0005,  # eV / electron
+                        'density': 1.0e-4,
+                        'eigenstates': 4.0e-8,  # eV^2
+                        'bands': 'occupied'},  # eV / Ang
+        'verbose': 0,
+        'fixdensity': False,  # deprecated
+        'dtype': None}  # deprecated
 
     gs_template = """
 from ase.io import read, write
@@ -190,7 +228,7 @@ td_calc.write('{td_out}', mode='all')
                 return template
             elif self.tools == "wavefunction":
                 tlines = template.splitlines()
-                tlines[8] = "WaveFunctionWriter(td_cal, 'wf.ulm')"
+                tlines[8] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
                 template = """\n""".join(tlines)
                 return template
 
@@ -282,13 +320,19 @@ class Cal_TCM:
                             energy_o, energy_u, sigma=0.1)
         print(f'TCM absorption: {np.sum(tcm_ou) * de ** 2:.2f} eV^-1')
         plt.show()
-
-    def plot(self,fnum):
+    
+    def run_calc(self):
+        calc_dict ={}
         fdm = self.create_frequency_density_matrix()
         calc = self.read_unocc()
         calc = self.cal_unoccupied_states(calc)
         ksd = self.create_ks_basis(calc)
-        self.plot_tcm(ksd,fdm,fnum, self.name)
+        calc_dict['fdm'] = fdm
+        calc_dict['ksd'] = ksd    
+        return(calc_dict)
+
+    def plot(self,calc_dict,fnum):
+        self.plot_tcm(calc_dict['ksd'],calc_dict['fdm'],fnum, self.name)
 
 
 

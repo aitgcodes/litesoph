@@ -103,11 +103,8 @@ class AITG(Tk):
                self.show_frame(PlotSpectraPage)
             if sub_task.get() == "Dipole Moment and Laser Pulse":
                self.show_frame(DmLdPage)
-            if sub_task.get() == "Transition Contribution Map":
-               self.show_frame(TcmPage)
-            # if sub_task.get() == "Transition Contribution Map":
-            #    messagebox.showerror(message="")
-                
+            if sub_task.get() == "Kohn Sham Decomposition":
+               self.show_frame(TcmPage)                
                   
     def gui_inp(self, task, dir, filename, gui_dict):
         
@@ -319,7 +316,7 @@ class WorkManagerPage(Frame):
        
         Pre_task = ["Ground State","Geometry Optimisation"]
         Sim_task = ["Delta Kick","Gaussian Pulse"]
-        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Transition Contribution Map","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
+        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         
         
         def pick_task(e):
@@ -1004,7 +1001,7 @@ class TimeDependentPage(Frame):
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
    
-        self.Frame2_note = Label(self.Frame2,text="Note: Please select wavefunction for TCM calculation",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Note: Please select wavefunction for Kohn Sham Decomposition",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=70)
     
@@ -1607,6 +1604,11 @@ class TcmPage(Frame):
         self.next = next
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
+        self.min = DoubleVar()
+        self.max = DoubleVar()
+        self.step = DoubleVar()
+        self.freq = DoubleVar()
+
         j=font.Font(family ='Courier', size=20,weight='bold')
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
@@ -1619,7 +1621,7 @@ class TcmPage(Frame):
         self.Frame.configure(relief="groove")
         self.Frame.configure(cursor="fleur")
         
-        self.heading = Label(self.Frame,text="LITESOPH Transition Contribution Map", fg='blue')
+        self.heading = Label(self.Frame,text="LITESOPH Kohn Sham Decomposition", fg='blue')
         self.heading['font'] = myFont
         self.heading.place(x=350,y=10)
 
@@ -1627,58 +1629,71 @@ class TcmPage(Frame):
         self.FrameTcm2_label_path['font'] = myFont
         self.FrameTcm2_label_path.place(x=10,y=50)
 
-        self.Label_freqs = Label(self.Frame,text="List the Frequencies (in eV/a.u) at which Fourier transform of density matrix is sought",bg="gray",fg="black")
+        self.Label_freqs = Label(self.Frame,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is required.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
         self.Label_freqs['font'] = myFont
         self.Label_freqs.place(x=10,y=80)
-
-        self.TextBox_freqs = Text(self.Frame, height=4, width=65)
-        self.TextBox_freqs['font'] = myFont
-        self.TextBox_freqs.place(x=10,y=110)
         
+        self.TextBox_freqs = Text(self.Frame, height=4, width=60)
+        self.TextBox_freqs['font'] = myFont
+        self.TextBox_freqs.place(x=10,y=130)
+
         self.Label_freqs = Label(self.Frame,text="Or provide a range as <min value>-<max value>-<step size> respectively",bg="gray",fg="black")
         self.Label_freqs['font'] = myFont
         self.Label_freqs.place(x=10,y=195)
  
-        self.Tcm_entry_ns = Entry(self.Frame)
+        self.Tcm_entry_ns = Entry(self.Frame, textvariable=self.min)
         self.Tcm_entry_ns['font'] = myFont
-        self.Tcm_entry_ns.insert(INSERT,"min value")
         self.Tcm_entry_ns.place(x=10,y=230)
        
-        self.Tcm_entry_ns = Entry(self.Frame)
+        self.Tcm_entry_ns = Entry(self.Frame, textvariable= self.max)
         self.Tcm_entry_ns['font'] = myFont
-        self.Tcm_entry_ns.insert(INSERT,"max value")
         self.Tcm_entry_ns.place(x=200,y=230)
       
-        self.Tcm_entry_ns = Entry(self.Frame, width= 10)
+        self.Tcm_entry_ns = Entry(self.Frame, textvariable=self.step, width= 10)
         self.Tcm_entry_ns['font'] = myFont
-        self.Tcm_entry_ns.insert(INSERT,"step size")
         self.Tcm_entry_ns.place(x=390,y=230)
 
         Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
 
-        self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:self.retrieve_input())
+        self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
         self.buttonRetrieve['font'] = myFont
-        self.buttonRetrieve.place(x=180,y=380)
-
-        self.buttonInputFdm = Button(self.Frame,text="View Input",activebackground="#78d6ff",command=lambda:controller.show_frame(TextViewerPage))
-        self.buttonInputFdm['font'] = myFont
-        self.buttonInputFdm.place(x=390,y=380)
+        self.buttonRetrieve.place(x=200,y=380)
         
-        FrameTcm2_Button1 = tk.Button(self.Frame, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage))
-        FrameTcm2_Button1['font'] = myFont
-        FrameTcm2_Button1.place(x=580,y=380)
-        
-
     def retrieve_input(self):
         inputValues = self.TextBox_freqs.get("1.0", "end-1c")
         freqs = inputValues.split()
 
-        freqs_lst = []
+        self.freq_list = []
         for freq in freqs[0:]:
-            freqs_lst.append(float(freq))
+            self.freq_list.append(float(freq))
+        return(self.freq_list)   
+    
+    def tcm_button(self):
+        from litesoph.simulations.GPAW.gpaw_template import Cal_TCM
+        gs = str(self.controller.directory)+"/GS/gs.gpw"
+        wf = str(self.controller.directory)+"/Spectrum/wf.ulm"
+        self.tcm = Cal_TCM(gs,wf,self.retrieve_input(), "TCM")
+        self.tcm_dict = self.tcm.run_calc()        
+ 
+    def freq_listbox(self):
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        self.plot_label= Label(self.Frame,text="Select the frequency and Plot",fg="black", bg="gray")
+        self.plot_label['font'] = myFont
+        self.plot_label.place(x=560,y=70)
 
+        self.listbox = Listbox(self, font=myFont)
+        self.listbox.place(x = 580, y=100)        
+        for item in self.freq_list:
+            self.listbox.insert(END, item)
+        self.plot_button = tk.Button(self.Frame, text="Plot",activebackground="#78d6ff",command=lambda:self.freq_plot())
+        self.plot_button['font'] = myFont
+        self.plot_button.place(x=740,y=200)   
+
+    def freq_plot(self):
+        for i in self.listbox.curselection():
+            self.tcm.plot(self.tcm_dict, i)        
   
 class TextViewerPage(Frame):
 
