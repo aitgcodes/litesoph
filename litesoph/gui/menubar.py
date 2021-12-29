@@ -9,7 +9,6 @@ from  PIL import Image,ImageTk
 import tkinter as tk
 import sys
 import os
-from litesoph.GUI.filehandler import Status
 
 class VISUAL():
 
