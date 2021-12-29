@@ -10,6 +10,7 @@ import tkinter as tk
 
 import os
 import pathlib 
+from configparser import ConfigParser, NoOptionError
 
 #---LITESOPH modules
 
@@ -27,20 +28,30 @@ from litesoph.gui.filehandler import Status
 from litesoph.simulations.gpaw.gpaw_template import write_laser
 
 
+home = pathlib.Path.home()
+def check_config(lsconfig: ConfigParser):
+    try:
+        lsroot = pathlib.Path(lsconfig.get("project_path", "lsroot" ))
+    except:
+        print("Please set lsroot in ~/lsconfig.ini")
+        exit()
+    else:
+        return lsroot
+
+
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
 class AITG(Tk):
 
-    def __init__(self, lsconfig, *args, **kwargs):
+    def __init__(self, lsconfig: ConfigParser, *args, **kwargs):
         super().__init__()
 
         self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
-        self.configs = self.lsconfig.configs
-        self.lsroot = self.lsconfig.lsroot
-        self.directory = self.configs['lsproject']
-
+        self.lsroot = check_config(lsconfig)
+        self.directory = pathlib.Path(self.lsconfig.get("project_path", "lsproject", fallback=str(home)))
+    
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=6)
        
