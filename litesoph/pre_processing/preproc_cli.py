@@ -4,9 +4,11 @@ import pathlib
 
 import litesoph
 
-lsroot = litesoph.Post_Processing.__file__
+lsroot = litesoph.pre_processing.__file__
 lsroot = pathlib.Path(lsroot) 
 lsroot = lsroot.parent
+
+Tools=[]
 
 class Runner:
     
@@ -14,10 +16,10 @@ class Runner:
         pass
 
     def parse(self, args):
-        pass
+        print(args)
 
 class CLICommand:
-    """Run Post Processing Tools.
+    """Run Pre Processing Tools.
 
     """
 
@@ -33,7 +35,8 @@ class CLICommand:
 
     @staticmethod
     def run(args):
-        print(lsroot)
+        runner = Runner()
+        runner.parse(args)
 
         
        
