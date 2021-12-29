@@ -103,11 +103,8 @@ class AITG(Tk):
                self.show_frame(PlotSpectraPage)
             if sub_task.get() == "Dipole Moment and Laser Pulse":
                self.show_frame(DmLdPage)
-            if sub_task.get() == "Transition Contribution Map":
-               self.show_frame(TcmPage)
-            # if sub_task.get() == "Transition Contribution Map":
-            #    messagebox.showerror(message="")
-                
+            if sub_task.get() == "Kohn Sham Decomposition":
+               self.show_frame(TcmPage)                
                   
     def gui_inp(self, task, dir, filename, gui_dict):
         
@@ -319,7 +316,7 @@ class WorkManagerPage(Frame):
        
         Pre_task = ["Ground State","Geometry Optimisation"]
         Sim_task = ["Delta Kick","Gaussian Pulse"]
-        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Transition Contribution Map","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
+        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         
         
         def pick_task(e):
@@ -1004,7 +1001,7 @@ class TimeDependentPage(Frame):
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
    
-        self.Frame2_note = Label(self.Frame2,text="Note: Please select wavefunction for TCM calculation",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Note: Please select wavefunction for Kohn Sham Decomposition",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=70)
     
@@ -1624,7 +1621,7 @@ class TcmPage(Frame):
         self.Frame.configure(relief="groove")
         self.Frame.configure(cursor="fleur")
         
-        self.heading = Label(self.Frame,text="LITESOPH Transition Contribution Map", fg='blue')
+        self.heading = Label(self.Frame,text="LITESOPH Kohn Sham Decomposition", fg='blue')
         self.heading['font'] = myFont
         self.heading.place(x=350,y=10)
 
