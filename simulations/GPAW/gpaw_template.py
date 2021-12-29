@@ -1,11 +1,49 @@
 import pathlib
 from typing import Any, Dict
-from gpaw import GPAW
+
 
 class GpawGroundState:
     """This class contains the default parameters and the template for creating gpaw 
     scripts for ground state calculations."""
-    default_param = GPAW.default_parameters
+    default_param =  {
+        'mode': 'fd',
+        'xc': 'LDA',
+        'occupations': None,
+        'poissonsolver': None,
+        'h': None,  # Angstrom
+        'gpts': None,
+        'kpts': [(0.0, 0.0, 0.0)],
+        'nbands': None,
+        'charge': 0,
+        'setups': {},
+        'basis': {},
+        'spinpol': None,
+        'filter': None,
+        'mixer': None,
+        'eigensolver': None,
+        'background_charge': None,
+        'experimental': {'reuse_wfs_method': 'paw',
+                         'niter_fixdensity': 0,
+                         'magmoms': None,
+                         'soc': None,
+                         'kpt_refine': None},
+        'external': None,
+        'random': False,
+        'hund': False,
+        'maxiter': 333,
+        'idiotproof': True,
+        'symmetry': {'point_group': True,
+                     'time_reversal': True,
+                     'symmorphic': True,
+                     'tolerance': 1e-7,
+                     'do_not_symmetrize_the_density': None},  # deprecated
+        'convergence': {'energy': 0.0005,  # eV / electron
+                        'density': 1.0e-4,
+                        'eigenstates': 4.0e-8,  # eV^2
+                        'bands': 'occupied'},  # eV / Ang
+        'verbose': 0,
+        'fixdensity': False,  # deprecated
+        'dtype': None}  # deprecated
 
     gs_template = """
 from ase.io import read, write
