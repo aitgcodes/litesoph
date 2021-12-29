@@ -1,4 +1,4 @@
-from tkinter import *                    # importing tkinter, a standart python interface for GUI.
+from tkinter import *                    # importing tkinter, a standart python interface for gui.
 from tkinter import ttk                  # importing ttk which is used for styling widgets.
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
@@ -13,18 +13,18 @@ import pathlib
 
 #---LITESOPH modules
 
-from litesoph.GUI.menubar import MainMenu
-from litesoph.GUI import projpath
-from litesoph.GUI.spec_plot import plot_spectra, plot_files
+from litesoph.gui.menubar import MainMenu
+from litesoph.gui import projpath
+from litesoph.gui.spec_plot import plot_spectra, plot_files
 from litesoph.lsio.IO import UserInput as ui
 from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
-from litesoph.GUI.filehandler import *
-from litesoph.GUI.navigation import Nav
-from litesoph.simulations.GPAW.gpaw_template import RtLcaoTddft as rt
-from litesoph.simulations.GPAW.spectrum import spectrum
-from litesoph.GUI.filehandler import Status
-from litesoph.simulations.GPAW.gpaw_template import write_laser
+from litesoph.gui.filehandler import *
+from litesoph.gui.navigation import Nav
+from litesoph.simulations.gpaw.gpaw_template import RtLcaoTddft as rt
+from litesoph.simulations.gpaw.spectrum import spectrum
+from litesoph.gui.filehandler import Status
+from litesoph.simulations.gpaw.gpaw_template import write_laser
 
 
 
@@ -195,7 +195,7 @@ class StartPage(Frame):
         canvas_for_image.place(x=30,y=5)
 
         # create image from image location resize it to 100X100 and put in on canvas
-        path1 = pathlib.PurePath(controller.lsroot) / "litesoph" / "GUI" / "images"
+        path1 = pathlib.PurePath(controller.lsroot) / "litesoph" / "gui" / "images"
 
         image = Image.open(str(pathlib.Path(path1) / "logo_ls.jpg"))
         canvas_for_image.image = ImageTk.PhotoImage(image.resize((125, 125), Image.ANTIALIAS))
@@ -1293,7 +1293,7 @@ class LaserDesignPage(Frame):
         return(l_dict)              
       
     def laser_calc(self):
-        from litesoph.Pre_Processing.laser_design import laser_design
+        from litesoph.pre_processing.laser_design import laser_design
         l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
         return(l_dict)
 
@@ -1447,7 +1447,7 @@ class JobSubPage(Frame):
             return('pulse')
         
     def call_run(self, filename, directory,key, value, processors):
-        from litesoph.Utilities.run_local import run_local
+        from litesoph.utilities.run_local import run_local
         if processors == "1" :
             result = run_local(filename, directory) 
             self.controller.status.update_status(key, value) 
@@ -1671,7 +1671,7 @@ class TcmPage(Frame):
         return(self.freq_list)   
     
     def tcm_button(self):
-        from litesoph.simulations.GPAW.gpaw_template import Cal_TCM
+        from litesoph.simulations.gpaw.gpaw_template import Cal_TCM
         gs = str(self.controller.directory)+"/GS/gs.gpw"
         wf = str(self.controller.directory)+"/Spectrum/wf.ulm"
         self.tcm = Cal_TCM(gs,wf,self.retrieve_input(), "TCM")

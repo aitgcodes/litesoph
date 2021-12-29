@@ -19,7 +19,7 @@ class CLICommand:
         lsconfig = LSCONFIG()
         lsconfig.configs['lsproject'] = pathlib.Path.cwd()
         
-        from litesoph.GUI.gui import AITG
+        from litesoph.gui.gui import AITG
         app = AITG(lsconfig)
         app.title("AITG - LITESOPH")
         app.resizable(0,0)

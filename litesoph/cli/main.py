@@ -16,9 +16,9 @@ class CLIError(Exception):
 
 commands = [
     #('run', 'litesoph.cli.run'),
-    ('gui', 'litesoph.GUI.guicli'),
-    ('preproc', 'litesoph.Pre_Processing.preproc_cli'),
-    ('postproc', 'litesoph.Post_Processing.postproc_cli')
+    ('gui', 'litesoph.gui.guicli'),
+    ('preproc', 'litesoph.pre_processing.preproc_cli'),
+    ('postproc', 'litesoph.post_processing.postproc_cli')
 ]
 
 def hook(parser, args):
