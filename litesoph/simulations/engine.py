@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from litesoph.lsio.IO import write2file 
-from litesoph.simulations.GPAW import gpaw_template as gp
+from litesoph.simulations.gpaw import gpaw_template as gp
 from abc import ABC, abstractclassmethod
 
 
