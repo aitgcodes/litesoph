@@ -190,7 +190,7 @@ td_calc.write('{td_out}', mode='all')
                 return template
             elif self.tools == "wavefunction":
                 tlines = template.splitlines()
-                tlines[8] = "WaveFunctionWriter(td_cal, 'wf.ulm')"
+                tlines[8] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
                 template = """\n""".join(tlines)
                 return template
 
@@ -282,13 +282,19 @@ class Cal_TCM:
                             energy_o, energy_u, sigma=0.1)
         print(f'TCM absorption: {np.sum(tcm_ou) * de ** 2:.2f} eV^-1')
         plt.show()
-
-    def plot(self,fnum):
+    
+    def run_calc(self):
+        calc_dict ={}
         fdm = self.create_frequency_density_matrix()
         calc = self.read_unocc()
         calc = self.cal_unoccupied_states(calc)
         ksd = self.create_ks_basis(calc)
-        self.plot_tcm(ksd,fdm,fnum, self.name)
+        calc_dict['fdm'] = fdm
+        calc_dict['ksd'] = ksd    
+        return(calc_dict)
+
+    def plot(self,calc_dict,fnum):
+        self.plot_tcm(calc_dict['ksd'],calc_dict['fdm'],fnum, self.name)
 
 
 
