@@ -13,7 +13,7 @@ import pathlib
 from configparser import ConfigParser, NoOptionError
 
 #---LITESOPH modules
-
+from litesoph import check_config
 from litesoph.gui.menubar import MainMenu
 from litesoph.gui import projpath
 from litesoph.gui.spec_plot import plot_spectra, plot_files
@@ -29,16 +29,6 @@ from litesoph.simulations.gpaw.gpaw_template import write_laser
 
 
 home = pathlib.Path.home()
-def check_config(lsconfig: ConfigParser):
-    try:
-        lsroot = pathlib.Path(lsconfig.get("project_path", "lsroot" ))
-    except:
-        print("Please set lsroot in ~/lsconfig.ini")
-        exit()
-    else:
-        return lsroot
-
-
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
@@ -49,7 +39,7 @@ class AITG(Tk):
 
         self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
-        self.lsroot = check_config(lsconfig)
+        self.lsroot = check_config(self.lsconfig, "lsroot")
         self.directory = pathlib.Path(self.lsconfig.get("project_path", "lsproject", fallback=str(home)))
     
         self.columnconfigure(0, weight=1)
@@ -387,11 +377,11 @@ class WorkManagerPage(Frame):
             self.change_directory(project_path)
 
     def geom_visual(self):
-        cmd = self.controller.configs['vmd']+ " "+"coordinate.xyz"
+        cmd = check_config(self.controller.lsconfig,"vmd")+ " "+"coordinate.xyz"
         try:
            p = subprocess.run(cmd.split(),capture_output=True, cwd=self.controller.directory)
         except:
-            print("Unable to invoke vmd. Command used to call vmd '{}'. supply the appropriate command in lsconfig.in".format(cmd.split()[0]))
+            print("Unable to invoke vmd. Command used to call vmd '{}'. supply the appropriate command in ~/lsconfig.ini".format(cmd.split()[0]))
 
     
 
