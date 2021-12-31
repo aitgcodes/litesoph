@@ -40,6 +40,35 @@ class Status():
         else:
             return False
 
+class file_check:
+    def __init__(self, check_list:list, dir) -> None:
+        self.list = check_list
+        self.dir = dir
+
+    def check_list(self, fname):
+        for item in self.list[0:]:
+            try:
+                check = search_string(self.dir, fname, item)
+                if check is not True:
+                    #print("{} is not found".format(item))
+                    break
+            except FileNotFoundError:
+                print("File does not exist")
+                check = False
+                break    
+        return(check)
+
+    gpaw_gs_dict={'inp':'gs.py',
+             'out': 'gs.out',
+             'check_list':['Converged', 'Fermi level:','Total:']}
+
+    gpaw_td_dict={'inp':'td.py',
+             'out': 'tdx.out',
+             'check_list':['Writing','Total:']}
+
+    gpaw_pulse_dict={'inp':'td_pulse.py',
+             'out': 'tdpulse.out',
+             'check_list':['Writing','Total:']}
 
 def dict2file(dictname, filename):
     filepath = pathlib.Path(filename)
@@ -50,6 +79,7 @@ def dict2file(dictname, filename):
 def search_string(directory, filename, string):
     """ Checks if a string is present in the file and returns boolean"""
     inf = str(directory) + '/' + str(filename)
+    inf = pathlib.Path(inf)
     if string in open(inf).read():
         return True
     else:
