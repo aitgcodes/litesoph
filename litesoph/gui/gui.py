@@ -20,7 +20,7 @@ from litesoph.gui.spec_plot import plot_spectra, plot_files
 from litesoph.lsio.IO import UserInput as ui
 from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
 from litesoph.simulations import engine
-from litesoph.gui.filehandler import *
+from litesoph.gui.filehandler import Status,file_check, open_file,show_message
 from litesoph.gui.navigation import Nav
 from litesoph.simulations.gpaw.gpaw_template import RtLcaoTddft as rt
 from litesoph.simulations.gpaw.spectrum import spectrum
@@ -1398,7 +1398,7 @@ class JobSubPage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
 
         self.Frame = tk.Frame(self)
-        processors = StringVar()
+        processors = IntVar()
 
         self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
         self.Frame.configure(relief='groove')
@@ -1415,7 +1415,7 @@ class JobSubPage(Frame):
         sbj_label1.place(x=15,y=60)
 
         sbj_entry1 = Entry(self,textvariable= processors, width=20)
-        sbj_entry1.insert(0,"1")
+        processors.set(1)
         sbj_entry1['font'] = l
         sbj_entry1.place(x=200,y=60)
         
@@ -1423,7 +1423,7 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=110)
 
-        sbj_button1 = Button(self, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local(sbj_entry1.get())])
+        sbj_button1 = Button(self, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local(processors.get())])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=600, y=60)
 
@@ -1447,47 +1447,59 @@ class JobSubPage(Frame):
         if self.prev.__name__ == 'LaserDesignPage':
             return('pulse')
         
-    def call_run(self, filename, directory,key, value, processors):
+    def call_run(self,key, value):
         from litesoph.utilities.run_local import run_local
-        if processors == "1" :
-            result = run_local(filename, directory) 
-            self.controller.status.update_status(key, value) 
-            show_message(self.msg_label1,"Job Done")
+        if self.job_d['processors'] == 1 :
+            result = run_local(self.job_d['inp'], self.job_d['path']) 
+            f = file_check(self.job_d['check_list'], self.job_d['path']) 
+            f_check = f.check_list(self.job_d['out']) 
+            if f_check is True:
+                self.controller.status.update_status(key, value) 
+                show_message(self.msg_label1,"Job Done")
+            else:
+                show_message(self.msg_label1, "Error while generating output. Please check input files.")    
         else:
-            result = run_local(filename, directory,int(processors)) 
-            self.controller.status.update_status(key, value) 
-            show_message(self.msg_label1,"Job Done")         
-    
-    def run_job(self,filename, directory, check, key, value1, value2, processors):
-        if check is False:
-            self.call_run(filename, directory,key, value1, processors) 
+            result = run_local(self.job_d['inp'], self.job_d['path'],self.job_d['processors'])
+            f = file_check(self.job_d['check_list'], self.job_d['path']) 
+            f_check = f.check_list(self.job_d['out']) 
+            if f_check is True:
+                self.controller.status.update_status(key, value) 
+                show_message(self.msg_label1,"Job Done")
+            else:
+                show_message(self.msg_label1, "Error while generating output")        
+   
+    def run_job(self, key, value1, value2):
+        if self.job_d['cal_check'] is False:
+            self.call_run(key, value1)  
         else:
             show_message(self.msg_label1, "")
             check_yn = messagebox.askyesno(title="Job is done",message="Do you want to redo the calculation? ")
             if check_yn is True:
                 self.controller.status.update_status(key, value2)
-                self.call_run(filename, directory,key, value1, processors)
+                self.call_run(key, value1)
 
     def select_job(self, job, processors):
         self.st_var = self.controller.status
         if job == 'gs':
-            path = str(self.controller.directory)+"/GS"
-            msg2 = 'GS inputs not found'
-            gs_check = self.st_var.check_status('gs_inp', 1)
-            gs_cal_check = self.st_var.check_status('gs_cal', 1)
+            self.job_d = file_check.gpaw_gs_dict
+            self.job_d['path'] = str(self.controller.directory)+"/GS"
+            self.job_d['processors'] = processors
+            self.job_d['cal_check'] = self.st_var.check_status('gs_cal', 1)                       
+            gs_check= self.st_var.check_status('gs_inp', 1)           
             if gs_check is True :
-                self.run_job('gs.py',path,gs_cal_check, 'gs_cal', 1, 0, processors)                  
+                self.run_job('gs_cal', 1, 0)
             else:
-                show_message(self.msg_label1, msg2)
+                show_message(self.msg_label1, self.job_d["GS inputs not found"])
 
         if job == 'delta':
-            path = str(self.controller.directory)+"/Spectrum"
-            msg2 = 'Inputs not found'
+            self.job_d = file_check.gpaw_td_dict  
+            self.job_d['path'] = str(self.controller.directory)+"/Spectrum"
+            self.job_d['processors'] = processors
+            self.job_d['cal_check'] = self.st_var.check_status('td_cal', 1)
             td_check = self.st_var.check_status('td_inp', 1) 
             gs_cal_check = self.st_var.check_status('gs_cal', 1)
-            td_cal_check = self.st_var.check_status('td_cal', 1)
             if td_check is True and gs_cal_check is True :
-                self.run_job('td.py',path,td_cal_check,'td_cal', 1, 0, processors)                 
+                self.run_job('td_cal', 1, 0)                 
             else:
                 if td_check is False:
                     show_message(self.msg_label1,"Inputs not found. Please create inputs for delta kick." ) 
@@ -1495,12 +1507,18 @@ class JobSubPage(Frame):
                     show_message(self.msg_label1, "Inputs not found. Please run GS calculation.")   
                         
         if job == 'pulse':
-            path = str(self.controller.directory)+"/Pulse"
+            self.job_d = file_check.gpaw_pulse_dict
+            print('Pulse start') 
+            print(self.job_d) 
+            self.job_d['path'] = str(self.controller.directory)+"/Pulse"
+            self.job_d['processors'] = processors
+            self.job_d['cal_check'] = self.st_var.check_status('td_cal', 2)
             td_check = self.st_var.check_status('td_inp', 2)
             gs_cal_check = self.st_var.check_status('gs_cal', 1)
-            td_cal_check = self.st_var.check_status('td_cal', 2)
             if td_check is True and gs_cal_check is True:
-                self.run_job('td_pulse.py',path,td_cal_check,'td_cal', 2, 1, processors)                  
+                print(self.job_d)
+                print("Pulse calc")
+                self.run_job('td_cal', 2, 1)                  
             else:
                 show_message(self.msg_label1, "Inputs not found.")                 
 
@@ -1541,7 +1559,7 @@ class DmLdPage(Frame):
         self.label_pol.place(x=10,y=60)
 
         plot_list = ["Dipole Moment", "Dipole Moment and Laser"]
-        self.entry_pol_x = ttk.Combobox(self.Frame,textvariable=self.plot_task, value = plot_list)
+        self.entry_pol_x = ttk.Combobox(self.Frame,textvariable=self.plot_task, value = plot_list, width = 25)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"Dipole Moment")
         self.entry_pol_x.place(x=280,y=60)
@@ -1556,7 +1574,7 @@ class DmLdPage(Frame):
         self.label_pol.place(x=10,y=110)
 
         com_pol = ["x component","y component","z component"]
-        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.compo, value = com_pol)
+        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.compo, value = com_pol, width= 25)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.insert(0,"x component")
         self.entry_pol_x.place(x=280,y=110)
