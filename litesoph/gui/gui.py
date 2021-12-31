@@ -1648,29 +1648,29 @@ class TcmPage(Frame):
         self.FrameTcm2_label_path['font'] = myFont
         self.FrameTcm2_label_path.place(x=10,y=50)
 
-        self.Label_freqs = Label(self.Frame,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is required.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
+        self.Label_freqs = Label(self.Frame,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
         self.Label_freqs['font'] = myFont
         self.Label_freqs.place(x=10,y=80)
         
         self.TextBox_freqs = Text(self.Frame, height=4, width=60)
         self.TextBox_freqs['font'] = myFont
-        self.TextBox_freqs.place(x=10,y=130)
+        self.TextBox_freqs.place(x=10,y=150)
 
-        self.Label_freqs = Label(self.Frame,text="Or provide a range as <min value>-<max value>-<step size> respectively",bg="gray",fg="black")
-        self.Label_freqs['font'] = myFont
-        self.Label_freqs.place(x=10,y=195)
+        #self.Label_freqs = Label(self.Frame,text="Or provide a range as <min value>-<max value>-<step size> respectively",fg="black")
+        #self.Label_freqs['font'] = myFont
+        #self.Label_freqs.place(x=10,y=240)
  
-        self.Tcm_entry_ns = Entry(self.Frame, textvariable=self.min)
-        self.Tcm_entry_ns['font'] = myFont
-        self.Tcm_entry_ns.place(x=10,y=230)
+        #self.Tcm_entry_ns = Entry(self.Frame, textvariable=self.min)
+        #self.Tcm_entry_ns['font'] = myFont
+        #self.Tcm_entry_ns.place(x=10,y=280)
        
-        self.Tcm_entry_ns = Entry(self.Frame, textvariable= self.max)
-        self.Tcm_entry_ns['font'] = myFont
-        self.Tcm_entry_ns.place(x=200,y=230)
+        #self.Tcm_entry_ns = Entry(self.Frame, textvariable= self.max)
+        #self.Tcm_entry_ns['font'] = myFont
+        #self.Tcm_entry_ns.place(x=200,y=280)
       
-        self.Tcm_entry_ns = Entry(self.Frame, textvariable=self.step, width= 10)
-        self.Tcm_entry_ns['font'] = myFont
-        self.Tcm_entry_ns.place(x=390,y=230)
+        #self.Tcm_entry_ns = Entry(self.Frame, textvariable=self.step, width= 10)
+        #self.Tcm_entry_ns['font'] = myFont
+        #self.Tcm_entry_ns.place(x=390,y=280)
 
         Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
         Frame_Button1['font'] = myFont
