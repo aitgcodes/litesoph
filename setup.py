@@ -1,26 +1,42 @@
-import configparser
 import os
 import pathlib
 import subprocess
 from configparser import ConfigParser
 
-visualization_tools = ['vmd', 'vesta']
-
-engine = ['gpaw','nwchem','octopus']
-
-programs = ['python', 'mpi']
+sections = {
+    'visualization_tools' : ['vmd', 'vesta'],
+    'engine' : ['gpaw','nwchem','octopus'],
+    'programs' : ['python'],
+    'mpi' : ['mpirun'],
+}
 
 lsroot = pathlib.Path.cwd()
 home = pathlib.Path.home()
 bash_file = pathlib.Path(home) / ".bashrc"
+config_file = pathlib.Path(home) / "lsconfig.ini"
 
-cofigs = ConfigParser()
 
 def get_path(name):
-    try:
-        p = subprocess.run(['which', name], capture_output=True, text=True)
-    except:
-        pass
+    p = subprocess.run(['which', name], capture_output=True, text=True)
+    if p.stdout and p.returncode == 0:
+        return p.stdout.split()[0]
+    else:
+        return None
+
+
+def create_default_config(config: ConfigParser, sections: dict):
+    for key, valve in sections.items():
+        config.add_section(key)
+        for option in valve:
+            set = get_path(option)
+            if set is not None:
+                config.set(key, option, set)
+
+config = ConfigParser()
+create_default_config(config, sections)
+
+with open(config_file, 'w+') as configfile:
+    config.write(configfile)
 
 with open(bash_file, 'a') as f:
     f.write("##----<added by litesoph>-----##\n")
