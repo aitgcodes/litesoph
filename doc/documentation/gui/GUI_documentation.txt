@@ -1,7 +1,10 @@
 
 Setups for LITESOPH GUI:
+Run 'python setup.py', this will ask for append to the bashrc. 
 
-#To export the path of litesoph type this
+OR
+
+# if appending bashrc is not preferred please export the path of litesoph type this
 export PYTHONPATH=<path-to-litesoph-package>:$PYTHONPATH
 export PATH=<path-to-litesoph-package>/litesoph/bin:$PATH
 
