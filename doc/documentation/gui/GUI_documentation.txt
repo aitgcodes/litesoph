@@ -1,6 +1,6 @@
 
 Setups for LITESOPH GUI:
-Run 'python setup.py', this will ask for append to the bashrc. 
+Run 'python setup.py', this will create default lsconfig.ini file in home. Please set the prefered settings if required. it will ask to append path to bashrc. lsconfig.ini will be read whenever litesoph is initiated. 
 
 OR
 
