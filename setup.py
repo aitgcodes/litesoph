@@ -33,6 +33,9 @@ def create_default_config(config: ConfigParser, sections: dict):
                 config.set(key, option, set)
 
 config = ConfigParser()
+config.add_section('path')
+config.set('path','home', str(home))
+config.set('path','lsroot',str(lsroot))
 create_default_config(config, sections)
 
 with open(config_file, 'w+') as configfile:
