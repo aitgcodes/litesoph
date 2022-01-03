@@ -1235,7 +1235,7 @@ class LaserDesignPage(Frame):
        
 
     def plot_canvas(self,filename, axis, x,y):
-        from gpaw.tddft.units import au_to_fs
+        from litesoph.utilities.units import au_to_fs
         import numpy as np
         from matplotlib.figure import Figure
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
@@ -1532,7 +1532,7 @@ class DmLdPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
-        from gpaw.tddft.units import au_to_fs
+        from litesoph.utilities.units import au_to_fs
         self.plot_task = StringVar()
         self.compo = StringVar()
 
@@ -1598,7 +1598,7 @@ class DmLdPage(Frame):
         return axis
 
     def plot_button(self):
-        from gpaw.tddft.units import au_to_fs
+        from litesoph.utilities.units import au_to_fs
         if self.plot_task.get() == "Dipole Moment":
             plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Pulse/dmpulse.dat',str(self.controller.directory)+'/Pulse/dmpulse.png',"Time (fs)","Dipole moment (au)", au_to_fs)
         if self.plot_task.get() == "Dipole Moment and Laser":

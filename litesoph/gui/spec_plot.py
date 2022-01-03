@@ -27,7 +27,7 @@ def plot_spectra(axis, filename, imgfile, x, y, conversion=None):
 
 
 def plot_files(file1, file2, axis1, axis2):
-    from gpaw.tddft.units import au_to_fs
+    from litesoph.utilities.units import au_to_fs
     array1 = np.loadtxt(file1)
     array2 = np.loadtxt(file2)
     fig, ax = plt.subplots()

@@ -72,7 +72,7 @@ class TCMGpaw:
         print(f'TCM absorption: {np.sum(tcm_ou) * de ** 2:.2f} eV^-1')
         plt.savefig(f'tcm_{frequency:.2f}.png')
     
-    def run_calc(self):
+    def run(self):
         self.fdm = self.create_frequency_density_matrix()
         self.calc = self.read_unocc()
         self.calc = self.cal_unoccupied_states(self.calc)
