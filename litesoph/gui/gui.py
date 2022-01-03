@@ -1694,7 +1694,9 @@ class TcmPage(Frame):
         gs = str(self.controller.directory)+"/GS/gs.gpw"
         wf = str(self.controller.directory)+"/Spectrum/wf.ulm"
         self.tcm = Cal_TCM(gs,wf,self.retrieve_input(), "TCM")
-        self.tcm_dict = self.tcm.run_calc()        
+        t = self.tcm.format_template()
+        from litesoph.lsio.IO import write2file
+        write2file(self.controller.directory, 'tcm1.py', t)        
  
     def freq_listbox(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
