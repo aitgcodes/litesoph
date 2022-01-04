@@ -205,6 +205,8 @@ geometry
 end
 
 set geometry "system"
+
+unset rt_tddft:*
 rt_tddft
   tmax {tmax}
   dt {dt}
@@ -213,7 +215,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {pol}
+    polarization {polx}
     max {max}
   end
 
@@ -232,7 +234,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {pol}
+    polarization {poly}
     max {max}
   end
 
@@ -250,7 +252,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {pol}
+    polarization {polz}
     max {max}
   end
 
