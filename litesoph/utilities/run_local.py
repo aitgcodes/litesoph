@@ -12,11 +12,9 @@ def run_local(filename, directory, processors=None):
             processors= str(processors)
             result = subprocess.Popen(['mpirun', '-np', processors, 'python', filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             result.wait()
-            print(result.communicate())
         else:
             raise "wrong number of processors"
     else:
-        print('1')
         result = subprocess.Popen(['python', filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(result.communicate())
+        result.wait()
     return result

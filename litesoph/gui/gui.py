@@ -633,8 +633,8 @@ class GroundStatePage(Frame):
             inp_dict = {
                 'mode': mode.get(),
                 'xc': xc.get(),
-                'basis': basis.get(),
                 'vacuum': vacuum.get(),
+                'basis':{'default': basis.get()},
                 'h': h.get(),
                 'nbands' : nbands.get(),
                 'charge' : charge.get(),
@@ -644,7 +644,11 @@ class GroundStatePage(Frame):
                 'maxiter' : maxiter.get(),
                 'properties': 'get_potential_energy()',
                 'engine':'gpaw'
-                        }          
+                        }   
+
+            if basis.get() == '':
+                inp_dict['basis']={}
+
             return inp_dict  
 
 class GeomOptPage(Frame):
