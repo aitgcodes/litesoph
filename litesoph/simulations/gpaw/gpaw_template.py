@@ -262,13 +262,13 @@ photoabsorption_spectrum({moment_file}, {spectrum_file},folding={folding}, width
                 e_max=30.0,
                 delta_e=0.05 ) -> None:
         
-        self.dict = dict(mfilename = moment_file,
-                specfile = spectrum_file,
-                folding='Gauss',
-                width=0.2123,
-                e_min=0.0,
-                e_max=30.0,
-                delta_e=0.05)
+        self.dict = dict(moment_file = moment_file,
+                spectrum_file = spectrum_file,
+                folding=folding,
+                width=width,
+                e_min=e_min,
+                e_max=e_max,
+                delta_e=delta_e)
 
     def format_template(self):
         template = self.dm2spec.format(**self.dict)
