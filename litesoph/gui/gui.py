@@ -115,7 +115,7 @@ class AITG(Tk):
             dict_input['directory'] = str(self.directory)+"/"+ str(dir)
             dict_input['geometry'] = pathlib.Path(self.directory) / "coordinate.xyz"
             engn = engine.choose_engine(dict_input)
-            GroundState(dict_input, filename, engn)
+            job =GroundState(dict_input,engn, self.directory, filename)
             self.status.update_status('gs_inp', 1)
             
         if task == 'td':
