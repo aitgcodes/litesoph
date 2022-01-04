@@ -35,3 +35,26 @@ class RT_LCAO_TDDFT:
 class LR_TDDFT:
     pass
 
+class Spectrum:
+
+    def __init__(self,user_input: Dict[str, Any],filename,engine: EngineStrategy, directory) -> None:
+        self.user_input = user_input
+        self.engine = engine
+        self.directory = directory
+        self.task = self.engine.get_task_class("spectrum", self.user_input)
+        self.template = self.task.format_template()
+
+        engine.create_script(self.directory, filename, self.template)
+
+class TCM:
+    
+    def __init__(self,user_input: Dict[str, Any],filename,engine: EngineStrategy, directory) -> None:
+        self.user_input = user_input
+        self.engine = engine
+        self.directory = directory
+        self.task = self.engine.get_task_class("tcm", self.user_input)
+        self.template = self.task.format_template()
+
+        engine.create_script(self.directory, filename, self.template)
+        
+

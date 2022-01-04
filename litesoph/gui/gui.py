@@ -18,12 +18,12 @@ from litesoph.gui.menubar import MainMenu
 from litesoph.gui import projpath
 from litesoph.gui.spec_plot import plot_spectra, plot_files
 from litesoph.lsio.IO import UserInput as ui
-from litesoph.simulations.esmd import RT_LCAO_TDDFT, GroundState
+from litesoph.simulations.esmd import RT_LCAO_TDDFT, TCM, GroundState, Spectrum
 from litesoph.simulations import engine
 from litesoph.gui.filehandler import Status,file_check, open_file,show_message
 from litesoph.gui.navigation import Nav
 from litesoph.simulations.gpaw.gpaw_template import RtLcaoTddft as rt
-from litesoph.simulations.gpaw.spectrum import spectrum
+#from litesoph.simulations.gpaw.spectrum import spectrum
 from litesoph.gui.filehandler import Status
 from litesoph.simulations.gpaw.gpaw_template import write_laser
 
@@ -124,14 +124,7 @@ class AITG(Tk):
             RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),str(self.directory)+"/"+str(dir))
 
         return dict_input['directory'] + "/" + filename + ".py"
-            
-    def createspec(self, dipolefile, specfile):
-        spec = spectrum()
-        spec_dict = spec.user_input
-        spec_dict['moment_file'] = pathlib.Path(self.directory) / dipolefile
-        spec_dict['spectrum_file'] = pathlib.Path(self.directory) / specfile
-        spec.cal_photoabs_spectrum(spec_dict) 
-    
+        
 class StartPage(Frame):
 
     def __init__(self, parent, controller,prev, next):
@@ -1371,7 +1364,8 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),plot_spectra(self.returnaxis(),str(controller.directory)+'/Spectrum/spec.dat',str(controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
+        # self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),plot_spectra(self.returnaxis(),str(controller.directory)+'/Spectrum/spec.dat',str(controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:self.createspec('dm.dat', 'spec.dat'))
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
@@ -1387,6 +1381,14 @@ class PlotSpectraPage(Frame):
         if self.axis.get() == "z":
             axis = 3
         return axis
+
+    def createspec(self, dipolefile, specfile):
+        spec_dict = {}
+        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "Spectrum" / dipolefile
+        spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
+        s = Spectrum(spec_dict, 'spec', engine.EngineGpaw(), str(self.controller.directory)+"/Spectrum") 
+
+
 
 class JobSubPage(Frame):
 
@@ -1680,7 +1682,8 @@ class TcmPage(Frame):
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
 
-        self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
+        #self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
+        self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:self.create_tcm())
         self.buttonRetrieve['font'] = myFont
         self.buttonRetrieve.place(x=200,y=380)
         
@@ -1693,15 +1696,18 @@ class TcmPage(Frame):
             self.freq_list.append(float(freq))
         return(self.freq_list)   
     
-    def tcm_button(self):
-        from litesoph.simulations.gpaw.gpaw_template import Cal_TCM
-        gs = str(self.controller.directory)+"/GS/gs.gpw"
-        wf = str(self.controller.directory)+"/Spectrum/wf.ulm"
-        self.tcm = Cal_TCM(gs,wf,self.retrieve_input(), "TCM")
-        t = self.tcm.format_template()
-        from litesoph.lsio.IO import write2file
-        write2file(self.controller.directory, 'tcm1.py', t)        
- 
+    def create_tcm(self):
+        self.retrieve_input()
+        gs = pathlib.Path(self.controller.directory) / "GS" / "gs.gpw"
+        wf = pathlib.Path(self.controller.directory) / "Spectrum" / "wf.ulm"
+        tcm_dict = {
+                'gfilename' : gs,
+                'wfilename' : wf,
+                'frequencies' : self.freq_list,
+                'name' : "x"
+                 }         
+        TCM(tcm_dict, 'tcm', engine.EngineGpaw(), self.controller.directory)       
+
     def freq_listbox(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         self.plot_label= Label(self.Frame,text="Select the frequency and Plot",fg="black", bg="gray")

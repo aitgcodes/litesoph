@@ -247,35 +247,40 @@ def write_laser(laser_input:dict, filename, directory):
     pulse = GaussianPulse(float(laser_input['strength']), float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])
     pulse.write(filename, np.arange(laser_input['range']))
 
-class Spectrum:
+class GpawSpectrum:
 
-    dm2spec=""""
+    default_input = {
+                   'moment_file': 'dm.dat',
+                   'spectrum_file': 'spec.dat',
+                   'folding': 'Gauss',
+                   'width' : 0.2123,
+                   'e_min' : 0.0,
+                   'e_max' : 30.0,
+                   'delta_e' : 0.05
+                }
+
+    dm2spec="""
 from gpaw.tddft.spectrum import photoabsorption_spectrum
-photoabsorption_spectrum({moment_file}, {spectrum_file},folding={folding}, width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
+photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}', width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
 """
     
-    def __init__(self,moment_file,
-                spectrum_file,
-                folding='Gauss',
-                width=0.2123,
-                e_min=0.0,
-                e_max=30.0,
-                delta_e=0.05 ) -> None:
+    def __init__(self, input_para: dict) -> None:
+        self.dict = self.default_input
+        self.dict.update(input_para)
         
-        self.dict = dict(moment_file = moment_file,
-                spectrum_file = spectrum_file,
-                folding=folding,
-                width=width,
-                e_min=e_min,
-                e_max=e_max,
-                delta_e=delta_e)
-
     def format_template(self):
         template = self.dm2spec.format(**self.dict)
         return template
 
 
-class Cal_TCM:
+class GpawCal_TCM:
+
+    default_input = {
+                    'gfilename' : 'gs.gpw',
+                    'wfilename' : 'wf.ulm',
+                    'frequencies' : [],
+                    'name' : " "
+                    }
 
     tcm_temp = """
 from litesoph.simulations.gpaw.gpawtcm import TCMGpaw
@@ -287,11 +292,9 @@ tcm.run()
 tcm.plot()
 """
 
-    def __init__(self, gfilename, wfilename, frequencies:list, name:str) -> None:
-        self.dict = dict(gfilename = gfilename,
-                        wfilename = wfilename,
-                        frequencies  = frequencies,
-                        name  = name)
+    def __init__(self, input_para:dict) -> None:
+        self.dict = self.default_input
+        self.dict.update(input_para)
 
     def format_template(self):
         template = self.tcm_temp.format(**self.dict)
