@@ -47,6 +47,10 @@ class EngineGpaw(EngineStrategy):
             return gp.GpawGroundState(user_param)
         if task == "LCAO TDDFT":
             return gp.RtLcaoTddft(user_param)
+        if task == "spectrum":
+            return gp.GpawSpectrum(user_param) 
+        if task == "tcm":
+            return gp.GpawCal_TCM(user_param)       
 
     def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
