@@ -633,8 +633,8 @@ class GroundStatePage(Frame):
             inp_dict = {
                 'mode': mode.get(),
                 'xc': xc.get(),
-                'basis': basis.get(),
                 'vacuum': vacuum.get(),
+                'basis':{'default': basis.get()},
                 'h': h.get(),
                 'nbands' : nbands.get(),
                 'charge' : charge.get(),
@@ -644,7 +644,11 @@ class GroundStatePage(Frame):
                 'maxiter' : maxiter.get(),
                 'properties': 'get_potential_energy()',
                 'engine':'gpaw'
-                        }          
+                        }   
+
+            if basis.get() == '':
+                inp_dict['basis']={}
+
             return inp_dict  
 
 class GeomOptPage(Frame):
@@ -1235,7 +1239,7 @@ class LaserDesignPage(Frame):
        
 
     def plot_canvas(self,filename, axis, x,y):
-        from gpaw.tddft.units import au_to_fs
+        from litesoph.utilities.units import au_to_fs
         import numpy as np
         from matplotlib.figure import Figure
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
@@ -1532,7 +1536,7 @@ class DmLdPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
-        from gpaw.tddft.units import au_to_fs
+        from litesoph.utilities.units import au_to_fs
         self.plot_task = StringVar()
         self.compo = StringVar()
 
@@ -1598,7 +1602,7 @@ class DmLdPage(Frame):
         return axis
 
     def plot_button(self):
-        from gpaw.tddft.units import au_to_fs
+        from litesoph.utilities.units import au_to_fs
         if self.plot_task.get() == "Dipole Moment":
             plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Pulse/dmpulse.dat',str(self.controller.directory)+'/Pulse/dmpulse.png',"Time (fs)","Dipole moment (au)", au_to_fs)
         if self.plot_task.get() == "Dipole Moment and Laser":
@@ -1694,7 +1698,9 @@ class TcmPage(Frame):
         gs = str(self.controller.directory)+"/GS/gs.gpw"
         wf = str(self.controller.directory)+"/Spectrum/wf.ulm"
         self.tcm = Cal_TCM(gs,wf,self.retrieve_input(), "TCM")
-        self.tcm_dict = self.tcm.run_calc()        
+        t = self.tcm.format_template()
+        from litesoph.lsio.IO import write2file
+        write2file(self.controller.directory, 'tcm1.py', t)        
  
     def freq_listbox(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
