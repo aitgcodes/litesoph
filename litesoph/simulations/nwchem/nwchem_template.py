@@ -18,7 +18,7 @@ class gs_input:
             'energy': 1.0e-7,
             'density': 1.0e-5, 
             'calc': None,
-            'theory':'scf',
+            'theory':'dft',
             'properties':'energy',
 
             } 
