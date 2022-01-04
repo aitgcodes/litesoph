@@ -1,3 +1,4 @@
+import pathlib
 from typing import Any, Dict
 from litesoph.lsio.IO import write2file 
 from litesoph.simulations.gpaw import gpaw_template as gp
@@ -7,14 +8,9 @@ from abc import ABC, abstractclassmethod
 class EngineStrategy(ABC):
     """Abstract base calss for the different engine."""
 
-
-    @abstractclassmethod
-    def engine_name():
-        """retruns engine name"""
-        pass
     
     @abstractclassmethod
-    def get_task_class( task: str, user_param):
+    def get_task_class(self, task: str, user_param):
         pass
 
     @abstractclassmethod
@@ -32,15 +28,12 @@ class EngineStrategy(ABC):
         pass
 
     @abstractclassmethod
-    def excute():
+    def create_command(self):
         pass
 
 class EngineGpaw(EngineStrategy):
 
-
-    def engine_name():
-        """retruns engine name"""
-        return 'gpaw'
+    command = "python"
 
     def get_task_class(self, task: str, user_param):
         if task == "ground state":
@@ -64,19 +57,20 @@ class EngineGpaw(EngineStrategy):
     
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for gpaw"""
-        filename = filename + '.py'
-        write2file(directory,filename,template)
+        self.directory = directory
+        self.filename = filename + '.py'
+        write2file(self.directory,self.filename,template)
 
-    def excute():
-        pass
+    def create_command(self, cmd: list):
+        filename = pathlib.Path(self.directory) / self.filename
+        command = [self.command, filename]
+        if cmd:
+            cmd.extend([self.command, filename])
+            command = cmd
+        return command
 
 class EngineOctopus(EngineStrategy):
 
-    
-
-    def engine_name():
-        """retruns engine name"""
-        return 'octopus '
 
     def get_task_class(self, task: str):
         pass
@@ -93,16 +87,11 @@ class EngineOctopus(EngineStrategy):
         """creates the input scripts for octopus"""
         write2file(directory,filename,template)
 
-    def excute():
+    def create_command():
         pass
 
 class EngineNwchem(EngineStrategy):
 
-   
-
-    def engine_name():
-        """retruns engine name"""
-        return 'nwchem'
 
     def get_task_class(self, task: str):
         pass
@@ -120,7 +109,7 @@ class EngineNwchem(EngineStrategy):
         """creates the input scripts for nwchem"""
         write2file(directory,filename,template)
     
-    def excute():
+    def create_command():
         pass
 
 def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
