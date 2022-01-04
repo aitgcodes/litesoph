@@ -79,5 +79,5 @@ class TCMGpaw:
         self.ksd = self.create_ks_basis(self.calc)    
 
     def plot(self):
-        for fnum in self.frequencies:
+        for fnum in range(len(self.frequencies)):
             self.plot_tcm(self.ksd, self.fdm, fnum, self.name)
