@@ -55,7 +55,7 @@ class AITG(Tk):
         self.window.grid_columnconfigure(800,weight=400)  
 
         self.frames = {}
-
+        self.task = None
         self.show_frame(StartPage)
     
     
@@ -88,18 +88,18 @@ class AITG(Tk):
         if task_check is True:
             if sub_task.get()  == "Ground State":
                self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
-               path1 = projpath.create_folder(self.directory, "GS")
-               os.chdir(path1)
+            #    path1 = projpath.create_folder(self.directory, "GS")
+            #    os.chdir(path1)
             if sub_task.get() == "Geometry Optimisation":
                self.show_frame(GeomOptPage, WorkManagerPage, JobSubPage)
             if sub_task.get() == "Delta Kick":           
                self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
-               path = projpath.create_folder(self.directory, "Spectrum")
-               os.chdir(path)  
+            #    path = projpath.create_folder(self.directory, "Spectrum")
+            #    os.chdir(path)  
             if sub_task.get() == "Gaussian Pulse":
                self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
-               path = projpath.create_folder(self.directory, "Pulse")
-               os.chdir(path)
+            #    path = projpath.create_folder(self.directory, "Pulse")
+            #    os.chdir(path)
             if sub_task.get() == "Spectrum":
                self.show_frame(PlotSpectraPage)
             if sub_task.get() == "Dipole Moment and Laser Pulse":
@@ -121,7 +121,7 @@ class AITG(Tk):
         if task == 'td':
             rt.default_input.update(gui_dict)
             dict_input = rt.default_input
-            RT_LCAO_TDDFT(dict_input,filename, engine.EngineGpaw(),str(self.directory)+"/"+str(dir))
+            RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),str(self.directory)+"/"+str(dir), filename)
 
         return dict_input['directory'] + "/" + filename + ".py"
         
@@ -434,18 +434,18 @@ class GroundStatePage(Frame):
         self.Frame1.configure(cursor="fleur")
         self.Frame1 = tk.Frame(self)
         
-        h   = StringVar()
-        nbands = StringVar()
-        vacuum = StringVar()
-        mode = StringVar()
-        xc = StringVar()
-        basis = StringVar()
-        charge = StringVar()
-        spinpol = StringVar()
-        multip = StringVar()
-        energy = StringVar()
-        bands = StringVar()
-        maxiter = StringVar()
+        self.h   = StringVar()
+        self.nbands = StringVar()
+        self.vacuum = StringVar()
+        self.mode = StringVar()
+        self.xc = StringVar()
+        self.basis = StringVar()
+        self.charge = StringVar()
+        self.spinpol = StringVar()
+        self.multip = StringVar()
+        self.energy = StringVar()
+        self.bands = StringVar()
+        self.maxiter = StringVar()
 
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -483,7 +483,7 @@ class GroundStatePage(Frame):
                 sub_task.config(value = gauss_task)
                 sub_task.current(0)
 
-        task = ttk.Combobox(self.Frame1, textvariable = mode, values= Mainmode)
+        task = ttk.Combobox(self.Frame1, textvariable = self.mode, values= Mainmode)
         task.set("--choose mode--")
         task['font'] = myFont
         task.place(x=280,y=60)
@@ -494,7 +494,7 @@ class GroundStatePage(Frame):
         self.Frame2_label_3['font'] = myFont
         self.Frame2_label_3.place(x=10,y=110)
           
-        sub_task = ttk.Combobox(self.Frame1, textvariable= basis, value = [" "])
+        sub_task = ttk.Combobox(self.Frame1, textvariable= self.basis, value = [" "])
         sub_task.current(0)
         sub_task['font'] = myFont
         sub_task.place(x=280,y=110)
@@ -506,7 +506,7 @@ class GroundStatePage(Frame):
        
         exch_cor = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
 
-        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= xc, value = exch_cor)
+        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self.xc, value = exch_cor)
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=160)
@@ -516,7 +516,7 @@ class GroundStatePage(Frame):
         self.label_pol_y['font'] = myFont
         self.label_pol_y.place(x=10,y=210)
     
-        self.entry_proj = Entry(self.Frame1,textvariable= h)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.h)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"0.3")
         self.entry_proj.place(x=280,y=210)
@@ -525,7 +525,7 @@ class GroundStatePage(Frame):
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=260)
  
-        self.entry_proj = Entry(self.Frame1,textvariable= nbands)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.nbands)
         self.entry_proj['font'] = myFont
         self.entry_proj.place(x=280,y=260)
 
@@ -533,7 +533,7 @@ class GroundStatePage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=310)
 
-        self.entry_proj = Entry(self.Frame1,textvariable= vacuum)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.vacuum)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"6")
         self.entry_proj.place(x=280,y=310)
@@ -542,7 +542,7 @@ class GroundStatePage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('gs',"GS",'gs',gs_inp2dict()), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.gs_inp2dict("gs"), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=300,y=380)
 
@@ -562,7 +562,7 @@ class GroundStatePage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= charge)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.charge)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=280,y=60)
@@ -571,7 +571,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=110)
    
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= spinpol, value = ["None","True"])
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.spinpol, value = ["None","True"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=110)
@@ -581,7 +581,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= multip)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.multip)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"1")
         self.entry_proj.place(x=280,y=160)
@@ -590,7 +590,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=210)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= energy)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.energy)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"5e-05")
         self.entry_proj.place(x=280,y=210)
@@ -599,7 +599,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= maxiter)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.maxiter)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"300")
         self.entry_proj.place(x=280,y=260)
@@ -608,13 +608,13 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=310)
 
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= bands, value = ["occupied","unoccupied"])
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = ["occupied","unoccupied"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=310)
         self.entry_pol_x['state'] = 'readonly'
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, GroundStatePage, None, defaultfile=controller.gui_inp('gs',"GS",'gs',gs_inp2dict()))])
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, GroundStatePage, None, defaultfile=controller.gui_inp('gs',"GS",'gs',self.gs_inp2dict()))])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
@@ -622,27 +622,34 @@ class GroundStatePage(Frame):
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=300,y=380)
 
-        def gs_inp2dict():
-            inp_dict = {
-                'mode': mode.get(),
-                'xc': xc.get(),
-                'vacuum': vacuum.get(),
-                'basis':{'default': basis.get()},
-                'h': h.get(),
-                'nbands' : nbands.get(),
-                'charge' : charge.get(),
-                'spinpol' : spinpol.get(),
-                'multip' : None, 
-                'convergence' : {'energy' : float(energy.get()), 'bands' : bands.get()},
-                'maxiter' : maxiter.get(),
-                'properties': 'get_potential_energy()',
-                'engine':'gpaw'
-                        }   
+    def gs_inp2dict(self, filename):
+        inp_dict = {
+            'mode': self.mode.get(),
+            'xc': self.xc.get(),
+            'vacuum': self.vacuum.get(),
+            'basis':{'default': self.basis.get()},
+            'h': self.h.get(),
+            'nbands' : self.nbands.get(),
+            'charge' : self.charge.get(),
+            'spinpol' : self.spinpol.get(), 
+            'multip' : self.multip.get(), 
+            'convergence' : {'energy' : float(self.energy.get()), 'bands' : self.bands.get()},
+            'maxiter' : self.maxiter.get(),
+            'properties': 'get_potential_energy()',
+            'engine':'gpaw'
+                    }   
 
-            if basis.get() == '':
-                inp_dict['basis']={}
+        if self.basis.get() == '':
+            inp_dict['basis']={}
 
-            return inp_dict  
+        inp_dict['directory'] = str(self.controller.directory)+"/"+ str(dir)
+        inp_dict['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+        engn = engine.choose_engine(inp_dict)
+        job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
+        job.write_input()
+        self.controller.task = job
+        #self.status.update_status('gs_inp', 1)
+
 
 class GeomOptPage(Frame):
 
@@ -901,12 +908,12 @@ class TimeDependentPage(Frame):
         self.Frame1.configure(cursor="fleur")
         self.Frame1 = tk.Frame(self)
         
-        strength = StringVar()
+        self.strength = StringVar()
         self.ex = StringVar()
         self.ey = StringVar()
         self.ez = StringVar()
-        dt = StringVar()
-        Nt = StringVar()    
+        self.dt = StringVar()
+        self.Nt = StringVar()    
         self.v = StringVar()        
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -923,7 +930,7 @@ class TimeDependentPage(Frame):
         self.label_proj.place(x=10,y=60)
         
         inval = ["1e-5","1e-3"]
-        self.entry_proj = ttk.Combobox(self.Frame1,textvariable= strength, value = inval)
+        self.entry_proj = ttk.Combobox(self.Frame1,textvariable= self.strength, value = inval)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"1e-5")
         self.entry_proj.place(x=280,y=60)
@@ -964,7 +971,7 @@ class TimeDependentPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=260)
 
-        self.entry_proj = Entry(self.Frame1,textvariable= dt)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.dt)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"10")
         self.entry_proj.place(x=280,y=260)
@@ -973,7 +980,7 @@ class TimeDependentPage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=310)
 
-        self.entry_proj = Entry(self.Frame1,textvariable= Nt)
+        self.entry_proj = Entry(self.Frame1,textvariable= self.Nt)
         self.entry_proj['font'] = myFont
         self.entry_proj.insert(0,"200")
         self.entry_proj.place(x=280,y=310)
@@ -982,7 +989,7 @@ class TimeDependentPage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()), controller.status.update_status('td_inp', 1), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.td_inp2dict("td"), show_message(self.label_msg, "Saved")])
         #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[td_inp2dict()])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=300,y=380)
@@ -1011,26 +1018,32 @@ class TimeDependentPage(Frame):
             Radiobutton(self.Frame2, text = text, variable = self.v,
                 value = value).pack(side = TOP, anchor=NW, ipady = 5)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, TimeDependentPage, None, defaultfile=controller.gui_inp('td',"Spectrum",'td', td_inp2dict())),self.controller.status.update_status('td_inp', 1)])
-        Frame2_Button1['font'] = myFont
-        Frame2_Button1.place(x=10,y=380)
+        #Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
+        #Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, TimeDependentPage, None, defaultfile=controller.gui_inp('td',"Spectrum",'td', td_inp2dict())),self.controller.status.update_status('td_inp', 1)])
+        #Frame2_Button1['font'] = myFont
+        #Frame2_Button1.place(x=10,y=380)
 
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, TimeDependentPage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=300,y=380)
-   
-        def td_inp2dict():
-            td_dict = rt.default_input
-            path = str(controller.directory) + "/GS"
-            td_dict['filename'] = path +"/gs.gpw"
-            td_dict['absorption_kick'][0] = float(strength.get())*float(self.ex.get())
-            td_dict['absorption_kick'][1] = float(strength.get())*float(self.ey.get())
-            td_dict['absorption_kick'][2] = float(strength.get())*float(self.ez.get())
-            td_dict['analysis_tools'] = self.analysis_tool()
-            inp_list = [float(dt.get()),float(Nt.get())]
-            td_dict['propagate'] = tuple(inp_list)
-            return td_dict
+
+    def td_inp2dict(self,filename):
+        td_dict = rt.default_input
+        path = str(self.controller.directory) + "/GS"
+        td_dict['filename'] = path +"/gs.gpw"
+        td_dict['absorption_kick'][0] = float(self.strength.get())*float(self.ex.get())
+        td_dict['absorption_kick'][1] = float(self.strength.get())*float(self.ey.get())
+        td_dict['absorption_kick'][2] = float(self.strength.get())*float(self.ez.get())
+        td_dict['analysis_tools'] = self.analysis_tool()
+        inp_list = [float(self.dt.get()),float(self.Nt.get())]
+        td_dict['propagate'] = tuple(inp_list)
+
+        
+        job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename)
+        job.write_input()
+        self.controller.task = job
+
+        return td_dict
 
     def analysis_tool(self): 
         if self.v.get() == "1":
@@ -1199,7 +1212,7 @@ class LaserDesignPage(Frame):
         self.entry_pol_z.place(x=280,y=160) 
         self.entry_pol_z['state'] = 'readonly'
 
-        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(),controller.gui_inp('td',"Pulse",'td_pulse', self.td),controller.status.update_status('td_inp', 2), show_message(self.label_msg, "Saved")])
+        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict('td_pulse'),controller.status.update_status('td_inp', 2), show_message(self.label_msg, "Saved")])
         self.Frame2_Button1['font'] = myFont
         self.Frame2_Button1.place(x=10,y=380)
 
@@ -1227,8 +1240,8 @@ class LaserDesignPage(Frame):
         self.Frame3.configure(cursor="fleur")
     
     def laser_button(self):
-        write_laser(self.laser_pulse(), 'pulse', str(self.controller.directory)+"/Pulse")
-        self.plot_canvas(str(self.controller.directory)+"/Pulse/pulse.dat", 1, 'time(in fs)','Laser strength(in au)')
+        write_laser(self.laser_pulse(), 'pulse', str(self.controller.directory))
+        self.plot_canvas(str(self.controller.directory)+"/pulse.dat", 1, 'time(in fs)','Laser strength(in au)')
        
 
     def plot_canvas(self,filename, axis, x,y):
@@ -1295,7 +1308,7 @@ class LaserDesignPage(Frame):
         l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
         return(l_dict)
 
-    def tdpulse_inp2dict(self):
+    def tdpulse_inp2dict(self, filename):
         self.td = self.tdpulse_dict
         self.dir = self.controller.directory
         abs_x = float(self.strength.get())*float(self.pol_x.get())
@@ -1312,9 +1325,13 @@ class LaserDesignPage(Frame):
         updatekey(self.td,'dipole_file','dmpulse.dat')
         updatekey(self.td,'filename', str(self.dir)+'/GS/gs.gpw')
         updatekey(self.td,'td_potential', True)
-        updatekey(self.td,'txt', str(self.dir)+'/Pulse/tdpulse.out')
-        updatekey(self.td,'td_out',str(self.dir)+ '/Pulse/tdpulse.gpw')
+        updatekey(self.td,'txt', 'tdpulse.out')
+        updatekey(self.td,'td_out', 'tdpulse.gpw')
         updatekey(self.td,'laser', laser_dict)
+
+        job =RT_LCAO_TDDFT(self.td, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename)
+        job.write_input()
+        self.controller.task = job
         return(self.td)       
 
 def updatekey(dict, key, value):
@@ -1386,8 +1403,9 @@ class PlotSpectraPage(Frame):
         spec_dict = {}
         spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "Spectrum" / dipolefile
         spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
-        s = Spectrum(spec_dict, 'spec', engine.EngineGpaw(), str(self.controller.directory)+"/Spectrum") 
-
+        job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory)+"/Spectrum",'spec') 
+        job.write_input()
+        self.controller.task = job
 
 
 class JobSubPage(Frame):
@@ -1404,7 +1422,7 @@ class JobSubPage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
 
         self.Frame = tk.Frame(self)
-        processors = IntVar()
+        self.processors = IntVar()
 
         self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
         self.Frame.configure(relief='groove')
@@ -1420,8 +1438,8 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=60)
 
-        sbj_entry1 = Entry(self,textvariable= processors, width=20)
-        processors.set(1)
+        sbj_entry1 = Entry(self,textvariable= self.processors, width=20)
+        self.processors.set(1)
         sbj_entry1['font'] = l
         sbj_entry1.place(x=200,y=60)
         
@@ -1429,7 +1447,7 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=110)
 
-        sbj_button1 = Button(self, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local(processors.get())])
+        sbj_button1 = Button(self, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         sbj_button1['font'] = myFont
         sbj_button1.place(x=600, y=60)
 
@@ -1441,9 +1459,12 @@ class JobSubPage(Frame):
         back['font'] = myFont
         back.place(x=600,y=380)              
 
-    def submitjob_local(self, processors):
-        job = self.checkjob()
-        self.select_job(job,processors)
+    def submitjob_local(self):
+        from litesoph.utilities.job_submit import get_submit_class
+        submit = get_submit_class()
+        p = self.controller.task.run(self.processors.get())
+        # job = self.checkjob()
+        # self.select_job(job,processors)
 
     def checkjob(self):
         if self.prev.__name__ == 'GroundStatePage':
@@ -1699,14 +1720,16 @@ class TcmPage(Frame):
     def create_tcm(self):
         self.retrieve_input()
         gs = pathlib.Path(self.controller.directory) / "GS" / "gs.gpw"
-        wf = pathlib.Path(self.controller.directory) / "Spectrum" / "wf.ulm"
+        wf = pathlib.Path(self.controller.directory) / "TD" / "wf.ulm"
         tcm_dict = {
                 'gfilename' : gs,
                 'wfilename' : wf,
                 'frequencies' : self.freq_list,
                 'name' : "x"
                  }         
-        TCM(tcm_dict, 'tcm', engine.EngineGpaw(), self.controller.directory)       
+        job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
+        job.write_input()
+        self.controller.task = job       
 
     def freq_listbox(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')

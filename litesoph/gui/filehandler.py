@@ -97,14 +97,6 @@ def open_file(outpath):
     out_file.close()
 
 
-def open_existing_project():
-    oldProject = filedialog.askdirectory()
-
-
-def runpython(fpath: str):
-    subprocess.run(["python", fpath])
-
-
 def show_message(label_name, message):
     """
     Shows a update

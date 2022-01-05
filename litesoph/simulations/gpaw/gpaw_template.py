@@ -88,11 +88,11 @@ calc = GPAW(mode='{mode}',
     verbose={verbose},
     fixdensity={fixdensity},  # deprecated
     dtype={dtype},  # deprecated
-    txt='{directory}/gs.out',
+    txt='gs.out',
     parallel=None)
 layer.calc = calc
 energy = layer.get_potential_energy()
-calc.write('{directory}/gs.gpw', mode='all')
+calc.write('gs.gpw', mode='all')
 
     """
     def __init__(self, user_input) -> None:
@@ -167,7 +167,7 @@ td_calc.absorption_kick({absorption_kick})
 # Propagate"
 td_calc.propagate{propagate}
 # Save the state for restarting later"
-td_calc.write('{directory}/{td_out}', mode='all')
+td_calc.write('{td_out}', mode='all')
     """
     
     external_field_template = """ 
@@ -191,7 +191,8 @@ td_calc.write('{td_out}', mode='all')
     """
 
     def __init__(self, user_input) -> None:
-        self.user_input = user_input
+        self.user_input = self.default_input
+        self.user_input.update(user_input)
         self.laser = self.user_input['laser']
         self.tools = self.user_input['analysis_tools']
         self.td_potential = self.user_input['td_potential']
