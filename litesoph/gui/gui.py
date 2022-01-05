@@ -23,7 +23,6 @@ from litesoph.simulations import engine
 from litesoph.gui.filehandler import Status,file_check, open_file,show_message
 from litesoph.gui.navigation import Nav
 from litesoph.simulations.gpaw.gpaw_template import RtLcaoTddft as rt
-#from litesoph.simulations.gpaw.spectrum import spectrum
 from litesoph.gui.filehandler import Status
 from litesoph.simulations.gpaw.gpaw_template import write_laser
 
@@ -614,9 +613,9 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=310)
         self.entry_pol_x['state'] = 'readonly'
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, GroundStatePage, None, defaultfile=controller.gui_inp('gs',"GS",'gs',self.gs_inp2dict()))])
-        Frame2_Button3['font'] = myFont
-        Frame2_Button3.place(x=10,y=380)
+        # Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, GroundStatePage, None, defaultfile=controller.gui_inp('gs',"GS",'gs',self.gs_inp2dict()))])
+        # Frame2_Button3['font'] = myFont
+        # Frame2_Button3.place(x=10,y=380)
  
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
@@ -859,9 +858,9 @@ class GeomOptPage(Frame):
         #self.entry_proj.insert(0,"0.05")
         #self.entry_proj.place(x=250,y=310)
         
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('opt','opt',opt_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
-        Frame2_Button3['font'] = myFont
-        Frame2_Button3.place(x=10,y=380)
+        # Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('opt','opt',opt_inp2dict()), controller.show_frame(TextViewerPage, GroundStatePage, None)])
+        # Frame2_Button3['font'] = myFont
+        # Frame2_Button3.place(x=10,y=380)
  
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
@@ -1220,9 +1219,9 @@ class LaserDesignPage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=10,y=350)
  
-        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(), controller.show_frame(TextViewerPage, LaserDesignPage, None, defaultfile=controller.gui_inp('td',"Pulse",'td_pulse', self.td)),self.controller.status.update_status('td_inp', 2)])
-        self.Frame2_Button2['font'] = myFont
-        self.Frame2_Button2.place(x=170,y=380)
+        # self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(), controller.show_frame(TextViewerPage, LaserDesignPage, None, defaultfile=controller.gui_inp('td',"Pulse",'td_pulse', self.td)),self.controller.status.update_status('td_inp', 2)])
+        # self.Frame2_Button2['font'] = myFont
+        # self.Frame2_Button2.place(x=170,y=380)
         
         self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, LaserDesignPage, None))
         self.Frame2_Button3['font'] = myFont
@@ -1461,8 +1460,8 @@ class JobSubPage(Frame):
 
     def submitjob_local(self):
         from litesoph.utilities.job_submit import get_submit_class
-        submit = get_submit_class()
-        p = self.controller.task.run(self.processors.get())
+        submit = get_submit_class(engine=self.controller.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
+        p = self.controller.task.run(submit)
         # job = self.checkjob()
         # self.select_job(job,processors)
 

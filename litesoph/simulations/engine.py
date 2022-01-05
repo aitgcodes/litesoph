@@ -44,7 +44,7 @@ class EngineStrategy(ABC):
 
 class EngineGpaw(EngineStrategy):
 
-    command = "python"
+    command = "python3"
 
     gpaw_gs_dict={'inp':'gs.py',
             'out': 'gs.out',
