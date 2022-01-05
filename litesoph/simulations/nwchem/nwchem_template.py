@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 ###################### Starting of Ground State default and template #############################
 
-class gs_input:
+class NwchemGroundState:
 
 
     default_gs_param = {
@@ -109,7 +109,7 @@ end
 
 #################################### Starting of Optimisastion default and template ################
 
-class opt_input:
+class NwchemOptimisation:
  
     default_opt_param= {
             'mode':'gaussian',
@@ -203,7 +203,7 @@ end
 
 #################################### Starting of Delta Kick default and template ################
 
-class delta_kick: 
+class NwchemDeltaKick: 
 
     default_delta_param= {
             'name': None,
@@ -335,7 +335,7 @@ task dft rt_tddft
 
 #################################### Starting of Gaussian Pulse default and template ################
 
-class gaussian_pulse:
+class NwchemGaussianPulse:
    
     default_gp_param= {
             'name': None,
