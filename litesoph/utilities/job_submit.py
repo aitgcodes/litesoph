@@ -3,6 +3,13 @@ from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
 
+def get_submit_class(network=None, *args):
+    
+    if network:
+        return SubmitNetwork(*args)
+    else:
+        return SubmitLocal(*args)
+
 class JobSubmit:
     
     def __init__(self, engine: EngineStrategy, configs: ConfigParser, keyword:str=None) -> None:
@@ -15,7 +22,7 @@ class JobSubmit:
         
     def run_job(self, command, directory):
         job = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory)
-        job.wait()
+        
         return job
       
     
@@ -35,7 +42,8 @@ class SubmitLocal(JobSubmit):
     
     def run_job(self,directory):
         print(self.command)
-        return super().run_job(self.command, directory)
+        self.j = super().run_job(self.command, directory)
+        self.result = self.j.communicate()[1]
        
 
 class SubmitNetwork(JobSubmit):

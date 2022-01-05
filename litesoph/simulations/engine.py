@@ -1,4 +1,5 @@
 import pathlib
+import os
 from typing import Any, Dict
 from litesoph.lsio.IO import write2file 
 from litesoph.simulations.gpaw import gpaw_template as gp
@@ -31,9 +32,31 @@ class EngineStrategy(ABC):
     def create_command(self):
         pass
 
+    def create_directory(self,directory):
+        """Write input file(s).
+        Call this method first in subclasses so that directories are
+        created automatically."""
+
+        absdir = os.path.abspath(directory)
+        if absdir != os.curdir and not os.path.isdir(directory):
+            os.makedirs(directory)
+
+
 class EngineGpaw(EngineStrategy):
 
     command = "python"
+
+    gpaw_gs_dict={'inp':'gs.py',
+            'out': 'gs.out',
+            'check_list':['Converged', 'Fermi level:','Total:']}
+
+    gpaw_td_dict={'inp':'td.py',
+             'out': 'tdx.out',
+             'check_list':['Writing','Total:']}
+
+    gpaw_pulse_dict={'inp':'td_pulse.py',
+             'out': 'tdpulse.out',
+             'check_list':['Writing','Total:']}
 
     def get_task_class(self, task: str, user_param):
         if task == "ground state":
@@ -60,6 +83,11 @@ class EngineGpaw(EngineStrategy):
         self.directory = directory
         self.filename = filename + '.py'
         write2file(self.directory,self.filename,template)
+
+    def create_dir(self, directory, task):
+        directory = pathlib.Path(directory) / task
+        self.create_directory(directory)
+        return directory
 
     def create_command(self, cmd: list):
         filename = pathlib.Path(self.directory) / self.filename
