@@ -1,4 +1,3 @@
-import configparser
 from typing import Any, Dict
 import os
 import pathlib
@@ -14,7 +13,40 @@ if config_file.is_file is False:
 configs = ConfigParser()
 configs.read(config_file)
 
-class GroundState:
+class Task:
+
+    def run(self, submit: JobSubmit):
+        self.submit = submit
+        self.submit.create_command()
+        self.submit.run_job(self.directory)
+        print(str(self.submit.result))
+
+class GeometricOptimization(Task):
+
+    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,status, directory, filename) -> None:
+        self.user_input = user_input
+        self.engine = engine
+        self.filename = filename
+        self.status = status
+        self.task = self.engine.get_task_class('Optimization', self.user_input)
+        self.directory = directory
+        self.user_input['directory']=self.directory
+        self.template = self.task.format_template()
+
+    def write_input(self, template=None):
+        
+        if template:
+            self.template = template
+
+        self.task_dir()
+        self.engine.create_script(self.directory,self.filename, self.template)
+        self.status.update_status('td_inp', 1)
+
+    def task_dir(self):
+        self.directory = self.engine.create_dir(self.directory, "Gopt")
+        os.chdir(self.directory)
+    
+class GroundState(Task):
     """It takes in the user input dictionary as input. It then decides the engine and converts 
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
@@ -57,21 +89,12 @@ class GroundState:
             elif cal_check is False:
                 self.status.update_status('run', 2)        
 
-                
-    def run(self, submit: JobSubmit):
-        self.submit = submit
-        #job = SubmitLocal(self.engine, configs, proc)
-        self.submit.create_command()
-        self.submit.run_job(self.directory)
-        print(str(self.submit.result))
 
-
-class RT_LCAO_TDDFT:
+class RT_LCAO_TDDFT(Task):
     
-    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,submit: JobSubmit,status, directory, filename) -> None:
+    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,status, directory, filename) -> None:
         self.user_input = user_input
         self.engine = engine
-        self.submit = submit
         self.filename = filename
         self.status = status
         self.task = self.engine.get_task_class('LCAO TDDFT', self.user_input)
@@ -79,7 +102,6 @@ class RT_LCAO_TDDFT:
         self.user_input['directory']=self.directory
         self.template = self.task.format_template()
 
-        #engine.create_script(self.directory, filename, self.template)
 
     def write_input(self, template=None):
         
@@ -94,25 +116,18 @@ class RT_LCAO_TDDFT:
         self.directory = self.engine.create_dir(self.directory, "TD")
         os.chdir(self.directory)
     
-    def run(self, proc):
-        #job = SubmitLocal(self.engine, configs, proc)
-        self.submit.create_command()
-        self.submit.run_job(self.directory)
 
-class LR_TDDFT:
+class LR_TDDFT(Task):
     pass
 
-class Spectrum:
+class Spectrum(Task):
 
-    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,submit: JobSubmit, directory, filename) -> None:
+    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,directory, filename) -> None:
         self.user_input = user_input
         self.engine = engine
-        self.submit = submit
         self.directory = directory
         self.task = self.engine.get_task_class("spectrum", self.user_input)
         self.template = self.task.format_template()
-
-        #engine.create_script(self.directory, filename, self.template)
 
     def write_input(self, template=None):
         
@@ -121,29 +136,21 @@ class Spectrum:
 
         self.task_dir()
         self.engine.create_script(self.directory,self.filename, self.template)
-        #self.status.update_status('td_inp', 1)
 
     def task_dir(self):
         self.directory = self.engine.create_dir(self.directory, "Spectrum")
         os.chdir(self.directory)
 
-    def run(self, proc):
-        #job = SubmitLocal(self.engine, configs, proc)
-        self.submit.create_command()
-        self.submit.run_job(self.directory)
 
-class TCM:
+class TCM(Task):
     
-    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,submit: JobSubmit, directory, filename) -> None:
+    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy, directory, filename) -> None:
         self.user_input = user_input
         self.engine = engine
-        self.submit = submit
         self.directory = directory
         self.task = self.engine.get_task_class("tcm", self.user_input)
         self.template = self.task.format_template()
 
-        #engine.create_script(self.directory, filename, self.template)
-    
     def write_input(self, template=None):
         
         if template:
@@ -151,15 +158,10 @@ class TCM:
 
         self.task_dir()
         self.engine.create_script(self.directory,self.filename, self.template)
-        self.status.update_status('td_inp', 1)
 
     def task_dir(self):
         self.directory = self.engine.create_dir(self.directory, "TCM")
         os.chdir(self.directory)
 
-    def run(self, proc):
-        #job = SubmitLocal(self.engine, configs, proc)
-        self.submit.create_command()
-        self.submit.run_job(self.directory)
   
 
