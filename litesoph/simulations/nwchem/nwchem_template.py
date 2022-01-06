@@ -43,6 +43,9 @@ end
 task {theory} {properties}
                """
 
+    def __init__(self, user_input) -> None:
+        pass
+
     def calcscf(self):
         maxiter = self.default_gs_param['maxiter']
         scf = """
@@ -72,8 +75,6 @@ end
     """.format(multip,xc,maxiter,tolerances,energy,density)
         return dft
 
-    def __init__(self, user_input) -> None:
-        pass
 
     def calc_task(self):
         if self.default_gs_param['theory'] == 'scf':
@@ -149,6 +150,9 @@ task {theory} optimize
                
                 """
 
+    def __init__(self, user_input) -> None:
+        pass
+
     def calcscf(self):
         maxiter = self.default_opt_param['maxiter']
         scf = """
@@ -178,8 +182,7 @@ end
     """.format(multip,xc,maxiter,tolerances,energy,density)
         return dft
     
-    def __init__(self, user_input) -> None:
-        pass
+   
 
     def calc_task(self):
         if self.default_opt_param['theory'] == 'scf':
@@ -230,6 +233,10 @@ set geometry "system"
 {kick}
 
               """ 
+
+    def __init__(self, user_input) -> None:
+        pass
+
     def kickx(self):
         tmax = self.default_delta_param['tmax']
         dt = self.default_delta_param['dt']
@@ -308,8 +315,6 @@ task dft rt_tddft
     """.format(tmax, dt, polz, max)
         return z_kick
 
-    def __init__(self, user_input) -> None:
-        pass
 
     def kick_task(self):
         if self.default_delta_param['polx'] == 'x':

@@ -15,6 +15,10 @@ configs.read(config_file)
 
 class Task:
 
+    def task_dir(self):
+        self.directory = self.engine.create_dir(self.directory, type(self.task).__name__)
+        os.chdir(self.directory)
+
     def run(self, submit: JobSubmit):
         self.submit = submit
         self.submit.create_command()
@@ -74,9 +78,15 @@ class GroundState(Task):
         self.engine.create_script(self.directory,self.filename, self.template)
         self.status.update_status('gs_inp', 1)
 
-    def task_dir(self):
-        self.directory = self.engine.create_dir(self.directory, "GS")
-        os.chdir(self.directory)
+    def prerequisite(self):
+        self.job_d = self.engine.gs
+        self.job_d['cal_check'] = self.status.check_status('gs_cal', 1)                       
+        gs_check= self.status.check_status('gs_inp', 1) 
+        return gs_check          
+        # if gs_check is True :
+        #     self.run_job('gs_cal', 1, 0)
+        # else:
+        #     show_message(self.msg_label1, "GS inputs not found")
 
     def c_status(self):
         gs_check= self.status.check_status('gs_inp', 1) 
@@ -92,16 +102,22 @@ class GroundState(Task):
 
 class RT_LCAO_TDDFT(Task):
     
-    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,status, directory, filename) -> None:
+    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,status, directory, filename, keyword:str=None) -> None:
         self.user_input = user_input
         self.engine = engine
+        self.keyword = keyword
         self.filename = filename
         self.status = status
-        self.task = self.engine.get_task_class('LCAO TDDFT', self.user_input)
+        self.task = self.get_engine_task()
         self.directory = directory
         self.user_input['directory']=self.directory
         self.template = self.task.format_template()
 
+    def get_engine_task(self):
+        if self.keyword == "delta":
+            return self.engine.get_task_class('LCAO TDDFT Delta', self.user_input)
+        elif self.keyword == "laser":
+            return self.engine.get_task_class('LCAO TDDFT Laser', self.user_input)
 
     def write_input(self, template=None):
         
@@ -111,10 +127,25 @@ class RT_LCAO_TDDFT(Task):
         self.task_dir()
         self.engine.create_script(self.directory,self.filename, self.template)
         self.status.update_status('td_inp', 1)
+    
+    def prerequisite(self):
 
-    def task_dir(self):
-        self.directory = self.engine.create_dir(self.directory, "TD")
-        os.chdir(self.directory)
+        if self.keyword == "delta":
+            self.job_d = self.engine.td_delta
+            self.job_d['cal_check'] = self.status.check_status('td_cal', 1)
+            td_check = self.status.check_status('td_inp', 1) 
+            gs_cal_check = self.status.check_status('gs_cal', 1)
+            return td_check, gs_cal_check 
+
+        elif self.keyword == "laser":
+            self.job_d = self.engine.pulse
+            self.job_d['cal_check'] = self.st_var.check_status('td_cal', 2)
+            td_check = self.st_var.check_status('td_inp', 2)
+            gs_cal_check = self.st_var.check_status('gs_cal', 1)
+            return td_check, gs_cal_check  
+
+       
+        
     
 
 class LR_TDDFT(Task):
@@ -137,10 +168,11 @@ class Spectrum(Task):
         self.task_dir()
         self.engine.create_script(self.directory,self.filename, self.template)
 
-    def task_dir(self):
-        self.directory = self.engine.create_dir(self.directory, "Spectrum")
-        os.chdir(self.directory)
-
+    def prerequisite(self):
+        self.job_d = self.engine.gs
+        self.job_d['cal_check'] = self.status.check_status('gs_cal', 1)                       
+        gs_check= self.status.check_status('gs_inp', 1) 
+        return gs_check  
 
 class TCM(Task):
     
@@ -158,10 +190,13 @@ class TCM(Task):
 
         self.task_dir()
         self.engine.create_script(self.directory,self.filename, self.template)
+    
+    def prerequisite(self):
+        self.job_d = self.engine.gs
+        self.job_d['cal_check'] = self.status.check_status('gs_cal', 1)                       
+        gs_check= self.status.check_status('gs_inp', 1) 
+        return gs_check  
 
-    def task_dir(self):
-        self.directory = self.engine.create_dir(self.directory, "TCM")
-        os.chdir(self.directory)
 
   
 
