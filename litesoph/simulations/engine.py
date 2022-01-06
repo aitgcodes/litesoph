@@ -53,7 +53,6 @@ class EngineStrategy(ABC):
 
 class EngineGpaw(EngineStrategy):
 
-    #command = "python3"
     
     gs = {'inp':'/GS/gs.py',
             'out': '/GS/gs.out',
