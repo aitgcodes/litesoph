@@ -48,8 +48,8 @@ class SubmitLocal(JobSubmit):
         self.result = self.j.communicate()[1]
        
 
-# class SubmitNetwork(JobSubmit):
-#     pass            
+class SubmitNetwork(JobSubmit):
+    pass            
 
 
 

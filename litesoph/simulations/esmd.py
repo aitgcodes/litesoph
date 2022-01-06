@@ -157,6 +157,7 @@ class Spectrum(Task):
         self.user_input = user_input
         self.engine = engine
         self.directory = directory
+        self.filename = filename
         self.task = self.engine.get_task_class("spectrum", self.user_input)
         self.template = self.task.format_template()
 
@@ -180,6 +181,7 @@ class TCM(Task):
         self.user_input = user_input
         self.engine = engine
         self.directory = directory
+        self.filename = filename
         self.task = self.engine.get_task_class("tcm", self.user_input)
         self.template = self.task.format_template()
 

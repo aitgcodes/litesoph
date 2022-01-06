@@ -1405,7 +1405,7 @@ class PlotSpectraPage(Frame):
         spec_dict = {}
         spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / dipolefile
         spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
-        job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory)+"/Spectrum",'spec') 
+        job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
         job.write_input()
         self.controller.task = job
 
@@ -1462,21 +1462,11 @@ class JobSubPage(Frame):
         back.place(x=600,y=380)              
 
     def submitjob_local(self):
-        from litesoph.utilities.job_submit import get_submit_class
         from litesoph.gui.job_validation import select_job
         job = self.checkjob()
-        #self.submit = get_submit_class(engine=self.controller.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
         select_job(self,job, self.controller.status)
-        #p = self.controller.task.run(self.submit)
         
-
-    # def checkjob(self):
-    #     if self.prev.__name__ == 'GroundStatePage':
-    #         return('gs')
-    #     if self.prev.__name__ == 'TimeDependentPage':
-    #         return('delta')   
-    #     if self.prev.__name__ == 'LaserDesignPage':
-    #         return('pulse')
+        
 
     def checkjob(self):
         try:
@@ -1504,26 +1494,7 @@ class JobSubPage(Frame):
             show_message(self.msg_label1,"Job Done")
         else:
             show_message(self.msg_label1, "Error while generating output") 
-    # def call_run(self,key, value, msg_label1):
-    #     from litesoph.utilities.run_local import run_local
-    #     if self.job_d['processors'] == 1 :
-    #         result = run_local(self.job_d['inp'], self.job_d['path']) 
-    #         f = file_check(self.job_d['check_list'], self.job_d['path']) 
-    #         f_check = f.check_list(self.job_d['out']) 
-    #         if f_check is True:
-    #             self.controller.status.update_status(key, value) 
-    #             show_message(msg_label1,"Job Done")
-    #         else:
-    #             show_message(msg_label1, "Error while generating output. Please check input files.")    
-    #     else:
-    #         result = run_local(self.job_d['inp'], self.job_d['path'],self.job_d['processors'])
-    #         f = file_check(self.job_d['check_list'], self.job_d['path']) 
-    #         f_check = f.check_list(self.job_d['out']) 
-    #         if f_check is True:
-    #             self.controller.status.update_status(key, value) 
-    #             show_message(msg_label1,"Job Done")
-    #         else:
-    #             show_message(msg_label1, "Error while generating output")        
+            
    
     def run_job(self, key, value1, value2):
         if self.job_d['cal_check'] is False:
@@ -1535,50 +1506,7 @@ class JobSubPage(Frame):
                 self.controller.status.update_status(key, value2)
                 self.call_run(key, value1)
 
-    # def select_job(self, job, processors):
-    #     self.st_var = self.controller.status
-    #     if job == 'gs':
-    #         self.job_d = file_check.gpaw_gs_dict
-    #         self.job_d['path'] = str(self.controller.directory)+"/GS"
-    #         self.job_d['processors'] = processors
-    #         self.job_d['cal_check'] = self.st_var.check_status('gs_cal', 1)                       
-    #         gs_check= self.st_var.check_status('gs_inp', 1)           
-    #         if gs_check is True :
-    #             self.run_job('gs_cal', 1, 0)
-    #         else:
-    #             show_message(self.msg_label1, "GS inputs not found")
-
-    #     if job == 'delta':
-    #         self.job_d = file_check.gpaw_td_dict  
-    #         self.job_d['path'] = str(self.controller.directory)+"/Spectrum"
-    #         self.job_d['processors'] = processors
-    #         self.job_d['cal_check'] = self.st_var.check_status('td_cal', 1)
-    #         td_check = self.st_var.check_status('td_inp', 1) 
-    #         gs_cal_check = self.st_var.check_status('gs_cal', 1)
-    #         if td_check is True and gs_cal_check is True :
-    #             self.run_job('td_cal', 1, 0)                 
-    #         else:
-    #             if td_check is False:
-    #                 show_message(self.msg_label1,"Inputs not found. Please create inputs for delta kick." ) 
-    #             elif gs_cal_check is False:
-    #                 show_message(self.msg_label1, "Inputs not found. Please run GS calculation.")   
-                        
-    #     if job == 'pulse':
-    #         self.job_d = file_check.gpaw_pulse_dict
-    #         print('Pulse start') 
-    #         print(self.job_d) 
-    #         self.job_d['path'] = str(self.controller.directory)+"/Pulse"
-    #         self.job_d['processors'] = processors
-    #         self.job_d['cal_check'] = self.st_var.check_status('td_cal', 2)
-    #         td_check = self.st_var.check_status('td_inp', 2)
-    #         gs_cal_check = self.st_var.check_status('gs_cal', 1)
-    #         if td_check is True and gs_cal_check is True:
-    #             print(self.job_d)
-    #             print("Pulse calc")
-    #             self.run_job('td_cal', 2, 1)                  
-    #         else:
-    #             show_message(self.msg_label1, "Inputs not found.")                 
-
+    
     def submitjob_network(self):
         pass
 
