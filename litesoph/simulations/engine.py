@@ -69,6 +69,11 @@ class EngineGpaw(EngineStrategy):
              'restart': '/TD_Laser/tdlaser.gpw',
              'check_list':['Writing','Total:']}
     
+    spectra = {'inp':'Spectrum/spec.py',
+             'out': '/Spectrum/spec.dat',
+             'restart': '/TD_Delta/dm.dat',
+             'check_list':['FWHM']}
+
     task_dirs =[('GpawGroundState', 'GS'),
             ('GpawRTLCAOTddftDelta', 'TD_Delta'),
             ('GpawRTLCAOTddftLaser', 'TD_Laser'),
