@@ -103,24 +103,6 @@ class AITG(Tk):
                self.show_frame(DmLdPage)
             if sub_task.get() == "Kohn Sham Decomposition":
                self.show_frame(TcmPage)                
-                  
-    def gui_inp(self, task, dir, filename, gui_dict):
-        
-        if task == 'gs':
-            ui.user_param.update(gui_dict) # update the user parameters
-            dict_input = ui.user_param
-            dict_input['directory'] = str(self.directory)+"/"+ str(dir)
-            dict_input['geometry'] = pathlib.Path(self.directory) / "coordinate.xyz"
-            engn = engine.choose_engine(dict_input)
-            job =GroundState(dict_input,engn, self.directory, filename)
-            self.status.update_status('gs_inp', 1)
-            
-        # if task == 'td':
-            # rt.default_input.update(gui_dict)
-            # dict_input = rt.default_input
-            # RT_LCAO_TDDFT(dict_input, engine.EngineGpaw(),str(self.directory)+"/"+str(dir), filename)
-
-        return dict_input['directory'] + "/" + filename + ".py"
         
 class StartPage(Frame):
 
@@ -539,7 +521,7 @@ class GroundStatePage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.gs_inp2dict("gs"), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.gs_inp2dict("gs"),self.write_input(), show_message(self.label_msg, "Saved")])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=300,y=380)
 
@@ -611,9 +593,9 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=310)
         self.entry_pol_x['state'] = 'readonly'
 
-        # Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, GroundStatePage, None, defaultfile=controller.gui_inp('gs',"GS",'gs',self.gs_inp2dict()))])
-        # Frame2_Button3['font'] = myFont
-        # Frame2_Button3.place(x=10,y=380)
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.gs_inp2dict("gs"),controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)])
+        Frame2_Button3['font'] = myFont
+        Frame2_Button3.place(x=10,y=380)
  
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
@@ -642,9 +624,12 @@ class GroundStatePage(Frame):
         inp_dict['directory'] = str(self.controller.directory)+"/"+ str(dir)
         inp_dict['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
         engn = engine.choose_engine(inp_dict)
-        job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
-        job.write_input()
-        self.controller.task = job
+        self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
+        self.controller.task = self.job
+        
+    def write_input(self):
+        self.job.write_input()
+        self.controller.task = self.job
         self.controller.status.update_status('gs_inp', 1)
 
 
@@ -779,9 +764,9 @@ class GeomOptPage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff", command=lambda:[controller.gui_inp('opt','opt',opt_inp2dict()), show_message(self.label_msg, "Saved")])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=300,y=380)
+        # Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff", command=lambda:[controller.gui_inp('opt','opt',opt_inp2dict()), show_message(self.label_msg, "Saved")])
+        # Frame1_Button1['font'] = myFont
+        # Frame1_Button1.place(x=300,y=380)
 
         self.label_msg = Label(self.Frame1,text="")
         self.label_msg['font'] = myFont
@@ -986,7 +971,7 @@ class TimeDependentPage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.td_inp2dict("td"), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.td_inp2dict("td"),self.job.write_input(), show_message(self.label_msg, "Saved")])
         #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[td_inp2dict()])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=300,y=380)
@@ -1015,10 +1000,9 @@ class TimeDependentPage(Frame):
             Radiobutton(self.Frame2, text = text, variable = self.v,
                 value = value).pack(side = TOP, anchor=NW, ipady = 5)
  
-        #Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('td',"Spectrum",'td', td_inp2dict()),controller.status.update_status('td_inp', 1), controller.show_frame(TextViewerPage, TimeDependentPage, None)])
-        #Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[controller.show_frame(TextViewerPage, TimeDependentPage, None, defaultfile=controller.gui_inp('td',"Spectrum",'td', td_inp2dict())),self.controller.status.update_status('td_inp', 1)])
-        #Frame2_Button1['font'] = myFont
-        #Frame2_Button1.place(x=10,y=380)
+        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        Frame2_Button1['font'] = myFont
+        Frame2_Button1.place(x=10,y=380)
 
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, TimeDependentPage, None))
         Frame2_Button2['font'] = myFont
@@ -1032,19 +1016,19 @@ class TimeDependentPage(Frame):
         path = str(self.controller.directory) + "/GS"
         td_dict['filename'] = path +"/gs.gpw"
         td_dict['absorption_kick'] = kick
-        # td_dict['absorption_kick'][0] = float(self.strength.get())*float(self.ex.get())
-        # td_dict['absorption_kick'][1] = float(self.strength.get())*float(self.ey.get())
-        # td_dict['absorption_kick'][2] = float(self.strength.get())*float(self.ez.get())
         td_dict['analysis_tools'] = self.analysis_tool()
         inp_list = [float(self.dt.get()),float(self.Nt.get())]
         td_dict['propagate'] = tuple(inp_list)
 
         
-        job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename, keyword='delta')
-        job.write_input()
-        self.controller.task = job
+        self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename, keyword='delta')
+        self.controller.task = self.job
 
         return td_dict
+    
+    def view_button(self):
+        self.td_inp2dict("td")
+        self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.job)
 
     def analysis_tool(self): 
         if self.v.get() == "1":
@@ -1213,7 +1197,7 @@ class LaserDesignPage(Frame):
         self.entry_pol_z.place(x=280,y=160) 
         self.entry_pol_z['state'] = 'readonly'
 
-        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict('td_pulse'),controller.status.update_status('td_inp', 2), show_message(self.label_msg, "Saved")])
+        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict('td_pulse'),self.job.write_input(), show_message(self.label_msg, "Saved")])
         self.Frame2_Button1['font'] = myFont
         self.Frame2_Button1.place(x=10,y=380)
 
@@ -1221,7 +1205,7 @@ class LaserDesignPage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=10,y=350)
  
-        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict(), controller.show_frame(TextViewerPage, LaserDesignPage, None, defaultfile=controller.gui_inp('td',"Pulse",'td_pulse', self.td)),self.controller.status.update_status('td_inp', 2)])
+        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.view_button()])
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=170,y=380)
         
@@ -1230,6 +1214,10 @@ class LaserDesignPage(Frame):
         self.Frame2_Button3.place(x=350,y=380)
         self.Frame3 = None
         self.button_refresh()
+
+    def view_button(self):
+        self.tdpulse_inp2dict('td_pulse')
+        self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.job)
 
     def create_frame3(self):
         self.Frame3 = tk.Frame(self)
@@ -1331,9 +1319,9 @@ class LaserDesignPage(Frame):
         updatekey(self.td,'td_out', 'tdlaser.gpw')
         updatekey(self.td,'laser', laser_dict)
 
-        job =RT_LCAO_TDDFT(self.td, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
-        job.write_input()
-        self.controller.task = job
+        self.job =RT_LCAO_TDDFT(self.td, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
+        #job.write_input()
+        self.controller.task = self.job
         return(self.td)       
 
 def updatekey(dict, key, value):
@@ -1685,9 +1673,9 @@ class TcmPage(Frame):
                 'frequencies' : self.freq_list,
                 'name' : "x"
                  }         
-        job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
-        job.write_input()
-        self.controller.task = job       
+        self.job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
+        self.job.write_input()
+        self.controller.task = self.job       
 
     def freq_listbox(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1709,11 +1697,13 @@ class TcmPage(Frame):
   
 class TextViewerPage(Frame):
 
-    def __init__(self, parent, controller,prev, next, defaultfile=None):
+    def __init__(self, parent, controller,prev, next, file=None, task=None):
         Frame.__init__(self, parent)
         self.controller = controller
         self.prev = prev
         self.next = next
+        self.file = file
+        self.task = task
 
         #self.axis = StringVar()
 
@@ -1735,8 +1725,6 @@ class TextViewerPage(Frame):
         self.FrameTcm1_label_path['font'] = myFont
         self.FrameTcm1_label_path.place(x=400,y=10)
 
-
-
         
         text_scroll =Scrollbar(self)
         text_scroll.pack(side=RIGHT, fill=Y)
@@ -1744,10 +1732,14 @@ class TextViewerPage(Frame):
         my_Text = Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
         my_Text['font'] = myFont
         my_Text.place(x=15,y=60)
-        if defaultfile is not None:
-            self.inserttextfromfile(defaultfile, my_Text)
-            self.current_file = defaultfile
-        
+
+        if self.file:
+            self.inserttextfromfile(self.file, my_Text)
+            self.current_file = self.file
+        if self.task:
+            self.inserttextfromstring(self.task.template, my_Text)
+            self.current_file = self.file
+
         text_scroll.config(command= my_Text.yview)
     
          
@@ -1780,10 +1772,19 @@ class TextViewerPage(Frame):
         text_file.close()
  
     def save_txt(self, my_Text):
-        text_file = self.current_file
-        text_file = open(text_file,'w')
-        text_file.write(my_Text.get(1.0, END))
+        if self.file:
+            text_file = self.current_file
+            text_file = open(text_file,'w')
+            text_file.write(my_Text.get(1.0, END))
+        else:
+            self.task.write_input(template=my_Text.get(1.0, END))
 
+    def inserttextfromstring(self, string, my_Text):
+        my_Text.insert(END,string)
+    
+   
+        
+        
 
 #--------------------------------------------------------------------------------        
 

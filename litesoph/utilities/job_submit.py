@@ -3,10 +3,10 @@ from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
 
-import paramiko
-import pathlib
-import subprocess
-from scp import SCPClient
+# import paramiko
+# import pathlib
+# import subprocess
+# from scp import SCPClient
 
 def get_submit_class(network=None, **kwargs):
     
@@ -53,30 +53,30 @@ class SubmitNetwork(JobSubmit):
 
 
 
-class NetworkJobSubmission():
-    def __init__(self, host, user, pswd, mast_dic):
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+# class NetworkJobSubmission():
+#     def __init__(self, host, user, pswd, mast_dic):
+#         client = paramiko.SSHClient()
+#         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # Establish SSH connection
-        client.connect(host, username=user, password=pswd)
+#         # Establish SSH connection
+#         client.connect(host, username=user, password=pswd)
 
-        # copy the file across
-        with SCPClient(client.get_transport()) as scp:
-            scp.put(mast_dic['run_script'], mast_dic['remote_path'])
-            scp.put(mast_dic['inp'], mast_dic['remote_path'])
-            # copy data from remote cluster to the local machine
-            # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
+#         # copy the file across
+#         with SCPClient(client.get_transport()) as scp:
+#             scp.put(mast_dic['run_script'], mast_dic['remote_path'])
+#             scp.put(mast_dic['inp'], mast_dic['remote_path'])
+#             # copy data from remote cluster to the local machine
+#             # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
 
 
-        # Submit Engine job by running a remote 'qsub' command over SSH
-        stdin, stdout, stderr = client.exec_command(mast_dic['cd']+ '\n'+ mast_dic['cmd'])
+#         # Submit Engine job by running a remote 'qsub' command over SSH
+#         stdin, stdout, stderr = client.exec_command(mast_dic['cd']+ '\n'+ mast_dic['cmd'])
 
-        # Show the standard output and error of our job
-        print("Standard output:")
-        print(stdout.read())
-        print("Standard error:")
-        print(stderr.read())
-        print("Exit status: {}".format(stdout.channel.recv_exit_status()))
+#         # Show the standard output and error of our job
+#         print("Standard output:")
+#         print(stdout.read())
+#         print("Standard error:")
+#         print(stderr.read())
+#         print("Exit status: {}".format(stdout.channel.recv_exit_status()))
 
-        client.close()
+#         client.close()
