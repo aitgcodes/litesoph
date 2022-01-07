@@ -1372,14 +1372,33 @@ class PlotSpectraPage(Frame):
         self.entry_pol_x['state'] = 'readonly'
 
         # self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),plot_spectra(self.returnaxis(),str(controller.directory)+'/Spectrum/spec.dat',str(controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:self.createspec('dm.dat', 'spec.dat'))
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input for spectra",activebackground="#78d6ff",command=lambda:[self.createspec()])
         self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=250,y=380)
+        self.Frame2_Button_1.place(x=120,y=380)
+
+        # self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[self.createspec(), self.create_frame2()])
+        # self.Frame2_Plot['font'] = myFont
+        # self.Frame2_Plot.place(x=320,y=380)
+
+        self.Frame2_Run = tk.Button(self.Frame,text="Run",activebackground="#78d6ff",command=lambda:[self.controller.show_frame(JobSubPage, self, None)])
+        self.Frame2_Run['font'] = myFont
+        self.Frame2_Run.place(x=320,y=380)
     
         Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
-        
+
+        self.Frame2 = None
+
+    # def create_frame2(self):
+    #     self.Frame2 = tk.Frame(self)
+    #     self.Frame2.place(relx=0.700, rely=0.01, relheight=0.99, relwidth=0.492)
+
+    #     self.Frame2.configure(relief='groove')
+    #     self.Frame2.configure(borderwidth="2")
+    #     self.Frame2.configure(relief="groove")
+    #     self.Frame2.configure(cursor="fleur")
+
     def returnaxis(self):
         if self.axis.get() == "x":
             axis = 1
@@ -1389,14 +1408,14 @@ class PlotSpectraPage(Frame):
             axis = 3
         return axis
 
-    def createspec(self, dipolefile, specfile):
+    def createspec(self):
         spec_dict = {}
-        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / dipolefile
-        spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
+        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
+        # spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
         job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
         job.write_input()
         self.controller.task = job
-
+      
 
 class JobSubPage(Frame):
 
