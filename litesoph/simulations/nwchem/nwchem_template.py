@@ -1,115 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict
 
-###################### Starting of Ground State default and template #############################
-
-class NwchemGroundState:
-
-
-    default_gs_param = {
-            'mode':'gaussian',
-            'charge': 0,
-            'basis': '',
-            'multip': 1,
-            'xc': 'PBE0',
-            'maxiter': 300,
-            'tolerance': 'tight',
-            'energy': 1.0e-7,
-            'density': 1.0e-5, 
-            'theory':'dft',
-
-            } 
-
-    gs_temp = """echo
-start gs
-title "LITESOPH NWCHEM Calculations"
-
-charge {charge}
-
-geometry 
-  load coordinate.xyz 
-end
-
-basis 
-  * library {basis}
-end
-
-dft
- direct
- mult {multip}
- xc {xc}
- iterations {maxiter}
- tolerances {tolerances}
- convergence energy {energy}
- convergence density {density}
-end
-
-task {theory} energy 
-               """
-
-    def __init__(self, user_input) -> None:
-        pass
-
-    def calcscf(self):
-        maxiter = self.default_gs_param['maxiter']
-        scf = """
-scf
-  maxiter {}
-end
-    """.format(maxiter)
-        return scf 
-
-    def calcdft(self):
-        multip = self.default_gs_param['multip']
-        xc = self.default_gs_param['xc']
-        maxiter = self.default_gs_param['maxiter']
-        tolerances = self.default_gs_param['tolerance']
-        energy = self.default_gs_param['energy']
-        density = self.default_gs_param['density']
-        dft = """
-dft
- direct
- mult {}
- xc {}
- iterations {}
- tolerances {}
- convergence energy {}
- convergence density {}
-end
-    """.format(multip,xc,maxiter,tolerances,energy,density)
-        return dft
-
-
-    def calc_task(self):
-        if self.default_gs_param['theory'] == 'scf':
-            self.default_gs_param['calc'] = self.calcscf()
-        else:
-            self.default_gs_param['calc'] = self.calcdft()
-
-    def check(self, user_param)-> bool:
-        """checks whether user given input parameters is compatable with with nwchem ground state calculation"""
-
-        if user_param['mode'] not in ['gaussian', 'pw'] and  user_param['engine'] == 'nwchem':
-            raise ValueError('This mode is not compatable with nwchem use gaussian or paw')
-
-        if user_param['engine'] == 'nwchem':
-            return  True
-        else:
-            return False
-
-    def update(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
-
-        parameters = default_param
-
-        for key in user_input.keys():
-            if key in user_input[key] is not None:
-                parameters[key] = user_input[key]
-        return parameters
-     
-    def format_template(self, input_param:dict):
-        template = self.gs_temp.format(**input_param)
-        return template
-
 
 #################################### Starting of Optimisastion default and template ################
 
@@ -155,6 +46,9 @@ task {theory} optimize
 
     def __init__(self, user_input) -> None:
         pass
+    
+    def check(self):
+        return True
 
     def calcscf(self):
         maxiter = self.default_opt_param['maxiter']
@@ -206,6 +100,119 @@ end
         self.calc_task()
         template = self.opt_temp.format(**input_param)
         return template
+
+
+###################### Starting of Ground State default and template #############################
+
+class NwchemGroundState:
+
+
+    default_param = {
+            'mode':'gaussian',
+            'charge': 0,
+            'basis': '',
+            'multip': 1,
+            'xc': 'PBE0',
+            'maxiter': 300,
+            'tolerance': 'tight',
+            'energy': 1.0e-7,
+            'density': 1.0e-5, 
+            'theory':'dft',
+
+            } 
+
+    gs_temp = """echo
+start gs
+title "LITESOPH NWCHEM Calculations"
+
+charge {charge}
+
+geometry 
+  load coordinate.xyz 
+end
+
+basis 
+  * library {basis}
+end
+
+dft
+ direct
+ mult {multip}
+ xc {xc}
+ iterations {maxiter}
+ tolerances {tolerances}
+ convergence energy {energy}
+ convergence density {density}
+end
+
+task {theory} energy 
+               """
+
+    def __init__(self, user_input) -> None:
+        pass
+
+    def calcscf(self):
+        maxiter = self.default_param['maxiter']
+        scf = """
+scf
+  maxiter {}
+end
+    """.format(maxiter)
+        return scf 
+
+    def calcdft(self):
+        multip = self.default_param['multip']
+        xc = self.default_param['xc']
+        maxiter = self.default_param['maxiter']
+        tolerances = self.default_param['tolerance']
+        energy = self.default_param['energy']
+        density = self.default_param['density']
+        dft = """
+dft
+ direct
+ mult {}
+ xc {}
+ iterations {}
+ tolerances {}
+ convergence energy {}
+ convergence density {}
+end
+    """.format(multip,xc,maxiter,tolerances,energy,density)
+        return dft
+
+
+    def calc_task(self):
+        if self.default_param['theory'] == 'scf':
+            self.default_param['calc'] = self.calcscf()
+        else:
+            self.default_param['calc'] = self.calcdft()
+
+    def check(self, user_param)-> bool:
+        """checks whether user given input parameters is compatable with with nwchem ground state calculation"""
+
+        if user_param['mode'] not in ['gaussian', 'pw'] and  user_param['engine'] == 'nwchem':
+            raise ValueError('This mode is not compatable with nwchem use gaussian or paw')
+
+        if user_param['engine'] == 'nwchem':
+            return  True
+        else:
+            return False
+
+    def user2nwchem(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
+
+        parameters = default_param
+
+        for key in user_input.keys():
+            if key in user_input[key] is not None:
+                parameters[key] = user_input[key]
+        return parameters
+     
+    def format_template(self, input_param:dict):
+        template = self.gs_temp.format(**input_param)
+        return template
+
+
+
 
 #################################### Starting of Delta Kick default and template ################
 
