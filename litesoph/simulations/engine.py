@@ -28,15 +28,15 @@ class EngineStrategy(ABC):
     def get_task_class(self, task: str, user_param):
         pass
 
-    @abstractclassmethod
-    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
-        """checks the compatability of the input parameters with the engine"""
-        pass
+    # @abstractclassmethod
+    # def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
+    #     """checks the compatability of the input parameters with the engine"""
+    #     pass
 
-    @abstractclassmethod
-    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
-        """updates the default input parameters with the user input"""
-        pass
+    # @abstractclassmethod
+    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
+    #     """updates the default input parameters with the user input"""
+    #     pass
 
     @abstractclassmethod
     def create_script(self, template: str) -> None:
@@ -91,15 +91,15 @@ class EngineGpaw(EngineStrategy):
         if task == "tcm":
             return gp.GpawCalTCM(user_param)       
 
-    def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
-        """checks the compatability of the input parameters with gpaw engine"""
+    # def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
+    #     """checks the compatability of the input parameters with gpaw engine"""
         
-        return task.check(user_param)
+    #     return task.check(user_param)
             
-    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
-        """updates the default input parameters with the user input"""
-        parameters = task.user2gpaw(user_param, default_param)
-        return parameters
+    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
+    #     """updates the default input parameters with the user input"""
+    #     parameters = task.user2gpaw(user_param, default_param)
+    #     return parameters
     
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for gpaw"""
@@ -139,27 +139,33 @@ class EngineOctopus(EngineStrategy):
         if task == "LCAO TDDFT Delta":
             return ot.OctTimedependentState(user_param)
     
-    def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
-        """checks the compatability of the input parameters with gpaw engine"""
+    # def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
+    #     """checks the compatability of the input parameters with gpaw engine"""
         
-        return task.check(user_param)
+    #     return task.check(user_param)
             
-    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
-        """updates the default input parameters with the user input"""
-        parameters = task.user2octopus(user_param, default_param)
-        return parameters
+    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
+    #     """updates the default input parameters with the user input"""
+    #     parameters = task.user2octopus(user_param, default_param)
+    #     return parameters
+
+    def create_dir(self, directory, task):
+        #task_dir = self.get_dir_name(task)
+        directory = pathlib.Path(directory) / task
+        self.create_directory(directory)
+        return directory
 
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for gpaw"""
         self.directory = directory
-        self.filename = filename + '.py'
+        self.filename = filename 
         write2file(self.directory,self.filename,template)
 
     def create_command(self, cmd: list):
 
         filename = pathlib.Path(self.directory) / self.filename
         command = configs.get('engine', 'octopus')
-        command = [command, filename]
+        command = [command]
         if cmd:
             cmd.extend(command)
             command = cmd
@@ -176,20 +182,26 @@ class EngineNwchem(EngineStrategy):
         if task == "LCAO TDDFT Delta":
             return nw.NwchemDeltaKick(user_param)
 
-    def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
-        """checks the compatability of the input parameters with gpaw engine"""
+    # def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
+    #     """checks the compatability of the input parameters with gpaw engine"""
         
-        return task.check(user_param)
+    #     return task.check(user_param)
             
-    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
-        """updates the default input parameters with the user input"""
-        parameters = task.user2nwchem(user_param, default_param)
-        return parameters
+    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
+    #     """updates the default input parameters with the user input"""
+    #     parameters = task.user2nwchem(user_param, default_param)
+    #     return parameters
+
+    def create_dir(self, directory, task):
+        #task_dir = self.get_dir_name(task)
+        directory = pathlib.Path(directory) / task
+        self.create_directory(directory)
+        return directory
 
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for nwchem"""
         self.directory = directory
-        self.filename = filename + '.py'
+        self.filename = filename + '.nwi'
         write2file(self.directory,self.filename,template)
     
     def create_command(self, cmd: list):

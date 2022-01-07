@@ -52,18 +52,6 @@ MaximumIter = {max_iter}
         self.default_param.update(user_input)
         self.boxshape = self.default_param['box']['shape']        
 
-    def check(self):
-        return True
-
-    def user2octopus(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
-
-        parameters = default_param
-
-        for key in user_input.keys():
-            if key in user_input[key] is not None:
-                parameters[key] = user_input[key]
-        return parameters
-
     def format_template(self):
         if self.boxshape not in ['cylinder', 'paralellopiped']: 
             template = self.gs_min.format(**self.default_param)
@@ -147,8 +135,6 @@ TDPolarizationDirection = {e_pol}
         self.default_param.update(user_input)
         self.boxshape = self.default_param['box']['shape']         
 
-    def check(self):
-        pass
 
     def format_template(self):
         if self.boxshape not in ['cylinder', 'paralellopiped']: 
