@@ -58,17 +58,17 @@ class file_check:
                 break    
         return(check)
 
-    gpaw_gs_dict={'inp':'gs.py',
-             'out': 'gs.out',
-             'check_list':['Converged', 'Fermi level:','Total:']}
+    # gpaw_gs_dict={'inp':'gs.py',
+    #          'out': 'gs.out',
+    #          'check_list':['Converged', 'Fermi level:','Total:']}
 
-    gpaw_td_dict={'inp':'td.py',
-             'out': 'tdx.out',
-             'check_list':['Writing','Total:']}
+    # gpaw_td_dict={'inp':'td.py',
+    #          'out': 'tdx.out',
+    #          'check_list':['Writing','Total:']}
 
-    gpaw_pulse_dict={'inp':'td_pulse.py',
-             'out': 'tdpulse.out',
-             'check_list':['Writing','Total:']}
+    # gpaw_pulse_dict={'inp':'td_pulse.py',
+    #          'out': 'tdpulse.out',
+    #          'check_list':['Writing','Total:']}
 
 def dict2file(dictname, filename):
     filepath = pathlib.Path(filename)
@@ -95,14 +95,6 @@ def open_file(outpath):
     out_file.write(stuff)
     text_file.close()
     out_file.close()
-
-
-def open_existing_project():
-    oldProject = filedialog.askdirectory()
-
-
-def runpython(fpath: str):
-    subprocess.run(["python", fpath])
 
 
 def show_message(label_name, message):

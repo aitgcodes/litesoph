@@ -88,11 +88,11 @@ calc = GPAW(mode='{mode}',
     verbose={verbose},
     fixdensity={fixdensity},  # deprecated
     dtype={dtype},  # deprecated
-    txt='{directory}/gs.out',
+    txt='gs.out',
     parallel=None)
 layer.calc = calc
 energy = layer.get_potential_energy()
-calc.write('{directory}/gs.gpw', mode='all')
+calc.write('gs.gpw', mode='all')
 
     """
     def __init__(self, user_input) -> None:
@@ -126,7 +126,7 @@ calc.write('{directory}/gs.gpw', mode='all')
         template = self.gs_template.format(**para)
         return template
      
-class RtLcaoTddft:
+class GpawRTLCAOTddftDelta:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
 
@@ -144,7 +144,7 @@ class RtLcaoTddft:
                 'fxc':None,
                 'parallel': None,
                 'txt':'tdx.out',
-                'td_out':'td.gpw'}
+                'td_gpw':'td.gpw'}
 
     analysis_tools = [
         ('DipoleMomentWriter()','from gpaw.lcaotddft.dipolemomemtwriter import DipoleMomentWriter'),
@@ -167,8 +167,60 @@ td_calc.absorption_kick({absorption_kick})
 # Propagate"
 td_calc.propagate{propagate}
 # Save the state for restarting later"
-td_calc.write('{directory}/{td_out}', mode='all')
+td_calc.write('{td_gpw}', mode='all')
     """
+
+
+    def __init__(self, user_input) -> None:
+        self.user_input = self.default_input
+        self.user_input.update(user_input)
+        self.tools = self.user_input['analysis_tools']
+
+    def check():
+        pass
+
+    def get_analysis_tool():
+        pass
+    
+    def format_template(self):
+
+        template = self.delta_kick_template.format(**self.user_input)
+
+        if self.tools == "dipolemoment":
+            return template
+        elif self.tools == "wavefunction":
+            tlines = template.splitlines()
+            tlines[8] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
+            template = """\n""".join(tlines)
+            return template
+       
+
+
+class GpawRTLCAOTddftLaser:
+    """This class contains the template  for creating gpaw 
+    scripts for  real time lcao tddft calculations."""
+
+    default_input = {
+                'propagate': (20, 150),
+                'module': None,
+                'laser':None,
+                'electric_pol': None,
+                'dipole_file':'dm.dat',
+                'wavefunction_file':'wf.ulm',
+                'analysis_tools': None,
+                'filename':'gs.gpw',
+                'propagator':None,
+                'td_potential': None,
+                'fxc':None,
+                'parallel': None,
+                'txt':'tdx.out',
+                'td_gpw':'td.gpw'}
+
+    analysis_tools = [
+        ('DipoleMomentWriter()','from gpaw.lcaotddft.dipolemomemtwriter import DipoleMomentWriter'),
+        ('WaveFunctionWriter()','from gpaw.lcaotddft.wfwriter import WaveFunctionWriter')
+
+    ]
     
     external_field_template = """ 
 import numpy as np
@@ -187,11 +239,12 @@ DipoleMomentWriter(td_calc, '{dipole_file}')
 # Propagate"
 td_calc.propagate{propagate}
 # Save the state for restarting later"
-td_calc.write('{td_out}', mode='all')
+td_calc.write('{td_gpw}', mode='all')
     """
 
     def __init__(self, user_input) -> None:
-        self.user_input = user_input
+        self.user_input = self.default_input
+        self.user_input.update(user_input)
         self.laser = self.user_input['laser']
         self.tools = self.user_input['analysis_tools']
         self.td_potential = self.user_input['td_potential']
@@ -237,6 +290,7 @@ td_calc.write('{td_out}', mode='all')
            template = self.external_field_template.format(**self.user_input)
            return template 
 
+
 def write_laser(laser_input:dict, filename, directory):
 
     from litesoph.pre_processing.laser_design import GaussianPulse
@@ -247,35 +301,40 @@ def write_laser(laser_input:dict, filename, directory):
     pulse = GaussianPulse(float(laser_input['strength']), float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])
     pulse.write(filename, np.arange(laser_input['range']))
 
-class Spectrum:
+class GpawSpectrum:
 
-    dm2spec=""""
+    default_input = {
+                   'moment_file': 'dm.dat',
+                   'spectrum_file': 'spec.dat',
+                   'folding': 'Gauss',
+                   'width' : 0.2123,
+                   'e_min' : 0.0,
+                   'e_max' : 30.0,
+                   'delta_e' : 0.05
+                }
+
+    dm2spec="""
 from gpaw.tddft.spectrum import photoabsorption_spectrum
-photoabsorption_spectrum({moment_file}, {spectrum_file},folding={folding}, width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
+photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}', width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
 """
     
-    def __init__(self,moment_file,
-                spectrum_file,
-                folding='Gauss',
-                width=0.2123,
-                e_min=0.0,
-                e_max=30.0,
-                delta_e=0.05 ) -> None:
+    def __init__(self, input_para: dict) -> None:
+        self.dict = self.default_input
+        self.dict.update(input_para)
         
-        self.dict = dict(moment_file = moment_file,
-                spectrum_file = spectrum_file,
-                folding=folding,
-                width=width,
-                e_min=e_min,
-                e_max=e_max,
-                delta_e=delta_e)
-
     def format_template(self):
         template = self.dm2spec.format(**self.dict)
         return template
 
 
-class Cal_TCM:
+class GpawCalTCM:
+
+    default_input = {
+                    'gfilename' : 'gs.gpw',
+                    'wfilename' : 'wf.ulm',
+                    'frequencies' : [],
+                    'name' : " "
+                    }
 
     tcm_temp = """
 from litesoph.simulations.gpaw.gpawtcm import TCMGpaw
@@ -287,18 +346,16 @@ tcm.run()
 tcm.plot()
 """
 
-    def __init__(self, gfilename, wfilename, frequencies:list, name:str) -> None:
-        self.dict = dict(gfilename = gfilename,
-                        wfilename = wfilename,
-                        frequencies  = frequencies,
-                        name  = name)
+    def __init__(self, input_para:dict) -> None:
+        self.dict = self.default_input
+        self.dict.update(input_para)
 
     def format_template(self):
         template = self.tcm_temp.format(**self.dict)
         return template
 
 
-class LrTddft:
+class GpawLrTddft:
     """This class contains the template  for creating gpaw 
     scripts for  linear response tddft calculations."""
 
@@ -307,6 +364,6 @@ class LrTddft:
 
 
 
-class InducedDensity:
+class GpawInducedDensity:
     """Contains template to calculate induced density from density matrix."""
 

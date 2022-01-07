@@ -1,20 +1,27 @@
+import configparser
+from logging import raiseExceptions
+import pathlib
+import os
+from configparser import ConfigParser
 from typing import Any, Dict
 from litesoph.lsio.IO import write2file 
 from litesoph.simulations.gpaw import gpaw_template as gp
 from abc import ABC, abstractclassmethod
 
+config_file = pathlib.Path.home() / "lsconfig.ini"
+if config_file.is_file is False:
+    raise FileNotFoundError("lsconfig.ini doesn't exists")
+
+configs = configparser.SafeConfigParser({'python':'/usr/bin/python'})
+configs.read(config_file)
+
 
 class EngineStrategy(ABC):
     """Abstract base calss for the different engine."""
 
-
-    @abstractclassmethod
-    def engine_name():
-        """retruns engine name"""
-        pass
     
     @abstractclassmethod
-    def get_task_class( task: str, user_param):
+    def get_task_class(self, task: str, user_param):
         pass
 
     @abstractclassmethod
@@ -32,21 +39,53 @@ class EngineStrategy(ABC):
         pass
 
     @abstractclassmethod
-    def excute():
+    def create_command(self):
         pass
+
+    def create_directory(self,directory):
+
+        absdir = os.path.abspath(directory)
+        if absdir != os.curdir and not os.path.isdir(directory):
+            os.makedirs(directory)
+        # else:
+        #     raise FileExistsError
+
 
 class EngineGpaw(EngineStrategy):
 
+    
+    gs = {'inp':'/GS/gs.py',
+            'out': '/GS/gs.out',
+            'restart': 'GS/gs.gpw',
+            'check_list':['Converged', 'Fermi level:','Total:']}
 
-    def engine_name():
-        """retruns engine name"""
-        return 'gpaw'
+    td_delta = {'inp':'/TD_Delta/td.py',
+             'out': '/TD_Delta/tdx.out',
+             'restart': '/TD_Delta/td.gpw',
+             'check_list':['Writing','Total:']}
+
+    laser = {'inp':'/TD_Laser/tdlaser.py',
+             'out': '/TD_Laser/tdlaser.out',
+             'restart': '/TD_Laser/tdlaser.gpw',
+             'check_list':['Writing','Total:']}
+    
+    task_dirs =[('GpawGroundState', 'GS'),
+            ('GpawRTLCAOTddftDelta', 'TD_Delta'),
+            ('GpawRTLCAOTddftLaser', 'TD_Laser'),
+            ('GpawSpectrum', 'Spectrum'),
+            ('GpawCalTCM', 'TCM')]
 
     def get_task_class(self, task: str, user_param):
         if task == "ground state":
-            return gp.GpawGroundState(user_param)
-        if task == "LCAO TDDFT":
-            return gp.RtLcaoTddft(user_param)
+            return gp.GpawGroundState(user_param) 
+        if task == "LCAO TDDFT Delta":
+            return gp.GpawRTLCAOTddftDelta(user_param)
+        if task == "LCAO TDDFT Laser":
+            return gp.GpawRTLCAOTddftLaser(user_param)
+        if task == "spectrum":
+            return gp.GpawSpectrum(user_param) 
+        if task == "tcm":
+            return gp.GpawCalTCM(user_param)       
 
     def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
@@ -60,19 +99,35 @@ class EngineGpaw(EngineStrategy):
     
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for gpaw"""
-        filename = filename + '.py'
-        write2file(directory,filename,template)
+        self.directory = directory
+        self.filename = filename + '.py'
+        write2file(self.directory,self.filename,template)
 
-    def excute():
-        pass
+    def create_dir(self, directory, task):
+        task_dir = self.get_dir_name(task)
+        directory = pathlib.Path(directory) / task_dir
+        self.create_directory(directory)
+        return directory
+
+    def get_dir_name(self,task):
+        for t_dir in self.task_dirs:
+            if task in t_dir:
+                dir = t_dir[1]
+                break
+        return dir
+
+    def create_command(self, cmd: list):
+
+        filename = pathlib.Path(self.directory) / self.filename
+        command = configs.get('programs', 'python')
+        command = [command, filename]
+        if cmd:
+            cmd.extend(command)
+            command = cmd
+        return command
 
 class EngineOctopus(EngineStrategy):
 
-    
-
-    def engine_name():
-        """retruns engine name"""
-        return 'octopus '
 
     def get_task_class(self, task: str):
         pass
@@ -89,16 +144,11 @@ class EngineOctopus(EngineStrategy):
         """creates the input scripts for octopus"""
         write2file(directory,filename,template)
 
-    def excute():
+    def create_command():
         pass
 
 class EngineNwchem(EngineStrategy):
 
-   
-
-    def engine_name():
-        """retruns engine name"""
-        return 'nwchem'
 
     def get_task_class(self, task: str):
         pass
@@ -116,7 +166,7 @@ class EngineNwchem(EngineStrategy):
         """creates the input scripts for nwchem"""
         write2file(directory,filename,template)
     
-    def excute():
+    def create_command():
         pass
 
 def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
@@ -131,3 +181,5 @@ def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
             return engine
         else:
             raise ValueError('engine not implemented')
+
+#def get_engine_after_gs(status)
