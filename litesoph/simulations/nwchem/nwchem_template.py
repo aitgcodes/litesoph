@@ -8,8 +8,6 @@ class NwchemGroundState:
 
     default_gs_param = {
             'mode':'gaussian',
-            'name': None,
-            'title':None,
             'charge': 0,
             'basis': '',
             'multip': 1,
@@ -18,9 +16,7 @@ class NwchemGroundState:
             'tolerance': 'tight',
             'energy': 1.0e-7,
             'density': 1.0e-5, 
-            'calc': None,
             'theory':'dft',
-            'properties':'energy',
 
             } 
 
@@ -38,9 +34,17 @@ basis
   * library {basis}
 end
 
-{calc}
+dft
+ direct
+ mult {multip}
+ xc {xc}
+ iterations {maxiter}
+ tolerances {tolerances}
+ convergence energy {energy}
+ convergence density {density}
+end
 
-task {theory} {properties}
+task {theory} energy 
                """
 
     def calcscf(self):
@@ -102,7 +106,6 @@ end
         return parameters
      
     def format_template(self, input_param:dict):
-        self.calc_task()
         template = self.gs_temp.format(**input_param)
         return template
 
