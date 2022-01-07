@@ -531,15 +531,6 @@ class GroundStatePage(Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=310)
     
-        #def pick_frame(e):
-            #if box_shape.get() == "":
-            #if task.get() == "fd":
-            #if task.get() == "pw":
-            #if task.get() == "gaussian":
-                #sub_task.config(value = gauss_task)
-                #sub_task.current(0)
-                #box_shape.config(value = nw_box)
-                #box_shape.current(0)
         def pick_frame(e):
             if box_shape.get()  == "Parallelepiped":
                 self.gpaw_frame()
@@ -561,23 +552,14 @@ class GroundStatePage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
         
-        #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('gs',"GS",'gs',self.gs_inp2dict()), show_message(self.label_msg, "Saved")])
-        #Frame1_Button1['font'] = myFont
-        #Frame1_Button1.place(x=300,y=380)
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('gs',"GS",'gs',self.gs_inp2dict()), show_message(self.label_msg, "Saved")])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=300,y=380)
  
-        #Frame1_Button1 = tk.Button(self.Frame1, text="Proceed",activebackground="#78d6ff",command=lambda:[self.choose_frame()])
-        #Frame1_Button1['font'] = myFont
-        #Frame1_Button1.place(x=300,y=380)
+        self.label_msg = Label(self.Frame1,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=320,y=350)
 
-        #self.label_msg = Label(self.Frame1,text="")
-        #self.label_msg['font'] = myFont
-        #self.label_msg.place(x=320,y=350)
-
-    #def pick_frame(self):
-        #if self.box.get()  == "None":
-            #self.nwchem_frame()
-        #if self.box.get() == "Parallelepiped":
-            #self.gpaw_frame()
             
     def gpaw_frame(self):  
  
