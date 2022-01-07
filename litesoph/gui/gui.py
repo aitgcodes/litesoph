@@ -644,22 +644,11 @@ class GroundStatePage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=220,y=350)
     
-        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=380)
 
-    def save_button(self):
-        self.gs_inp2dict("gs")
-        self.write_input()
-        show_message(self.label_msg,"Saved")
-
-    def view_button(self):
-        self.gs_inp2dict("gs")
-        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
-
-    def run_job_button(self):
-        self.controller.show_frame(self.next, GroundStatePage, None)
+    
 
     def nwchem_frame(self):   
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -750,18 +739,7 @@ class GroundStatePage(Frame):
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=380)
 
-    def save_button(self):
-        self.gs_inp2dict("gs")
-        self.write_input()
-        show_message(self.label_msg,"Saved")
-
-    def view_button(self):
-        self.gs_inp2dict("gs")
-        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
-
-    def run_job_button(self):
-        self.controller.show_frame(self.next, GroundStatePage, None)
-
+    
     def octopus_frame(self):    
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -865,7 +843,7 @@ class GroundStatePage(Frame):
         self.controller.show_frame(self.next, GroundStatePage, None)
 
     def gs_inp2dict(self, filename):
-        inp_dict = {
+        inp_dict_gp = {
             'mode': self.mode.get(),
             'xc': self.xc.get(),
             'vacuum': self.vacuum.get(),
@@ -877,12 +855,31 @@ class GroundStatePage(Frame):
             'multip' : self.multip.get(), 
             'convergence' : {'energy' : float(self.energy.get()), 'bands' : self.bands.get()},
             'maxiter' : self.maxiter.get(),
+            'box': self.box.get(),
             'properties': 'get_potential_energy()',
             'engine':'gpaw'
                     }   
 
+        inp_dict_nw = {
+            'mode': self.mode.get(),
+            'xc': self.xc.get(),
+            'tolerances': self.tolerances.get(),
+            'basis': self.basis.get(),
+            'energy': self.energy.get(),
+            'density' : self.density.get(),
+            'charge' : self.charge.get(),
+            'multip' : self.multip.get(),
+            'maxiter' : self.maxiter.get(),
+            'engine':'nwchem'
+                    }
+
         if self.basis.get() == '':
-            inp_dict['basis']={}
+            inp_dict_gp['basis']={}
+
+        if self.mode.get() == "gaussian":
+            print(inp_dict_nw)
+        if self.box.get() == "Parallelepiped":
+            print(inp_dict_gp)
 
         inp_dict['directory'] = str(self.controller.directory)+"/"+ str(dir)
         inp_dict['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
