@@ -1,3 +1,5 @@
+from pathlib import Path
+from typing import Any, Dict
 
 class OctGroundState:
 
@@ -51,7 +53,16 @@ MaximumIter = {max_iter}
         self.boxshape = self.default_param['box']['shape']        
 
     def check(self):
-        pass
+        return True
+
+    def user2octopus(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
+
+        parameters = default_param
+
+        for key in user_input.keys():
+            if key in user_input[key] is not None:
+                parameters[key] = user_input[key]
+        return parameters
 
     def format_template(self):
         if self.boxshape not in ['cylinder', 'paralellopiped']: 

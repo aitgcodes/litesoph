@@ -6,13 +6,17 @@ from configparser import ConfigParser
 from typing import Any, Dict
 from litesoph.lsio.IO import write2file 
 from litesoph.simulations.gpaw import gpaw_template as gp
+from litesoph.simulations.nwchem import nwchem_template as nw
+from litesoph.simulations.octopus import octopus_template as  ot
 from abc import ABC, abstractclassmethod
 
 config_file = pathlib.Path.home() / "lsconfig.ini"
 if config_file.is_file is False:
     raise FileNotFoundError("lsconfig.ini doesn't exists")
 
-configs = configparser.SafeConfigParser({'python':'/usr/bin/python'})
+configs = configparser.SafeConfigParser({'python':'/usr/bin/python',
+                                        'nwchem':'nwchem',
+                                        'octopus':'octopus'})
 configs.read(config_file)
 
 
@@ -129,57 +133,86 @@ class EngineGpaw(EngineStrategy):
 class EngineOctopus(EngineStrategy):
 
 
-    def get_task_class(self, task: str):
-        pass
+    def get_task_class(self, task: str, user_param):
+        if task == "ground state":
+            return ot.OctGroundState(user_param) 
+        if task == "LCAO TDDFT Delta":
+            return ot.OctTimedependentState(user_param)
     
-    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
+    def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
-        return False
-
-    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
+        
+        return task.check(user_param)
+            
+    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
-        pass
+        parameters = task.user2octopus(user_param, default_param)
+        return parameters
 
     def create_script(self,directory,filename,template: str) -> None:
-        """creates the input scripts for octopus"""
-        write2file(directory,filename,template)
+        """creates the input scripts for gpaw"""
+        self.directory = directory
+        self.filename = filename + '.py'
+        write2file(self.directory,self.filename,template)
 
-    def create_command():
-        pass
+    def create_command(self, cmd: list):
+
+        filename = pathlib.Path(self.directory) / self.filename
+        command = configs.get('engine', 'octopus')
+        command = [command, filename]
+        if cmd:
+            cmd.extend(command)
+            command = cmd
+        return command
 
 class EngineNwchem(EngineStrategy):
 
 
-    def get_task_class(self, task: str):
-        pass
+    def get_task_class(self, task: str, user_param):
+        if task == "optimization":
+            return nw.NwchemOptimisation(user_param) 
+        if task == "ground state":
+            return nw.NwchemGroundState(user_param) 
+        if task == "LCAO TDDFT Delta":
+            return nw.NwchemDeltaKick(user_param)
 
-    def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
+    def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
         """checks the compatability of the input parameters with gpaw engine"""
-
-        return False
-
-    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
+        
+        return task.check(user_param)
+            
+    def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
         """updates the default input parameters with the user input"""
-        pass
+        parameters = task.user2nwchem(user_param, default_param)
+        return parameters
 
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for nwchem"""
-        write2file(directory,filename,template)
+        self.directory = directory
+        self.filename = filename + '.py'
+        write2file(self.directory,self.filename,template)
     
-    def create_command():
-        pass
+    def create_command(self, cmd: list):
+
+        filename = pathlib.Path(self.directory) / self.filename
+        command = configs.get('engine', 'nwchem')
+        command = [command, filename]
+        if cmd:
+            cmd.extend(command)
+            command = cmd
+        return command
 
 def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
     
     list_engine = [EngineGpaw(),
                     EngineOctopus(),
                     EngineNwchem()]
-
-    for engine in list_engine:
-        task = engine.get_task_class("ground state", user_input)
-        if engine.check_compatability(user_input, task):
-            return engine
-        else:
-            raise ValueError('engine not implemented')
+    return list_engine[2]
+    # for engine in list_engine:
+    #     #task = engine.get_task_class("ground state", user_input)
+    #     #if engine.check_compatability(user_input, task):
+    #         return engine
+    #     else:
+    #         raise ValueError('engine not implemented')
 
 #def get_engine_after_gs(status)

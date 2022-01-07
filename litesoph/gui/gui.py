@@ -417,15 +417,15 @@ class GroundStatePage(Frame):
         self.xc = StringVar()
         self.basis = StringVar()
         self.charge = StringVar()
-        self.maxiter = StringVar()
+        self.maxiter = IntVar()
         self.box = StringVar()
         self.spinpol = StringVar()
         self.multip = StringVar()
         self.h   = StringVar()
         self.nbands = StringVar()
         self.vacuum = StringVar()
-        self.energy = StringVar()
-        self.density = StringVar()
+        self.energy = DoubleVar()
+        self.density = DoubleVar()
         self.bands = StringVar()
         self.theory = StringVar()
         self.tolerances = StringVar()
@@ -649,17 +649,6 @@ class GroundStatePage(Frame):
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=380)
 
-    def save_button(self):
-        self.gs_inp2dict("gs")
-        self.write_input()
-        show_message(self.label_msg,"Saved")
-
-    def view_button(self):
-        self.gs_inp2dict("gs")
-        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
-
-    def run_job_button(self):
-        self.controller.show_frame(self.next, GroundStatePage, None)
 
     def nwchem_frame(self):   
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -750,107 +739,96 @@ class GroundStatePage(Frame):
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=380)
 
-    def save_button(self):
-        self.gs_inp2dict("gs")
-        self.write_input()
-        show_message(self.label_msg,"Saved")
 
-    def view_button(self):
-        self.gs_inp2dict("gs")
-        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
+    # def octopus_frame(self):    
+    #     myFont = font.Font(family='Helvetica', size=10, weight='bold')
+    #     j=font.Font(family ='Courier', size=20,weight='bold')
+    #     k=font.Font(family ='Courier', size=40,weight='bold')
+    #     l=font.Font(family ='Courier', size=15,weight='bold')
 
-    def run_job_button(self):
-        self.controller.show_frame(self.next, GroundStatePage, None)
-
-    def octopus_frame(self):    
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-
-        self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+    #     self.Frame2 = tk.Frame(self)
+    #     self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
         
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
-        self.Frame2.configure(cursor="fleur")
+    #     self.Frame2.configure(relief='groove')
+    #     self.Frame2.configure(borderwidth="2")
+    #     self.Frame2.configure(relief="groove")
+    #     self.Frame2.configure(cursor="fleur")
    
-        self.label_proj = Label(self.Frame2,text="Spacing (in Angstrom)",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=60)
+    #     self.label_proj = Label(self.Frame2,text="Spacing (in Angstrom)",bg="gray",fg="black")
+    #     self.label_proj['font'] = myFont
+    #     self.label_proj.place(x=10,y=60)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= self.h)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.delete(0,END)
-        self.entry_proj.insert(0,"0.3")
-        self.entry_proj.place(x=280,y=60)
+    #     self.entry_proj = Entry(self.Frame2,textvariable= self.h)
+    #     self.entry_proj['font'] = myFont
+    #     self.entry_proj.delete(0,END)
+    #     self.entry_proj.insert(0,"0.3")
+    #     self.entry_proj.place(x=280,y=60)
         
-        self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=110)
+    #     self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
+    #     self.Frame2_note['font'] = myFont
+    #     self.Frame2_note.place(x=10,y=110)
    
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.spinpol, value = ["None","True"])
-        self.entry_pol_x.current(0)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.place(x=280,y=110)
-        self.entry_pol_x['state'] = 'readonly'
+    #     self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.spinpol, value = ["None","True"])
+    #     self.entry_pol_x.current(0)
+    #     self.entry_pol_x['font'] = myFont
+    #     self.entry_pol_x.place(x=280,y=110)
+    #     self.entry_pol_x['state'] = 'readonly'
  
-        self.Frame2_note = Label(self.Frame2,text="Energy Convergence (in eV/ electron)",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=160)
+    #     self.Frame2_note = Label(self.Frame2,text="Energy Convergence (in eV/ electron)",bg="gray",fg="black")
+    #     self.Frame2_note['font'] = myFont
+    #     self.Frame2_note.place(x=10,y=160)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= self.energy)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.delete(0,END)
-        self.entry_proj.insert(0,"5.0e-7")
-        self.entry_proj.place(x=280,y=160)
+    #     self.entry_proj = Entry(self.Frame2,textvariable= self.energy)
+    #     self.entry_proj['font'] = myFont
+    #     self.entry_proj.delete(0,END)
+    #     self.entry_proj.insert(0,"5.0e-7")
+    #     self.entry_proj.place(x=280,y=160)
   
-        self.Frame2_note = Label(self.Frame2,text="Number of Bands",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=210)
+    #     self.Frame2_note = Label(self.Frame2,text="Number of Bands",bg="gray",fg="black")
+    #     self.Frame2_note['font'] = myFont
+    #     self.Frame2_note.place(x=10,y=210)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= self.nbands)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=210)
-        self.entry_proj.delete(0,END)
+    #     self.entry_proj = Entry(self.Frame2,textvariable= self.nbands)
+    #     self.entry_proj['font'] = myFont
+    #     self.entry_proj.place(x=280,y=210)
+    #     self.entry_proj.delete(0,END)
 
-        self.Frame2_note = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=260)
+    #     self.Frame2_note = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
+    #     self.Frame2_note['font'] = myFont
+    #     self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= self.vacuum)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.delete(0,END)
-        self.entry_proj.insert(0,"6")
-        self.entry_proj.place(x=280,y=260)
+    #     self.entry_proj = Entry(self.Frame2,textvariable= self.vacuum)
+    #     self.entry_proj['font'] = myFont
+    #     self.entry_proj.delete(0,END)
+    #     self.entry_proj.insert(0,"6")
+    #     self.entry_proj.place(x=280,y=260)
      
-        self.Frame2_note = Label(self.Frame2,text="Theory",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=310)
+    #     self.Frame2_note = Label(self.Frame2,text="Theory",bg="gray",fg="black")
+    #     self.Frame2_note['font'] = myFont
+    #     self.Frame2_note.place(x=10,y=310)
 
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = ["occupied","unoccupied"])
-        self.entry_pol_x.current(0)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.place(x=280,y=310)
-        self.entry_pol_x['state'] = 'readonly'
+    #     self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = ["occupied","unoccupied"])
+    #     self.entry_pol_x.current(0)
+    #     self.entry_pol_x['font'] = myFont
+    #     self.entry_pol_x.place(x=280,y=310)
+    #     self.entry_pol_x['state'] = 'readonly'
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        Frame2_Button3['font'] = myFont
-        Frame2_Button3.place(x=10,y=380)
+    #     Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+    #     Frame2_Button3['font'] = myFont
+    #     Frame2_Button3.place(x=10,y=380)
          
-        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=200,y=380)
+    #     Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+    #     Frame1_Button1['font'] = myFont
+    #     Frame1_Button1.place(x=200,y=380)
  
-        self.label_msg = Label(self.Frame2,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=220,y=350)
+    #     self.label_msg = Label(self.Frame2,text="")
+    #     self.label_msg['font'] = myFont
+    #     self.label_msg.place(x=220,y=350)
     
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=380,y=380)
+    #     Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+    #     Frame2_Button2['font'] = myFont
+    #     Frame2_Button2.place(x=380,y=380)
 
     def save_button(self):
         self.gs_inp2dict("gs")
@@ -869,21 +847,24 @@ class GroundStatePage(Frame):
             'mode': self.mode.get(),
             'xc': self.xc.get(),
             'vacuum': self.vacuum.get(),
-            'basis':{'default': self.basis.get()},
+            'basis':self.basis.get(),
             'h': self.h.get(),
             'nbands' : self.nbands.get(),
             'charge' : self.charge.get(),
             'spinpol' : self.spinpol.get(), 
             'multip' : self.multip.get(), 
-            'convergence' : {'energy' : float(self.energy.get()), 'bands' : self.bands.get()},
+            'bands' : self.bands.get(),
+            'density' :  self.density.get(),
+            'energy' : self.energy.get(),
             'maxiter' : self.maxiter.get(),
-            'properties': 'get_potential_energy()',
-            'engine':'gpaw'
+            'tolerances': self.tolerances.get(),
+            'properties': 'energy',
+            'engine':'nwchem'
                     }   
 
         if self.basis.get() == '':
             inp_dict['basis']={}
-
+        print(inp_dict)
         inp_dict['directory'] = str(self.controller.directory)+"/"+ str(dir)
         inp_dict['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
         engn = engine.choose_engine(inp_dict)
