@@ -548,18 +548,15 @@ class GroundStatePage(Frame):
         box_shape.bind("<<ComboboxSelected>>", pick_frame)
         box_shape['state'] = 'readonly'
         
-        Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+       #Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
+       
         
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[controller.gui_inp('gs',"GS",'gs',self.gs_inp2dict()), show_message(self.label_msg, "Saved")])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=300,y=380)
- 
-        self.label_msg = Label(self.Frame1,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=320,y=350)
-
+    def back_button(self):
+        self.controller.show_frame(WorkManagerPage)
+              
             
     def gpaw_frame(self):  
  
@@ -634,14 +631,35 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=310)
         self.entry_pol_x['state'] = 'readonly'
-
-        Frame2_Button3 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.gs_inp2dict("gs"),self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)])
+        
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
+         
+        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=200,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.controller.show_frame(self.next, GroundStatePage, None))
+        self.label_msg = Label(self.Frame2,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=220,y=350)
+    
+        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.controller.show_frame(self.next, GroundStatePage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=300,y=380)
+        Frame2_Button2.place(x=380,y=380)
+
+    def save_button(self):
+        self.gs_inp2dict("gs")
+        self.write_input()
+        show_message(self.label_msg,"Saved")
+
+    def view_button(self):
+        self.gs_inp2dict("gs")
+        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
+
+    def run_job_button(self):
+        self.controller.show_frame(self.next, GroundStatePage, None)
 
     def nwchem_frame(self):   
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -715,14 +733,34 @@ class GroundStatePage(Frame):
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=210)
         self.entry_pol_x['state'] = 'readonly'
-
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.gs_inp2dict("gs"),self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)])
+        
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
+
+        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=200,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.controller.show_frame(self.next, GroundStatePage, None))
+        self.label_msg = Label(self.Frame2,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=220,y=350)
+
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=300,y=380)
+        Frame2_Button2.place(x=380,y=380)
+
+    def save_button(self):
+        self.gs_inp2dict("gs")
+        self.write_input()
+        show_message(self.label_msg,"Saved")
+
+    def view_button(self):
+        self.gs_inp2dict("gs")
+        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
+
+    def run_job_button(self):
+        self.controller.show_frame(self.next, GroundStatePage, None)
 
     def octopus_frame(self):    
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -798,13 +836,33 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=310)
         self.entry_pol_x['state'] = 'readonly'
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.gs_inp2dict("gs"),self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)])
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
+         
+        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=200,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.controller.show_frame(self.next, GroundStatePage, None))
+        self.label_msg = Label(self.Frame2,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=220,y=350)
+    
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=300,y=380)
+        Frame2_Button2.place(x=380,y=380)
+
+    def save_button(self):
+        self.gs_inp2dict("gs")
+        self.write_input()
+        show_message(self.label_msg,"Saved")
+
+    def view_button(self):
+        self.gs_inp2dict("gs")
+        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
+
+    def run_job_button(self):
+        self.controller.show_frame(self.next, GroundStatePage, None)
 
     def gs_inp2dict(self, filename):
         inp_dict = {
