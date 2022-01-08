@@ -429,7 +429,8 @@ class GroundStatePage(Frame):
         self.bands = StringVar()
         self.theory = StringVar()
         self.tolerances = StringVar()
- 
+        self.dimension = StringVar()
+
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
@@ -450,7 +451,7 @@ class GroundStatePage(Frame):
         lcao_task = ["dzp","pvalence.dz"]
         fd_task = [""]
         pw_task = [""]
-        gauss_task = ["STO-2G","STO-3G","STO-6G","3-21G","3-21G*","3-21G**","6-31G","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","aug-cc-pvtz","cc-pVDZ"]
+        gauss_task = ["STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"]
         octgp_box = ["Parallelepiped","Minimum", "Sphere", "Cylinder"]
         nw_box = ["None"]
         gp_box = ["Parallelepiped"]
@@ -644,10 +645,10 @@ class GroundStatePage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=220,y=350)
     
-        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=380)
+
 
 
     def nwchem_frame(self):   
@@ -738,16 +739,17 @@ class GroundStatePage(Frame):
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=380)
+    
+    def octopus_frame(self):    
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame2 = tk.Frame(self)
+        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
 
-    # def octopus_frame(self):    
-    #     myFont = font.Font(family='Helvetica', size=10, weight='bold')
-    #     j=font.Font(family ='Courier', size=20,weight='bold')
-    #     k=font.Font(family ='Courier', size=40,weight='bold')
-    #     l=font.Font(family ='Courier', size=15,weight='bold')
-
-    #     self.Frame2 = tk.Frame(self)
-    #     self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
         
     #     self.Frame2.configure(relief='groove')
@@ -774,35 +776,36 @@ class GroundStatePage(Frame):
     #     self.entry_pol_x['font'] = myFont
     #     self.entry_pol_x.place(x=280,y=110)
     #     self.entry_pol_x['state'] = 'readonly'
- 
-    #     self.Frame2_note = Label(self.Frame2,text="Energy Convergence (in eV/ electron)",bg="gray",fg="black")
-    #     self.Frame2_note['font'] = myFont
-    #     self.Frame2_note.place(x=10,y=160)
 
-    #     self.entry_proj = Entry(self.Frame2,textvariable= self.energy)
-    #     self.entry_proj['font'] = myFont
-    #     self.entry_proj.delete(0,END)
-    #     self.entry_proj.insert(0,"5.0e-7")
-    #     self.entry_proj.place(x=280,y=160)
+        self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=160)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= self.energy)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.delete(0,END)
+        self.entry_proj.insert(0,"5.0e-7")
+        self.entry_proj.place(x=280,y=160)
   
-    #     self.Frame2_note = Label(self.Frame2,text="Number of Bands",bg="gray",fg="black")
-    #     self.Frame2_note['font'] = myFont
-    #     self.Frame2_note.place(x=10,y=210)
+        self.Frame2_note = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=210)
 
-    #     self.entry_proj = Entry(self.Frame2,textvariable= self.nbands)
-    #     self.entry_proj['font'] = myFont
-    #     self.entry_proj.place(x=280,y=210)
-    #     self.entry_proj.delete(0,END)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.nbands)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.place(x=280,y=210)
+        self.entry_proj.delete(0,END)
 
-    #     self.Frame2_note = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
-    #     self.Frame2_note['font'] = myFont
-    #     self.Frame2_note.place(x=10,y=260)
+        self.Frame2_note = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=260)
 
-    #     self.entry_proj = Entry(self.Frame2,textvariable= self.vacuum)
-    #     self.entry_proj['font'] = myFont
-    #     self.entry_proj.delete(0,END)
-    #     self.entry_proj.insert(0,"6")
-    #     self.entry_proj.place(x=280,y=260)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.dimension)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.delete(0,END)
+        self.entry_proj.insert(0,"6")
+        self.entry_proj.place(x=280,y=260)
+
      
     #     self.Frame2_note = Label(self.Frame2,text="Theory",bg="gray",fg="black")
     #     self.Frame2_note['font'] = myFont
@@ -843,7 +846,7 @@ class GroundStatePage(Frame):
         self.controller.show_frame(self.next, GroundStatePage, None)
 
     def gs_inp2dict(self, filename):
-        inp_dict = {
+        inp_dict_gp = {
             'mode': self.mode.get(),
             'xc': self.xc.get(),
             'vacuum': self.vacuum.get(),
@@ -857,19 +860,44 @@ class GroundStatePage(Frame):
             'density' :  self.density.get(),
             'energy' : self.energy.get(),
             'maxiter' : self.maxiter.get(),
-            'tolerances': self.tolerances.get(),
-            'properties': 'energy',
-            'engine':'nwchem'
+            'box': self.box.get(),
+            'properties': 'get_potential_energy()',
+            'engine':'gpaw'
                     }   
 
+        inp_dict_nw = {
+            'mode': self.mode.get(),
+            'xc': self.xc.get(),
+            'tolerances': self.tolerances.get(),
+            'basis': self.basis.get(),
+            'energy': self.energy.get(),
+            'density' : self.density.get(),
+            'charge' : self.charge.get(),
+            'multip' : self.multip.get(),
+            'maxiter' : self.maxiter.get(),
+            'engine':'nwchem'
+                    }
+
         if self.basis.get() == '':
-            inp_dict['basis']={}
-        print(inp_dict)
-        inp_dict['directory'] = str(self.controller.directory)+"/"+ str(dir)
-        inp_dict['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
-        engn = engine.choose_engine(inp_dict)
-        self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
-        self.controller.task = self.job
+            inp_dict_gp['basis']={}
+
+        if self.mode.get() == "gaussian":
+ 
+            inp_dict_nw['directory'] = str(self.controller.directory)+"/"+ str(dir)
+            inp_dict_nw['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+            print(inp_dict_nw)
+            engn = engine.choose_engine(inp_dict_nw)
+            self.job = GroundState(inp_dict_nw,engn,self.controller.status, self.controller.directory, filename)
+            self.controller.task = self.job
+
+        if self.box.get() == "Parallelepiped":
+  
+            inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
+            inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+            print(inp_dict_gp)
+            engn = engine.choose_engine(inp_dict_gp)
+            self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
+            self.controller.task = self.job
         
     def write_input(self):
         self.job.write_input()
