@@ -25,6 +25,7 @@ from litesoph.gui.filehandler import Status,file_check, open_file,show_message
 from litesoph.gui.navigation import Nav
 from litesoph.gui.filehandler import Status
 from litesoph.simulations.gpaw.gpaw_template import write_laser
+from litesoph.utilities.job_submit import JobSubmit
 
 
 home = pathlib.Path.home()
@@ -104,7 +105,7 @@ class AITG(Tk):
             if sub_task.get() == "Dipole Moment and Laser Pulse":
                self.show_frame(DmLdPage)
             if sub_task.get() == "Kohn Sham Decomposition":
-               self.show_frame(TcmPage)                
+               self.show_frame(TcmPage, WorkManagerPage, JobSubPage)                
         
 class StartPage(Frame):
 
@@ -599,7 +600,7 @@ class GroundStatePage(Frame):
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=300,y=380)
 
@@ -628,6 +629,7 @@ class GroundStatePage(Frame):
         engn = engine.choose_engine(inp_dict)
         self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
         self.controller.task = self.job
+        self.controller.check = True
         
     def write_input(self):
         self.job.write_input()
@@ -847,7 +849,7 @@ class GeomOptPage(Frame):
         # Frame2_Button3['font'] = myFont
         # Frame2_Button3.place(x=10,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=300,y=380)
 
@@ -1006,7 +1008,7 @@ class TimeDependentPage(Frame):
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, TimeDependentPage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage, TimeDependentPage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=300,y=380)
 
@@ -1025,7 +1027,7 @@ class TimeDependentPage(Frame):
         
         self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename, keyword='delta')
         self.controller.task = self.job
-
+        self.controller.check = True
         return td_dict
     
     def view_button(self):
@@ -1211,7 +1213,7 @@ class LaserDesignPage(Frame):
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=170,y=380)
         
-        self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, LaserDesignPage, None))
+        self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage, LaserDesignPage, None))
         self.Frame2_Button3['font'] = myFont
         self.Frame2_Button3.place(x=350,y=380)
         self.Frame3 = None
@@ -1324,6 +1326,7 @@ class LaserDesignPage(Frame):
         self.job =RT_LCAO_TDDFT(self.td, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
         #job.write_input()
         self.controller.task = self.job
+        self.controller.check = True
         return(self.td)       
 
 def updatekey(dict, key, value):
@@ -1370,7 +1373,7 @@ class PlotSpectraPage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=420,y=60)
 
-        self.Frame2_Run = tk.Button(self.Frame,text="Run", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.controller.show_frame(self.next, PlotSpectraPage, None)])
+        self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.controller.show_frame(JobSubPage, PlotSpectraPage, None)])
         self.Frame2_Run['font'] = myFont
         self.Frame2_Run.place(x=320,y=380)
     
@@ -1383,8 +1386,7 @@ class PlotSpectraPage(Frame):
     def show_plot(self):
         check = self.controller.status.check_status('spectra', 2)
         if check is True:
-            self.create_plot()
-            
+            self.create_plot()  
         else:
             pass        
     
@@ -1422,6 +1424,7 @@ class PlotSpectraPage(Frame):
         job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
         job.write_input()
         self.controller.task = job
+        self.controller.check = True
         self.controller.status.update_status('spectra', 1)
         show_message(self.label_msg, "Saved")
         self.Frame2_Run.config(state='active')
@@ -1474,7 +1477,7 @@ class JobSubPage(Frame):
         self.msg_label1['font'] = myFont
         self.msg_label1.place(x=600,y=100)
 
-        back2prev = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(self.prev))
+        back2prev = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(self.prev, self, None))
         back2prev['font'] = myFont
         back2prev.place(x=15,y=380)
 
@@ -1483,10 +1486,21 @@ class JobSubPage(Frame):
         back.place(x=600,y=380)              
 
     def submitjob_local(self):
-        from litesoph.gui.job_validation import select_job
-        job = self.checkjob()
-        select_job(self,job, self.controller.status)     
+        if self.controller.check is not True:
+            from litesoph.utilities.job_submit import get_submit_class
+            self.submit = get_submit_class(engine=self.controller.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
+            process = self.controller.task.run(self.submit)
+        else:
+            from litesoph.gui.job_validation import select_job
+            job = self.checkjob()
+            select_job(self,job, self.controller.status)     
+
+    # def submitjob(self):
+    #     from litesoph.utilities.job_submit import get_submit_class
+    #     self.submit = get_submit_class(engine=self.controller.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
+    #     process = self.controller.task.run(self.submit)
         
+
     def checkjob(self):
         try:
             if type(self.controller.task).__name__ == 'GroundState':
@@ -1681,9 +1695,13 @@ class TcmPage(Frame):
         Frame_Button1.place(x=10,y=380)
 
         #self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
-        self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:self.create_tcm())
+        self.buttonRetrieve = Button(self.Frame, text="Create input",activebackground="#78d6ff",command=lambda:self.create_tcm())
         self.buttonRetrieve['font'] = myFont
         self.buttonRetrieve.place(x=200,y=380)
+
+        self.Frame_run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff", command=lambda:[self.controller.show_frame(JobSubPage, TcmPage, None)])
+        self.Frame_run['font'] = myFont
+        self.Frame_run.place(x=360,y=380)
         
     def retrieve_input(self):
         inputValues = self.TextBox_freqs.get("1.0", "end-1c")
@@ -1706,7 +1724,9 @@ class TcmPage(Frame):
                  }         
         self.job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
         self.job.write_input()
-        self.controller.task = self.job       
+        self.controller.task = self.job 
+        self.controller.check = False
+        self.Frame_run.config(state= 'active')      
 
     def freq_listbox(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
