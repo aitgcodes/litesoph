@@ -12,6 +12,8 @@ import os
 import pathlib 
 from configparser import ConfigParser, NoOptionError
 
+from matplotlib.pyplot import show
+
 #---LITESOPH modules
 from litesoph import check_config
 from litesoph.gui.menubar import MainMenu
@@ -98,7 +100,7 @@ class AITG(Tk):
             #    path = projpath.create_folder(self.directory, "Pulse")
             #    os.chdir(path)
             if sub_task.get() == "Spectrum":
-               self.show_frame(PlotSpectraPage)
+               self.show_frame(PlotSpectraPage, WorkManagerPage, JobSubPage)
             if sub_task.get() == "Dipole Moment and Laser Pulse":
                self.show_frame(DmLdPage)
             if sub_task.get() == "Kohn Sham Decomposition":
@@ -1628,30 +1630,54 @@ class PlotSpectraPage(Frame):
         self.heading['font'] = myFont
         self.heading.place(x=350,y=10)
         
-        self.label_pol = Label(self.Frame, text= "Axis of Electric polarization:",bg= "grey",fg="black")
+        self.label_pol = Label(self.Frame, text= "Calculation of absorption spectrum:",bg= "grey",fg="black")
         self.label_pol['font'] = myFont
         self.label_pol.place(x=10,y=60)
 
-        self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=110)
-
-        ax_pol = ["x","y","z"]
-        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"x")
-        self.entry_pol_x.place(x=280,y=110)
-        self.entry_pol_x['state'] = 'readonly'
-
-        # self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[controller.createspec('Spectrum/dm.dat', 'Spectrum/spec.dat'),plot_spectra(self.returnaxis(),str(controller.directory)+'/Spectrum/spec.dat',str(controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:self.createspec('dm.dat', 'spec.dat'))
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=lambda:[self.createspec()])
         self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=250,y=380)
+        self.Frame2_Button_1.place(x=290,y=60)
+
+        self.label_msg = Label(self.Frame, text= "",fg="black")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=420,y=60)
+
+        self.Frame2_Run = tk.Button(self.Frame,text="Run", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.controller.show_frame(self.next, PlotSpectraPage, None)])
+        self.Frame2_Run['font'] = myFont
+        self.Frame2_Run.place(x=320,y=380)
     
         Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
+
+        self.show_plot()
+
+    def show_plot(self):
+        check = self.controller.status.check_status('spectra', 2)
+        if check is True:
+            self.create_plot()
+            
+        else:
+            pass        
+    
+    def create_plot(self):
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
+        self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
+        self.label_pol['font'] = myFont
+        self.label_pol.place(x=10,y=130)
+
+        ax_pol = ["x","y","z"]
+        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol, width= 15)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.insert(0,"x")
+        self.entry_pol_x.place(x=160,y=130)
+        self.entry_pol_x['state'] = 'readonly'
+        
+        self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Spectrum/spec.dat',str(self.controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
+        self.Frame2_Plot['font'] = myFont
+        self.Frame2_Plot.place(x=320,y= 130)
+    
     def returnaxis(self):
         if self.axis.get() == "x":
             axis = 1
@@ -1661,14 +1687,17 @@ class PlotSpectraPage(Frame):
             axis = 3
         return axis
 
-    def createspec(self, dipolefile, specfile):
+    def createspec(self):
         spec_dict = {}
-        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / dipolefile
-        spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
+        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
+        # spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
         job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
         job.write_input()
         self.controller.task = job
-
+        self.controller.status.update_status('spectra', 1)
+        show_message(self.label_msg, "Saved")
+        self.Frame2_Run.config(state='active')
+      
 
 class JobSubPage(Frame):
 
@@ -1717,6 +1746,10 @@ class JobSubPage(Frame):
         self.msg_label1['font'] = myFont
         self.msg_label1.place(x=600,y=100)
 
+        back2prev = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(self.prev))
+        back2prev['font'] = myFont
+        back2prev.place(x=15,y=380)
+
         back = tk.Button(self, text="Back to main page",activebackground="#78d6ff",command=lambda:[controller.show_frame(WorkManagerPage)])
         back['font'] = myFont
         back.place(x=600,y=380)              
@@ -1724,10 +1757,8 @@ class JobSubPage(Frame):
     def submitjob_local(self):
         from litesoph.gui.job_validation import select_job
         job = self.checkjob()
-        select_job(self,job, self.controller.status)
+        select_job(self,job, self.controller.status)     
         
-        
-
     def checkjob(self):
         try:
             if type(self.controller.task).__name__ == 'GroundState':
@@ -1845,9 +1876,9 @@ class DmLdPage(Frame):
     def plot_button(self):
         from litesoph.utilities.units import au_to_fs
         if self.plot_task.get() == "Dipole Moment":
-            plot_spectra(self.returnaxis(),str(self.controller.directory)+'/TD_Laser/dmlaser.dat',str(self.controller.directory)+'/TD_Laser/dmlaser.dat',"Time (fs)","Dipole moment (au)", au_to_fs)
+            plot_spectra(self.returnaxis(),str(self.controller.directory)+'/TD_Laser/dmlaser.dat',str(self.controller.directory)+'/TD_Laser/dmlaser.png',"Time (fs)","Dipole moment (au)", au_to_fs)
         if self.plot_task.get() == "Dipole Moment and Laser":
-            plot_files(str(self.controller.directory)+'/TD_Laser/laser.dat',str(self.controller.directory)+'/TD_Laser/dmlaser.dat',1, self.returnaxis())
+            plot_files(str(self.controller.directory)+'/laser.dat',str(self.controller.directory)+'/TD_Laser/dmlaser.dat',1, self.returnaxis())
    
 
 def spectrum_show(directory,filename, suffix, axis, x, y):
