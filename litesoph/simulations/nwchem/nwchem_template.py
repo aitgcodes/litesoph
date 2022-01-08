@@ -1,115 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict
 
-###################### Starting of Ground State default and template #############################
-
-class NwchemGroundState:
-
-
-    default_gs_param = {
-            'mode':'gaussian',
-            'charge': 0,
-            'basis': '',
-            'multip': 1,
-            'xc': 'PBE0',
-            'maxiter': 300,
-            'tolerance': 'tight',
-            'energy': 1.0e-7,
-            'density': 1.0e-5, 
-            'theory':'dft',
-
-            } 
-
-    gs_temp = """echo
-start gs
-title "LITESOPH NWCHEM Calculations"
-
-charge {charge}
-
-geometry 
-  load coordinate.xyz 
-end
-
-basis 
-  * library {basis}
-end
-
-dft
- direct
- mult {multip}
- xc {xc}
- iterations {maxiter}
- tolerances {tolerances}
- convergence energy {energy}
- convergence density {density}
-end
-
-task {theory} energy 
-               """
-
-    def __init__(self, user_input) -> None:
-        pass
-
-    def calcscf(self):
-        maxiter = self.default_gs_param['maxiter']
-        scf = """
-scf
-  maxiter {}
-end
-    """.format(maxiter)
-        return scf 
-
-    def calcdft(self):
-        multip = self.default_gs_param['multip']
-        xc = self.default_gs_param['xc']
-        maxiter = self.default_gs_param['maxiter']
-        tolerances = self.default_gs_param['tolerance']
-        energy = self.default_gs_param['energy']
-        density = self.default_gs_param['density']
-        dft = """
-dft
- direct
- mult {}
- xc {}
- iterations {}
- tolerances {}
- convergence energy {}
- convergence density {}
-end
-    """.format(multip,xc,maxiter,tolerances,energy,density)
-        return dft
-
-
-    def calc_task(self):
-        if self.default_gs_param['theory'] == 'scf':
-            self.default_gs_param['calc'] = self.calcscf()
-        else:
-            self.default_gs_param['calc'] = self.calcdft()
-
-    def check(self, user_param)-> bool:
-        """checks whether user given input parameters is compatable with with nwchem ground state calculation"""
-
-        if user_param['mode'] not in ['gaussian', 'pw'] and  user_param['engine'] == 'nwchem':
-            raise ValueError('This mode is not compatable with nwchem use gaussian or paw')
-
-        if user_param['engine'] == 'nwchem':
-            return  True
-        else:
-            return False
-
-    def update(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
-
-        parameters = default_param
-
-        for key in user_input.keys():
-            if key in user_input[key] is not None:
-                parameters[key] = user_input[key]
-        return parameters
-     
-    def format_template(self, input_param:dict):
-        template = self.gs_temp.format(**input_param)
-        return template
-
 
 #################################### Starting of Optimisastion default and template ################
 
@@ -154,7 +45,9 @@ task {theory} optimize
                 """
 
     def __init__(self, user_input) -> None:
-        pass
+        self.user_input = self.default_opt_param
+        self.user_input.update(user_input)
+
 
     def calcscf(self):
         maxiter = self.default_opt_param['maxiter']
@@ -193,19 +86,109 @@ end
         else:
             self.default_opt_param['calc'] = self.calcdft()
  
-    def update(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
-
-        parameters = default_param
-
-        for key in user_input.keys():
-            if key in user_input[key] is not None:
-                parameters[key] = user_input[key]
-        return parameters
 
     def format_template(self, input_param:dict):
         self.calc_task()
         template = self.opt_temp.format(**input_param)
         return template
+
+
+###################### Starting of Ground State default and template #############################
+
+class NwchemGroundState:
+
+
+    default_gs_param = {
+            'mode':'gaussian',
+            'geometry':'coordinate.xyz',
+            'charge': 0,
+            'basis': '6-31g',
+            'multip': 1,
+            'xc': 'PBE0',
+            'maxiter': 300,
+            'tolerances': 'tight',
+            'energy': 1.0e-7,
+            'density': 1.0e-5, 
+            'theory':'dft',
+
+            } 
+
+    gs_temp = """echo
+start gs
+title "LITESOPH NWCHEM Calculations"
+
+charge {charge}
+
+geometry 
+  load  {geometry}
+end
+
+basis 
+  * library {basis}
+end
+
+dft
+ direct
+ mult {multip}
+ xc {xc}
+ iterations {maxiter}
+ tolerances {tolerances}
+ convergence energy {energy}
+ convergence density {density}
+end
+
+task {theory} energy 
+               """
+
+    def __init__(self, user_input) -> None:
+        self.user_input = self.default_gs_param
+        self.user_input.update(user_input)
+
+
+    def calcscf(self):
+        maxiter = self.user_input['maxiter']
+        scf = """
+scf
+  maxiter {}
+end
+    """.format(maxiter)
+        return scf 
+
+    def calcdft(self):
+        multip = self.user_input['multip']
+        xc = self.user_input['xc']
+        maxiter = self.user_input['maxiter']
+        tolerances = self.user_input['tolerance']
+        energy = self.user_input['energy']
+        density = self.user_input['density']
+        dft = """
+dft
+ direct
+ mult {}
+ xc {}
+ iterations {}
+ tolerances {}
+ convergence energy {}
+ convergence density {}
+end
+    """.format(multip,xc,maxiter,tolerances,energy,density)
+        return dft
+
+
+    def calc_task(self):
+        if self.user_input['theory'] == 'scf':
+            self.user_input['calc'] = self.calcscf()
+        else:
+            self.user_input['calc'] = self.calcdft()
+
+
+     
+    def format_template(self):
+        template = self.gs_temp.format(**self.user_input)
+        return template
+
+
+
 
 #################################### Starting of Delta Kick default and template ################
 
@@ -238,13 +221,14 @@ set geometry "system"
               """ 
 
     def __init__(self, user_input) -> None:
-        pass
+        self.user_input = self.default_delta_param
+        self.user_input.update(user_input)
 
     def kickx(self):
-        tmax = self.default_delta_param['tmax']
-        dt = self.default_delta_param['dt']
-        polx = self.default_delta_param['polx']
-        max = self.default_delta_param['max']
+        tmax = self.user_input['tmax']
+        dt = self.user_input['dt']
+        polx = self.user_input['polx']
+        max = self.user_input['max']
         x_kick = """
 unset rt_tddft:*
 rt_tddft
@@ -267,10 +251,10 @@ task dft rt_tddft
         return x_kick
 
     def kicky(self):
-        tmax = self.default_delta_param['tmax']
-        dt = self.default_delta_param['dt']
-        poly = self.default_delta_param['poly']
-        max = self.default_delta_param['max']
+        tmax = self.user_input['tmax']
+        dt = self.user_input['dt']
+        poly = self.user_input['poly']
+        max = self.user_input['max']
         y_kick = """
 unset rt_tddft:*
 rt_tddft
@@ -293,10 +277,10 @@ task dft rt_tddft
         return y_kick
 
     def kickz(self):
-        tmax = self.default_delta_param['tmax']
-        dt = self.default_delta_param['dt']
-        polz = self.default_delta_param['polz']
-        max = self.default_delta_param['max']
+        tmax = self.user_input['tmax']
+        dt = self.user_input['dt']
+        polz = self.user_input['polz']
+        max = self.user_input['max']
         z_kick = """
 unset rt_tddft:*
 rt_tddft
@@ -320,25 +304,17 @@ task dft rt_tddft
 
 
     def kick_task(self):
-        if self.default_delta_param['polx'] == 'x':
-            self.default_delta_param['kick'] = self.kickx()
-        if self.default_delta_param['poly'] == 'y':
-            self.default_delta_param['kick'] = self.kicky()
-        if self.default_delta_param['polz'] == 'z':
-            self.default_delta_param['kick'] = self.kickz()
+        if self.user_input['polx'] == 'x':
+            self.user_input['kick'] = self.kickx()
+        if self.user_input['poly'] == 'y':
+            self.user_input['kick'] = self.kicky()
+        if self.user_input['polz'] == 'z':
+            self.user_input['kick'] = self.kickz()
 
-    def update(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
 
-        parameters = default_param
-
-        for key in user_input.keys():
-            if key in user_input[key] is not None:
-                parameters[key] = user_input[key]
-        return parameters
-
-    def format_template(self, input_param:dict):
+    def format_template(self):
         self.kick_task()
-        template = self.delta_temp.format(**input_param)
+        template = self.delta_temp.format(**self.user_input)
         return template
 
 #################################### Starting of Gaussian Pulse default and template ################
@@ -389,16 +365,9 @@ task dft rt_tddft
               """
 
     def __init__(self, user_input) -> None:
-        pass
+        self.user_input = self.user_input
+        self.user_input.update(user_input)
 
-    def update(self, user_input: Dict[str, Any], default_param: Dict[str, Any])-> Dict[str, Any]:
-
-        parameters = default_param
-
-        for key in user_input.keys():
-            if key in user_input[key] is not None:
-                parameters[key] = user_input[key]
-        return parameters
 
     def format_template(self, input_param:dict):
         template = self.gp_temp.format(**input_param)
