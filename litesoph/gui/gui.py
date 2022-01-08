@@ -414,6 +414,7 @@ class GroundStatePage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
+        self.job = None
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -895,7 +896,7 @@ class GroundStatePage(Frame):
         Frame2_Button2.place(x=380,y=380)
 
 
-    def gs_inp2dict(self, filename):
+    def gs_inp2dict(self):
         inp_dict_gp = {
             'mode': self.mode.get(),
             'xc': self.xc.get(),
@@ -936,34 +937,49 @@ class GroundStatePage(Frame):
             inp_dict_nw['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_nw['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_nw)
-            engn = choose_engine(inp_dict_nw)
-            self.job = GroundState(inp_dict_nw,engn,self.controller.status, self.controller.directory, filename)
-            self.controller.task = self.job
+            # engn = choose_engine(inp_dict_nw)
+            # self.job = GroundState(inp_dict_nw,engn,self.controller.status, self.controller.directory, filename)
+            # self.controller.task = self.job
+            return inp_dict_nw
 
         if self.box.get() == "Parallelepiped":
   
             inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_gp)
-            engn = choose_engine(inp_dict_gp)
-            self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
-            self.controller.task = self.job
+            # engn = choose_engine(inp_dict_gp)
+            # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
+            # self.controller.task = self.job
+            return inp_dict_gp
+    
+    def init_task(self, inp_dict: dict, filename):
+        engn = choose_engine(inp_dict)
+        self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
+        self.controller.task = self.job
 
     def save_button(self):
-        self.gs_inp2dict("gs")
+        inp_dict = self.gs_inp2dict()
+        self.init_task(inp_dict, 'gs')
         self.write_input()
         show_message(self.label_msg,"Saved")
 
     def view_button(self):
-        self.gs_inp2dict("gs")
-        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
+
+        if isinstance(self.job,GroundState):
+            self.gs_inp2dict()
+            self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
+        else:
+            inp_dict = self.gs_inp2dict()
+            self.init_task(inp_dict, 'gs')
+            self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
 
     def run_job_button(self):
-        self.controller.show_frame(self.next, GroundStatePage, None)
+        self.controller.show_frame(JobSubPage, GroundStatePage, None)
         
     def write_input(self):
         self.job.write_input()
         self.controller.task = self.job
+        self.controller.check = True
         self.controller.status.update_status('gs_inp', 1)
 
 
