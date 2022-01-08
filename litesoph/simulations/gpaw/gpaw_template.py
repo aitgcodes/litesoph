@@ -315,7 +315,7 @@ class GpawSpectrum:
 
     dm2spec="""
 from gpaw.tddft.spectrum import photoabsorption_spectrum
-photoabsorption_spectrum('{moment_file}', 'spec.dat',folding='{folding}', width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
+photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}', width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
 """
     
     def __init__(self, input_para: dict) -> None:
