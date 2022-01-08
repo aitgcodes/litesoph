@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+from re import T
 from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
@@ -22,11 +23,16 @@ class JobSubmit:
         self.configs = configs
         if configs.items('mpi'):
             self.mpi_cmd = list(configs.items('mpi'))[0][1]
-            self.mpi_cmd = [self.mpi_cmd, '-np']
+            self.mpi_cmd = self.mpi_cmd + ' ' + '-np'
         
     def run_job(self, command, directory):
-        job = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory)
-        
+        job = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
+        result = job.communicate()
+        print("Job started with command:", command)
+        print("retcode =", job.returncode)
+        print("result =", result)
+        if job.returncode != 0:
+            print("Error =", result[1])
         return job
       
     
@@ -37,8 +43,8 @@ class SubmitLocal(JobSubmit):
         self.np = nprocessors
         self.command = []
         if self.np > 1:
-            self.command.extend(self.mpi_cmd)
-            self.command.append(str(self.np))
+            self.command = self.mpi_cmd + ' ' +str(self.np)
+            
            
     def create_command(self):
         self.command = self.engine.create_command(self.command)

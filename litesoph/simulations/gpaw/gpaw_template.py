@@ -96,34 +96,35 @@ calc.write('gs.gpw', mode='all')
 
     """
     def __init__(self, user_input) -> None:
-        pass
+        self.user_input = self.default_param
+        self.user_input.update(user_input)
 
-    def check(self, user_param)-> bool:
-        """checks whether user given input parameters is compatable with with gpaw ground state calculation"""
+    # def check(self)-> bool:
+    #     """checks whether user given input parameters is compatable with with gpaw ground state calculation"""
 
-        if user_param['mode'] not in ['fd', 'lcao', 'pw'] and  user_param['engine'] == 'gpaw':
-            raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
+    #     if self.user_input['mode'] not in ['fd', 'lcao', 'pw'] and  self.user_input['engine'] == 'gpaw':
+    #         raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
         
-        if user_param['engine'] == 'gpaw':
-            return  True
-        else:
-            return False
+    #     if self.user_input['engine'] == 'gpaw':
+    #         return  True
+    #     else:
+    #         return False
 
-    def user2gpaw(self, user_input: Dict[str, Any], default_parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """converts general user given parameters to gpaw specific parameters."""
-        import os
-        parameters = default_parameters
+    # def user2gpaw(self)-> Dict[str, Any]:
+    #     """converts general user given parameters to gpaw specific parameters."""
+    #     import os
+    #     parameters = self
         
-        for key in user_input.keys():
-            if key not in ['tolerance','convergance','box'] and user_input[key] is not None:
-                parameters[key] = user_input[key]
+    #     for key in self.user_input.keys():
+    #         if key not in ['tolerance','convergance','box'] and self.user_input[key] is not None:
+    #             parameters[key] = self.user_input[key]
 
-            if key == 'geometry' and user_input[key] is None:
-                raise ValueError('The structure file is not found')
-        return parameters
+    #         if key == 'geometry' and self.user_input[key] is None:
+    #             raise ValueError('The structure file is not found')
+    #     self.user_input = parameters
 
-    def format_template(self, para:dict):
-        template = self.gs_template.format(**para)
+    def format_template(self):
+        template = self.gs_template.format(**self.user_input)
         return template
      
 class GpawRTLCAOTddftDelta:
