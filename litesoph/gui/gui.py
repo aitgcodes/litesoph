@@ -429,7 +429,8 @@ class GroundStatePage(Frame):
         self.bands = StringVar()
         self.theory = StringVar()
         self.tolerances = StringVar()
- 
+        self.dimension = StringVar()
+
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
@@ -450,7 +451,7 @@ class GroundStatePage(Frame):
         lcao_task = ["dzp","pvalence.dz"]
         fd_task = [""]
         pw_task = [""]
-        gauss_task = ["STO-2G","STO-3G","STO-6G","3-21G","3-21G*","3-21G**","6-31G","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","aug-cc-pvtz","cc-pVDZ"]
+        gauss_task = ["STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"]
         octgp_box = ["Parallelepiped","Minimum", "Sphere", "Cylinder"]
         nw_box = ["None"]
         gp_box = ["Parallelepiped"]
@@ -775,7 +776,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
  
-        self.Frame2_note = Label(self.Frame2,text="Energy Convergence (in eV/ electron)",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
@@ -785,7 +786,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"5.0e-7")
         self.entry_proj.place(x=280,y=160)
   
-        self.Frame2_note = Label(self.Frame2,text="Number of Bands",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=210)
 
@@ -798,7 +799,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= self.vacuum)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.dimension)
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,END)
         self.entry_proj.insert(0,"6")
@@ -877,16 +878,23 @@ class GroundStatePage(Frame):
             inp_dict_gp['basis']={}
 
         if self.mode.get() == "gaussian":
+ 
+            inp_dict_nw['directory'] = str(self.controller.directory)+"/"+ str(dir)
+            inp_dict_nw['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_nw)
-        if self.box.get() == "Parallelepiped":
-            print(inp_dict_gp)
+            engn = engine.choose_engine(inp_dict_nw)
+            self.job = GroundState(inp_dict_nw,engn,self.controller.status, self.controller.directory, filename)
+            self.controller.task = self.job
 
-        inp_dict['directory'] = str(self.controller.directory)+"/"+ str(dir)
-        inp_dict['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
-        engn = engine.choose_engine(inp_dict)
-        self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
-        self.controller.task = self.job
-        
+        if self.box.get() == "Parallelepiped":
+  
+            inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
+            inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+            print(inp_dict_gp)
+            engn = engine.choose_engine(inp_dict_gp)
+            self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
+            self.controller.task = self.job
+
     def write_input(self):
         self.job.write_input()
         self.controller.task = self.job
