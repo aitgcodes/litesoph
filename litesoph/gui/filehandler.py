@@ -35,10 +35,14 @@ class Status():
             return(self.status_dict)
 
     def check_status(self, key, value):
-        if self.status_dict[key] == value:
-            return True
-        else:
-            return False
+        try:
+            if self.status_dict[key] == value:
+                return True
+            else:
+                return False
+        except KeyError:
+            return False                   
+       
 
 class file_check:
     def __init__(self, check_list:list, dir) -> None:

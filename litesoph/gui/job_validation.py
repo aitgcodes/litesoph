@@ -37,4 +37,13 @@ def select_job(job_frame, job, status ):
             print("laser calc")
             job_frame.run_job('td_cal', 2, 1)                  
         else:
-            show_message(job_frame.msg_label1, "Inputs not found.")   
+            show_message(job_frame.msg_label1, "Inputs not found.") 
+
+    if job == 'spec':
+        job_frame.job_d = job_frame.controller.task.engine.spectra
+        spec_check = status.check_status('spectra', 1)
+        job_frame.job_d['cal_check'] = status.check_status('spectra', 2)
+        if spec_check is True:
+            job_frame.run_job('spectra', 2, 1)
+        else:
+            pass
