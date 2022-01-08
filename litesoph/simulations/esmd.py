@@ -55,7 +55,7 @@ class GroundState(Task):
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
 
-    def __init__(self, user_input: Dict[str, Any],engine: EngineStrategy, directory, filename,status=None) -> None:
+    def __init__(self, user_input: Dict[str, Any],engine: EngineStrategy,status, directory, filename) -> None:
         self.status = status
         self.user_input = user_input
         self.engine = engine
