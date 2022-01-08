@@ -533,12 +533,19 @@ class GroundStatePage(Frame):
     
         def pick_frame(e):
             if box_shape.get()  == "Parallelepiped":
-                self.gpaw_frame()
+                if task.get() == "lcao":
+                    self.gp2oct()
+            if box_shape.get() == "Parallelepiped":
+                if task.get() == "fd":
+                    self.gp2oct()
             if box_shape.get() == "Minimum": 
+                #self.oct_minsph_frame()
                 self.octopus_frame()
             if box_shape.get() == "Sphere":
+                #self.oct_minsph_frame()
                 self.octopus_frame()
             if box_shape.get() == "Cylinder": 
+                #self.oc_cyl_frame()
                 self.octopus_frame()
 
         box_shape = ttk.Combobox(self.Frame1, textvariable= self.box, value = [" "])
@@ -552,7 +559,14 @@ class GroundStatePage(Frame):
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
        
-        
+    def gp2oct(self):
+        check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
+        if check is True:
+            self.gpaw_frame()
+        else:
+            #self.oct_ppl_frame()
+            self.octopus_frame()
+       
     def back_button(self):
         self.controller.show_frame(WorkManagerPage)
               
@@ -648,6 +662,7 @@ class GroundStatePage(Frame):
         Frame2_Button2.place(x=380,y=380)
 
     def nwchem_frame(self):   
+
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j=font.Font(family ='Courier', size=20,weight='bold')
         k=font.Font(family ='Courier', size=40,weight='bold')
@@ -728,8 +743,54 @@ class GroundStatePage(Frame):
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=380)
+
+    def oct_ppl_frame(self):
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame2 = tk.Frame(self)
+        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+
+        self.Frame2.configure(relief='groove')
+        self.Frame2.configure(borderwidth="2")
+        self.Frame2.configure(relief="groove")
+        self.Frame2.configure(cursor="fleur")
+  
+    def oct_minsph_frame(self):
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame2 = tk.Frame(self)
+        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+
+        self.Frame2.configure(relief='groove')
+        self.Frame2.configure(borderwidth="2")
+        self.Frame2.configure(relief="groove")
+        self.Frame2.configure(cursor="fleur")
     
-    def octopus_frame(self):    
+    def oct_cyl_frame(self):
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame2 = tk.Frame(self)
+        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+
+        self.Frame2.configure(relief='groove')
+        self.Frame2.configure(borderwidth="2")
+        self.Frame2.configure(relief="groove")
+        self.Frame2.configure(cursor="fleur")
+ 
+    def octopus_frame(self):   
+ 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j=font.Font(family ='Courier', size=20,weight='bold')
         k=font.Font(family ='Courier', size=40,weight='bold')
@@ -755,6 +816,16 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=60)
         self.entry_pol_x['state'] = 'readonly'
 
+        self.Frame2_note = Label(self.Frame2,text="Theory",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=310)
+
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = ["occupied","unoccupied"])
+        self.entry_pol_x.current(0)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.place(x=280,y=310)
+        self.entry_pol_x['state'] = 'readonly'
+
         self.label_proj = Label(self.Frame2,text="Spacing (in Angstrom)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=110)
@@ -775,15 +846,15 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=160)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=210)
+        #self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.place(x=10,y=210)
 
-        self.entry_proj = Entry(self.Frame2,textvariable= self.energy)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.delete(0,END)
-        self.entry_proj.insert(0,"5.0e-7")
-        self.entry_proj.place(x=280,y=210)
+        #self.entry_proj = Entry(self.Frame2,textvariable= self.energy)
+        #self.entry_proj['font'] = myFont
+        #self.entry_proj.delete(0,END)
+        #self.entry_proj.insert(0,"5.0e-7")
+        #self.entry_proj.place(x=280,y=210)
   
         #self.Frame2_note = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
         #self.Frame2_note['font'] = myFont
@@ -804,16 +875,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"6")
         self.entry_proj.place(x=280,y=260)
 
-     
-        self.Frame2_note = Label(self.Frame2,text="Theory",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=310)
-
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = ["occupied","unoccupied"])
-        self.entry_pol_x.current(0)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.place(x=280,y=310)
-        self.entry_pol_x['state'] = 'readonly'
+        
 
         Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
         Frame2_Button3['font'] = myFont
