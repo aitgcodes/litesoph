@@ -41,10 +41,9 @@ def select_job(job_frame, job, status ):
 
     if job == 'spec':
         job_frame.job_d = job_frame.controller.task.engine.spectra
-        td_check = status.check_status('td_inp', 1)
-        job_frame.job_d['cal_check'] = status.check_status('spectra', 1)
-        td_cal_check = status.check_status('td_cal', 1) 
-        if td_check is True and td_cal_check is True:
-            job_frame.run_job('spectra', 1, 0)
+        spec_check = status.check_status('spectra', 1)
+        job_frame.job_d['cal_check'] = status.check_status('spectra', 2)
+        if spec_check is True:
+            job_frame.run_job('spectra', 2, 1)
         else:
             pass
