@@ -55,19 +55,20 @@ class GroundState(Task):
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
 
-    def __init__(self, user_input: Dict[str, Any],engine: EngineStrategy, status, directroy, filename) -> None:
+    def __init__(self, user_input: Dict[str, Any],engine: EngineStrategy,status, directory, filename) -> None:
         self.status = status
         self.user_input = user_input
         self.engine = engine
-        self.directory = directroy
+        self.directory = directory
         self.filename = filename
         self.task = self.engine.get_task_class('ground state',self.user_input)
+        self.template = self.task.format_template()  
 
-        if self.engine.check_compatability(self.user_input, self.task):
-            parameters = self.engine.engine_input_para(user_param=self.user_input, default_param= self.task.default_param, task=self.task)
-            self.template = self.task.format_template(parameters)   
-        else:
-            raise InputError("Input parameters not compatable with the engine")
+        # if self.engine.check_compatability(self.user_input, self.task):
+        #     parameters = self.engine.engine_input_para(user_param=self.user_input, default_param= self.task.default_param, task=self.task)
+        #     self.template = self.task.format_template(parameters)   
+        # else:
+        #     raise InputError("Input parameters not compatable with the engine")
     
     def write_input(self, template=None):
         
@@ -76,7 +77,7 @@ class GroundState(Task):
 
         self.task_dir()
         self.engine.create_script(self.directory,self.filename, self.template)
-        self.status.update_status('gs_inp', 1)
+        #self.status.update_status('gs_inp', 1)
 
     # def prerequisite(self):
     #     self.job_d = self.engine.gs
