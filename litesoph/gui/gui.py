@@ -600,7 +600,7 @@ class GroundStatePage(Frame):
         Frame2_Button3['font'] = myFont
         Frame2_Button3.place(x=10,y=380)
  
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage, GroundStatePage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(self.next, GroundStatePage, None))
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=300,y=380)
 
@@ -629,8 +629,7 @@ class GroundStatePage(Frame):
         engn = engine.choose_engine(inp_dict)
         self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
         self.controller.task = self.job
-        self.controller.check = True
-        
+                
     def write_input(self):
         self.job.write_input()
         self.controller.task = self.job
