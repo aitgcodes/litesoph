@@ -564,7 +564,7 @@ class GroundStatePage(Frame):
         if check is True:
             self.gpaw_frame()
         else:
-            #self.oct_ppl_frame()
+            self.oct_ppl_frame()
             self.octopus_frame()
        
     def back_button(self):
@@ -752,7 +752,7 @@ class GroundStatePage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
 
         self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame2.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
 
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -797,7 +797,7 @@ class GroundStatePage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
 
         self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame2.place(relx=0.5, rely=0.21, relheight=0.79, relwidth=0.492)
         
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -874,8 +874,6 @@ class GroundStatePage(Frame):
         self.entry_proj.delete(0,END)
         self.entry_proj.insert(0,"6")
         self.entry_proj.place(x=280,y=260)
-
-        
 
         Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
         Frame2_Button3['font'] = myFont
