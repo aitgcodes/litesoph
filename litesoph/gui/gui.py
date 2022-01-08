@@ -22,6 +22,7 @@ from litesoph.simulations import engine
 from litesoph.gui.filehandler import Status,file_check, open_file,show_message
 from litesoph.gui.navigation import Nav
 from litesoph.gui.filehandler import Status
+from litesoph.simulations.choose_engine import choose_engine
 from litesoph.simulations.gpaw.gpaw_template import write_laser
 
 
@@ -748,34 +749,31 @@ class GroundStatePage(Frame):
 
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
-
-
-
         
-    #     self.Frame2.configure(relief='groove')
-    #     self.Frame2.configure(borderwidth="2")
-    #     self.Frame2.configure(relief="groove")
-    #     self.Frame2.configure(cursor="fleur")
+        self.Frame2.configure(relief='groove')
+        self.Frame2.configure(borderwidth="2")
+        self.Frame2.configure(relief="groove")
+        self.Frame2.configure(cursor="fleur")
    
-    #     self.label_proj = Label(self.Frame2,text="Spacing (in Angstrom)",bg="gray",fg="black")
-    #     self.label_proj['font'] = myFont
-    #     self.label_proj.place(x=10,y=60)
+        self.label_proj = Label(self.Frame2,text="Spacing (in Angstrom)",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=60)
 
-    #     self.entry_proj = Entry(self.Frame2,textvariable= self.h)
-    #     self.entry_proj['font'] = myFont
-    #     self.entry_proj.delete(0,END)
-    #     self.entry_proj.insert(0,"0.3")
-    #     self.entry_proj.place(x=280,y=60)
+        self.entry_proj = Entry(self.Frame2,textvariable= self.h)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.delete(0,END)
+        self.entry_proj.insert(0,"0.3")
+        self.entry_proj.place(x=280,y=60)
         
-    #     self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
-    #     self.Frame2_note['font'] = myFont
-    #     self.Frame2_note.place(x=10,y=110)
+        self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=110)
    
-    #     self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.spinpol, value = ["None","True"])
-    #     self.entry_pol_x.current(0)
-    #     self.entry_pol_x['font'] = myFont
-    #     self.entry_pol_x.place(x=280,y=110)
-    #     self.entry_pol_x['state'] = 'readonly'
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.spinpol, value = ["None","True"])
+        self.entry_pol_x.current(0)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.place(x=280,y=110)
+        self.entry_pol_x['state'] = 'readonly'
 
         self.Frame2_note = Label(self.Frame2,text="Energy Convergence",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -807,43 +805,32 @@ class GroundStatePage(Frame):
         self.entry_proj.place(x=280,y=260)
 
      
-    #     self.Frame2_note = Label(self.Frame2,text="Theory",bg="gray",fg="black")
-    #     self.Frame2_note['font'] = myFont
-    #     self.Frame2_note.place(x=10,y=310)
+        self.Frame2_note = Label(self.Frame2,text="Theory",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.place(x=10,y=310)
 
-    #     self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = ["occupied","unoccupied"])
-    #     self.entry_pol_x.current(0)
-    #     self.entry_pol_x['font'] = myFont
-    #     self.entry_pol_x.place(x=280,y=310)
-    #     self.entry_pol_x['state'] = 'readonly'
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = ["occupied","unoccupied"])
+        self.entry_pol_x.current(0)
+        self.entry_pol_x['font'] = myFont
+        self.entry_pol_x.place(x=280,y=310)
+        self.entry_pol_x['state'] = 'readonly'
 
-    #     Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-    #     Frame2_Button3['font'] = myFont
-    #     Frame2_Button3.place(x=10,y=380)
+        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        Frame2_Button3['font'] = myFont
+        Frame2_Button3.place(x=10,y=380)
          
-    #     Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-    #     Frame1_Button1['font'] = myFont
-    #     Frame1_Button1.place(x=200,y=380)
+        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=200,y=380)
  
-    #     self.label_msg = Label(self.Frame2,text="")
-    #     self.label_msg['font'] = myFont
-    #     self.label_msg.place(x=220,y=350)
+        self.label_msg = Label(self.Frame2,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=220,y=350)
     
-    #     Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-    #     Frame2_Button2['font'] = myFont
-    #     Frame2_Button2.place(x=380,y=380)
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        Frame2_Button2['font'] = myFont
+        Frame2_Button2.place(x=380,y=380)
 
-    def save_button(self):
-        self.gs_inp2dict("gs")
-        self.write_input()
-        show_message(self.label_msg,"Saved")
-
-    def view_button(self):
-        self.gs_inp2dict("gs")
-        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
-
-    def run_job_button(self):
-        self.controller.show_frame(self.next, GroundStatePage, None)
 
     def gs_inp2dict(self, filename):
         inp_dict_gp = {
@@ -886,7 +873,7 @@ class GroundStatePage(Frame):
             inp_dict_nw['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_nw['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_nw)
-            engn = engine.choose_engine(inp_dict_nw)
+            engn = choose_engine(inp_dict_nw)
             self.job = GroundState(inp_dict_nw,engn,self.controller.status, self.controller.directory, filename)
             self.controller.task = self.job
 
@@ -895,10 +882,21 @@ class GroundStatePage(Frame):
             inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_gp)
-            engn = engine.choose_engine(inp_dict_gp)
+            engn = choose_engine(inp_dict_gp)
             self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
             self.controller.task = self.job
-        
+
+    def save_button(self):
+        self.gs_inp2dict("gs")
+        self.write_input()
+        show_message(self.label_msg,"Saved")
+
+    def view_button(self):
+        self.gs_inp2dict("gs")
+        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.job)
+
+    def run_job_button(self):
+        self.controller.show_frame(self.next, GroundStatePage, None)
     def write_input(self):
         self.job.write_input()
         self.controller.task = self.job
