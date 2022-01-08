@@ -100,8 +100,9 @@ class NwchemGroundState:
 
     default_gs_param = {
             'mode':'gaussian',
+            'geometry':'coordinate.xyz',
             'charge': 0,
-            'basis': '',
+            'basis': '6-31g',
             'multip': 1,
             'xc': 'PBE0',
             'maxiter': 300,
@@ -119,7 +120,7 @@ title "LITESOPH NWCHEM Calculations"
 charge {charge}
 
 geometry 
-  load coordinate.xyz 
+  load  {geometry}
 end
 
 basis 

@@ -129,10 +129,12 @@ class EngineGpaw(EngineStrategy):
 
         filename = pathlib.Path(self.directory) / self.filename
         command = configs.get('programs', 'python')
-        command = [command, filename]
+        #command = [command, filename,'>', ofilename]
+        command = command + ' ' + str(filename) 
         if cmd:
-            cmd.extend(command)
-            command = cmd
+            #cmd.extend(command)
+            command = cmd + ' ' + command
+            print(command)
         return command
 
 class EngineOctopus(EngineStrategy):
@@ -179,6 +181,22 @@ class EngineOctopus(EngineStrategy):
 class EngineNwchem(EngineStrategy):
 
 
+    gs = {'inp':'/NwchemGroundState/gs.nwi',
+            'out': '/GS/gs.out',
+            'restart': 'GS/gs.gpw',
+            'check_list':['Converged', 'Fermi level:','Total:']}
+
+    td_delta = {'inp':'/NwchemDeltaKick/td.nwo',
+             'out': '/TD_Delta/tdx.out',
+             'restart': '/TD_Delta/td.gpw',
+             'check_list':['Writing','Total:']}
+
+    laser = {'inp':'/TD_Laser/tdlaser.py',
+             'out': '/TD_Laser/tdlaser.out',
+             'restart': '/TD_Laser/tdlaser.gpw',
+             'check_list':['Writing','Total:']}
+
+
     def get_task_class(self, task: str, user_param):
         if task == "optimization":
             return nw.NwchemOptimisation(user_param) 
@@ -212,11 +230,14 @@ class EngineNwchem(EngineStrategy):
     def create_command(self, cmd: list):
 
         filename = pathlib.Path(self.directory) / self.filename
+        ofilename = pathlib.Path(filename).stem + '.nwo'
         command = configs.get('engine', 'nwchem')
-        command = [command, filename]
+        #command = [command, filename,'>', ofilename]
+        command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
-            cmd.extend(command)
-            command = cmd
+            #cmd.extend(command)
+            command = cmd + ' ' + command
+            print(command)
         return command
 
 def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
