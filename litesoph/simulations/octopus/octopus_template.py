@@ -1,3 +1,5 @@
+from pathlib import Path
+from typing import Any, Dict
 
 class OctGroundState:
 
@@ -49,9 +51,6 @@ MaximumIter = {max_iter}
     def __init__(self, user_input) -> None:
         self.default_param.update(user_input)
         self.boxshape = self.default_param['box']['shape']        
-
-    def check(self):
-        pass
 
     def format_template(self):
         if self.boxshape not in ['cylinder', 'paralellopiped']: 
@@ -136,8 +135,6 @@ TDPolarizationDirection = {e_pol}
         self.default_param.update(user_input)
         self.boxshape = self.default_param['box']['shape']         
 
-    def check(self):
-        pass
 
     def format_template(self):
         if self.boxshape not in ['cylinder', 'paralellopiped']: 
