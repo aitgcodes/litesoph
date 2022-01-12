@@ -1110,7 +1110,7 @@ class GroundStatePage(Frame):
 
     def view_button(self):
 
-        if isinstance(self.job,GroundState):
+        if hasattr('self.job.engine','directory'):
             self.gs_inp2dict()
             self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
         else:
