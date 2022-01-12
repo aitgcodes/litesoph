@@ -23,7 +23,7 @@ class Task:
         self.submit = submit
         self.submit.create_command()
         self.submit.run_job(self.directory)
-        print(str(self.submit.result))
+        #print(str(self.submit.result))
 
 class GeometricOptimization(Task):
 
@@ -77,7 +77,7 @@ class GroundState(Task):
 
         self.task_dir()
         self.engine.create_script(self.directory,self.filename, self.template)
-        #self.status.update_status('gs_inp', 1)
+        self.status.update_status('gs_inp', 1)
 
     # def prerequisite(self):
     #     self.job_d = self.engine.gs
