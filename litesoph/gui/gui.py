@@ -408,7 +408,9 @@ class GroundStatePage(Frame):
     gp_box = ["Parallelepiped"]
     xc_gp = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
     xc_nw = ["acm","b3lyp","beckehandh","Hfexch","pbe0","becke88","xpbe96","bhlyp","cam-s12g","cam-s12h","xperdew91","pbeop"]
-    xc_oct = ["lda_x_1d+lda_e_1d","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
+    xc_oct1 = ["lda_x_1d+lda_e_1d"]
+    xc_oct2 = ["lda_x_2d+lda_c_2d_amgb"]
+    xc_oct3 = ["lda_x+lda_e_pz_mod"]
     dxc_oct = ["1","2","3"]
     fnsmear = ["semiconducting","fermi_dirac","cold_smearing","methfessel_paxton","spline_smearing"]
     eignsolv = ["rmmdiis","plan","cg","cg_new"]
@@ -460,7 +462,8 @@ class GroundStatePage(Frame):
         self.eigen = StringVar()
         self.smear = StringVar()
         self.smearfn = StringVar()
- 
+        self.unitconv = StringVar()
+
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
@@ -527,7 +530,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=280,y=160)
 
-        self.label_pol_z = Label(self.Frame1, text="Maximum SCF iterations", bg= "grey",fg="black")
+        self.label_pol_z = Label(self.Frame1, text="Maximum SCF iteration", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=210)
  
@@ -541,12 +544,18 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = Entry(self.Frame1,textvariable= self.energy)
+        self.entry_proj = Entry(self.Frame1, width= 10, textvariable= self.energy)
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,END)
         self.entry_proj.insert(0,"5.0e-7")
         self.entry_proj.place(x=280,y=260)
-
+ 
+        unit = ttk.Combobox(self.Frame1,width=5, textvariable= self.unitconv , value = ["eV","au","Ha","Ry"])
+        unit.current(0)
+        unit['font'] = myFont
+        unit.place(x=380,y=260)
+        unit['state'] = 'readonly'
+       
         self.label_proj = Label(self.Frame1,text="Box Shape",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=310)
@@ -645,7 +654,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=60)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.label_proj = Label(self.Frame2,text="Spacing (in Angstrom)",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2,text="Spacing (in Ang)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=110)
 
@@ -674,7 +683,7 @@ class GroundStatePage(Frame):
         self.entry_proj.delete(0,END)
         self.entry_proj.place(x=280,y=210)
 
-        self.Frame2_note = Label(self.Frame2,text="Vacuum size (in Angstrom)",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Vacuum size (in Ang)",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
@@ -788,7 +797,7 @@ class GroundStatePage(Frame):
         self.entry1['font'] = myFont
         self.entry1.delete(0,END)
         self.entry1.insert(0,"0")
-        self.entry1.place(x=60,y=60)
+        self.entry1.place(x=110,y=60)
  
         #self.note2 = Label(self.Frame3,text="ly",bg="gray",fg="black")
         #self.note2['font'] = myFont
@@ -798,7 +807,7 @@ class GroundStatePage(Frame):
         self.entry2['font'] = myFont
         self.entry2.delete(0,END)
         self.entry2.insert(0,"0")
-        self.entry2.place(x=180,y=60)
+        self.entry2.place(x=240,y=60)
     
         #self.note3 = Label(self.Frame3,text="lz",bg="gray",fg="black")
         #self.note3['font'] = myFont
@@ -808,7 +817,7 @@ class GroundStatePage(Frame):
         self.entry3['font'] = myFont
         self.entry3.delete(0,END)
         self.entry3.insert(0,"0")
-        self.entry3.place(x=300,y=60)
+        self.entry3.place(x=360,y=60)
           
     def oct_minsph_frame(self):
 
@@ -888,24 +897,36 @@ class GroundStatePage(Frame):
         self.lb1 = Label(self.Frame2,text="Dimension",bg="gray",fg="black")
         self.lb1['font'] = myFont
         self.lb1.place(x=10,y=10)
+   
+        def pick_xc(e):
+            if self.cb1.get() == "1":
+                xc_octopus.config(value = self.xc_oct1)
+                xc_octopus.current(0)
+            if self.cb1.get() == "2":
+                xc_octopus.config(value = self.xc_oct2)
+                xc_octopus.current(0)
+            if self.cb1.get() == "3":
+                xc_octopus.config(value = self.xc_oct3)
+                xc_octopus.current(0)
 
-        self.cb1 = ttk.Combobox(self.Frame2,width= 7, textvariable= self.dxc, value = self.dxc_oct)
-        self.cb1.current(2)
+        self.cb1 = ttk.Combobox(self.Frame2,width= 10, textvariable= self.dxc, value = self.dxc_oct)
+        self.cb1.set("--choose--")
         self.cb1['font'] = myFont
-        self.cb1.place(x=100,y=10)
+        self.cb1.place(x=110,y=10)
+        self.cb1.bind("<<ComboboxSelected>>", pick_xc)
         self.cb1['state'] = 'readonly'
  
         self.lb2 = Label(self.Frame2,text="Mixing",bg="gray",fg="black")
         self.lb2['font'] = myFont
-        self.lb2.place(x=250,y=10)
+        self.lb2.place(x=260,y=10)
  
         self.en1 = Entry(self.Frame2,width= 7, textvariable= self.mix)
         self.en1['font'] = myFont
         self.en1.delete(0,END)
         self.en1.insert(0,"0.3")
-        self.en1.place(x=350,y=10)
+        self.en1.place(x=360,y=10)
 
-        self.label_proj = Label(self.Frame2,text="Spacing",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2,text="Spacing (Ang)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
@@ -913,17 +934,17 @@ class GroundStatePage(Frame):
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,END)
         self.entry_proj.insert(0,"0.3")
-        self.entry_proj.place(x=100,y=60)
+        self.entry_proj.place(x=110,y=60)
 
-        self.label_proj = Label(self.Frame2,width= 7, text="Smearing ",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2, text="Smearing (eV)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=250,y=60)
+        self.label_proj.place(x=260,y=60)
 
         self.entry_proj = Entry(self.Frame2, width= 7,textvariable= self.smear)
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,END)
         self.entry_proj.insert(0,"0.3")
-        self.entry_proj.place(x=350,y=60)
+        self.entry_proj.place(x=360,y=60)
 
         self.lb2 = Label(self.Frame2,text="Smearing Function",bg="gray",fg="black")
         self.lb2['font'] = myFont
@@ -935,15 +956,14 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.Frame2_note = Label(self.Frame2,text="Eigen Solver",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Exchange Correlation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.eigen, value = self.eignsolv)
-        self.entry_pol_x.current(0)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.place(x=280,y=160)
-        self.entry_pol_x['state'] = 'readonly'
+        xc_octopus = ttk.Combobox(self.Frame2, textvariable= self.xc, value = " ")
+        xc_octopus['font'] = myFont
+        xc_octopus.place(x=280,y=160)
+        xc_octopus['state'] = 'readonly'
 
         self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -955,11 +975,11 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=210)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.Frame2_note = Label(self.Frame2,text="Exchange Correlation",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Eigen Solver",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.xc, value = self.xc_oct)
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.eigen, value = self.eignsolv)
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=260)
