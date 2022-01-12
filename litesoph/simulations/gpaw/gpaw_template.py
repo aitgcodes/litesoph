@@ -47,24 +47,16 @@ class GpawGroundState:
 
     gs_template = """
 from ase.io import read, write
-from ase import Atoms
-from ase.parallel import paropen
-from gpaw.poisson import PoissonSolver
-from gpaw.eigensolvers import CG
-from gpaw import GPAW, FermiDirac
-from gpaw import Mixer, MixerSum, MixerDif
-from gpaw.lcao.eigensolver import DirectLCAO
+from gpaw import GPAW
 from numpy import inf
 
 # Molecule or nanostructure
-layer = read('{geometry}')
-layer.center(vacuum={vacuum})
+atoms = read('{geometry}')
+atoms.center(vacuum={vacuum})
 
 #Ground-state calculation
 calc = GPAW(mode='{mode}',
     xc='{xc}',
-    occupations={occupations},
-    poissonsolver= {poissonsolver},
     h={h},  # Angstrom
     gpts={gpts},
     kpts={kpts},
@@ -75,23 +67,13 @@ calc = GPAW(mode='{mode}',
     spinpol= {spinpol},
     filter={filter},
     mixer={mixer},
-    eigensolver={eigensolver},
-    background_charge={background_charge},
-    experimental={experimental},
-    external={external},
-    random={random},
     hund={hund},
     maxiter={maxiter},
-    idiotproof={idiotproof},
-    symmetry={symmetry},  # deprecated
+    symmetry={symmetry},  
     convergence={convergence},
-    verbose={verbose},
-    fixdensity={fixdensity},  # deprecated
-    dtype={dtype},  # deprecated
-    txt='gs.out',
-    parallel=None)
-layer.calc = calc
-energy = layer.get_potential_energy()
+    txt='gs.out')
+atoms.calc = calc
+energy = atoms.get_potential_energy()
 calc.write('gs.gpw', mode='all')
 
     """
