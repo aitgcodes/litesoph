@@ -457,11 +457,11 @@ class GroundStatePage(Frame):
         self.l = StringVar()
         self.dxc = StringVar()
         self.mix = StringVar()
-        self.eign = StringVar()
+        self.eigen = StringVar()
         self.smear = StringVar()
         self.smearfn = StringVar()
  
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.86, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
@@ -572,11 +572,43 @@ class GroundStatePage(Frame):
         box_shape.place(x=280,y=310)
         box_shape.bind("<<ComboboxSelected>>", pick_frame)
         box_shape['state'] = 'readonly'
-        
-        Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
-        Frame1_Button3['font'] = myFont
-        Frame1_Button3.place(x=10,y=380)
        
+        self.Frame7 = tk.Frame(self)
+        self.Frame7.place(relx=0.1, rely=0.87, relheight=0.13, relwidth=0.492)
+
+        self.Frame7.configure(relief='groove')
+        self.Frame7.configure(borderwidth="2")
+        self.Frame7.configure(relief="groove")
+        self.Frame7.configure(cursor="fleur")
+ 
+        Button1 = tk.Button(self.Frame7, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
+        Button1['font'] = myFont
+        Button1.place(x=10,y=10)
+      
+        self.Frame6 = tk.Frame(self)
+        self.Frame6.place(relx=0.5, rely=0.87, relheight=0.13, relwidth=0.492)
+
+        self.Frame6.configure(relief='groove')
+        self.Frame6.configure(borderwidth="2")
+        self.Frame6.configure(relief="groove")
+        self.Frame6.configure(cursor="fleur")
+
+        Frame2_Button3 = tk.Button(self.Frame6, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        Frame2_Button3['font'] = myFont
+        Frame2_Button3.place(x=10,y=10)
+
+        Frame1_Button1 = tk.Button(self.Frame6, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=200,y=10)
+
+        #self.label_msg = Label(self.Frame6,text="")
+        #self.label_msg['font'] = myFont
+        #self.label_msg.place(x=220,y=5)
+
+        Frame2_Button2 = tk.Button(self.Frame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        Frame2_Button2['font'] = myFont
+        Frame2_Button2.place(x=380,y=10)
+ 
     def gp2oct(self):
         check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
         if check is True:
@@ -597,7 +629,7 @@ class GroundStatePage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
 
         self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame2.place(relx=0.5, rely=0.01, relheight=0.87, relwidth=0.492)
 
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -663,21 +695,21 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=310)
         self.entry_pol_x['state'] = 'readonly'
         
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        Frame2_Button3['font'] = myFont
-        Frame2_Button3.place(x=10,y=380)
+        #Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        #Frame2_Button3['font'] = myFont
+        #Frame2_Button3.place(x=10,y=380)
          
-        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=200,y=380)
+        #Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        #Frame1_Button1['font'] = myFont
+        #Frame1_Button1.place(x=200,y=380)
  
-        self.label_msg = Label(self.Frame2,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=220,y=350)
+        #self.label_msg = Label(self.Frame2,text="")
+        #self.label_msg['font'] = myFont
+        #self.label_msg.place(x=220,y=350)
     
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=380,y=380)
+        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        #Frame2_Button2['font'] = myFont
+        #Frame2_Button2.place(x=380,y=380)
 
     def nwchem_frame(self):   
 
@@ -687,7 +719,7 @@ class GroundStatePage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
  
         self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame2.place(relx=0.5, rely=0.01, relheight=0.87, relwidth=0.492)
         
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -744,21 +776,21 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=210)
         self.entry_pol_x['state'] = 'readonly'
         
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        Frame2_Button3['font'] = myFont
-        Frame2_Button3.place(x=10,y=380)
+        #Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        #Frame2_Button3['font'] = myFont
+        #Frame2_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=200,y=380)
+        #Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        #Frame1_Button1['font'] = myFont
+        #Frame1_Button1.place(x=200,y=380)
  
-        self.label_msg = Label(self.Frame2,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=220,y=350)
+        #self.label_msg = Label(self.Frame2,text="")
+        #self.label_msg['font'] = myFont
+        #self.label_msg.place(x=220,y=350)
 
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=380,y=380)
+        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        #Frame2_Button2['font'] = myFont
+        #Frame2_Button2.place(x=380,y=380)
 
     def oct_ppl_frame(self):
 
@@ -877,7 +909,7 @@ class GroundStatePage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
 
         self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.5, rely=0.21, relheight=0.79, relwidth=0.492)
+        self.Frame2.place(relx=0.5, rely=0.21, relheight=0.67, relwidth=0.492)
         
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -914,7 +946,7 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"0.3")
         self.entry_proj.place(x=100,y=60)
 
-        self.label_proj = Label(self.Frame2,width= 7, text="Smearing",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame2,width= 7, text="Smearing ",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=250,y=60)
 
@@ -934,7 +966,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.Frame2_note = Label(self.Frame2,text="Egin Solver",bg="gray",fg="black")
+        self.Frame2_note = Label(self.Frame2,text="Eigen Solver",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
@@ -944,7 +976,6 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=160)
         self.entry_pol_x['state'] = 'readonly'
 
-        
         self.Frame2_note = Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=210)
@@ -965,22 +996,67 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=260)
         self.entry_pol_x['state'] = 'readonly'
 
-        Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        Frame2_Button3['font'] = myFont
-        Frame2_Button3.place(x=10,y=310)
+        #Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        #Frame2_Button3['font'] = myFont
+        #Frame2_Button3.place(x=10,y=310)
          
-        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=200,y=310)
+        #Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        #Frame1_Button1['font'] = myFont
+        #Frame1_Button1.place(x=200,y=310)
  
-        self.label_msg = Label(self.Frame2,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=220,y=280)
+        #self.label_msg = Label(self.Frame2,text="")
+        #self.label_msg['font'] = myFont
+        #self.label_msg.place(x=220,y=280)
     
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=380,y=310)
+        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        #Frame2_Button2['font'] = myFont
+        #Frame2_Button2.place(x=380,y=310)
 
+    def button_frame(self):
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame6 = tk.Frame(self)
+        self.Frame6.place(relx=0.5, rely=0.8, relheight=0.15, relwidth=0.492)
+
+        self.Frame6.configure(relief='groove')
+        self.Frame6.configure(borderwidth="2")
+        self.Frame6.configure(relief="groove")
+        self.Frame6.configure(cursor="fleur")
+     
+        Frame2_Button3 = tk.Button(self.Frame6, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        Frame2_Button3['font'] = myFont
+        Frame2_Button3.place(x=10,y=10)
+
+        Frame1_Button1 = tk.Button(self.Frame6, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=200,y=10)
+
+        self.label_msg = Label(self.Frame6,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=220,y=10)
+
+        Frame2_Button2 = tk.Button(self.Frame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        Frame2_Button2['font'] = myFont
+        Frame2_Button2.place(x=380,y=10)
+
+        #Button1 = tk.Button(self.Frame6, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        #Button1['font'] = myFont
+        #Button1.place(x=10,y=5)
+
+        #Button2 = tk.Button(self.Frame6, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        #Button2['font'] = myFont
+        #Button2.place(x=200,y=5)
+
+        #label_msg = Label(self.Frame6,text="")
+        #label_msg['font'] = myFont
+        #label_msg.place(x=220,y=5)
+
+        #Button3 = tk.Button(self.Frame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        #Button3['font'] = myFont
+        #Button3.place(x=380,y=5)
 
     def gs_inp2dict(self):
         inp_dict_gp = {
@@ -1084,6 +1160,7 @@ class GeomOptPage(Frame):
         l=font.Font(family ='Courier', size=15,weight='bold')
         
         self.Frame1 = tk.Frame(self)
+        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
@@ -1102,13 +1179,6 @@ class GeomOptPage(Frame):
         energy = StringVar()
         bands = StringVar()
         maxiter = StringVar()
-        
-
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")            
         
         self.Frame1_label_path = Label(self.Frame1,text="LITESOPH input for Geometery Optimisation",fg='blue')
         self.Frame1_label_path['font'] = myFont
