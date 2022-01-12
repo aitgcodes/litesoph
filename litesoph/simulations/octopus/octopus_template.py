@@ -9,7 +9,7 @@ class OctGroundState:
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
             'name':'H',               # name of species
-            'geom_file' : "coordinate.xyz",       
+            'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
             'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
             'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
@@ -35,7 +35,7 @@ CalculationMode = gs
 Dimensions = {dimension} 
 TheoryLevel = {theory}
 Unitsoutput = {out_unit}       
-XYZCoordinates = '{geom_file}'
+XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius ={box[radius]}*angstrom
 
@@ -57,7 +57,7 @@ ConvRelDens = {conv_reldens}
         self.boxshape = self.default_param['box']['shape']        
 
     def format_template(self):
-        if self.boxshape not in ['cylinder', 'paralellopiped']: 
+        if self.boxshape not in ['cylinder', 'paralellepiped']: 
             template = self.gs_min.format(**self.default_param)
             return template 
 
@@ -69,7 +69,7 @@ ConvRelDens = {conv_reldens}
             template = self.gs_min.format(**self.default_param)
             return template
 
-        elif self.boxshape == "paralellopiped":
+        elif self.boxshape == "paralellepiped":
             tlines = self.gs_min.splitlines()
             tlines[8] = "%LSize"
             tlines[9] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
@@ -87,7 +87,7 @@ class OctTimedependentState:
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
             'name':'H',               # name of species
-            'geom_file' : "coordinate.xyz",       
+            'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
             'theory':'DFT' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
             'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
@@ -120,7 +120,7 @@ CalculationMode = td
 Dimensions = {dimension} 
 
 Unitsoutput = {out_unit}       
-XYZCoordinates = '{geom_file}'
+XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius = {box[radius]}*angstrom
 
@@ -141,7 +141,7 @@ TDPolarizationDirection = {e_pol}
 
 
     def format_template(self):
-        if self.boxshape not in ['cylinder', 'paralellopiped']: 
+        if self.boxshape not in ['cylinder', 'paralellepiped']: 
             template = self.td.format(**self.default_param)
             return template 
 
@@ -153,7 +153,7 @@ TDPolarizationDirection = {e_pol}
             template = self.td.format(**self.default_param)
             return template
 
-        elif self.boxshape == "paralellopiped":
+        elif self.boxshape == "paralellepiped":
             tlines = self.td.splitlines()
             tlines[8] = "%LSize"
             tlines[9] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
