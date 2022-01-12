@@ -371,29 +371,29 @@ class WorkManagerPage(Frame):
                 return True
             else:
                 messagebox.showerror(message= "Upload geometry file")
-        # elif sub_task.get() == "Delta Kick":
-        #     if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-        #         return True
-        #     else:
-        #         messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
-        # elif sub_task.get() == "Gaussian Pulse":
-        #     if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-        #         return True
-        #     else:
-        #         messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
-        # elif sub_task.get() == "Spectrum":
-        #     if self.st_var.check_status('gs_cal', 1) is True:
-        #         if self.st_var.check_status('td_cal',1) is True or self.st_var.check_status('td_cal',2) is True:
-        #             return True
-        #     else:
-        #         messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
-        # elif sub_task.get() == "Dipole Moment and Laser Pulse":
-        #     if self.st_var.check_status('gs_cal', 1) is True and self.st_var.check_status('td_cal',2) is True:
-        #         return True
-        #     else:
-        #         messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
-        # else:
-        return True
+        elif sub_task.get() == "Delta Kick":
+            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
+                return True
+            else:
+                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
+        elif sub_task.get() == "Gaussian Pulse":
+            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
+                return True
+            else:
+                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
+        elif sub_task.get() == "Spectrum":
+            if self.st_var.check_status('gs_cal', 1) is True:
+                if self.st_var.check_status('td_cal',1) is True or self.st_var.check_status('td_cal',2) is True:
+                    return True
+            else:
+                messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
+        elif sub_task.get() == "Dipole Moment and Laser Pulse":
+            if self.st_var.check_status('gs_cal', 1) is True and self.st_var.check_status('td_cal',2) is True:
+                return True
+            else:
+                messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
+        else:
+            return True
 
     
 
