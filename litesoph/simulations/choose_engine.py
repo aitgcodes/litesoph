@@ -18,8 +18,8 @@ def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
     #         return list_engine[1]
     if user_input['engine'] == 'gpaw':
         return list_engine[0]
-    # if user_input['engine'] == 'gpaw':
-    #     return list_engine[1]
+    if user_input['engine'] == 'octopus':
+        return list_engine[1]
     elif user_input['engine'] == 'nwchem':
         return list_engine[2]
     else:
