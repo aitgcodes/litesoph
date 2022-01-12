@@ -9,33 +9,33 @@ class OctGroundState:
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
             'name':'H',               # name of species
-            'geom_file' : "coordinate.xyz",       
+            'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
-            'theory':'DFT' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
+            'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
             'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
             'mass' : 1.0,             # mass of species in atomic unit
-            'box':{'shape':'minimum','radius':1.0,'xlength':0.0, 'sizex':0.0, 'sizey':0.0, 'sizez':0.0},
-            'spacing': 0.0,           # spacing between points in the mesh
+            'box':{'shape':'minimum','radius':4.0,'xlength':0.0, 'sizex':0.0, 'sizey':0.0, 'sizez':0.0},
+            'spacing': 0.23,           # spacing between points in the mesh
             'spin_pol': 'unpolarized',
             'charge': 0.0,
             'e_conv' : 0.0,
             'max_iter' : 200,
 
             'eigensolver' :'cg',      #["rmmdiis","plan","arpack","feast","psd","cg","cg_new","lobpcg","evolution"]
-            'mixing' : {},
-            'conv_reldens' : {},      # SCF calculation
-            'smearing_func' : {},
-            'smearing' : {},
+            'mixing' : 0.3,             # 0<mixing<=1
+            'conv_reldens' : 1e-6,      # SCF calculation
+            'smearing_func' :'semiconducting',
+            'smearing' : 0.1          # in eV
             } 
 
     gs_min = """
-WorkDir = {work_dir}    
+WorkDir = '{work_dir}'    
 FromScratch = {scratch}                
 CalculationMode = gs
-Dimension = {dimension} 
-
+Dimensions = {dimension} 
+TheoryLevel = {theory}
 Unitsoutput = {out_unit}       
-XYZCoordinates = '{geom_file}'
+XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius ={box[radius]}*angstrom
 
@@ -46,6 +46,10 @@ ExcessCharge = {charge}
 
 ConvEnergy = {e_conv}
 MaximumIter = {max_iter}
+Eigensolver = {eigensolver}
+Smearing = {smearing}
+SmearingFunction = {smearing_func}
+ConvRelDens = {conv_reldens}
     """
     
     def __init__(self, user_input) -> None:
@@ -53,7 +57,7 @@ MaximumIter = {max_iter}
         self.boxshape = self.default_param['box']['shape']        
 
     def format_template(self):
-        if self.boxshape not in ['cylinder', 'paralellopiped']: 
+        if self.boxshape not in ['cylinder', 'paralellepiped']: 
             template = self.gs_min.format(**self.default_param)
             return template 
 
@@ -65,7 +69,7 @@ MaximumIter = {max_iter}
             template = self.gs_min.format(**self.default_param)
             return template
 
-        elif self.boxshape == "paralellopiped":
+        elif self.boxshape == "paralellepiped":
             tlines = self.gs_min.splitlines()
             tlines[8] = "%LSize"
             tlines[9] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
@@ -83,7 +87,7 @@ class OctTimedependentState:
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
             'name':'H',               # name of species
-            'geom_file' : "coordinate.xyz",       
+            'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
             'theory':'DFT' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
             'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
@@ -110,13 +114,13 @@ class OctTimedependentState:
             }
 
     td = """
-WorkDir = {work_dir}    
+WorkDir = '{work_dir}'    
 FromScratch = {scratch}                
 CalculationMode = td
-Dimension = {dimension} 
+Dimensions = {dimension} 
 
 Unitsoutput = {out_unit}       
-XYZCoordinates = '{geom_file}'
+XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius = {box[radius]}*angstrom
 
@@ -137,7 +141,7 @@ TDPolarizationDirection = {e_pol}
 
 
     def format_template(self):
-        if self.boxshape not in ['cylinder', 'paralellopiped']: 
+        if self.boxshape not in ['cylinder', 'paralellepiped']: 
             template = self.td.format(**self.default_param)
             return template 
 
@@ -149,7 +153,7 @@ TDPolarizationDirection = {e_pol}
             template = self.td.format(**self.default_param)
             return template
 
-        elif self.boxshape == "paralellopiped":
+        elif self.boxshape == "paralellepiped":
             tlines = self.td.splitlines()
             tlines[8] = "%LSize"
             tlines[9] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
@@ -157,3 +161,4 @@ TDPolarizationDirection = {e_pol}
             temp = """\n""".join(tlines)
             template = temp.format(**self.default_param)
             return template    
+
