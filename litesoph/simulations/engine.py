@@ -129,10 +129,8 @@ class EngineGpaw(EngineStrategy):
 
         filename = pathlib.Path(self.directory) / self.filename
         command = configs.get('programs', 'python')
-        #command = [command, filename,'>', ofilename]
         command = command + ' ' + str(filename) 
         if cmd:
-            #cmd.extend(command)
             command = cmd + ' ' + command
             print(command)
         return command
@@ -170,12 +168,13 @@ class EngineOctopus(EngineStrategy):
 
     def create_command(self, cmd: list):
 
-        filename = pathlib.Path(self.directory) / self.filename
+        #filename = pathlib.Path(self.directory) / self.filename
+        ofilename = "log"
         command = configs.get('engine', 'octopus')
-        command = [command]
+        command = command + ' ' + '&>' + ' ' + str(ofilename)
         if cmd:
-            cmd.extend(command)
-            command = cmd
+            command = cmd + ' ' + command
+            print(command)
         return command
 
 class EngineNwchem(EngineStrategy):
