@@ -11,29 +11,29 @@ class OctGroundState:
             'name':'H',               # name of species
             'geom_file' : "coordinate.xyz",       
             'dimension' : 3, 
-            'theory':'DFT' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
+            'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
             'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
             'mass' : 1.0,             # mass of species in atomic unit
-            'box':{'shape':'minimum','radius':1.0,'xlength':0.0, 'sizex':0.0, 'sizey':0.0, 'sizez':0.0},
-            'spacing': 0.0,           # spacing between points in the mesh
+            'box':{'shape':'minimum','radius':4.0,'xlength':0.0, 'sizex':0.0, 'sizey':0.0, 'sizez':0.0},
+            'spacing': 0.23,           # spacing between points in the mesh
             'spin_pol': 'unpolarized',
             'charge': 0.0,
             'e_conv' : 0.0,
             'max_iter' : 200,
 
             'eigensolver' :'cg',      #["rmmdiis","plan","arpack","feast","psd","cg","cg_new","lobpcg","evolution"]
-            'mixing' : {},
-            'conv_reldens' : {},      # SCF calculation
-            'smearing_func' : {},
-            'smearing' : {},
+            'mixing' : 0.3,             # 0<mixing<=1
+            'conv_reldens' : 1e-6,      # SCF calculation
+            'smearing_func' :'semiconducting',
+            'smearing' : 0.1          # in eV
             } 
 
     gs_min = """
-WorkDir = {work_dir}    
+WorkDir = '{work_dir}'    
 FromScratch = {scratch}                
 CalculationMode = gs
-Dimension = {dimension} 
-
+Dimensions = {dimension} 
+TheoryLevel = {theory}
 Unitsoutput = {out_unit}       
 XYZCoordinates = '{geom_file}'
 BoxShape = {box[shape]}
@@ -46,6 +46,10 @@ ExcessCharge = {charge}
 
 ConvEnergy = {e_conv}
 MaximumIter = {max_iter}
+Eigensolver = {eigensolver}
+Smearing = {smearing}
+SmearingFunction = {smearing_func}
+ConvRelDens = {conv_reldens}
     """
     
     def __init__(self, user_input) -> None:
@@ -110,10 +114,10 @@ class OctTimedependentState:
             }
 
     td = """
-WorkDir = {work_dir}    
+WorkDir = '{work_dir}'    
 FromScratch = {scratch}                
 CalculationMode = td
-Dimension = {dimension} 
+Dimensions = {dimension} 
 
 Unitsoutput = {out_unit}       
 XYZCoordinates = '{geom_file}'
@@ -157,3 +161,4 @@ TDPolarizationDirection = {e_pol}
             temp = """\n""".join(tlines)
             template = temp.format(**self.default_param)
             return template    
+
