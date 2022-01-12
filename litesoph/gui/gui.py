@@ -240,15 +240,15 @@ class WorkManagerPage(Frame):
                 
         self.button_project = Button(self.Frame1,text="Create New Project",activebackground="#78d6ff",command=lambda:[self.create_project(),self.controller.refresh_nav(self.controller.directory), self.controller.status_init()])
         self.button_project['font'] = myFont
-        self.button_project.place(x=125,y=360)
+        self.button_project.place(x=125,y=380)
       
         self.Frame1_Button_MainPage = Button(self.Frame1, text="Start Page",activebackground="#78d6ff", command=lambda: controller.show_frame(StartPage))
         self.Frame1_Button_MainPage['font'] = myFont
-        self.Frame1_Button_MainPage.place(x=10,y=360)
+        self.Frame1_Button_MainPage.place(x=10,y=380)
         
         self.button_project = Button(self.Frame1,text="Open Existing Project",activebackground="#78d6ff",command=lambda:[self.open_project(),self.update_dirPath(),self.controller.refresh_nav(self.controller.directory),self.controller.status_init()])
         self.button_project['font'] = myFont
-        self.button_project.place(x=290,y=360)
+        self.button_project.place(x=290,y=380)
         
         #self.message_label = Label(self.Frame2, text='', foreground='red')
         #self.message_label['font'] = myFont
@@ -326,7 +326,7 @@ class WorkManagerPage(Frame):
            
         Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",activebackground="#78d6ff",command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
         Frame2_Button1['font'] = myFont
-        Frame2_Button1.place(x=10,y=360)
+        Frame2_Button1.place(x=10,y=380)
     
     def change_directory(self,path):
         self.controller.directory = pathlib.Path(path)
@@ -398,11 +398,11 @@ class WorkManagerPage(Frame):
 
 class GroundStatePage(Frame):
   
-    Mainmode = ["lcao","fd","pw","gaussian"]
-    lcao_task = ["dzp","pvalence.dz"]
+    Mainmode = ["nao","fd","pw","gaussian"]
+    nao_task = ["dzp","pvalence.dz"]
     fd_task = [""]
     pw_task = [""]
-    gauss_task = ["STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"]
+    gauss_task = ["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"]
     octgp_box = ["Parallelepiped","Minimum", "Sphere", "Cylinder"]
     nw_box = ["None"]
     gp_box = ["Parallelepiped"]
@@ -438,7 +438,7 @@ class GroundStatePage(Frame):
         self.basis = StringVar()
         self.charge = StringVar()
         self.maxiter = IntVar()
-        self.box = StringVar()
+        self.shape = StringVar()
         self.spinpol = StringVar()
         self.multip = StringVar()
         self.h   = StringVar()
@@ -461,7 +461,7 @@ class GroundStatePage(Frame):
         self.smear = StringVar()
         self.smearfn = StringVar()
  
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.86, relwidth=0.492)
+        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
@@ -476,11 +476,12 @@ class GroundStatePage(Frame):
         self.label_proj.place(x=10,y=60)
         
         def pick_task(e):
-            if task.get() == "lcao":
-                sub_task.config(value = self.lcao_task)
+            if task.get() == "nao":
+                sub_task.config(value = self.nao_task)
                 sub_task.current(0)
-                box_shape.config(value = self.octgp_box)
-                box_shape.set("--choose box--")
+                box_shape.config(value = self.gp_box)
+                box_shape.current(0)
+                self.gpaw_frame()
             if task.get() == "fd":
                 sub_task.config(value = self.fd_task)
                 sub_task.current(0)
@@ -526,14 +527,15 @@ class GroundStatePage(Frame):
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=280,y=160)
 
-        self.label_pol_z = Label(self.Frame1, text="Maxiter", bg= "grey",fg="black")
+        self.label_pol_z = Label(self.Frame1, text="Maximum SCF iterations", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=210)
  
-        self.entry_proj = Entry(self.Frame1,textvariable= self.maxiter)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"300")
-        self.entry_proj.place(x=280,y=210)
+        entry = Entry(self.Frame1,textvariable= self.maxiter)
+        entry['font'] = myFont
+        entry.delete(0,END)
+        entry.insert(0,"300")
+        entry.place(x=280,y=210)
 
         self.Frame2_note = Label(self.Frame1,text="Energy Convergence",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -550,9 +552,6 @@ class GroundStatePage(Frame):
         self.label_proj.place(x=10,y=310)
     
         def pick_frame(e):
-            if box_shape.get()  == "Parallelepiped":
-                if task.get() == "lcao":
-                    self.gp2oct()
             if box_shape.get() == "Parallelepiped":
                 if task.get() == "fd":
                     self.gp2oct()
@@ -566,24 +565,24 @@ class GroundStatePage(Frame):
                 self.oct_cyl_frame()
                 self.octopus_frame()
 
-        box_shape = ttk.Combobox(self.Frame1, textvariable= self.box, value = [" "])
+        box_shape = ttk.Combobox(self.Frame1, textvariable= self.shape, value = [" "])
         box_shape.current(0)
         box_shape['font'] = myFont
         box_shape.place(x=280,y=310)
         box_shape.bind("<<ComboboxSelected>>", pick_frame)
         box_shape['state'] = 'readonly'
        
-        self.Frame7 = tk.Frame(self)
-        self.Frame7.place(relx=0.1, rely=0.87, relheight=0.13, relwidth=0.492)
+        #self.Frame7 = tk.Frame(self)
+        #self.Frame7.place(relx=0.1, rely=0.88, relheight=0.12, relwidth=0.492)
 
-        self.Frame7.configure(relief='groove')
-        self.Frame7.configure(borderwidth="2")
-        self.Frame7.configure(relief="groove")
-        self.Frame7.configure(cursor="fleur")
+        #self.Frame7.configure(relief='groove')
+        #self.Frame7.configure(borderwidth="2")
+        #self.Frame7.configure(relief="groove")
+        #self.Frame7.configure(cursor="fleur")
  
-        Button1 = tk.Button(self.Frame7, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
+        Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
         Button1['font'] = myFont
-        Button1.place(x=10,y=10)
+        Button1.place(x=10,y=380)
       
         self.Frame6 = tk.Frame(self)
         self.Frame6.place(relx=0.5, rely=0.87, relheight=0.13, relwidth=0.492)
@@ -601,9 +600,9 @@ class GroundStatePage(Frame):
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=200,y=10)
 
-        #self.label_msg = Label(self.Frame6,text="")
-        #self.label_msg['font'] = myFont
-        #self.label_msg.place(x=220,y=5)
+        self.label_msg = Label(self.Frame6,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=300,y=12.5)
 
         Frame2_Button2 = tk.Button(self.Frame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
@@ -695,21 +694,6 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=310)
         self.entry_pol_x['state'] = 'readonly'
         
-        #Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        #Frame2_Button3['font'] = myFont
-        #Frame2_Button3.place(x=10,y=380)
-         
-        #Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        #Frame1_Button1['font'] = myFont
-        #Frame1_Button1.place(x=200,y=380)
- 
-        #self.label_msg = Label(self.Frame2,text="")
-        #self.label_msg['font'] = myFont
-        #self.label_msg.place(x=220,y=350)
-    
-        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        #Frame2_Button2['font'] = myFont
-        #Frame2_Button2.place(x=380,y=380)
 
     def nwchem_frame(self):   
 
@@ -776,21 +760,6 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=210)
         self.entry_pol_x['state'] = 'readonly'
         
-        #Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        #Frame2_Button3['font'] = myFont
-        #Frame2_Button3.place(x=10,y=380)
-
-        #Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        #Frame1_Button1['font'] = myFont
-        #Frame1_Button1.place(x=200,y=380)
- 
-        #self.label_msg = Label(self.Frame2,text="")
-        #self.label_msg['font'] = myFont
-        #self.label_msg.place(x=220,y=350)
-
-        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        #Frame2_Button2['font'] = myFont
-        #Frame2_Button2.place(x=380,y=380)
 
     def oct_ppl_frame(self):
 
@@ -848,19 +817,19 @@ class GroundStatePage(Frame):
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
 
-        self.Frame4 = tk.Frame(self)
-        self.Frame4.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
+        self.Frame3 = tk.Frame(self)
+        self.Frame3.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
 
-        self.Frame4.configure(relief='groove')
-        self.Frame4.configure(borderwidth="2")
-        self.Frame4.configure(relief="groove")
-        self.Frame4.configure(cursor="fleur")
+        self.Frame3.configure(relief='groove')
+        self.Frame3.configure(borderwidth="2")
+        self.Frame3.configure(relief="groove")
+        self.Frame3.configure(cursor="fleur")
     
-        self.note = Label(self.Frame4,text="Radius of Box",bg="gray",fg="black")
+        self.note = Label(self.Frame3,text="Radius of Box",bg="gray",fg="black")
         self.note['font'] = myFont
         self.note.place(x=10,y=10)
 
-        self.entry1 = Entry(self.Frame4, textvariable= self.r)
+        self.entry1 = Entry(self.Frame3, textvariable= self.r)
         self.entry1['font'] = myFont
         self.entry1.delete(0,END)
         self.entry1.insert(0,"0")
@@ -873,29 +842,29 @@ class GroundStatePage(Frame):
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
 
-        self.Frame5 = tk.Frame(self)
-        self.Frame5.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
+        self.Frame3 = tk.Frame(self)
+        self.Frame3.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
 
-        self.Frame5.configure(relief='groove')
-        self.Frame5.configure(borderwidth="2")
-        self.Frame5.configure(relief="groove")
-        self.Frame5.configure(cursor="fleur")
+        self.Frame3.configure(relief='groove')
+        self.Frame3.configure(borderwidth="2")
+        self.Frame3.configure(relief="groove")
+        self.Frame3.configure(cursor="fleur")
  
-        self.note1 = Label(self.Frame5,text="Length of Cylinder",bg="gray",fg="black")
+        self.note1 = Label(self.Frame3,text="Length of Cylinder",bg="gray",fg="black")
         self.note1['font'] = myFont
         self.note1.place(x=10,y=10)
 
-        self.entry1 = Entry(self.Frame5, textvariable= self.l)
+        self.entry1 = Entry(self.Frame3, textvariable= self.l)
         self.entry1['font'] = myFont
         self.entry1.delete(0,END)
         self.entry1.insert(0,"0")
         self.entry1.place(x=280,y=10)
  
-        self.note2 = Label(self.Frame5,text="Radius of Cylinder",bg="gray",fg="black")
+        self.note2 = Label(self.Frame3,text="Radius of Cylinder",bg="gray",fg="black")
         self.note2['font'] = myFont
         self.note2.place(x=10,y=60)
 
-        self.entry2 = Entry(self.Frame5, textvariable= self.r)
+        self.entry2 = Entry(self.Frame3, textvariable= self.r)
         self.entry2['font'] = myFont
         self.entry2.delete(0,END)
         self.entry2.insert(0,"0")
@@ -970,7 +939,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.bands, value = self.eignsolv)
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.eigen, value = self.eignsolv)
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=160)
@@ -996,68 +965,6 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=260)
         self.entry_pol_x['state'] = 'readonly'
 
-        #Frame2_Button3 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        #Frame2_Button3['font'] = myFont
-        #Frame2_Button3.place(x=10,y=310)
-         
-        #Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        #Frame1_Button1['font'] = myFont
-        #Frame1_Button1.place(x=200,y=310)
- 
-        #self.label_msg = Label(self.Frame2,text="")
-        #self.label_msg['font'] = myFont
-        #self.label_msg.place(x=220,y=280)
-    
-        #Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        #Frame2_Button2['font'] = myFont
-        #Frame2_Button2.place(x=380,y=310)
-
-    def button_frame(self):
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-
-        self.Frame6 = tk.Frame(self)
-        self.Frame6.place(relx=0.5, rely=0.8, relheight=0.15, relwidth=0.492)
-
-        self.Frame6.configure(relief='groove')
-        self.Frame6.configure(borderwidth="2")
-        self.Frame6.configure(relief="groove")
-        self.Frame6.configure(cursor="fleur")
-     
-        Frame2_Button3 = tk.Button(self.Frame6, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        Frame2_Button3['font'] = myFont
-        Frame2_Button3.place(x=10,y=10)
-
-        Frame1_Button1 = tk.Button(self.Frame6, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=200,y=10)
-
-        self.label_msg = Label(self.Frame6,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=220,y=10)
-
-        Frame2_Button2 = tk.Button(self.Frame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=380,y=10)
-
-        #Button1 = tk.Button(self.Frame6, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        #Button1['font'] = myFont
-        #Button1.place(x=10,y=5)
-
-        #Button2 = tk.Button(self.Frame6, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        #Button2['font'] = myFont
-        #Button2.place(x=200,y=5)
-
-        #label_msg = Label(self.Frame6,text="")
-        #label_msg['font'] = myFont
-        #label_msg.place(x=220,y=5)
-
-        #Button3 = tk.Button(self.Frame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
-        #Button3['font'] = myFont
-        #Button3.place(x=380,y=5)
-
     def gs_inp2dict(self):
         inp_dict_gp = {
             'mode': self.mode.get(),
@@ -1073,7 +980,7 @@ class GroundStatePage(Frame):
             'density' :  self.density.get(),
             'energy' : self.energy.get(),
             'maxiter' : self.maxiter.get(),
-            'box': self.box.get(),
+            'box': self.shape.get(),
             'properties': 'get_potential_energy()',
             'engine':'gpaw'
                     }   
@@ -1091,8 +998,36 @@ class GroundStatePage(Frame):
             'engine':'nwchem'
                     }
 
+        inp_dict_oct = {
+            'mode': self.mode.get(),
+            'xc': self.xc.get(),
+            'energy': self.energy.get(),
+            'dimension' : self.dxc.get(),
+            'spacing': self.h.get(),
+            'spin_pol': self.spinpol.get(),
+            'charge': self.charge.get(),
+            'e_conv': self.energy.get(),
+            'max_iter': self.maxiter.get(),
+            'eigensolver':self.eigen.get(),
+            'smearing':self.smear.get(),
+            'smearing_func':self.smearfn.get(),
+            'mixing':self.mix.get(),
+            'box':{'shape':self.shape.get()},
+            'engine':'octopus'
+                    }
+
         if self.basis.get() == '':
             inp_dict_gp['basis']={}
+
+        if self.mode.get() == 'nao':
+            inp_dict_gp['mode']='lcao'
+
+        if self.shape.get() in ['Minimum','Sphere']:
+            inp_dict_oct['box']={'shape':self.shape.get(),'radius':self.r.get()}
+        if self.shape.get() == 'Cylinder':
+            inp_dict_oct['box']={'shape':self.shape.get(),'radius':self.r.get(),'xlength':self.l.get()}
+        if self.shape.get() == 'Parallelepiped':
+            inp_dict_oct['box']={'shape':self.shape.get(),'sizex':self.lx.get(), 'sizey':self.ly.get(), 'sizez':self.lz.get()}
 
         if self.mode.get() == "gaussian":
  
@@ -1104,7 +1039,7 @@ class GroundStatePage(Frame):
             # self.controller.task = self.job
             return inp_dict_nw
 
-        if self.box.get() == "Parallelepiped":
+        if self.mode.get() in ["nao","pw"]:
   
             inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
@@ -1113,7 +1048,35 @@ class GroundStatePage(Frame):
             # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
             # self.controller.task = self.job
             return inp_dict_gp
-    
+
+        if self.shape.get() in ["Minimum","Sphere","Cylinder"]:
+            inp_dict_oct['directory'] = str(self.controller.directory)+"/"+ str(dir)
+            inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+            print(inp_dict_oct)
+            # engn = choose_engine(inp_dict_gp)
+            # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
+            # self.controller.task = self.job
+            return inp_dict_oct
+
+        if self.shape.get() == "Parallelepiped":
+            if self.xc.get() == "lda_x_1d+lda_e_1d":
+                inp_dict_oct['directory'] = str(self.controller.directory)+"/"+ str(dir)
+                inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+                print(inp_dict_oct)
+                # engn = choose_engine(inp_dict_gp)
+                # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
+                # self.controller.task = self.job
+                return inp_dict_oct
+            else:
+                inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
+                inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+                print(inp_dict_gp)
+                # engn = choose_engine(inp_dict_gp)
+                # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
+                # self.controller.task = self.job
+                return inp_dict_gp
+
+
     def init_task(self, inp_dict: dict, filename):
         engn = choose_engine(inp_dict)
         self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
