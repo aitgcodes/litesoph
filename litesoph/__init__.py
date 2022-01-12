@@ -12,10 +12,18 @@ def check_config(lsconfig: ConfigParser, name):
             exit()
         else:
             return lsroot
-    if name == "vmd":
+    if name == "vis":
         try:
-            vmd = lsconfig.get("visualization_tools", "vmd" )
+           vis_tool = list(lsconfig.items("visualization_tools"))[0][1]
         except:
-            print("Please set path to vmd in ~/lsconfig.ini")
+            print("Please set path to vmd or vesta in ~/lsconfig.ini and first one will be used")
         else:
-            return vmd
+            return vis_tool
+        # try:
+        #     vmd = lsconfig.get("visualization_tools", "vmd" )
+        # try:
+        #     vmd = lsconfig.get("visualization_tools", "vesta" )
+        # except:
+        #     print("Please set path to vmd in ~/lsconfig.ini")
+        # else:
+        #     return vmd
