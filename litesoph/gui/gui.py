@@ -353,7 +353,7 @@ class WorkManagerPage(Frame):
             self.change_directory(project_path)
 
     def geom_visual(self):
-        cmd = check_config(self.controller.lsconfig,"vmd")+ " "+"coordinate.xyz"
+        cmd = check_config(self.controller.lsconfig,"vis")+ " "+"coordinate.xyz"
         try:
            p = subprocess.run(cmd.split(),capture_output=True, cwd=self.controller.directory)
         except:
@@ -996,9 +996,10 @@ class GroundStatePage(Frame):
             'charge' : self.charge.get(),
             'spinpol' : self.spinpol.get(), 
             'multip' : self.multip.get(), 
-            'bands' : self.bands.get(),
-            'density' :  self.density.get(),
-            'energy' : self.energy.get(),
+            'convergence': {'energy' : self.energy.get(),  # eV / electron
+                        'density' :  self.density.get(),
+                        'eigenstates': 4.0e-8,  # eV^2
+                        'bands' : self.bands.get()}, 
             'maxiter' : self.maxiter.get(),
             'box': self.shape.get(),
             'properties': 'get_potential_energy()',
