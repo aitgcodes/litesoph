@@ -1079,7 +1079,7 @@ class GroundStatePage(Frame):
             return inp_dict_oct
 
         if self.shape.get() == "Parallelepiped":
-            if self.xc.get() == "lda_x_1d+lda_e_1d":
+            if self.xc.get() in ["lda_x_1d+lda_e_1d","lda_x_2d+lda_c_2d_amgb","lda_x+lda_e_pz_mod"]:
                 inp_dict_oct['directory'] = str(self.controller.directory)+"/"+ str(dir)
                 inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
                 print(inp_dict_oct)
