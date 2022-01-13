@@ -114,6 +114,9 @@ class EngineGpaw(EngineStrategy):
 
 class EngineOctopus(EngineStrategy):
 
+    gs = {'out': '/OctGroundState/log',
+        'check_list':['SCF converged']}
+
     def get_task_class(self, task: str, user_param):
         if task == "ground state":
             return ot.OctGroundState(user_param) 

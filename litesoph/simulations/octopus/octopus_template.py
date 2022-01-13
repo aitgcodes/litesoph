@@ -1,5 +1,8 @@
 from pathlib import Path
 from typing import Any, Dict
+from litesoph.utilities.units import ang_to_au
+
+from matplotlib.pyplot import box
 
 class OctGroundState:
 
@@ -37,7 +40,7 @@ TheoryLevel = {theory}
 Unitsoutput = {out_unit}       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
-Radius ={box[radius]}*angstrom
+Radius = {box[radius]}
 
 
 Spacing = {spacing}*angstrom
@@ -54,7 +57,21 @@ ConvRelDens = {conv_reldens}
     
     def __init__(self, user_input) -> None:
         self.default_param.update(user_input)
-        self.boxshape = self.default_param['box']['shape']       
+        self.boxshape = self.default_param['box']['shape'] 
+        self.check()          
+    
+    def check(self):
+        if self.default_param['unit_box'] == "angstrom":
+            box_dict = self.default_param['box']
+            if self.boxshape not in ['cylinder', 'parallelepiped']:
+                box_dict['radius'] = round(box_dict['radius']*ang_to_au, 2)
+            elif self.boxshape == "cylinder":
+                box_dict['radius'] = round(box_dict['radius']*ang_to_au, 2)
+                box_dict['xlength'] = round(box_dict['xlength']*ang_to_au, 2)
+            elif self.boxshape == "parallelepiped":
+                box_dict['sizex'] = round(box_dict['sizex']*ang_to_au, 2) 
+                box_dict['sizey'] = round(box_dict['sizey']*ang_to_au, 2)
+                box_dict['sizez'] = round(box_dict['sizez']*ang_to_au, 2)        
 
     def format_template(self):
         if self.boxshape not in ['cylinder', 'parallelepiped']: 
@@ -70,6 +87,9 @@ ConvRelDens = {conv_reldens}
 
         elif self.boxshape == "parallelepiped":
             tlines = self.gs_min.splitlines()
+            self.default_param['box']['sizex'] = round(self.default_param['box']['sizex']/2, 2)
+            self.default_param['box']['sizey'] = round(self.default_param['box']['sizey']/2, 2)
+            self.default_param['box']['sizez'] = round(self.default_param['box']['sizez']/2, 2)
             tlines[9] = "%LSize"
             tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
             tlines[11] = "%"
@@ -121,7 +141,7 @@ Dimensions = {dimension}
 Unitsoutput = {out_unit}       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
-Radius = {box[radius]}*angstrom
+Radius = {box[radius]}
 
 
 Spacing = {spacing}*angstrom
