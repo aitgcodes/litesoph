@@ -28,16 +28,6 @@ class EngineStrategy(ABC):
     def get_task_class(self, task: str, user_param):
         pass
 
-    # @abstractclassmethod
-    # def check_compatability(self, user_param:Dict[str, Any], task: object) -> bool:
-    #     """checks the compatability of the input parameters with the engine"""
-    #     pass
-
-    # @abstractclassmethod
-    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any]) -> Dict[str, Any]:
-    #     """updates the default input parameters with the user input"""
-    #     pass
-
     @abstractclassmethod
     def create_script(self, template: str) -> None:
         pass
@@ -47,12 +37,9 @@ class EngineStrategy(ABC):
         pass
 
     def create_directory(self,directory):
-
         absdir = os.path.abspath(directory)
-        if absdir != os.curdir and not os.path.isdir(directory):
+        if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
             os.makedirs(directory)
-        # else:
-        #     raise FileExistsError
 
 
 class EngineGpaw(EngineStrategy):
@@ -95,16 +82,6 @@ class EngineGpaw(EngineStrategy):
             return gp.GpawSpectrum(user_param) 
         if task == "tcm":
             return gp.GpawCalTCM(user_param)       
-
-    # def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
-    #     """checks the compatability of the input parameters with gpaw engine"""
-        
-    #     return task.check(user_param)
-            
-    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
-    #     """updates the default input parameters with the user input"""
-    #     parameters = task.user2gpaw(user_param, default_param)
-    #     return parameters
     
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for gpaw"""
@@ -142,16 +119,7 @@ class EngineOctopus(EngineStrategy):
             return ot.OctGroundState(user_param) 
         if task == "LCAO TDDFT Delta":
             return ot.OctTimedependentState(user_param)
-    
-    # def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
-    #     """checks the compatability of the input parameters with gpaw engine"""
-        
-    #     return task.check(user_param)
-            
-    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
-    #     """updates the default input parameters with the user input"""
-    #     parameters = task.user2octopus(user_param, default_param)
-    #     return parameters
+
 
     def create_dir(self, directory, task):
         #task_dir = self.get_dir_name(task)
@@ -167,10 +135,9 @@ class EngineOctopus(EngineStrategy):
 
     def create_command(self, cmd: list):
 
-        #filename = pathlib.Path(self.directory) / self.filename
         ofilename = "log"
         command = configs.get('engine', 'octopus')
-        command = command + ' ' + '&>' + ' ' + str(ofilename)
+        command = command + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
             print(command)
@@ -203,15 +170,6 @@ class EngineNwchem(EngineStrategy):
         if task == "LCAO TDDFT Delta":
             return nw.NwchemDeltaKick(user_param)
 
-    # def check_compatability(self, user_param:Dict[str, Any], task: object ) -> bool:
-    #     """checks the compatability of the input parameters with gpaw engine"""
-        
-    #     return task.check(user_param)
-            
-    # def engine_input_para(self, user_param:Dict[str, Any], default_param:Dict[str, Any], task) -> Dict[str, Any]:
-    #     """updates the default input parameters with the user input"""
-    #     parameters = task.user2nwchem(user_param, default_param)
-    #     return parameters
 
     def create_dir(self, directory, task):
         #task_dir = self.get_dir_name(task)
@@ -230,25 +188,7 @@ class EngineNwchem(EngineStrategy):
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
         command = configs.get('engine', 'nwchem')
-        #command = [command, filename,'>', ofilename]
         command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
-            #cmd.extend(command)
             command = cmd + ' ' + command
-            print(command)
         return command
-
-def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
-    
-    list_engine = [EngineGpaw(),
-                    EngineOctopus(),
-                    EngineNwchem()]
-    return list_engine[2]
-    # for engine in list_engine:
-    #     #task = engine.get_task_class("ground state", user_input)
-    #     #if engine.check_compatability(user_input, task):
-    #         return engine
-    #     else:
-    #         raise ValueError('engine not implemented')
-
-#def get_engine_after_gs(status)
