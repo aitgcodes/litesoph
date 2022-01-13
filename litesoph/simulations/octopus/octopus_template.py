@@ -54,26 +54,25 @@ ConvRelDens = {conv_reldens}
     
     def __init__(self, user_input) -> None:
         self.default_param.update(user_input)
-        self.boxshape = self.default_param['box']['shape']        
+        self.boxshape = self.default_param['box']['shape']       
 
     def format_template(self):
-        if self.boxshape not in ['cylinder', 'paralellepiped']: 
+        if self.boxshape not in ['cylinder', 'parallelepiped']: 
             template = self.gs_min.format(**self.default_param)
             return template 
 
         elif self.boxshape == "cylinder":
             tlines = self.gs_min.splitlines()
-            tlines[9] = "Xlength = {box[xlength]}"
-            template = """\n""".join(tlines)
-            print(template)
-            template = self.gs_min.format(**self.default_param)
+            tlines[10] = "Xlength = {box[xlength]}"
+            temp = """\n""".join(tlines)
+            template = temp.format(**self.default_param)
             return template
 
-        elif self.boxshape == "paralellepiped":
+        elif self.boxshape == "parallelepiped":
             tlines = self.gs_min.splitlines()
-            tlines[8] = "%LSize"
-            tlines[9] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
-            tlines[10] = "%"
+            tlines[9] = "%LSize"
+            tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
+            tlines[11] = "%"
             temp = """\n""".join(tlines)
             template = temp.format(**self.default_param)
             return template    
