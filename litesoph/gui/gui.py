@@ -1125,8 +1125,9 @@ class GroundStatePage(Frame):
         self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
 
     def run_job_button(self):
-        if hasattr(self.job.engine,'directory'):
+        if not hasattr(self.job.engine,'directory'):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
             self.controller.show_frame(JobSubPage, GroundStatePage, None)
         
     
@@ -1554,8 +1555,9 @@ class TimeDependentPage(Frame):
         self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
 
     def run_job_button(self):
-        if hasattr(self.job.engine,'directory'):
+        if not hasattr(self.job.engine,'directory'):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
             self.controller.show_frame(JobSubPage, TimeDependentPage, None)
 
     def back_button(self):
@@ -1880,8 +1882,9 @@ class LaserDesignPage(Frame):
         self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
 
     def run_job_button(self):
-        if hasattr(self.job.engine,'directory'):
+        if not hasattr(self.job.engine,'directory'):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
             self.controller.show_frame(JobSubPage, LaserDesignPage, None)
 
     def back_button(self):
