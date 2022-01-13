@@ -453,17 +453,18 @@ class GroundStatePage(Frame):
         self.theory = StringVar()
         self.tolerances = StringVar()
         self.dimension = StringVar()
-        self.lx = StringVar()
-        self.ly = StringVar()
-        self.lz = StringVar()
-        self.r = StringVar()
-        self.l = StringVar()
+        self.lx = DoubleVar()
+        self.ly = DoubleVar()
+        self.lz = DoubleVar()
+        self.r = DoubleVar()
+        self.l = DoubleVar()
         self.dxc = StringVar()
         self.mix = StringVar()
         self.eigen = StringVar()
         self.smear = StringVar()
         self.smearfn = StringVar()
         self.unitconv = StringVar()
+        self.unit_box = StringVar()
 
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -782,9 +783,9 @@ class GroundStatePage(Frame):
         
 
     def oct_ppl_frame(self):
-
+    
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        j=font.Font(family ='Courier', size=20,weight='bold')
+        j=font.Font(family ='Courier', size=10,weight='bold')
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
 
@@ -796,42 +797,53 @@ class GroundStatePage(Frame):
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
    
-        self.note = Label(self.Frame3,text="Length of Box (lx, ly, lz)",bg="gray",fg="black")
-        self.note['font'] = myFont
-        self.note.place(x=10,y=10)
+        self.boxlabel = Label(self.Frame3,text="Simulation box unit",bg="gray",fg="black")
+        self.boxlabel['font'] = myFont
+        self.boxlabel.place(x=10,y=10)
+
+        unit = ttk.Combobox(self.Frame3, width=9, textvariable= self.unit_box, value = ["au","angstrom"])
+        unit.current(0)
+        unit['font'] = myFont
+        unit.place(x=220,y=10)
+        unit['state'] = 'readonly'
  
         #self.note1 = Label(self.Frame3,text="lx",bg="gray",fg="black")
         #self.note1['font'] = myFont
         #self.note1.place(x=10,y=60)
        
-        self.entry1 = Entry(self.Frame3,width= 7, textvariable= self.lx)
+        self.note = Label(self.Frame3,text="Length of Box (lx, ly, lz)",bg="gray",fg="black")
+        self.note['font'] = myFont
+        self.note.place(x=10,y=40)
+
+        self.entry1 = Entry(self.Frame3,width= 5, textvariable= self.lx)
         self.entry1['font'] = myFont
         self.entry1.delete(0,END)
         self.entry1.insert(0,"0")
-        self.entry1.place(x=110,y=60)
+        self.entry1.place(x=220,y=40)
  
         #self.note2 = Label(self.Frame3,text="ly",bg="gray",fg="black")
         #self.note2['font'] = myFont
         #self.note2.place(x=130,y=60)
 
-        self.entry2 = Entry(self.Frame3, width= 7, textvariable= self.ly)
+        self.entry2 = Entry(self.Frame3, width= 5, textvariable= self.ly)
         self.entry2['font'] = myFont
         self.entry2.delete(0,END)
         self.entry2.insert(0,"0")
-        self.entry2.place(x=240,y=60)
+        self.entry2.place(x=280,y=40)
     
         #self.note3 = Label(self.Frame3,text="lz",bg="gray",fg="black")
         #self.note3['font'] = myFont
         #self.note3.place(x=250,y=60)
 
-        self.entry3 = Entry(self.Frame3,width= 7, textvariable= self.lz)
+        self.entry3 = Entry(self.Frame3,width=5, textvariable= self.lz)
         self.entry3['font'] = myFont
         self.entry3.delete(0,END)
         self.entry3.insert(0,"0")
-        self.entry3.place(x=360,y=60)
-          
-    def oct_minsph_frame(self):
+        self.entry3.place(x=340,y=40)
 
+                  
+    def oct_minsph_frame(self):
+  
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j=font.Font(family ='Courier', size=20,weight='bold')
         k=font.Font(family ='Courier', size=40,weight='bold')
@@ -845,15 +857,25 @@ class GroundStatePage(Frame):
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
     
+        self.boxlabel = Label(self.Frame3,text="Simulation box unit",bg="gray",fg="black")
+        self.boxlabel['font'] = myFont
+        self.boxlabel.place(x=10,y=10)
+
+        unit = ttk.Combobox(self.Frame3, width=9, textvariable= self.unit_box, value = ["au","angstrom"])
+        unit.current(0)
+        unit['font'] = myFont
+        unit.place(x=220,y=10)
+        unit['state'] = 'readonly'
+
         self.note = Label(self.Frame3,text="Radius of Box",bg="gray",fg="black")
         self.note['font'] = myFont
-        self.note.place(x=10,y=10)
+        self.note.place(x=10,y=40)
 
-        self.entry1 = Entry(self.Frame3, textvariable= self.r)
+        self.entry1 = Entry(self.Frame3, textvariable= self.r, width= 7)
         self.entry1['font'] = myFont
         self.entry1.delete(0,END)
         self.entry1.insert(0,"0")
-        self.entry1.place(x=280,y=10)
+        self.entry1.place(x=220,y=40)
 
     def oct_cyl_frame(self):
 
@@ -869,26 +891,36 @@ class GroundStatePage(Frame):
         self.Frame3.configure(borderwidth="2")
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
- 
+
+        self.boxlabel = Label(self.Frame3,text="Simulation box unit",bg="gray",fg="black")
+        self.boxlabel['font'] = myFont
+        self.boxlabel.place(x=10,y=10)
+
+        unit = ttk.Combobox(self.Frame3, width=9, textvariable= self.unit_box, value = ["au","angstrom"])
+        unit.current(0)
+        unit['font'] = myFont
+        unit.place(x=220,y=10)
+        unit['state'] = 'readonly'
+
         self.note1 = Label(self.Frame3,text="Length of Cylinder",bg="gray",fg="black")
         self.note1['font'] = myFont
-        self.note1.place(x=10,y=10)
+        self.note1.place(x=10,y=40)
 
-        self.entry1 = Entry(self.Frame3, textvariable= self.l)
+        self.entry1 = Entry(self.Frame3, textvariable= self.l, width= 5)
         self.entry1['font'] = myFont
         self.entry1.delete(0,END)
         self.entry1.insert(0,"0")
-        self.entry1.place(x=280,y=10)
+        self.entry1.place(x=220,y=40)
  
         self.note2 = Label(self.Frame3,text="Radius of Cylinder",bg="gray",fg="black")
         self.note2['font'] = myFont
-        self.note2.place(x=10,y=60)
+        self.note2.place(x=280,y=40)
 
-        self.entry2 = Entry(self.Frame3, textvariable= self.r)
+        self.entry2 = Entry(self.Frame3, textvariable= self.r, width= 5)
         self.entry2['font'] = myFont
         self.entry2.delete(0,END)
         self.entry2.insert(0,"0")
-        self.entry2.place(x=280,y=60)
+        self.entry2.place(x=430,y=40)
 
     def octopus_frame(self):   
  
@@ -944,7 +976,7 @@ class GroundStatePage(Frame):
         self.entry_proj = Entry(self.Frame2,width= 7, textvariable= self.h)
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,END)
-        self.entry_proj.insert(0,"0.3")
+        self.entry_proj.insert(0,"0.23")
         self.entry_proj.place(x=110,y=60)
 
         self.label_proj = Label(self.Frame2, text="Smearing (eV)",bg="gray",fg="black")
@@ -1045,6 +1077,7 @@ class GroundStatePage(Frame):
             'smearing_func':self.smearfn.get(),
             'mixing':self.mix.get(),
             'box':{'shape':self.shape.get()},
+            'unit_box' : self.unit_box.get(),
             'engine':'octopus'
                     }
 
