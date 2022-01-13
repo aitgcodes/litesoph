@@ -137,7 +137,6 @@ class EngineGpaw(EngineStrategy):
 
 class EngineOctopus(EngineStrategy):
 
-
     def get_task_class(self, task: str, user_param):
         if task == "ground state":
             return ot.OctGroundState(user_param) 
@@ -163,7 +162,7 @@ class EngineOctopus(EngineStrategy):
     def create_script(self,directory,filename,template: str) -> None:
         """creates the input scripts for gpaw"""
         self.directory = directory
-        self.filename = filename 
+        self.filename = 'inp' 
         write2file(self.directory,self.filename,template)
 
     def create_command(self, cmd: list):

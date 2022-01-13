@@ -404,9 +404,9 @@ class GroundStatePage(Frame):
     fd_task = [""]
     pw_task = [""]
     gauss_task = ["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"]
-    octgp_box = ["Parallelepiped","Minimum", "Sphere", "Cylinder"]
+    octgp_box = ["parallelepiped","minimum", "sphere", "cylinder"]
     nw_box = ["None"]
-    gp_box = ["Parallelepiped"]
+    gp_box = ["parallelepiped"]
     xc_gp = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
     xc_nw = ["acm","b3lyp","beckehandh","Hfexch","pbe0","becke88","xpbe96","bhlyp","cam-s12g","cam-s12h","xperdew91","pbeop"]
     xc_oct1 = ["lda_x_1d+lda_e_1d"]
@@ -562,16 +562,16 @@ class GroundStatePage(Frame):
         self.label_proj.place(x=10,y=310)
     
         def pick_frame(e):
-            if box_shape.get() == "Parallelepiped":
+            if box_shape.get() == "parallelepiped":
                 if task.get() == "fd":
                     self.gp2oct()
-            if box_shape.get() == "Minimum": 
+            if box_shape.get() == "minimum": 
                 self.oct_minsph_frame()
                 self.octopus_frame()
-            if box_shape.get() == "Sphere":
+            if box_shape.get() == "sphere":
                 self.oct_minsph_frame()
                 self.octopus_frame()
-            if box_shape.get() == "Cylinder": 
+            if box_shape.get() == "cylinder": 
                 self.oct_cyl_frame()
                 self.octopus_frame()
 
@@ -619,8 +619,8 @@ class GroundStatePage(Frame):
         Frame2_Button2.place(x=380,y=10)
  
     def gp2oct(self):
-        check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
-        if check is True:
+        self.check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
+        if self.check is True:
             self.gpaw_frame()
         else:
             self.oct_ppl_frame()
@@ -980,7 +980,7 @@ class GroundStatePage(Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=210)
    
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.spinpol, value = ["None","True"])
+        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.spinpol, value = ["unpolarized","spin_polarized", "spinors"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x.place(x=280,y=210)
@@ -1054,41 +1054,34 @@ class GroundStatePage(Frame):
         if self.mode.get() == 'nao':
             inp_dict_gp['mode']='lcao'
 
-        if self.shape.get() in ['Minimum','Sphere']:
+        if self.shape.get() in ['minimum','sphere']:
             inp_dict_oct['box']={'shape':self.shape.get(),'radius':self.r.get()}
-        if self.shape.get() == 'Cylinder':
+        if self.shape.get() == 'cylinder':
             inp_dict_oct['box']={'shape':self.shape.get(),'radius':self.r.get(),'xlength':self.l.get()}
-        if self.shape.get() == 'Parallelepiped':
+        if self.shape.get() == 'parallelepiped':
             inp_dict_oct['box']={'shape':self.shape.get(),'sizex':self.lx.get(), 'sizey':self.ly.get(), 'sizez':self.lz.get()}
 
         if self.mode.get() == "gaussian":
- 
-            inp_dict_nw['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_nw['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_nw)
             return inp_dict_nw
 
         if self.mode.get() in ["nao","pw"]:
-  
-            inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_gp)
             return inp_dict_gp
 
-        if self.shape.get() in ["Minimum","Sphere","Cylinder"]:
-            inp_dict_oct['directory'] = str(self.controller.directory)+"/"+ str(dir)
+        if self.shape.get() in ["minimum","sphere","cylinder"]:
             inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_oct)
             return inp_dict_oct
 
-        if self.shape.get() == "Parallelepiped":
-            if self.xc.get() in ["lda_x_1d+lda_e_1d","lda_x_2d+lda_c_2d_amgb","lda_x+lda_e_pz_mod"]:
-                inp_dict_oct['directory'] = str(self.controller.directory)+"/"+ str(dir)
+        if self.shape.get() == "parallelepiped":
+            if self.check is False:
                 inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
                 print(inp_dict_oct)
                 return inp_dict_oct
             else:
-                inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
                 inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
                 print(inp_dict_gp)
                 return inp_dict_gp
