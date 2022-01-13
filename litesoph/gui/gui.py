@@ -1999,47 +1999,120 @@ class JobSubPage(Frame):
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
 
-        self.Frame = tk.Frame(self)
+        self.Frame1 = tk.Frame(self)
         self.processors = IntVar()
+        self.ip = StringVar()
+        self.user_name = StringVar()
+        self.password = StringVar()
+        self.r_path = StringVar()
 
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
+        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.25, relwidth=0.978)
+        self.Frame1.configure(relief='groove')
+        self.Frame1.configure(borderwidth="2")
+        self.Frame1.configure(relief="groove")
+        self.Frame1.configure(cursor="fleur")
 
-        sbj_label1 = Label(self, text="LITESOPH Job Submission", fg='blue')
+        sbj_label1 = Label(self.Frame1, text="LITESOPH Local Job Submission", fg='blue')
         sbj_label1['font'] = myFont
         sbj_label1.place(x=350,y=10)
 
-        sbj_label1 = Label(self, text="Number of processors", bg='gray', fg='black')
+        sbj_label1 = Label(self.Frame1, text="Number of processors", bg='gray', fg='black')
         sbj_label1['font'] = myFont
-        sbj_label1.place(x=15,y=60)
+        sbj_label1.place(x=15,y=50)
 
-        sbj_entry1 = Entry(self,textvariable= self.processors, width=20)
+        sbj_entry1 = Entry(self.Frame1,textvariable= self.processors, width=20)
         self.processors.set(1)
         sbj_entry1['font'] = l
-        sbj_entry1.place(x=200,y=60)
+        sbj_entry1.place(x=200,y=50)
         
-        sbj_label1 = Label(self, text="To submit job through Network, provide details", bg='gray', fg='black')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=15,y=110)
+        #sbj_label1 = Label(self.Frame2, text="To submit job through Network, provide details", bg='gray', fg='black')
+        #sbj_label1['font'] = myFont
+        #sbj_label1.place(x=15,y=110)
 
-        sbj_button1 = Button(self, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
+        sbj_button1 = Button(self.Frame1, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         sbj_button1['font'] = myFont
-        sbj_button1.place(x=600, y=60)
+        sbj_button1.place(x=600, y=50)
 
-        self.msg_label1 = Label(self, text='', fg='blue')
+        self.msg_label1 = Label(self.Frame1, text='', fg='blue')
         self.msg_label1['font'] = myFont
-        self.msg_label1.place(x=600,y=100)
+        self.msg_label1.place(x=700,y=55)
 
-        back2prev = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(self.prev, self, None))
+        self.Frame2 = tk.Frame(self)
+        self.Frame2.place(relx=0.01, rely=0.26, relheight=0.60, relwidth=0.978)
+        
+        self.Frame2.configure(relief='groove')
+        self.Frame2.configure(borderwidth="2")
+        self.Frame2.configure(relief="groove")
+        self.Frame2.configure(cursor="fleur")
+
+        sbj_label1 = Label(self.Frame2, text="LITESOPH Network Job Submission", fg='blue')
+        sbj_label1['font'] = myFont
+        sbj_label1.place(x=340,y=10)
+        
+        sbj_label1 = Label(self.Frame2, text= "Host IP address", bg='gray', fg='black')
+        sbj_label1['font'] = myFont
+        sbj_label1.place(x=15,y=50)
+ 
+        sbj_entry1 = Entry(self.Frame2,textvariable= self.ip, width=20)
+        sbj_entry1['font'] = l
+        sbj_entry1.place(x=200,y=50)
+
+        sbj_label1 = Label(self.Frame2, text= "User Name", bg='gray', fg='black')
+        sbj_label1['font'] = myFont
+        sbj_label1.place(x=15,y=100)
+
+        sbj_entry1 = Entry(self.Frame2,textvariable= self.user_name, width=20)
+        sbj_entry1['font'] = l
+        sbj_entry1.place(x=200,y=100)
+ 
+        sbj_label1 = Label(self.Frame2, text= "Password", bg='gray', fg='black')
+        sbj_label1['font'] = myFont
+        sbj_label1.place(x=15,y=150)
+
+        sbj_entry1 = Entry(self.Frame2,textvariable= self.password, width=20)
+        sbj_entry1['font'] = l
+        sbj_entry1.place(x=200,y=150)
+
+        sbj_label1 = Label(self.Frame2, text= "Remote Path", bg='gray', fg='black')
+        sbj_label1['font'] = myFont
+        sbj_label1.place(x=15,y=200)
+
+        sbj_entry1 = Entry(self.Frame2,textvariable= self.r_path, width=20)
+        sbj_entry1['font'] = l
+        sbj_entry1.place(x=200,y=200)
+      
+        #sbj_button2 = Button(self.Frame2, text="Create Job Script",activebackground="#78d6ff")
+        #sbj_button2['font'] = myFont
+        #sbj_button2.place(x=600, y=60)
+         
+        #sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command =lambda:[self.open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
+        sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command =self.upload_script)
+        sbj_button2['font'] = myFont
+        sbj_button2.place(x=600, y=150)
+  
+        self.message_label = Label(self.Frame2, text='', foreground='red')
+        self.message_label['font'] = myFont
+        self.message_label.place(x=800,y=155)
+
+        sbj_button2 = Button(self.Frame2, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
+        sbj_button2['font'] = myFont
+        sbj_button2.place(x=600, y=200)
+ 
+        self.Frame3 = tk.Frame(self)
+        self.Frame3.place(relx=0.01, rely=0.86, relheight=0.12, relwidth=0.978)
+
+        self.Frame3.configure(relief='groove')
+        self.Frame3.configure(borderwidth="2")
+        self.Frame3.configure(relief="groove")
+        self.Frame3.configure(cursor="fleur")
+
+        back2prev = tk.Button(self.Frame3, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(self.prev, self, None))
         back2prev['font'] = myFont
-        back2prev.place(x=15,y=380)
+        back2prev.place(x=15,y=10)
 
-        back = tk.Button(self, text="Back to main page",activebackground="#78d6ff",command=lambda:[controller.show_frame(WorkManagerPage)])
+        back = tk.Button(self.Frame3, text="Back to main page",activebackground="#78d6ff",command=lambda:[controller.show_frame(WorkManagerPage)])
         back['font'] = myFont
-        back.place(x=600,y=380)              
+        back.place(x=600,y=10)              
 
     def submitjob_local(self):
         if self.controller.check is not True:
@@ -2089,7 +2162,73 @@ class JobSubPage(Frame):
             if check_yn is True:
                 self.controller.status.update_status(key, value2)
                 self.call_run(key, value1)
+    def open_file(self, outpath):
+        text_file = filedialog.askopenfilename(
+            initialdir="./", title="Select File", filetypes=(("All Files", "*.*"),))
+        text_file = open(text_file, 'r')
+        stuff = text_file.read()
+        out_file = open(pathlib.Path(outpath) / "job_script.sh", 'w')
+        out_file.write(stuff)
+        text_file.close()
+        out_file.close()
 
+    def upload_script(self):
+
+        top1 = Toplevel()
+        top1.geometry("600x500")
+        top1.title("LITESOPH Job Script Viewer")
+
+        cores_1 = StringVar()
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        j=font.Font(family ='Courier', size=20,weight='bold')
+        k=font.Font(family ='Courier', size=40,weight='bold')
+        l=font.Font(family ='Courier', size=15,weight='bold')
+        
+        text_scroll =Scrollbar(top1) 
+        text_scroll.pack(side=RIGHT, fill=Y)
+
+        my_Text = Text(top1, width = 78, height = 25, yscrollcommand= text_scroll.set)
+        my_Text['font'] = myFont
+        my_Text.place(x=15,y=60)
+        #if selectedfile is not None:
+            #self.inserttextfromfile(selectedfile, my_Text)
+            #self.current_file = selectedfile
+
+        text_scroll.config(command= my_Text.yview)
+        
+        #def inserttextfromfile(self, filename, my_Text):
+            #text_file = open(filename, 'r')
+            #stuff = text_file.read()
+            #my_Text.insert(END,stuff)
+            #text_file.close()
+
+        view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+        view['font'] = myFont
+        view.place(x=100,y=450)
+
+        save = tk.Button(top1, text="Save",activebackground="#78d6ff",command=lambda:[self.save_txt(my_Text)])
+        save['font'] = myFont
+        save.place(x=280, y=450)
+        
+        close = Button(top1, text="Close", activebackground="#78d6ff",command=top1.destroy)
+        close['font'] = myFont
+        close.place(x=400,y=450)
+        
+    def open_txt(self,my_Text):
+            text_file_name = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=(("All files","*.*"),))
+            #text_file_name = open_file(user_path) 
+            self.current_file = text_file_name
+            text_file = open(text_file_name, 'r')
+            stuff = text_file.read()
+            my_Text.insert(END,stuff)
+            text_file.close()
+
+    def save_txt(self,my_Text):
+            text_file = self.current_file
+            text_file = open(text_file,'w')
+            text_file.write(my_Text.get(1.0, END))
     
     def submitjob_network(self):
         pass
