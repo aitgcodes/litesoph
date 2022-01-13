@@ -1104,21 +1104,14 @@ class GroundStatePage(Frame):
         show_message(self.label_msg,"Saved")
 
     def view_button(self):
-
-        if self.job:
-            if hasattr(self.job.engine,'directory'):
-                self.gs_inp2dict()
-            else:
-                inp_dict = self.gs_inp2dict()
-                self.init_task(inp_dict, 'gs')
-        else:
-            inp_dict = self.gs_inp2dict()
-            self.init_task(inp_dict, 'gs')
-            
+        inp_dict = self.gs_inp2dict()
+        self.init_task(inp_dict, 'gs')
         self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
 
     def run_job_button(self):
-        if not hasattr(self.job.engine,'directory'):
+        try:
+            getattr(self.job.engine,'directory')           
+        except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
             self.controller.show_frame(JobSubPage, GroundStatePage, None)
@@ -1535,21 +1528,14 @@ class TimeDependentPage(Frame):
         show_message(self.label_msg,"Saved")
 
     def view_button(self):
-
-        if self.job:
-            if hasattr(self.job.engine,'directory'):
-                self.td_inp2dict()
-            else:
-                inp_dict = self.td_inp2dict()
-                self.init_task(inp_dict, 'td')
-        else:
-            inp_dict = self.td_inp2dict()
-            self.init_task(inp_dict, 'td')
-
+        inp_dict = self.td_inp2dict()
+        self.init_task(inp_dict, 'td')
         self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
 
     def run_job_button(self):
-        if not hasattr(self.job.engine,'directory'):
+        try:
+            getattr(self.job.engine,'directory')           
+        except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
             self.controller.show_frame(JobSubPage, TimeDependentPage, None)
@@ -1558,10 +1544,6 @@ class TimeDependentPage(Frame):
         self.controller.show_frame(WorkManagerPage)
 
         
-    
-
-    
-
 class LaserDesignPage(Frame):
 
     def __init__(self, parent, controller,prev, next):
@@ -1863,21 +1845,14 @@ class LaserDesignPage(Frame):
         show_message(self.label_msg,"Saved")
 
     def view_button(self):
-
-        if self.job:
-            if hasattr(self.job.engine,'directory'):
-                self.tdpulse_inp2dict()
-            else:
-                inp_dict = self.tdpulse_inp2dict()
-                self.init_task(inp_dict, 'tdlaser')
-        else:
-            inp_dict = self.tdpulse_inp2dict()
-            self.init_task(inp_dict, 'tdlaser')
-
+        inp_dict = self.tdpulse_inp2dict()
+        self.init_task(inp_dict, 'tdlaser')
         self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
 
     def run_job_button(self):
-        if not hasattr(self.job.engine,'directory'):
+        try:
+            getattr(self.job.engine,'directory')           
+        except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
             self.controller.show_frame(JobSubPage, LaserDesignPage, None)
