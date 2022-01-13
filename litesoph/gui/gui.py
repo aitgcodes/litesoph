@@ -976,7 +976,7 @@ class GroundStatePage(Frame):
         self.entry_proj = Entry(self.Frame2,width= 7, textvariable= self.h)
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,END)
-        self.entry_proj.insert(0,"0.3")
+        self.entry_proj.insert(0,"0.23")
         self.entry_proj.place(x=110,y=60)
 
         self.label_proj = Label(self.Frame2, text="Smearing (eV)",bg="gray",fg="black")
