@@ -643,7 +643,17 @@ class GroundStatePage(Frame):
         self.Frame2.configure(borderwidth="2")
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
-   
+        
+        self.label_proj = Label(self.Frame2,text="Density",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        self.label_proj.place(x=10,y=10)
+
+        self.entry_proj = Entry(self.Frame2,textvariable= self.density)
+        self.entry_proj['font'] = myFont
+        self.entry_proj.delete(0,END)
+        self.entry_proj.insert(0,"1.0e-4")
+        self.entry_proj.place(x=280,y=10)
+ 
         self.Frame2_note = Label(self.Frame2,text="Exchange Corelation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=60)
