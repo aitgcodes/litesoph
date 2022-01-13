@@ -1066,9 +1066,6 @@ class GroundStatePage(Frame):
             inp_dict_nw['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_nw['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_nw)
-            # engn = choose_engine(inp_dict_nw)
-            # self.job = GroundState(inp_dict_nw,engn,self.controller.status, self.controller.directory, filename)
-            # self.controller.task = self.job
             return inp_dict_nw
 
         if self.mode.get() in ["nao","pw"]:
@@ -1076,18 +1073,12 @@ class GroundStatePage(Frame):
             inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_gp)
-            # engn = choose_engine(inp_dict_gp)
-            # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
-            # self.controller.task = self.job
             return inp_dict_gp
 
         if self.shape.get() in ["Minimum","Sphere","Cylinder"]:
             inp_dict_oct['directory'] = str(self.controller.directory)+"/"+ str(dir)
             inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_oct)
-            # engn = choose_engine(inp_dict_gp)
-            # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
-            # self.controller.task = self.job
             return inp_dict_oct
 
         if self.shape.get() == "Parallelepiped":
@@ -1095,17 +1086,11 @@ class GroundStatePage(Frame):
                 inp_dict_oct['directory'] = str(self.controller.directory)+"/"+ str(dir)
                 inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
                 print(inp_dict_oct)
-                # engn = choose_engine(inp_dict_gp)
-                # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
-                # self.controller.task = self.job
                 return inp_dict_oct
             else:
                 inp_dict_gp['directory'] = str(self.controller.directory)+"/"+ str(dir)
                 inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
                 print(inp_dict_gp)
-                # engn = choose_engine(inp_dict_gp)
-                # self.job = GroundState(inp_dict_gp,engn,self.controller.status, self.controller.directory, filename)
-                # self.controller.task = self.job
                 return inp_dict_gp
 
 
@@ -1113,6 +1098,11 @@ class GroundStatePage(Frame):
         engn = choose_engine(inp_dict)
         self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
         self.controller.task = self.job
+        
+    def write_input(self):
+        self.job.write_input()
+        self.controller.check = True
+        self.controller.status.update_status('gs_inp', 1)
 
     def save_button(self):
         inp_dict = self.gs_inp2dict()
@@ -1122,21 +1112,24 @@ class GroundStatePage(Frame):
 
     def view_button(self):
 
-        if hasattr('self.job.engine','directory'):
-            self.gs_inp2dict()
-            self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
+        if self.job:
+            if hasattr(self.job.engine,'directory'):
+                self.gs_inp2dict()
+            else:
+                inp_dict = self.gs_inp2dict()
+                self.init_task(inp_dict, 'gs')
         else:
             inp_dict = self.gs_inp2dict()
             self.init_task(inp_dict, 'gs')
-            self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
+            
+        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
 
     def run_job_button(self):
-        self.controller.show_frame(JobSubPage, GroundStatePage, None)
+        if hasattr(self.job.engine,'directory'):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            self.controller.show_frame(JobSubPage, GroundStatePage, None)
         
-    def write_input(self):
-        self.job.write_input()
-        self.controller.check = True
-        self.controller.status.update_status('gs_inp', 1)
+    
 
 
 class GeomOptPage(Frame):
@@ -1548,16 +1541,22 @@ class TimeDependentPage(Frame):
 
     def view_button(self):
 
-        if hasattr('self.controller.task.engine','directory'):
-            self.td_inp2dict()
-            self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
+        if self.job:
+            if hasattr(self.job.engine,'directory'):
+                self.td_inp2dict()
+            else:
+                inp_dict = self.td_inp2dict()
+                self.init_task(inp_dict, 'td')
         else:
             inp_dict = self.td_inp2dict()
-            self.init_task(inp_dict, 'gs')
-            self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
+            self.init_task(inp_dict, 'td')
+
+        self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
 
     def run_job_button(self):
-        self.controller.show_frame(JobSubPage, TimeDependentPage, None)
+        if hasattr(self.job.engine,'directory'):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            self.controller.show_frame(JobSubPage, TimeDependentPage, None)
 
     def back_button(self):
         self.controller.show_frame(WorkManagerPage)
@@ -1860,7 +1859,6 @@ class LaserDesignPage(Frame):
         self.job.write_input()
         self.controller.check = True
         
-
     def save_button(self):
         inp_dict = self.tdpulse_inp2dict()
         self.init_task(inp_dict, 'tdlaser')
@@ -1869,16 +1867,22 @@ class LaserDesignPage(Frame):
 
     def view_button(self):
 
-        if hasattr('self.controller.task.engine','directory'):
-            self.tdpulse_inp2dict()
-            self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.job)
+        if self.job:
+            if hasattr(self.job.engine,'directory'):
+                self.tdpulse_inp2dict()
+            else:
+                inp_dict = self.tdpulse_inp2dict()
+                self.init_task(inp_dict, 'tdlaser')
         else:
             inp_dict = self.tdpulse_inp2dict()
             self.init_task(inp_dict, 'tdlaser')
-            self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
+
+        self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
 
     def run_job_button(self):
-        self.controller.show_frame(JobSubPage, LaserDesignPage, None)
+        if hasattr(self.job.engine,'directory'):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            self.controller.show_frame(JobSubPage, LaserDesignPage, None)
 
     def back_button(self):
         self.controller.show_frame(WorkManagerPage)
@@ -2048,11 +2052,6 @@ class JobSubPage(Frame):
             from litesoph.gui.job_validation import select_job
             job = self.checkjob()
             select_job(self,job, self.controller.status)     
-
-    # def submitjob(self):
-    #     from litesoph.utilities.job_submit import get_submit_class
-    #     self.submit = get_submit_class(engine=self.controller.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
-    #     process = self.controller.task.run(self.submit)
         
 
     def checkjob(self):
