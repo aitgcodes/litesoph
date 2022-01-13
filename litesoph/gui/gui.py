@@ -1369,7 +1369,8 @@ class TimeDependentPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
-        
+        self.job = None
+
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -1575,6 +1576,7 @@ class LaserDesignPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
+        self.job = None
         self.tdpulse_dict = {}
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
