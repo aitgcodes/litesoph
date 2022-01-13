@@ -49,6 +49,7 @@ class AITG(Tk):
         self.nav = None
         self.refresh_nav(self.directory)
         
+        self.check = None
         self.window = Frame(self)
         self.window.grid(row=0, column=1)
         
@@ -1124,7 +1125,6 @@ class GroundStatePage(Frame):
         
     def write_input(self):
         self.job.write_input()
-        self.controller.task = self.job
         self.controller.check = True
         self.controller.status.update_status('gs_inp', 1)
 
@@ -1457,11 +1457,11 @@ class TimeDependentPage(Frame):
         self.entry_proj.insert(0,"200")
         self.entry_proj.place(x=280,y=310)
         
-        Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.td_inp2dict("td"),self.job.write_input(), show_message(self.label_msg, "Saved")])
+        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
         #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[td_inp2dict()])
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=300,y=380)
@@ -1494,11 +1494,11 @@ class TimeDependentPage(Frame):
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage, TimeDependentPage, None))
+        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=300,y=380)
 
-    def td_inp2dict(self,filename):
+    def td_inp2dict(self):
         td_dict = {}
         kick = [float(self.strength.get())*float(self.ex.get()),
                 float(self.strength.get())*float(self.ey.get()),
@@ -1510,21 +1510,52 @@ class TimeDependentPage(Frame):
         inp_list = [float(self.dt.get()),float(self.Nt.get())]
         td_dict['propagate'] = tuple(inp_list)
 
-        
-        self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename, keyword='delta')
-        self.controller.task = self.job
-        self.controller.check = True
         return td_dict
-    
-    def view_button(self):
-        self.td_inp2dict("td")
-        self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.job)
 
     def analysis_tool(self): 
         if self.v.get() == "1":
             return("dipolemoment")
         elif self.v.get() == "2":
             return("wavefunction")
+    
+
+    def init_task(self, td_dict: dict, filename):
+        self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename, keyword='delta')
+        self.controller.task = self.job
+        self.controller.check = True
+
+    def write_input(self):
+        self.job.write_input()
+        self.controller.check = True
+        #self.controller.status.update_status('gs_inp', 1)
+
+
+    def save_button(self):
+        inp_dict = self.td_inp2dict()
+        self.init_task(inp_dict, 'td')
+        self.write_input()
+        show_message(self.label_msg,"Saved")
+
+    def view_button(self):
+
+        if hasattr('self.controller.task.engine','directory'):
+            self.td_inp2dict()
+            self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
+        else:
+            inp_dict = self.td_inp2dict()
+            self.init_task(inp_dict, 'gs')
+            self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
+
+    def run_job_button(self):
+        self.controller.show_frame(JobSubPage, TimeDependentPage, None)
+
+    def back_button(self):
+        self.controller.show_frame(WorkManagerPage)
+
+        
+    
+
+    
 
 class LaserDesignPage(Frame):
 
@@ -1635,7 +1666,7 @@ class LaserDesignPage(Frame):
         self.entry_proj.insert(0,"2000")
         self.entry_proj.place(x=280,y=300)
  
-        Frame1_Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+        Frame1_Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Frame1_Button1['font'] = myFont
         Frame1_Button1.place(x=10,y=380)
         
@@ -1643,7 +1674,6 @@ class LaserDesignPage(Frame):
         self.button_project['font'] = myFont
         self.button_project.place(x=350,y=380)
 
-        #self.button_project = Button(self.Frame1,text="Laser Design",bg='#0052cc',fg='#ffffff',command=lambda:[write_laser(self.laser_pulse(), 'pulse', str(user_path)+"/Pulse"),plot_spectra(1,str(user_path)+"/"+'Pulse/pulse.dat','pulse.png','time(in au)','Laser strength(in au)')])
         self.button_project = Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
         self.button_project['font'] = myFont
         self.button_project.place(x=170,y=380)
@@ -1687,7 +1717,7 @@ class LaserDesignPage(Frame):
         self.entry_pol_z.place(x=280,y=160) 
         self.entry_pol_z['state'] = 'readonly'
 
-        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.tdpulse_inp2dict('td_pulse'),self.job.write_input(), show_message(self.label_msg, "Saved")])
+        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.save_button()])
         self.Frame2_Button1['font'] = myFont
         self.Frame2_Button1.place(x=10,y=380)
 
@@ -1699,7 +1729,7 @@ class LaserDesignPage(Frame):
         self.Frame2_Button2['font'] = myFont
         self.Frame2_Button2.place(x=170,y=380)
         
-        self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:controller.show_frame(JobSubPage, LaserDesignPage, None))
+        self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
         self.Frame2_Button3['font'] = myFont
         self.Frame2_Button3.place(x=350,y=380)
         self.Frame3 = None
@@ -1788,7 +1818,7 @@ class LaserDesignPage(Frame):
         l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
         return(l_dict)
 
-    def tdpulse_inp2dict(self, filename):
+    def tdpulse_inp2dict(self):
         self.td = self.tdpulse_dict
         self.dir = self.controller.directory
         abs_x = float(self.strength.get())*float(self.pol_x.get())
@@ -1809,11 +1839,39 @@ class LaserDesignPage(Frame):
         updatekey(self.td,'td_out', 'tdlaser.gpw')
         updatekey(self.td,'laser', laser_dict)
 
-        self.job =RT_LCAO_TDDFT(self.td, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
-        #job.write_input()
+        return(self.td)       
+
+    def init_task(self, td_dict: dict, filename):
+        self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
         self.controller.task = self.job
         self.controller.check = True
-        return(self.td)       
+
+    def write_input(self):
+        self.job.write_input()
+        self.controller.check = True
+        
+
+    def save_button(self):
+        inp_dict = self.tdpulse_inp2dict()
+        self.init_task(inp_dict, 'tdlaser')
+        self.write_input()
+        show_message(self.label_msg,"Saved")
+
+    def view_button(self):
+
+        if hasattr('self.controller.task.engine','directory'):
+            self.tdpulse_inp2dict()
+            self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.job)
+        else:
+            inp_dict = self.tdpulse_inp2dict()
+            self.init_task(inp_dict, 'tdlaser')
+            self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
+
+    def run_job_button(self):
+        self.controller.show_frame(JobSubPage, LaserDesignPage, None)
+
+    def back_button(self):
+        self.controller.show_frame(WorkManagerPage)
 
 def updatekey(dict, key, value):
     dict[key] = value
@@ -2288,7 +2346,7 @@ class TextViewerPage(Frame):
         save['font'] = myFont
         save.place(x=320, y=380)
 
-        back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[controller.show_frame(self.prev, WorkManagerPage, JobSubPage, refresh=False)])
+        back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
         back['font'] = myFont
         back.place(x=30,y=380)
 
@@ -2319,7 +2377,9 @@ class TextViewerPage(Frame):
     def inserttextfromstring(self, string, my_Text):
         my_Text.insert(END,string)
     
-   
+    def back_button(self):
+        self.controller.show_frame(self.prev, WorkManagerPage, JobSubPage, refresh=False)
+
         
         
 

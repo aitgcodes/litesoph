@@ -33,7 +33,7 @@ class JobSubmit:
         print("result =", result)
         if job.returncode != 0:
             print("Error =", result[1])
-        return job
+        return result
       
     
 class SubmitLocal(JobSubmit):
@@ -51,7 +51,8 @@ class SubmitLocal(JobSubmit):
     
     def run_job(self,directory):
         self.j = super().run_job(self.command, directory)
-        self.result = self.j.communicate()[1]
+        return self.j
+        #self.result = self.j.communicate()
        
 
 class SubmitNetwork(JobSubmit):
