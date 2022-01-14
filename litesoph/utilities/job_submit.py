@@ -36,9 +36,11 @@ class JobSubmit:
             for line in result[1].decode(encoding='utf-8').split('\n'):
                 print(line)
         else:
-            print("Output...")
-            for line in result[0].decode(encoding='utf-8').split('\n'):
-                print(line)
+            print("job done..")
+            if result[0]:
+                print("Output...")
+                for line in result[0].decode(encoding='utf-8').split('\n'):
+                    print(line)
         return result
       
     
