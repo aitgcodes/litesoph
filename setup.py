@@ -11,7 +11,7 @@ sections = {
 }
 
 lsroot = pathlib.Path.cwd()
-home = pathlib.Path.home() / "Downloads"
+home = pathlib.Path.home() 
 bash_file = pathlib.Path(home) / ".bashrc"
 config_file = pathlib.Path(home) / "lsconfig.ini"
 
