@@ -4,10 +4,10 @@ from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
 
-# import paramiko
-# import pathlib
-# import subprocess
-# from scp import SCPClient
+import paramiko
+import pathlib
+import subprocess
+from scp import SCPClient
 
 def get_submit_class(network=None, **kwargs):
     
@@ -79,34 +79,68 @@ class SubmitLocal(JobSubmit):
        
 
 class SubmitNetwork(JobSubmit):
-    pass            
+
+    def __init__(self, engine: EngineStrategy, configs: ConfigParser, nprocessors:int) -> None:
+        super().__init__(engine, configs)
+        self.np = nprocessors
+        self.command = None
+    
 
 
+class NetworkJobSubmission:
 
-# class NetworkJobSubmission():
-#     def __init__(self, host, user, pswd, mast_dic):
-#         client = paramiko.SSHClient()
-#         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    def __init__(self, host, user, password, mast_dic):
 
-#         # Establish SSH connection
-#         client.connect(host, username=user, password=pswd)
+        self.host = host
+        self.user = user
+        self._password = password
+        self.mast_dic = mast_dic
+        self.client = paramiko.SSHClient()
+        self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-#         # copy the file across
-#         with SCPClient(client.get_transport()) as scp:
-#             scp.put(mast_dic['run_script'], mast_dic['remote_path'])
-#             scp.put(mast_dic['inp'], mast_dic['remote_path'])
-#             # copy data from remote cluster to the local machine
-#             # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
+        # Establish SSH connection
+        #client.connect(host, username=user, password=pswd)
+
+        # copy the file across
+        with SCPClient(self.client.get_transport()) as scp:
+            scp.put(mast_dic['run_script'], mast_dic['remote_path'])
+            scp.put(mast_dic['inp'], mast_dic['remote_path'])
+            # copy data from remote cluster to the local machine
+            # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
 
 
-#         # Submit Engine job by running a remote 'qsub' command over SSH
-#         stdin, stdout, stderr = client.exec_command(mast_dic['cd']+ '\n'+ mast_dic['cmd'])
+        # Submit Engine job by running a remote 'qsub' command over SSH
+        stdin, stdout, stderr = self.client.exec_command(mast_dic['cd']+ '\n'+ mast_dic['cmd'])
 
-#         # Show the standard output and error of our job
-#         print("Standard output:")
-#         print(stdout.read())
-#         print("Standard error:")
-#         print(stderr.read())
-#         print("Exit status: {}".format(stdout.channel.recv_exit_status()))
+        # Show the standard output and error of our job
+        print("Standard output:")
+        print(stdout.read())
+        print("Standard error:")
+        print(stderr.read())
+        print("Exit status: {}".format(stdout.channel.recv_exit_status()))
 
-#         client.close()
+        self.client.close()            
+
+    def login(self):
+
+        self.client.connect(self.host, username=self.user, password=self._password)
+
+    def transfer_files(self):
+
+        with SCPClient(self.client.get_transport()) as scp:
+            scp.put(self.mast_dic['run_script'], self.mast_dic['remote_path'])
+            scp.put(self.mast_dic['inp'], self.mast_dic['remote_path'])
+            # copy data from remote cluster to the local machine
+            # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
+
+    def submit_job(self):
+
+        # Submit Engine job by running a remote 'qsub' command over SSH
+        stdin, stdout, stderr = self.client.exec_command(self.mast_dic['cd']+ '\n'+ self.mast_dic['cmd'])
+
+        # Show the standard output and error of our job
+        print("Standard output:")
+        print(stdout.read())
+        print("Standard error:")
+        print(stderr.read())
+        print("Exit status: {}".format(stdout.channel.recv_exit_status()))
