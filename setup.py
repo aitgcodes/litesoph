@@ -17,11 +17,15 @@ config_file = pathlib.Path(home) / "lsconfig.ini"
 
 
 def get_path(name):
+    print("Checking for {}....".format(name))
     p = subprocess.run(['which', name], capture_output=True, text=True)
     if p.stdout and p.returncode == 0:
+        print("Found {} in {}".format(name, p.stdout.split()[0]))
         return p.stdout.split()[0]
     else:
+        print("Did not find {}".format(name))
         return None
+    
 
 
 def create_default_config(config: ConfigParser, sections: dict):
@@ -34,7 +38,8 @@ def create_default_config(config: ConfigParser, sections: dict):
 
 config = ConfigParser()
 config.add_section('path')
-config.set('path','home', str(home))
+config.set('path','lsproject', str(home))
+print(f"setting lsroot:{str(lsroot)}")
 config.set('path','lsroot',str(lsroot))
 create_default_config(config, sections)
 
