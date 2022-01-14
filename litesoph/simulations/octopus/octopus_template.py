@@ -15,6 +15,7 @@ class OctGroundState:
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
             'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
+            'xc': 'lda_x + lda_c_pz_mod',
             'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
             'mass' : 1.0,             # mass of species in atomic unit
             'box':{'shape':'minimum','radius':4.0,'xlength':0.0, 'sizex':0.0, 'sizey':0.0, 'sizez':0.0},
@@ -46,13 +47,14 @@ Radius = {box[radius]}
 Spacing = {spacing}*angstrom
 SpinComponents = {spin_pol}
 ExcessCharge = {charge}
-
-ConvEnergy = {e_conv}
+XCFunctional = {xc}
+Mixing = {mixing}
 MaximumIter = {max_iter}
 Eigensolver = {eigensolver}
 Smearing = {smearing}
 SmearingFunction = {smearing_func}
 ConvRelDens = {conv_reldens}
+ConvEnergy = {e_conv}
     """
     
     def __init__(self, user_input) -> None:
