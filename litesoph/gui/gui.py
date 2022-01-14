@@ -292,7 +292,7 @@ class WorkManagerPage(Frame):
 
         # Create a list of sub_task
        
-        Pre_task = ["Ground State","Geometry Optimisation"]
+        Pre_task = ["Ground State"]
         Sim_task = ["Delta Kick","Gaussian Pulse"]
         Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         
@@ -301,6 +301,7 @@ class WorkManagerPage(Frame):
             if task.get() == "Preprocessing Jobs":
                 sub_task.config(value = Pre_task)
                 sub_task.current(0)
+                sub_task.disable(1)
             if task.get() == "Simulations":
                 sub_task.config(value = Sim_task)
                 sub_task.current(0)
@@ -395,7 +396,7 @@ class WorkManagerPage(Frame):
         else:
             return True
 
-    
+                       
 
 class GroundStatePage(Frame):
   
