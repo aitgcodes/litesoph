@@ -29,10 +29,16 @@ class JobSubmit:
         job = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
         result = job.communicate()
         print("Job started with command:", command)
-        print("retcode =", job.returncode)
-        print("result =", result)
+        print("returncode =", job.returncode)
+        #print("result =", result)
         if job.returncode != 0:
-            print("Error =", result[1])
+            print("Error...")
+            for line in result[1].decode(encoding='utf-8').split('\n'):
+                print(line)
+        else:
+            print("Output...")
+            for line in result[0].decode(encoding='utf-8').split('\n'):
+                print(line)
         return result
       
     
