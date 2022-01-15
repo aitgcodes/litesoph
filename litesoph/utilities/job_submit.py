@@ -89,41 +89,17 @@ class SubmitNetwork(JobSubmit):
 
 class NetworkJobSubmission:
 
-    def __init__(self, host, user, password, mast_dic):
+    def __init__(self ,mast_dic):
 
-        self.host = host
-        self.user = user
-        self._password = password
         self.mast_dic = mast_dic
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+             
+    def ssh_connect(self,host,user,password):
+        self.client.connect(host, username=user, password=password)
 
-        # Establish SSH connection
-        #client.connect(host, username=user, password=pswd)
-
-        # copy the file across
-        with SCPClient(self.client.get_transport()) as scp:
-            scp.put(mast_dic['run_script'], mast_dic['remote_path'])
-            scp.put(mast_dic['inp'], mast_dic['remote_path'])
-            # copy data from remote cluster to the local machine
-            # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
-
-
-        # Submit Engine job by running a remote 'qsub' command over SSH
-        stdin, stdout, stderr = self.client.exec_command(mast_dic['cd']+ '\n'+ mast_dic['cmd'])
-
-        # Show the standard output and error of our job
-        print("Standard output:")
-        print(stdout.read())
-        print("Standard error:")
-        print(stderr.read())
-        print("Exit status: {}".format(stdout.channel.recv_exit_status()))
-
-        self.client.close()            
-
-    def login(self):
-
-        self.client.connect(self.host, username=self.user, password=self._password)
+    def close(self):
+        self.client.close()
 
     def transfer_files(self):
 
