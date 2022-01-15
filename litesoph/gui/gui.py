@@ -292,7 +292,7 @@ class WorkManagerPage(Frame):
 
         # Create a list of sub_task
        
-        Pre_task = ["Ground State"]
+        Pre_task = ["Ground State","Geometry Optimisation"]
         Sim_task = ["Delta Kick","Gaussian Pulse"]
         Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
         
@@ -301,7 +301,6 @@ class WorkManagerPage(Frame):
             if task.get() == "Preprocessing Jobs":
                 sub_task.config(value = Pre_task)
                 sub_task.current(0)
-                sub_task.disable(1)
             if task.get() == "Simulations":
                 sub_task.config(value = Sim_task)
                 sub_task.current(0)
@@ -1360,7 +1359,7 @@ class GeomOptPage(Frame):
         self.optFrame6.configure(relief="groove")
         self.optFrame6.configure(cursor="fleur")
 
-        optbutv = tk.Button(self.optFrame6, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
+        optbutv = tk.Button(self.optFrame6, text="View Input", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.view_button()])
         optbutv['font'] = myFont
         optbutv.place(x=10,y=10)
 
@@ -1372,7 +1371,7 @@ class GeomOptPage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=300,y=12.5)
 
-        optbutrj = tk.Button(self.optFrame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
+        optbutrj = tk.Button(self.optFrame6, text="Run Job", state='disabled', activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         optbutrj['font'] = myFont
         optbutrj.place(x=380,y=10)
     
