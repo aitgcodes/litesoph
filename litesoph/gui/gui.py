@@ -1601,7 +1601,7 @@ class LaserDesignPage(Frame):
         self.Frame1 = tk.Frame(self)
         
         self.strength = StringVar()
-        self.inval = StringVar()
+        self.inval = DoubleVar()
         self.pol_x = StringVar()
         self.pol_y = StringVar()
         self.pol_z = StringVar()
@@ -1630,18 +1630,20 @@ class LaserDesignPage(Frame):
         self.entry_proj.insert(0,"0")
         self.entry_proj.place(x=280,y=60)
         
-        self.label_proj = Label(self.Frame1,text="Pulse Amplitute at tin",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=100)
+        self.label_inval = Label(self.Frame1,text="-log((E at tin)/Eo),(value>=6)",bg="gray",fg="black")
+        self.label_inval['font'] = myFont
+        self.label_inval.place(x=10,y=100)
  
-        inval_list = ["1e-8", "1e-9"]
-        self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= self.inval, value = inval_list)
-        self.entry_pol_z['font'] = myFont
-        self.entry_pol_z.insert(0,"1e-8")
-        self.entry_pol_z.place(x=280,y=100)
-        self.entry_pol_z['state'] = 'readonly'
+        # inval_list = ["1e-8", "1e-9"]
+        # self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= self.inval, value = inval_list)
+        # self.entry_pol_z['font'] = myFont
+        # self.entry_pol_z.insert(0,"1e-8")
+        self.entry_inval = Entry(self.Frame1,textvariable= self.inval)
+        self.entry_inval['font'] = myFont
+        self.inval.set(6)
+        self.entry_inval.place(x=280,y=100)
 
-        self.label_proj = Label(self.Frame1,text="Laser Strength in a.u",bg="gray",fg="black")
+        self.label_proj = Label(self.Frame1,text="Laser Strength in a.u (Eo)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=140)
     
