@@ -2364,7 +2364,7 @@ class JobSubPage(Frame):
     
     def submitjob_network(self):
         self.job_sub_dict()
-        pass
+        
 
     def job_sub_dict(self):
 
