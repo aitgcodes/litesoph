@@ -1154,7 +1154,7 @@ class GroundStatePage(Frame):
 
 class GeomOptPage(Frame):
 
-    Mainmode = ["nao","fd","pw","gaussian"]
+    Mainmode = ["gaussian"]
     nao_task = ["dzp","pvalence.dz"]
     fd_task = [""]
     pw_task = [""]
@@ -2134,9 +2134,9 @@ class JobSubPage(Frame):
         self.Frame1 = tk.Frame(self)
         self.processors = IntVar()
         self.ip = StringVar()
-        self.user_name = StringVar()
+        self.username = StringVar()
         self.password = StringVar()
-        self.r_path = StringVar()
+        self.rpath = StringVar()
 
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.25, relwidth=0.978)
         self.Frame1.configure(relief='groove')
@@ -2193,7 +2193,7 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=100)
 
-        sbj_entry1 = Entry(self.Frame2,textvariable= self.user_name, width=20)
+        sbj_entry1 = Entry(self.Frame2,textvariable= self.username, width=20)
         sbj_entry1['font'] = l
         sbj_entry1.place(x=200,y=100)
  
@@ -2201,7 +2201,7 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=150)
 
-        sbj_entry1 = Entry(self.Frame2,textvariable= self.password, width=20)
+        sbj_entry1 = Entry(self.Frame2,textvariable= self.password, width=20, show = '*')
         sbj_entry1['font'] = l
         sbj_entry1.place(x=200,y=150)
 
@@ -2209,7 +2209,7 @@ class JobSubPage(Frame):
         sbj_label1['font'] = myFont
         sbj_label1.place(x=15,y=200)
 
-        sbj_entry1 = Entry(self.Frame2,textvariable= self.r_path, width=20)
+        sbj_entry1 = Entry(self.Frame2,textvariable= self.rpath, width=20)
         sbj_entry1['font'] = l
         sbj_entry1.place(x=200,y=200)
       
@@ -2226,7 +2226,7 @@ class JobSubPage(Frame):
         self.message_label['font'] = myFont
         self.message_label.place(x=800,y=155)
 
-        sbj_button2 = Button(self.Frame2, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
+        sbj_button2 = Button(self.Frame2, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.job_sub_dict(),self.submitjob_network()])
         sbj_button2['font'] = myFont
         sbj_button2.place(x=600, y=200)
  
@@ -2365,6 +2365,20 @@ class JobSubPage(Frame):
     def submitjob_network(self):
         pass
 
+    def job_sub_dict(self):
+
+        local_job_dict = {
+          'nprocessors':self.processors.get()     
+            }
+
+        network_job_dict = {
+          'ip':self.ip.get(),
+          'username':self.username.get(),
+          'password':self.password.get(),
+          'path':self.rpath.get(),
+            } 
+        print(network_job_dict)
+       
 class DmLdPage(Frame):
 
     def __init__(self, parent, controller,prev, next):
