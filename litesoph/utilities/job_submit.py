@@ -80,18 +80,41 @@ class SubmitLocal(JobSubmit):
 
 class SubmitNetwork(JobSubmit):
 
-    def __init__(self, engine: EngineStrategy, configs: ConfigParser, nprocessors:int) -> None:
+    def __init__(self, engine: EngineStrategy,
+                        configs: ConfigParser, 
+                        hostname: str,
+                        username: str,
+                        password: str,
+                        net_sub: dict) -> None:
+
         super().__init__(engine, configs)
-        self.np = nprocessors
         self.command = None
-    
+        self.net_sub = net_sub
+        self.validate_net_sub()
+
+        self.network_sub = NetworkJobSubmission(net_sub)
+        self.network_sub.ssh_connect(hostname, username, password)
+        self.network_sub.transfer_files()
+
+    def validate_net_sub(self):
+        if not pathlib.Path(self.net_sub['run_script']).is_file():
+            raise FileNotFoundError(f"Unable to find {self.net_sub['run_script']} ")
+        if not pathlib.Path(self.net_sub['inp']).is_file():
+            raise FileNotFoundError(f"Unable to find {self.net_sub['inp']} ")
+        if not pathlib.Path(self.net_sub['geometry']).is_file():
+            raise FileNotFoundError(f"Unable to find {self.net_sub['geometry']} ")
+
+    def run_job(self):
+        self.network_sub.submit_job()
+        self.network_sub.close()
 
 
 class NetworkJobSubmission:
 
-    def __init__(self ,mast_dic):
+    def __init__(self ,mast_dic: dict):
 
         self.mast_dic = mast_dic
+        self.run_script = pathlib.Path(self.mast_dic['run_script']).name
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
              
@@ -106,13 +129,14 @@ class NetworkJobSubmission:
         with SCPClient(self.client.get_transport()) as scp:
             scp.put(self.mast_dic['run_script'], self.mast_dic['remote_path'])
             scp.put(self.mast_dic['inp'], self.mast_dic['remote_path'])
+            scp.put(self.mast_dic['geometry'], self.mast_dic['remote_path'])
             # copy data from remote cluster to the local machine
             # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
 
     def submit_job(self):
 
         # Submit Engine job by running a remote 'qsub' command over SSH
-        stdin, stdout, stderr = self.client.exec_command(self.mast_dic['cd']+ '\n'+ self.mast_dic['cmd'])
+        stdin, stdout, stderr = self.client.exec_command(f"cd {self.mast_dic['remote_path']}"+ '\n'+ f"qsub {self.run_script}")
 
         # Show the standard output and error of our job
         print("Standard output:")
