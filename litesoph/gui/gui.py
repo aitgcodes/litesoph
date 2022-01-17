@@ -1087,6 +1087,9 @@ class GroundStatePage(Frame):
         if self.mode.get() == 'nao':
             inp_dict_gp['mode']='lcao'
 
+        if self.nbands.get() == '':
+            inp_dict_gp['nbands']= None
+
         if self.shape.get() in ['minimum','sphere']:
             inp_dict_oct['box']={'shape':self.shape.get(),'radius':self.r.get()}
         if self.shape.get() == 'cylinder':
@@ -2125,6 +2128,7 @@ class JobSubPage(Frame):
         self.controller = controller
         self.prev = prev
         self.next = next
+        self.run_script_path = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j=font.Font(family ='Courier', size=20,weight='bold')
@@ -2218,7 +2222,7 @@ class JobSubPage(Frame):
         #sbj_button2.place(x=600, y=60)
          
         #sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command =lambda:[self.open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
-        sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command =self.upload_script)
+        sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command = self.upload_script)
         sbj_button2['font'] = myFont
         sbj_button2.place(x=600, y=150)
   
@@ -2294,15 +2298,6 @@ class JobSubPage(Frame):
             if check_yn is True:
                 self.controller.status.update_status(key, value2)
                 self.call_run(key, value1)
-    def open_file(self, outpath):
-        text_file = filedialog.askopenfilename(
-            initialdir="./", title="Select File", filetypes=(("All Files", "*.*"),))
-        text_file = open(text_file, 'r')
-        stuff = text_file.read()
-        out_file = open(pathlib.Path(outpath) / "job_script.sh", 'w')
-        out_file.write(stuff)
-        text_file.close()
-        out_file.close()
 
     def upload_script(self):
 
@@ -2349,13 +2344,13 @@ class JobSubPage(Frame):
         close.place(x=400,y=450)
         
     def open_txt(self,my_Text):
-            text_file_name = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=(("All files","*.*"),))
+            self.run_script_path = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=(("All files","*.*"),))
             #text_file_name = open_file(user_path) 
-            self.current_file = text_file_name
-            text_file = open(text_file_name, 'r')
+            self.current_file = self.run_script_path
+            text_file = open(self.run_script_path, 'r')
             stuff = text_file.read()
             my_Text.insert(END,stuff)
-            text_file.close()
+            text_file.close()     
 
     def save_txt(self,my_Text):
             text_file = self.current_file
@@ -2363,22 +2358,39 @@ class JobSubPage(Frame):
             text_file.write(my_Text.get(1.0, END))
     
     def submitjob_network(self):
-        self.job_sub_dict()
+        if not self.run_script_path:
+            messagebox.showerror(message = "Please upload job script")
+        login_dict = self.job_sub_dict()
+        net_inp = dict(run_script = self.run_script_path,
+                        inp = self.controller.task.file_path,
+                        remote_path = login_dict['remote_path'],
+                        geometry = pathlib.Path(self.controller.directory) / "coordinate.xyz")
+
+        from litesoph.utilities.job_submit import SubmitNetwork
+
+        submit_network = SubmitNetwork(self.controller.task.engine, 
+                                        self.controller.lsconfig,
+                                        hostname=login_dict['ip'],
+                                        username=login_dict['username'],
+                                        password=login_dict['password'],
+                                        net_sub=net_inp)
+        try:
+            submit_network.run_job() 
+        except:
+            print("job failed to submitted")
+        else:
+            print("job submitted.")
         
 
     def job_sub_dict(self):
-
-        local_job_dict = {
-          'nprocessors':self.processors.get()     
-            }
 
         network_job_dict = {
           'ip':self.ip.get(),
           'username':self.username.get(),
           'password':self.password.get(),
-          'path':self.rpath.get(),
+          'remote_path':self.rpath.get(),
             } 
-        print(network_job_dict)
+        return network_job_dict
        
 class DmLdPage(Frame):
 

@@ -72,6 +72,7 @@ class GroundState(Task):
         if not self.task_dir:
             self.create_task_dir()
         self.engine.create_script(self.task_dir,self.filename, self.template)
+        self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
         self.status.update_status('gs_inp', 1)
 
     def c_status(self):
