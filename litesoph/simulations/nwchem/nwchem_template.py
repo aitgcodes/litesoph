@@ -8,10 +8,9 @@ class NwchemOptimisation:
  
     default_opt_param= {
             'mode':'gaussian',
-            'name': None,
-            'title':None,
             'charge': 0,
-            'basis': '',
+            'basis': '6-31g',
+            'geometry':'coordinate.xyz',
             'multip': 1,
             'xc': 'PBE0',
             'maxiter': 300,
@@ -19,7 +18,6 @@ class NwchemOptimisation:
             'energy': 1.0e-7,
             'density': 1.0e-5,
             'theory':'dft',
-            'calc': None,
             'properties':'optimize',
             }
    
@@ -31,16 +29,24 @@ title "LITESOPH NWCHEM Optimisation"
 charge {charge}
 
 geometry 
-  load coordinate.xyz 
+  load  {geometry} 
 end
 
 basis 
   * library {basis}
 end
     
-{calc}
+dft
+ direct
+ mult {multip}
+ xc {xc}
+ iterations {maxiter}
+ tolerances {tolerance}
+ convergence energy {energy}
+ convergence density {density}
+end
 
-task {theory} optimize
+task {theory} {properties}
                
                 """
 
@@ -88,7 +94,6 @@ end
  
 
     def format_template(self, input_param:dict):
-        self.calc_task()
         template = self.opt_temp.format(**input_param)
         return template
 
