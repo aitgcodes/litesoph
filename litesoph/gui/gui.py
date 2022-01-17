@@ -2226,7 +2226,7 @@ class JobSubPage(Frame):
         self.message_label['font'] = myFont
         self.message_label.place(x=800,y=155)
 
-        sbj_button2 = Button(self.Frame2, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.job_sub_dict(),self.submitjob_network()])
+        sbj_button2 = Button(self.Frame2, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         sbj_button2['font'] = myFont
         sbj_button2.place(x=600, y=200)
  
@@ -2363,6 +2363,7 @@ class JobSubPage(Frame):
             text_file.write(my_Text.get(1.0, END))
     
     def submitjob_network(self):
+        self.job_sub_dict()
         pass
 
     def job_sub_dict(self):
