@@ -15,6 +15,7 @@ class OctGroundState:
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
             'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
+            'xc': 'lda_x + lda_c_pz_mod',
             'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
             'mass' : 1.0,             # mass of species in atomic unit
             'box':{'shape':'minimum','radius':4.0,'xlength':0.0, 'sizex':0.0, 'sizey':0.0, 'sizez':0.0},
@@ -46,21 +47,22 @@ Radius = {box[radius]}
 Spacing = {spacing}*angstrom
 SpinComponents = {spin_pol}
 ExcessCharge = {charge}
-
-ConvEnergy = {e_conv}
+XCFunctional = {xc}
+Mixing = {mixing}
 MaximumIter = {max_iter}
 Eigensolver = {eigensolver}
 Smearing = {smearing}
 SmearingFunction = {smearing_func}
 ConvRelDens = {conv_reldens}
+ConvEnergy = {e_conv}
     """
     
     def __init__(self, user_input) -> None:
         self.default_param.update(user_input)
         self.boxshape = self.default_param['box']['shape'] 
-        self.check()          
+        self.check_unit()          
     
-    def check(self):
+    def check_unit(self):
         if self.default_param['unit_box'] == "angstrom":
             box_dict = self.default_param['box']
             if self.boxshape not in ['cylinder', 'parallelepiped']:
@@ -129,7 +131,7 @@ class OctTimedependentState:
             'time_step' : 0.002,      
             'td_propagator' : 'aetrs',
             'strength': {},
-            'e_pol': 1             
+            'e_pol': [1,0,0]             
             }
 
     td = """
@@ -148,36 +150,71 @@ Spacing = {spacing}*angstrom
 
 TDPropagator = {td_propagator}
 TDMaxSteps = {max_step}
-TDTimeStep = {time_step}/eV
+TDTimeStep = {time_step}
 
 TDDeltaStrength = {strength}/angstrom
-TDPolarizationDirection = {e_pol}
+
 """         
+
+    tlines_pol = """
+%TDPolarization
+ {e_pol[0]} | {e_pol[1]} | {e_pol[2]}
+ 0 | 1 | 0
+ 0 | 0 | 1
+%
+TDPolarizationDirection = 1
+"""
 
     def __init__(self, user_input) -> None:
         self.default_param.update(user_input)
         self.boxshape = self.default_param['box']['shape']         
+        self.e_pol = self.default_param['e_pol']
+        self.check_pol()
+        
+    def check_pol(self):
+        if self.e_pol == [1,0,0]:
+            self.default_param['e_dir'] = 1
+        elif self.e_pol == [0,1,0]:
+            self.default_param['e_dir'] = 2 
+        elif self.e_pol == [0,0,1]:
+            self.default_param['e_dir'] = 3
+        else:
+            self.default_param['e_dir'] = 0
+            
+    def format_pol(self):
+        if self.default_param['e_dir'] in [1,2,3]:
+            tlines = self.td.splitlines()
+            tlines[19] = "TDPolarizationDirection = {e_dir}"
+            temp = """\n""".join(tlines)
+            return temp
 
+        elif self.default_param['e_dir'] == 0:
+            temp = "".join([self.td, self.tlines_pol])
+            return temp
 
-    def format_template(self):
-        if self.boxshape not in ['cylinder', 'paralellepiped']: 
-            template = self.td.format(**self.default_param)
-            return template 
+    def format_box(self):
+        if self.boxshape not in ['cylinder', 'parallelepiped']: 
+            return self.td
 
         elif self.boxshape == "cylinder":
             tlines = self.td.splitlines()
-            tlines[9] = "Xlength = {box[xlength]}"
-            template = """\n""".join(tlines)
-            print(template)
-            template = self.td.format(**self.default_param)
-            return template
-
-        elif self.boxshape == "paralellepiped":
-            tlines = self.td.splitlines()
-            tlines[8] = "%LSize"
-            tlines[9] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
-            tlines[10] = "%"
+            tlines[10] = "Xlength = {box[xlength]}"
             temp = """\n""".join(tlines)
-            template = temp.format(**self.default_param)
-            return template    
+            return temp
 
+        elif self.boxshape == "parallelepiped":
+            tlines = self.td.splitlines()
+            self.default_param['box']['sizex'] = round(self.default_param['box']['sizex']/2, 2)
+            self.default_param['box']['sizey'] = round(self.default_param['box']['sizey']/2, 2)
+            self.default_param['box']['sizez'] = round(self.default_param['box']['sizez']/2, 2)
+            tlines[9] = "%LSize"
+            tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
+            tlines[11] = "%"
+            temp = """\n""".join(tlines)
+            return temp
+
+    def format_template(self):
+        self.td = self.format_box() 
+        temp = self.format_pol()
+        template = temp.format(**self.default_param)
+        return(template)

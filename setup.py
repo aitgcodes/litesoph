@@ -11,17 +11,21 @@ sections = {
 }
 
 lsroot = pathlib.Path.cwd()
-home = pathlib.Path.home()
+home = pathlib.Path.home() 
 bash_file = pathlib.Path(home) / ".bashrc"
 config_file = pathlib.Path(home) / "lsconfig.ini"
 
 
 def get_path(name):
+    print("Checking for {}....".format(name))
     p = subprocess.run(['which', name], capture_output=True, text=True)
     if p.stdout and p.returncode == 0:
+        print("Found {} in {}".format(name, p.stdout.split()[0]))
         return p.stdout.split()[0]
     else:
+        print("Did not find {}".format(name))
         return None
+    
 
 
 def create_default_config(config: ConfigParser, sections: dict):
@@ -31,12 +35,19 @@ def create_default_config(config: ConfigParser, sections: dict):
             set = get_path(option)
             if set is not None:
                 config.set(key, option, set)
+            else:
+                config.set(key, f"#{option} =", None)
 
-config = ConfigParser()
+config = ConfigParser(allow_no_value=True)
 config.add_section('path')
-config.set('path','home', str(home))
+config.set('path','lsproject', str(home))
+print(f"setting lsroot:{str(lsroot)}")
 config.set('path','lsroot',str(lsroot))
 create_default_config(config, sections)
+
+config.set('mpi', '# gpaw_mpi =', None)
+config.set('mpi', '# octopus_mpi =', None)
+config.set('mpi', '# nwchem_mpi =', None)
 
 with open(config_file, 'w+') as configfile:
     config.write(configfile)
