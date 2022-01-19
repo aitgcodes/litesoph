@@ -4,10 +4,10 @@ from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
 
-# import paramiko
-# import pathlib
-# import subprocess
-# from scp import SCPClient
+import paramiko
+import pathlib
+import subprocess
+from scp import SCPClient
 
 def get_submit_class(network=None, **kwargs):
     
@@ -79,34 +79,68 @@ class SubmitLocal(JobSubmit):
        
 
 class SubmitNetwork(JobSubmit):
-    pass            
+
+    def __init__(self, engine: EngineStrategy,
+                        configs: ConfigParser, 
+                        hostname: str,
+                        username: str,
+                        password: str,
+                        net_sub: dict) -> None:
+
+        super().__init__(engine, configs)
+        self.command = None
+        self.net_sub = net_sub
+        self.validate_net_sub()
+
+        self.network_sub = NetworkJobSubmission(net_sub)
+        self.network_sub.ssh_connect(hostname, username, password)
+        self.network_sub.transfer_files()
+
+    def validate_net_sub(self):
+        if not pathlib.Path(self.net_sub['run_script']).is_file():
+            raise FileNotFoundError(f"Unable to find {self.net_sub['run_script']} ")
+        if not pathlib.Path(self.net_sub['inp']).is_file():
+            raise FileNotFoundError(f"Unable to find {self.net_sub['inp']} ")
+        if not pathlib.Path(self.net_sub['geometry']).is_file():
+            raise FileNotFoundError(f"Unable to find {self.net_sub['geometry']} ")
+
+    def run_job(self):
+        self.network_sub.submit_job()
+        self.network_sub.close()
 
 
+class NetworkJobSubmission:
 
-# class NetworkJobSubmission():
-#     def __init__(self, host, user, pswd, mast_dic):
-#         client = paramiko.SSHClient()
-#         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    def __init__(self ,mast_dic: dict):
 
-#         # Establish SSH connection
-#         client.connect(host, username=user, password=pswd)
+        self.mast_dic = mast_dic
+        self.run_script = pathlib.Path(self.mast_dic['run_script']).name
+        self.client = paramiko.SSHClient()
+        self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+             
+    def ssh_connect(self,host,user,password):
+        self.client.connect(host, username=user, password=password)
 
-#         # copy the file across
-#         with SCPClient(client.get_transport()) as scp:
-#             scp.put(mast_dic['run_script'], mast_dic['remote_path'])
-#             scp.put(mast_dic['inp'], mast_dic['remote_path'])
-#             # copy data from remote cluster to the local machine
-#             # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
+    def close(self):
+        self.client.close()
 
+    def transfer_files(self):
 
-#         # Submit Engine job by running a remote 'qsub' command over SSH
-#         stdin, stdout, stderr = client.exec_command(mast_dic['cd']+ '\n'+ mast_dic['cmd'])
+        with SCPClient(self.client.get_transport()) as scp:
+            scp.put(self.mast_dic['run_script'], self.mast_dic['remote_path'])
+            scp.put(self.mast_dic['inp'], self.mast_dic['remote_path'])
+            scp.put(self.mast_dic['geometry'], self.mast_dic['remote_path'])
+            # copy data from remote cluster to the local machine
+            # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
 
-#         # Show the standard output and error of our job
-#         print("Standard output:")
-#         print(stdout.read())
-#         print("Standard error:")
-#         print(stderr.read())
-#         print("Exit status: {}".format(stdout.channel.recv_exit_status()))
+    def submit_job(self):
 
-#         client.close()
+        # Submit Engine job by running a remote 'qsub' command over SSH
+        stdin, stdout, stderr = self.client.exec_command(f"cd {self.mast_dic['remote_path']}"+ '\n'+ f"qsub {self.run_script}")
+
+        # Show the standard output and error of our job
+        print("Standard output:")
+        print(stdout.read())
+        print("Standard error:")
+        print(stderr.read())
+        print("Exit status: {}".format(stdout.channel.recv_exit_status()))
