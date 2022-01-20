@@ -2362,9 +2362,8 @@ class JobSubPage(Frame):
             messagebox.showerror(message = "Please upload job script")
         login_dict = self.job_sub_dict()
         net_inp = dict(run_script = self.run_script_path,
-                        inp = self.controller.task.file_path,
-                        remote_path = login_dict['remote_path'],
-                        geometry = pathlib.Path(self.controller.directory) / "coordinate.xyz")
+                        inp = [self.controller.task.file_path],
+                        geometry = str(pathlib.Path(self.controller.directory) / "coordinate.xyz"))
 
         from litesoph.utilities.job_submit import SubmitNetwork
 
@@ -2373,15 +2372,11 @@ class JobSubPage(Frame):
                                         hostname=login_dict['ip'],
                                         username=login_dict['username'],
                                         password=login_dict['password'],
-                                        net_sub=net_inp)
-        try:
-            submit_network.run_job() 
-        except:
-            print("job failed to submitted")
-        else:
-            print("job submitted.")
+                                        remote_path=login_dict['remote_path'],
+                                        upload_files=net_inp)
+    
+        submit_network.run_job() 
         
-
     def job_sub_dict(self):
 
         network_job_dict = {
