@@ -6,7 +6,7 @@ import json
 
 class Status():
     def __init__(self, directory) -> None:
-        self.filepath = pathlib.Path(directory) / "status.txt"
+        self.filepath = pathlib.Path(directory) / "status.json"
         self.status_dict = {}
         if self.filepath.exists():
             self.status_dict = self.read_status()
@@ -20,18 +20,17 @@ class Status():
         self.update_status()
 
     def read_status(self):
-        with open(self.filepath, 'r') as f:
-            data = f.read()
-            data_dict = json.loads(data)
+        with open(self.filepath) as f:
+            data_dict = json.load(f)
             self.status_dict.update(data_dict)
             return(self.status_dict)
 
     def update_status(self, key=None, value=None):
         if key is None and value is None:
-            dict2file(self.status_dict, self.filepath)
+            dict2json(self.status_dict, self.filepath)
         else:
             self.status_dict[key] = value
-            dict2file(self.status_dict, self.filepath)
+            dict2json(self.status_dict, self.filepath)
             return(self.status_dict)
 
     def check_status(self, key, value):
@@ -62,17 +61,6 @@ class file_check:
                 break    
         return(check)
 
-    # gpaw_gs_dict={'inp':'gs.py',
-    #          'out': 'gs.out',
-    #          'check_list':['Converged', 'Fermi level:','Total:']}
-
-    # gpaw_td_dict={'inp':'td.py',
-    #          'out': 'tdx.out',
-    #          'check_list':['Writing','Total:']}
-
-    # gpaw_pulse_dict={'inp':'td_pulse.py',
-    #          'out': 'tdpulse.out',
-    #          'check_list':['Writing','Total:']}
 
 def dict2file(dictname, filename):
     filepath = pathlib.Path(filename)
@@ -107,3 +95,8 @@ def show_message(label_name, message):
     """
     label_name['text'] = message
     label_name['foreground'] = 'black'
+
+def dict2json(dictname, filename):
+    filepath = pathlib.Path(filename)
+    with open(filepath, 'w') as file:
+        json.dump(dictname, file)
