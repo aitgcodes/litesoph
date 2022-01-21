@@ -1,5 +1,5 @@
 import numpy as np
-from litesoph.utilities.units import as_to_au, eV_to_au
+from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV
 # Calculates the half-width in time of the laser pulse and centre of the pulse
 # given the FWHM in frequency space, the amplitude of pulse of time origin, location of time origin
 # Input arguments (in that order) are -log(E(0)), time origin of pulse and FWHM in frequency space of pulse
@@ -29,8 +29,8 @@ def laser_design(strength, inval, tin, fwhm):
     tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of femtosecond
     t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(inval)  # in units of femtosecond
     
-    tau_0 = tau_0*0.2418                              # converted from fms to eV
-    #t0 = t0*(1e3)                                     # converted from fms to attosecond
+    #tau_0 = tau_0*0.2418                              # converted from fms to eV
+    tau_0 = fs_to_eV/tau_0                           # converted from fms to eV
     laser = {}
     laser['strength'] = strength
     laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of eV                     

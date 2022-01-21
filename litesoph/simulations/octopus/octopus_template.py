@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any, Dict
 from litesoph.utilities.units import ang_to_au
 
-from matplotlib.pyplot import box
 
 class OctGroundState:
 
@@ -29,7 +28,8 @@ class OctGroundState:
             'mixing' : 0.3,             # 0<mixing<=1
             'conv_reldens' : 1e-6,      # SCF calculation
             'smearing_func' :'semiconducting',
-            'smearing' : 0.1          # in eV
+            'smearing' : 0.1   ,       # in eV
+            'unit_box' : 'angstrom'
             } 
 
     gs_min = """
@@ -58,13 +58,14 @@ ConvEnergy = {e_conv}
     """
     
     def __init__(self, user_input) -> None:
-        self.default_param.update(user_input)
-        self.boxshape = self.default_param['box']['shape'] 
+        self.temp_dict = self.default_param
+        self.temp_dict.update(user_input)
+        self.boxshape = self.temp_dict['box']['shape'] 
         self.check_unit()          
     
     def check_unit(self):
-        if self.default_param['unit_box'] == "angstrom":
-            box_dict = self.default_param['box']
+        if self.temp_dict['unit_box'] == "angstrom":
+            box_dict = self.temp_dict['box']
             if self.boxshape not in ['cylinder', 'parallelepiped']:
                 box_dict['radius'] = round(box_dict['radius']*ang_to_au, 2)
             elif self.boxshape == "cylinder":
@@ -77,26 +78,26 @@ ConvEnergy = {e_conv}
 
     def format_template(self):
         if self.boxshape not in ['cylinder', 'parallelepiped']: 
-            template = self.gs_min.format(**self.default_param)
+            template = self.gs_min.format(**self.temp_dict)
             return template 
 
         elif self.boxshape == "cylinder":
             tlines = self.gs_min.splitlines()
             tlines[10] = "Xlength = {box[xlength]}"
             temp = """\n""".join(tlines)
-            template = temp.format(**self.default_param)
+            template = temp.format(**self.temp_dict)
             return template
 
         elif self.boxshape == "parallelepiped":
             tlines = self.gs_min.splitlines()
-            self.default_param['box']['sizex'] = round(self.default_param['box']['sizex']/2, 2)
-            self.default_param['box']['sizey'] = round(self.default_param['box']['sizey']/2, 2)
-            self.default_param['box']['sizez'] = round(self.default_param['box']['sizez']/2, 2)
+            self.temp_dict['box']['sizex'] = round(self.temp_dict['box']['sizex']/2, 2)
+            self.temp_dict['box']['sizey'] = round(self.temp_dict['box']['sizey']/2, 2)
+            self.temp_dict['box']['sizez'] = round(self.temp_dict['box']['sizez']/2, 2)
             tlines[9] = "%LSize"
             tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
             tlines[11] = "%"
             temp = """\n""".join(tlines)
-            template = temp.format(**self.default_param)
+            template = temp.format(**self.temp_dict)
             return template    
 
         
@@ -152,7 +153,7 @@ TDPropagator = {td_propagator}
 TDMaxSteps = {max_step}
 TDTimeStep = {time_step}
 
-TDDeltaStrength = {strength}/angstrom
+TDDeltaStrength = {strength}
 
 """         
 
@@ -166,29 +167,30 @@ TDPolarizationDirection = 1
 """
 
     def __init__(self, user_input) -> None:
-        self.default_param.update(user_input)
-        self.boxshape = self.default_param['box']['shape']         
-        self.e_pol = self.default_param['e_pol']
+        self.temp_dict = self.default_param
+        self.temp_dict.update(user_input)
+        self.boxshape = self.temp_dict['box']['shape']         
+        self.e_pol = self.temp_dict['e_pol']
         self.check_pol()
         
     def check_pol(self):
         if self.e_pol == [1,0,0]:
-            self.default_param['e_dir'] = 1
+            self.temp_dict['e_dir'] = 1
         elif self.e_pol == [0,1,0]:
-            self.default_param['e_dir'] = 2 
+            self.temp_dict['e_dir'] = 2 
         elif self.e_pol == [0,0,1]:
-            self.default_param['e_dir'] = 3
+            self.temp_dict['e_dir'] = 3
         else:
-            self.default_param['e_dir'] = 0
+            self.temp_dict['e_dir'] = 0
             
     def format_pol(self):
-        if self.default_param['e_dir'] in [1,2,3]:
+        if self.temp_dict['e_dir'] in [1,2,3]:
             tlines = self.td.splitlines()
             tlines[19] = "TDPolarizationDirection = {e_dir}"
             temp = """\n""".join(tlines)
             return temp
 
-        elif self.default_param['e_dir'] == 0:
+        elif self.temp_dict['e_dir'] == 0:
             temp = "".join([self.td, self.tlines_pol])
             return temp
 
@@ -204,9 +206,9 @@ TDPolarizationDirection = 1
 
         elif self.boxshape == "parallelepiped":
             tlines = self.td.splitlines()
-            self.default_param['box']['sizex'] = round(self.default_param['box']['sizex']/2, 2)
-            self.default_param['box']['sizey'] = round(self.default_param['box']['sizey']/2, 2)
-            self.default_param['box']['sizez'] = round(self.default_param['box']['sizez']/2, 2)
+            self.temp_dict['box']['sizex'] = round(self.temp_dict['box']['sizex']/2, 2)
+            self.temp_dict['box']['sizey'] = round(self.temp_dict['box']['sizey']/2, 2)
+            self.temp_dict['box']['sizez'] = round(self.temp_dict['box']['sizez']/2, 2)
             tlines[9] = "%LSize"
             tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
             tlines[11] = "%"
@@ -216,5 +218,6 @@ TDPolarizationDirection = 1
     def format_template(self):
         self.td = self.format_box() 
         temp = self.format_pol()
-        template = temp.format(**self.default_param)
+        template = temp.format(**self.temp_dict)
         return(template)
+
