@@ -1,6 +1,7 @@
 from configparser import ConfigParser, NoOptionError
 
 from matplotlib.pyplot import vlines
+from paramiko import sftp, transport
 from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
@@ -96,10 +97,10 @@ class SubmitNetwork(JobSubmit):
         self.upload_files = upload_files
         self.validate_upload_files()
 
-        self.network_sub = NetworkJobSubmission(hostname, username, password=password)
+        self.network_sub = NetworkJobSubmission(hostname)
+        self.network_sub.ssh_connect(username, password)
         self.transfer_files()
-
-        
+    
 
     def validate_upload_files(self):
         self.upfiles = []
@@ -115,163 +116,132 @@ class SubmitNetwork(JobSubmit):
     
     def transfer_files(self):
         for file in self.upfiles:
-            if self.network_sub.upload_files(file, self.remote_path):
+            try:
+                self.network_sub.upload_files(file, self.remote_path)
                 print(f"{file} uploaded to remote path {self.remote_path} of cluster")
+            except Exception as e:
+                raise(e)
 
 
     def run_job(self):
 
         bash_filename = pathlib.Path(self.upload_files['run_script']).name
-        bash_filename = pathlib.Path(self.remote_path) / bash_filename
-        self.command = [f"cd {self.remote_path} \n qsub {bash_filename}"]
+        #bash_filename = pathlib.Path(self.remote_path) / bash_filename
+        self.command = f"cd {self.remote_path} \n qsub {bash_filename}"
 
-        if self.network_sub.execute_command(self.command):
-            if self.network_sub.exit_status != 0:
-                print("Error...")
-                for line in self.network_sub.ssh_error.decode(encoding='utf-8').split('\n'):
-                    print(line)
-            else:
-                print("Job submitted successfully!...")
-                for line in self.network_sub.ssh_output.decode(encoding='utf-8').split('\n'):
-                    print(line)
+        self.network_sub.execute_command(self.command)
+        if self.network_sub.exit_status != 0:
+            print("Error...")
+            for line in self.network_sub.ssh_error.decode(encoding='utf-8').split('\n'):
+                print(line)
+        else:
+            print("Job submitted successfully!...")
+            for line in self.network_sub.ssh_output.decode(encoding='utf-8').split('\n'):
+                print(line)
 
 class NetworkJobSubmission:
 
     def __init__(self,
                 host,
-                username,
-                password=None,
-                pkey = None,
-                time_out = None,
-                port=None):
+                port=22):
         
-        self.client = None
+        self._client = None
         self.host = host
-        self.username = username
-        self.password = password
-        self.pkey = pkey
-        self.time_out = time_out
-
-        if port:
-            self.port = port
-        else:
-            self.port = 22
-
+        self.port = port
         self.ssh_output = None
         self.ssh_error = None
         self.exit_status = None
-        # self.mast_dic = mast_dic
-        # self.run_script = pathlib.Path(self.mast_dic['run_script']).name
              
-    def ssh_connect(self):
+    def ssh_connect(self, username, password=None, pkey=None):
         "Login to cluster"
         try:
             print("Establishing ssh connection")
-            self.client = paramiko.SSHClient()
-            self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self._client = paramiko.SSHClient()
+            self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
-            if not self.password:
+            if pkey:
                 private_key = paramiko.RSAKey.from_private_key(self.pkey)
-                self.client.connect(hostname=self.host, port=self.port, username=self.username, pkey=private_key, timeout=self.time_out, allow_agent=False, look_for_keys=False)
+                self._client.connect(hostname=self.host, port=self.port, username=username, pkey=private_key)
                 print("connected to the server", self.host)
             else:    
-                self.client.connect(hostname=self.host, port=self.port, username=self.username, password=self.password, timeout=self.time_out, allow_agent=False, look_for_keys=False)
+                self._client.connect(hostname=self.host, port=self.port, username=username, password=password)
                 print("connected to the server", self.host)
 
         except paramiko.AuthenticationException:
-            print("Authentication failed, please verfiy your credentials")
-            result_flag = False
+            raise Exception("Authentication failed, please verfiy your credentials")
         except paramiko.SSHException as sshException:
-            print(f"Could not establish SSH connection: {sshException} ")
-            result_flag = False
+            raise Exception(f"Could not establish SSH connection: {sshException} ")
         except socket.timeout as e:
-            print("Connection timed out")
-            result_flag = False
+            raise Exception("Connection timed out")
         except Exception as e:
-            print("Exception in connecting to the server")
-            print(e)
-            result_flag = False
-            self.client.close()
-        else:
-            result_flag = True
-        
-        return result_flag
+            raise Exception(f"Exception in connecting to the server {e}")
+    
+    def close(self):
+        "closes the ssh session with the cluster."
+        self._client.close()
 
-    def upload_files(self, local_file_path, remote_file_path, recursive=False):
+    def _check_connection(self):
+        transport = self._client.get_transport()
+        if not transport.is_active() and transport.is_authenticated():
+            raise Exception('Not connected to a cluster')
+
+    def upload_files(self, local_file_path, remote_path):
         "This method uploads the file to remote server"
-        result_flag = True
+       
+        self._check_connection()
+        sftp = self._client.open_sftp()
+        
         try:
-            if self.ssh_connect():
-                with SCPClient(self.client.get_transport()) as scp:
-                    scp.put(local_file_path, remote_file_path, recursive)
-                self.client.close()
-            else:
-                print("Could not establish SSH connection")
-                result_flag = False
-
+            filename = pathlib.Path(local_file_path).name
+            remote_path = pathlib.Path(remote_path) 
+            for directory in remote_path.parts:
+                if directory not in sftp.listdir():
+                    sftp.mkdir(directory)
+                sftp.chdir(directory)
+            sftp.put(local_file_path, filename)
         except Exception as e:
-            print("\nUnable to upload the file to the remote server", local_file_path)
             print(e)
-            result_flag = False
-            self.client.close()
-
-        return result_flag
+            raise Exception(f"Unable to upload the file to the remote server {remote_path}")
 
     
-    def download_file(self, remote_file_path, local_file_path,  recursive=False):
+    def download_file(self, remote_file_path, local_path):
         "This method downloads the file from cluster"
-        result_flag = True
+        
+        self._check_connection()
+        sftp = self._client.open_sftp()
         try:
-            if self.ssh_connect():
-                with SCPClient(self.client.get_transport()) as scp:
-                    scp.get(remote_file_path, local_file_path,  recursive)
-                self.client.close()
-            else:
-                print("Could not establish SSH connection")
-                result_flag = False
-
+            sftp.get(local_path, remote_file_path)
         except Exception as e:
-            print("\nUnable to download the file to the remote server", remote_file_path)
-            print(e)
-            result_flag = False
-            self.client.close()
+            raise Exception(f"Unable to download the file to the remote server {remote_file_path}")
 
-        return result_flag
+    def check_file(self, remote_file_path):
+        "checks if the file exists in the remote path"
+        self._check_connection()
+        sftp = self._client.open_sftp()
+        try:
+            sftp.stat(remote_file_path)
+        except FileNotFoundError:
+            return False
+        return True
 
-
-
-    def execute_command(self, commands):
+    def execute_command(self, command):
         """Execute a command on the remote host.
         Return a tuple containing retruncode, stdout and stderr
         from the command."""
         
         self.ssh_output = None
-        result_flag = True
+        self._check_connection()
         try:
-            if self.ssh_connect():
-                for command in commands:
-                    print(f"Executing command --> {command}")
-                    stdin, stdout, stderr = self.client.exec_command(command, timeout=10)
-                    self.ssh_output = stdout.read()
-                    self.ssh_error = stderr.read()
-                    self.exit_status = stdout.channel.recv_exit_status()
-                    if self.ssh_error:
-                        print(f"Problem occurred while running command: {command} The error is {self.ssh_error}")
-                        result_flag = False
-                    else:
-                        print("Command execution completed successfully", command)
-                self.client.close()
-            else:
-                print("Could not establish SSH connection")
-                result_flag = False
+            print(f"Executing command --> {command}")
+            stdin, stdout, stderr = self._client.exec_command(command, timeout=10)
+            self.ssh_output = stdout.read()
+            self.ssh_error = stderr.read()
+            self.exit_status = stdout.channel.recv_exit_status()
+            if self.ssh_error:
+                raise Exception(f"Problem occurred while running command: {command} The error is {self.ssh_error}")
         except socket.timeout as e:
-            print("Command timed out.", command)
-            self.client.close()
-            result_flag = False
+            raise Exception("Command timed out.", command)
         except paramiko.SSHException:
-            print("Failed to execute the command!", command)
-            self.client.close()
-            result_flag = False
+            raise Exception("Failed to execute the command!", command)
 
-        return result_flag
         
