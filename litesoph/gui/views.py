@@ -2,18 +2,112 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
+from  PIL import Image,ImageTk
 
 import pathlib
 
 from litesoph.gui.filehandler import show_message
 
+
+class StartPage(tk.Frame):
+
+    def __init__(self, parent, lsroot, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        
+        self.lsroot = lsroot
+        print(lsroot)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+
+        mainframe = ttk.Frame(self,padding="12 12 24 24")
+        #mainframe = ttk.Frame(self)
+        mainframe.grid(column=1, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        mainframe.columnconfigure(0, weight=1)
+        mainframe.rowconfigure(0, weight=1)
+
+        frame =ttk.Frame(self, relief=tk.SUNKEN, padding="6 6 0 24")
+        #frame =ttk.Frame(self)
+        frame.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        frame.grid_rowconfigure(0, weight=1)
+        frame.grid_columnconfigure(0, weight=1)
+
+        j=tk.font.Font(family ='Courier', size=20,weight='bold')
+        k=tk.font.Font(family ='Courier', size=40,weight='bold')
+        l=tk.font.Font(family ='Courier', size=10,weight='bold')
+        myFont = tk.font.Font(family='Helvetica', size=15, weight='bold')
+
+        gui_style = ttk.Style()
+        gui_style.configure('TButton', foreground='black',background='gainsboro',font=('Helvetica', 20))
+
+        parent.configure(bg="grey60")
+
+        # create a canvas to show project list icon
+        canvas_for_project_list_icon=tk.Canvas(frame, bg='gray', height=400, width=400, borderwidth=0, highlightthickness=0)
+        canvas_for_project_list_icon.grid(column=1, row=1, sticky=(tk.W, tk.E) ,columnspan=8,rowspan=8)
+        #canvas_for_project_list_icon.place(x=5,y=5)
+
+        #image_project_list = Image.open('images/project_list.png')
+        #canvas_for_project_list_icon.image = ImageTk.PhotoImage(image_project_list.resize((100,100), Image.ANTIALIAS))
+        #canvas_for_project_list_icon.create_image(0,0, image=canvas_for_project_list_icon.image, anchor='nw')
+        
+        #frame_1_label_1 = Label(frame,text="Manage Job(s)", fg="blue")
+        #frame_1_label_1['font'] = myFont
+        #frame_1_label_1.grid(row=10, column=2, sticky=(W, E) ,columnspan=3,rowspan=2)
+
+        #label_1 = Label(mainframe,text="Welcome to LITESOPH", bg='#0052cc',fg='#ffffff')
+        label_1 = tk.Label(mainframe,text="Welcome to LITESOPH",fg='blue')
+        label_1['font'] = myFont
+        #label_1.grid(row=0,column=1,sticky=(E,S))
+        label_1.place(x=200,y=50)
+        
+        label_2 = tk.Label(mainframe,text="Layer Integrated Toolkit and Engine for Simulations of Photo-induced Phenomena",fg='blue')
+        label_2['font'] = l
+        label_2.grid(row=1,column=1)
+        #label_2.place(x=200,y=100)
+
+        # create a canvas to show image on
+        canvas_for_image = tk.Canvas(mainframe, bg='gray', height=125, width=125, borderwidth=0, highlightthickness=0)
+        #canvas_for_image.grid(row=30,column=0, sticky='nesw', padx=0, pady=0)
+        canvas_for_image.place(x=30,y=5)
+
+        # create image from image location resize it to 100X100 and put in on canvas
+        path1 = pathlib.PurePath(self.lsroot) / "litesoph" / "gui" / "images"
+
+        image = Image.open(str(pathlib.Path(path1) / "logo_ls.jpg"))
+        canvas_for_image.image = ImageTk.PhotoImage(image.resize((125, 125), Image.ANTIALIAS))
+        canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
+
+        # create a canvas to show project list icon
+        canvas_for_project_create=tk.Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
+        canvas_for_project_create.place(x=20,y=200)
+
+        image_project_create = Image.open(str(pathlib.Path(path1) / "project_create.png"))
+        canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
+        canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
+
+        button_create_project = tk.Button(mainframe,text="Start LITESOPH Project", activebackground="#78d6ff",command=lambda: self.event_generate('<<ShowWorkManagerPage>>'))
+        button_create_project['font'] = myFont
+        button_create_project.place(x=80,y=200)
+
+        #button_open_project = Button(mainframe,text="About LITESOPH",fg="white")
+        button_open_project = tk.Button(mainframe,text="About LITESOPH")
+        button_open_project['font'] = myFont
+        button_open_project.place(x=80,y=300)
+                       
+
+
 class WorkManagerPage(tk.Frame):
 
-    def __init__(self, parent, controller, *_):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        
 
+    MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
+    Pre_task = ["Ground State","Geometry Optimisation"]
+    Sim_task = ["Delta Kick","Gaussian Pulse"]
+    Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
+
+    def __init__(self, parent, directory, *args, **kwargs):
+        super().__init__(parent,*args, **kwargs)
+        
+        self.directory = directory
         self.proj_path = tk.StringVar()
         self.proj_name = tk.StringVar()
         myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
@@ -36,7 +130,7 @@ class WorkManagerPage(tk.Frame):
         self.entry_path = tk.Entry(self.Frame1,textvariable=self.proj_path)
         self.entry_path['font'] = myFont
         self.entry_path.delete(0, tk.END)
-        self.proj_path.set(self.controller.directory)
+        #self.proj_path.set(self.directory)
         self.entry_path.place(x=200,y=10)     
 
         self.label_proj = tk.Label(self.Frame1,text="Project Name",bg="gray",fg="black")
@@ -89,47 +183,38 @@ class WorkManagerPage(tk.Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=70)
 
-        MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
-
-        # Create a list of sub_task
-       
-        Pre_task = ["Ground State","Geometry Optimisation"]
-        Sim_task = ["Delta Kick","Gaussian Pulse"]
-        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
-        
-        
-        def pick_task(e):
-            if task.get() == "Preprocessing Jobs":
-                sub_task.config(value = Pre_task)
-                sub_task.current(0)
-            if task.get() == "Simulations":
-                sub_task.config(value = Sim_task)
-                sub_task.current(0)
-            if task.get() == "Postprocessing Jobs":
-                sub_task.config(value = Post_task)
-                sub_task.current(0)
             
-        task = ttk.Combobox(self.Frame2,width= 30, values= MainTask)
-        task.set("--choose job task--")
-        task['font'] = myFont
-        task.place(x=200,y=70)
-        task.bind("<<ComboboxSelected>>", pick_task)
-        task['state'] = 'readonly'
+        self.task = ttk.Combobox(self.Frame2,width= 30, values= self.MainTask)
+        self.task.set("--choose job task--")
+        self.task['font'] = myFont
+        self.task.place(x=200,y=70)
+        self.task.bind("<<ComboboxSelected>>", self.pick_task)
+        self.task['state'] = 'readonly'
 
         self.Frame2_label_3 = tk.Label(self.Frame2, text="Sub Task",bg='gray',fg='black')
         self.Frame2_label_3['font'] = myFont
         self.Frame2_label_3.place(x=10,y=130)
           
-        sub_task = ttk.Combobox(self.Frame2, width= 30, value = [" "])
-        sub_task['font'] = myFont
-        sub_task.current(0)
-        sub_task.place(x=200,y=130)
-        sub_task['state'] = 'readonly'   
+        self.sub_task = ttk.Combobox(self.Frame2, width= 30, value = [" "])
+        self.sub_task['font'] = myFont
+        self.sub_task.current(0)
+        self.sub_task.place(x=200,y=130)
+        self.sub_task['state'] = 'readonly'   
            
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",activebackground="#78d6ff",command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
+        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",activebackground="#78d6ff",command=lambda:self.event_generate('<<SelectTask>>'))
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
+    def pick_task(self, *_):
+            if self.task.get() == "Preprocessing Jobs":
+                self.sub_task.config(value = self.Pre_task)
+                self.sub_task.current(0)
+            if self.task.get() == "Simulations":
+                self.sub_task.config(value = self.Sim_task)
+                self.sub_task.current(0)
+            if self.task.get() == "Postprocessing Jobs":
+                self.sub_task.config(value = self.Post_task)
+                self.sub_task.current(0)
 
     def update_project_entry(self, proj_path):
         proj_path = pathlib.Path(proj_path)
