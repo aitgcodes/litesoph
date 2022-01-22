@@ -1,4 +1,5 @@
 import pathlib
+import os
 
 class UserInput:
 
@@ -30,6 +31,14 @@ def write2file(directory,filename, template) -> None:
     """
 
     filename = pathlib.Path(directory) / filename
+    file_exists = os.access(filename, os.F_OK)
+    parent_writeable = os.access(filename.parent, os.W_OK)
+    file_writeable = os.access(filename, os.W_OK)
+    
+    if ((not file_exists and not parent_writeable) or
+        (file_exists and not file_writeable)):
+        msg = f'Permission denied acessing file: {filename}'
+        raise PermissionError(msg)
 
     with open(filename, 'w+') as f:
 
