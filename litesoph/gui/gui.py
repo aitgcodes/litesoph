@@ -10,33 +10,34 @@ import tkinter as tk
 
 import os
 import pathlib 
-from configparser import ConfigParser, NoOptionError
+import shutil
+from configparser import ConfigParser
 
 from matplotlib.pyplot import show
 
 #---LITESOPH modules
 from litesoph import check_config
 from litesoph.gui.menubar import MainMenu
+from litesoph.gui import models as m
+from litesoph.gui.views import WorkManagerPage
 from litesoph.gui.spec_plot import plot_spectra, plot_files
-from litesoph.lsio.IO import UserInput as ui
 from litesoph.simulations.esmd import RT_LCAO_TDDFT, TCM, GroundState, Spectrum
 from litesoph.simulations import engine
-from litesoph.gui.filehandler import Status,file_check, open_file,show_message
+from litesoph.gui.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import Nav
 from litesoph.gui.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
 from litesoph.simulations.gpaw.gpaw_template import write_laser
-from litesoph.utilities.job_submit import JobSubmit
 
 
 home = pathlib.Path.home()
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
-class AITG(Tk):
+class AITG(tk.Tk):
 
     def __init__(self, lsconfig: ConfigParser, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
@@ -58,10 +59,12 @@ class AITG(Tk):
 
         self.frames = {}
         self.task = None
+        self.bind_event_callbacks()
         self.show_frame(StartPage)
     
     
     def status_init(self):
+        """Initializes the status object."""
         self.status = Status(self.directory)
         
     
@@ -86,29 +89,91 @@ class AITG(Tk):
             self.nav = Nav(self, path)
             self.nav.grid(row=0, column=0, sticky='nw')
 
+    def bind_event_callbacks(self):
+        
+        event_callbacks = {
+            '<<GetMolecule>>' : self._on_get_geometry_file,
+            '<<VisualizeMolecule>>': self._on_visualize,
+            '<<CreateNewProject>>' : self._on_create_project,
+            '<<OpenExistingProject>>' : self._on_open_project
+        }
+
+        for event, callback in event_callbacks.items():
+            self.bind(event, callback)
+
     def task_input(self,sub_task, task_check):
         if task_check is True:
             if sub_task.get()  == "Ground State":
-               self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
-            #    path1 = projpath.create_folder(self.directory, "GS")
-            #    os.chdir(path1)
+               self.show_frame(GroundStatePage)
             if sub_task.get() == "Geometry Optimisation":
-               self.show_frame(GeomOptPage, WorkManagerPage, JobSubPage)
+               self.show_frame(GeomOptPage)
             if sub_task.get() == "Delta Kick":           
-               self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
-            #    path = projpath.create_folder(self.directory, "Spectrum")
-            #    os.chdir(path)  
+               self.show_frame(TimeDependentPage)
             if sub_task.get() == "Gaussian Pulse":
-               self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
-            #    path = projpath.create_folder(self.directory, "Pulse")
-            #    os.chdir(path)
+               self.show_frame(LaserDesignPage)
             if sub_task.get() == "Spectrum":
-               self.show_frame(PlotSpectraPage, WorkManagerPage, JobSubPage)
+               self.show_frame(PlotSpectraPage)
             if sub_task.get() == "Dipole Moment and Laser Pulse":
                self.show_frame(DmLdPage)
             if sub_task.get() == "Kohn Sham Decomposition":
-               self.show_frame(TcmPage, WorkManagerPage, JobSubPage)                
+               self.show_frame(TcmPage)                
+
+    def _change_directory(self, path):
+        self.directory = pathlib.Path(path)
+        os.chdir(self.directory) 
+
+    def _on_open_project(self, *_):
+        """creates dialog to get porject path and opens existing project"""
+        project_name = filedialog.askdirectory(title= "Select the existing Litesoph Project")
+        self._change_directory(project_name)
+        self.refresh_nav(self.directory)
+        self.status_init()
         
+    def _on_create_project(self, *_):
+        """Creates a new litesoph project"""
+        create_dir = None
+        project_path = self.frames[WorkManagerPage].get_project_path()
+        
+        dir_exists = m.WorkManagerModel.check_dir_exists(project_path)
+
+        if dir_exists:
+            create_dir = messagebox.askokcancel('directory exists', f"The directory {project_path} already exists," "do you want to open the project?")
+        
+            if create_dir:
+                self._change_directory(project_path)
+                self.refresh_nav(self.directory)
+                self.status_init()
+            return
+        
+        try:
+            m.WorkManagerModel.create_dir(project_path)
+        except PermissionError as e:
+            messagebox.showinfo(e)
+        except FileExistsError as e:
+            messagebox.showinfo(e)
+        else:
+            messagebox.showinfo("Message", f"project:{project_path} is created successfully")
+            self.frames[WorkManagerPage].update_project_entry(project_path)
+            self._change_directory(project_path)
+            self.refresh_nav(self.directory)
+            self.status_init()
+        
+    def _on_get_geometry_file(self, *_):
+        """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
+        self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
+        proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
+        shutil.copy(self.geometry_file, proj_path)
+        
+    def _on_visualize(self, *_):
+        """ Calls an user specified visualization tool """
+        cmd = check_config(self.lsconfig,"vis") + ' ' + "coordinate.xyz"
+        try:
+           subprocess.run(cmd.split(),capture_output=True, cwd=self.directory)
+        except:
+            msg = "Cannot visualize molecule."
+            detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/lsconfig.ini".format(cmd.split()[0])
+            messagebox.showerror(title='Error', message=msg, detail=detail)   
+
 class StartPage(Frame):
 
     def __init__(self, parent, controller,prev, next):
@@ -195,206 +260,6 @@ class StartPage(Frame):
         button_open_project = Button(mainframe,text="About LITESOPH")
         button_open_project['font'] = myFont
         button_open_project.place(x=80,y=300)
-
-
-class WorkManagerPage(Frame):
-
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
-        self.controller = controller
-        self.prev = prev
-        self.next = next
-
-        self.proj_path = StringVar()
-        self.proj_name = StringVar()
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-
-        self.Frame1 = tk.Frame(self)
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-
-        self.Frame1_label_path = Label(self.Frame1,text="Project Path",bg="gray",fg="black")
-        self.Frame1_label_path['font'] = myFont
-        self.Frame1_label_path.place(x=10,y=10)
-
-        self.entry_path = Entry(self.Frame1,textvariable=self.proj_path)
-        self.entry_path['font'] = myFont
-        self.entry_path.delete(0, END)
-        self.proj_path.set(self.controller.directory)
-        self.entry_path.place(x=200,y=10)     
-
-        self.label_proj = Label(self.Frame1,text="Project Name",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=70)
-        
-        self.entry_proj = Entry(self.Frame1,textvariable=self.proj_name)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=200,y=70)
-        self.entry_proj.delete(0, END)
-                
-        self.button_project = Button(self.Frame1,text="Create New Project",activebackground="#78d6ff",command=lambda:[self.create_project(),self.controller.refresh_nav(self.controller.directory), self.controller.status_init()])
-        self.button_project['font'] = myFont
-        self.button_project.place(x=125,y=380)
-      
-        self.Frame1_Button_MainPage = Button(self.Frame1, text="Start Page",activebackground="#78d6ff", command=lambda: controller.show_frame(StartPage))
-        self.Frame1_Button_MainPage['font'] = myFont
-        self.Frame1_Button_MainPage.place(x=10,y=380)
-        
-        self.button_project = Button(self.Frame1,text="Open Existing Project",activebackground="#78d6ff",command=lambda:[self.open_project(),self.update_dirPath(),self.controller.refresh_nav(self.controller.directory),self.controller.status_init()])
-        self.button_project['font'] = myFont
-        self.button_project.place(x=290,y=380)
-        
-        #self.message_label = Label(self.Frame2, text='', foreground='red')
-        #self.message_label['font'] = myFont
-        #self.message_label.place(x=270,y=15)
- 
-        #self.message_label2 = Label(self.Frame1, text='', foreground='red')
-        #self.message_label2['font'] = myFont
-        #self.message_label2.place(x=,y=15)
-
-        self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
-
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
-        self.Frame2.configure(cursor="fleur")
-
-        self.Frame2_label_1 = Label(self.Frame2, text="Upload Geometry",bg='gray',fg='black')  
-        self.Frame2_label_1['font'] = myFont
-        self.Frame2_label_1.place(x=10,y=10)
-
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",activebackground="#78d6ff",command=lambda:[open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=200,y=10)
-
-        self.message_label = Label(self.Frame2, text='', foreground='red')
-        self.message_label['font'] = myFont
-        self.message_label.place(x=270,y=15)
-
-        
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="View",activebackground="#78d6ff",command=self.geom_visual)
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=350,y=10)
-
-        self.label_proj = Label(self.Frame2,text="Job Type",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=70)
-
-        MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
-
-        # Create a list of sub_task
-       
-        Pre_task = ["Ground State","Geometry Optimisation"]
-        Sim_task = ["Delta Kick","Gaussian Pulse"]
-        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
-        
-        
-        def pick_task(e):
-            if task.get() == "Preprocessing Jobs":
-                sub_task.config(value = Pre_task)
-                sub_task.current(0)
-            if task.get() == "Simulations":
-                sub_task.config(value = Sim_task)
-                sub_task.current(0)
-            if task.get() == "Postprocessing Jobs":
-                sub_task.config(value = Post_task)
-                sub_task.current(0)
-            
-        task = ttk.Combobox(self.Frame2,width= 30, values= MainTask)
-        task.set("--choose job task--")
-        task['font'] = myFont
-        task.place(x=200,y=70)
-        task.bind("<<ComboboxSelected>>", pick_task)
-        task['state'] = 'readonly'
-
-        self.Frame2_label_3 = Label(self.Frame2, text="Sub Task",bg='gray',fg='black')
-        self.Frame2_label_3['font'] = myFont
-        self.Frame2_label_3.place(x=10,y=130)
-          
-        sub_task = ttk.Combobox(self.Frame2, width= 30, value = [" "])
-        sub_task['font'] = myFont
-        sub_task.current(0)
-        sub_task.place(x=200,y=130)
-        sub_task['state'] = 'readonly'   
-           
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",activebackground="#78d6ff",command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
-        Frame2_Button1['font'] = myFont
-        Frame2_Button1.place(x=10,y=380)
-    
-    def change_directory(self,path):
-        self.controller.directory = pathlib.Path(path)
-        os.chdir(self.controller.directory) 
-
-    def update_dirPath(self):
-        self.proj_path.set(self.controller.directory.parent)
-        self.entry_path.config(textvariable=self.proj_path)
-        self.proj_name.set(self.controller.directory.name)
-        self.entry_proj.config(textvariable=self.proj_name)
-
-    def open_project(self):
-        project_path = filedialog.askdirectory()
-        self.change_directory(project_path)
-        
-    def create_project(self):
-        project_path = pathlib.Path(self.entry_path.get()) / self.entry_proj.get()
-        try:
-            project_path.mkdir(parents=True, exist_ok=False)
-        except FileExistsError:
-            messagebox.showinfo("Message", f"project:{project_path} already exists, please open the existing project")
-        else:
-            messagebox.showinfo("Message", f"project:{project_path} is created successfully")
-            self.change_directory(project_path)
-
-    def geom_visual(self):
-        cmd = check_config(self.controller.lsconfig,"vis")+ " "+"coordinate.xyz"
-        try:
-           p = subprocess.run(cmd.split(),capture_output=True, cwd=self.controller.directory)
-        except:
-            print("Unable to invoke vmd. Command used to call vmd '{}'. supply the appropriate command in ~/lsconfig.ini".format(cmd.split()[0]))
-
-    
-
-    def task_check(self,sub_task):
-        self.st_var = self.controller.status
-        
-        if sub_task.get()  == "Ground State":
-            path = pathlib.Path(self.controller.directory) / "coordinate.xyz"
-            if path.exists() is True:
-                return True
-            else:
-                messagebox.showerror(message= "Upload geometry file")
-        elif sub_task.get() == "Delta Kick":
-            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-                return True
-            else:
-                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
-        elif sub_task.get() == "Gaussian Pulse":
-            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-                return True
-            else:
-                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
-        elif sub_task.get() == "Spectrum":
-            if self.st_var.check_status('gs_cal', 1) is True:
-                if self.st_var.check_status('td_cal',1) is True or self.st_var.check_status('td_cal',2) is True:
-                    return True
-            else:
-                messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
-        elif sub_task.get() == "Dipole Moment and Laser Pulse":
-            if self.st_var.check_status('gs_cal', 1) is True and self.st_var.check_status('td_cal',2) is True:
-                return True
-            else:
-                messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
-        else:
-            return True
-
                        
 
 class GroundStatePage(Frame):
@@ -1669,7 +1534,7 @@ class TimeDependentPage(Frame):
     
 
     def init_task(self, td_dict: dict, filename):
-        self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename, keyword='delta')
+        self.job =RT_LCAO_TDDFT(td_dict, 'gpaw',self.controller.status,str(self.controller.directory), filename, keyword='delta')
         self.controller.task = self.job
         self.controller.check = True
 
