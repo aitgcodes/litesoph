@@ -1,10 +1,13 @@
 from configparser import ConfigParser, NoOptionError
-from re import T
+
+from matplotlib.pyplot import vlines
+from paramiko import sftp, transport
 from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
 
 import paramiko
+import socket
 import pathlib
 import subprocess
 from scp import SCPClient
@@ -85,62 +88,162 @@ class SubmitNetwork(JobSubmit):
                         hostname: str,
                         username: str,
                         password: str,
-                        net_sub: dict) -> None:
+                        remote_path: str,
+                        upload_files: dict) -> None:
 
         super().__init__(engine, configs)
-        self.command = None
-        self.net_sub = net_sub
-        self.validate_net_sub()
+       
+        self.remote_path = remote_path
+        self.upload_files = upload_files
+        self.validate_upload_files()
 
-        self.network_sub = NetworkJobSubmission(net_sub)
-        self.network_sub.ssh_connect(hostname, username, password)
-        self.network_sub.transfer_files()
+        self.network_sub = NetworkJobSubmission(hostname)
+        self.network_sub.ssh_connect(username, password)
+        self.transfer_files()
+    
 
-    def validate_net_sub(self):
-        if not pathlib.Path(self.net_sub['run_script']).is_file():
-            raise FileNotFoundError(f"Unable to find {self.net_sub['run_script']} ")
-        if not pathlib.Path(self.net_sub['inp']).is_file():
-            raise FileNotFoundError(f"Unable to find {self.net_sub['inp']} ")
-        if not pathlib.Path(self.net_sub['geometry']).is_file():
-            raise FileNotFoundError(f"Unable to find {self.net_sub['geometry']} ")
+    def validate_upload_files(self):
+        self.upfiles = []
+        for key, value in self.upload_files.items():
+            if isinstance(value, list):
+                self.upfiles.extend(value)
+            else:
+                self.upfiles.append(value)
+
+        for item in self.upfiles:
+            if not pathlib.Path(item).is_file():
+                raise FileNotFoundError(f"Unable to find {value} ")
+    
+    def transfer_files(self):
+        for file in self.upfiles:
+            try:
+                self.network_sub.upload_files(file, self.remote_path)
+                print(f"{file} uploaded to remote path {self.remote_path} of cluster")
+            except Exception as e:
+                raise(e)
+
 
     def run_job(self):
-        self.network_sub.submit_job()
-        self.network_sub.close()
+        "This method creates the job submission command and executes the command on the cluster"
+        bash_filename = pathlib.Path(self.upload_files['run_script']).name
+        #bash_filename = pathlib.Path(self.remote_path) / bash_filename
+        self.command = f"cd {self.remote_path} \n qsub {bash_filename}"
 
+        self.network_sub.execute_command(self.command)
+        if self.network_sub.exit_status != 0:
+            print("Error...")
+            for line in self.network_sub.ssh_error.decode(encoding='utf-8').split('\n'):
+                print(line)
+        else:
+            print("Job submitted successfully!...")
+            for line in self.network_sub.ssh_output.decode(encoding='utf-8').split('\n'):
+                print(line)
 
 class NetworkJobSubmission:
-
-    def __init__(self ,mast_dic: dict):
-
-        self.mast_dic = mast_dic
-        self.run_script = pathlib.Path(self.mast_dic['run_script']).name
-        self.client = paramiko.SSHClient()
-        self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    """This class contain methods connect to remote cluster through ssh and perform common
+    uploadig and downloading of files and also to execute command on the remote cluster."""
+    def __init__(self,
+                host,
+                port=22):
+        
+        self._client = None
+        self.host = host
+        self.port = port
+        self.ssh_output = None
+        self.ssh_error = None
+        self.exit_status = None
              
-    def ssh_connect(self,host,user,password):
-        self.client.connect(host, username=user, password=password)
+    def ssh_connect(self, username, password=None, pkey=None):
+        "connects to the cluster through ssh."
+        try:
+            print("Establishing ssh connection")
+            self._client = paramiko.SSHClient()
+            self._client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            
+            if pkey:
+                private_key = paramiko.RSAKey.from_private_key(self.pkey)
+                self._client.connect(hostname=self.host, port=self.port, username=username, pkey=private_key)
+                print("connected to the server", self.host)
+            else:    
+                self._client.connect(hostname=self.host, port=self.port, username=username, password=password)
+                print("connected to the server", self.host)
 
+        except paramiko.AuthenticationException:
+            raise Exception("Authentication failed, please verfiy your credentials")
+        except paramiko.SSHException as sshException:
+            raise Exception(f"Could not establish SSH connection: {sshException} ")
+        except socket.timeout as e:
+            raise Exception("Connection timed out")
+        except Exception as e:
+            raise Exception(f"Exception in connecting to the server {e}")
+    
     def close(self):
-        self.client.close()
+        "closes the ssh session with the cluster."
+        self._client.close()
 
-    def transfer_files(self):
+    def _check_connection(self):
+        "This checks whether ssh connection is active or not."
+        transport = self._client.get_transport()
+        if not transport.is_active() and transport.is_authenticated():
+            raise Exception('Not connected to a cluster')
 
-        with SCPClient(self.client.get_transport()) as scp:
-            scp.put(self.mast_dic['run_script'], self.mast_dic['remote_path'])
-            scp.put(self.mast_dic['inp'], self.mast_dic['remote_path'])
-            scp.put(self.mast_dic['geometry'], self.mast_dic['remote_path'])
-            # copy data from remote cluster to the local machine
-            # scp.get(mast_dic['remote_path'], mast_dic['local_path'])
+    def upload_files(self, local_file_path, remote_path):
+        """This method uploads the file to remote server."""
+       
+        self._check_connection()
+        sftp = self._client.open_sftp()
+        
+        try:
+            filename = pathlib.Path(local_file_path).name
+            remote_path = pathlib.Path(remote_path) 
+            for directory in remote_path.parts:
+                if directory not in sftp.listdir():
+                    sftp.mkdir(directory)
+                sftp.chdir(directory)
+            sftp.put(local_file_path, filename)  # for the put function to work file name should be added to the remote path
+        except Exception as e:
+            print(e)
+            raise Exception(f"Unable to upload the file to the remote server {remote_path}")
 
-    def submit_job(self):
+    
+    def download_file(self, remote_file_path, local_path):
+        "This method downloads the file from cluster"
+        
+        self._check_connection()
+        sftp = self._client.open_sftp()
+        try:
+            sftp.get(local_path, remote_file_path)
+        except Exception as e:
+            raise Exception(f"Unable to download the file to the remote server {remote_file_path}")
 
-        # Submit Engine job by running a remote 'qsub' command over SSH
-        stdin, stdout, stderr = self.client.exec_command(f"cd {self.mast_dic['remote_path']}"+ '\n'+ f"qsub {self.run_script}")
+    def check_file(self, remote_file_path):
+        "checks if the file exists in the remote path"
+        self._check_connection()
+        sftp = self._client.open_sftp()
+        try:
+            sftp.stat(remote_file_path)
+        except FileNotFoundError:
+            return False
+        return True
 
-        # Show the standard output and error of our job
-        print("Standard output:")
-        print(stdout.read())
-        print("Standard error:")
-        print(stderr.read())
-        print("Exit status: {}".format(stdout.channel.recv_exit_status()))
+    def execute_command(self, command):
+        """Execute a command on the remote host.
+        Return a tuple containing retruncode, stdout and stderr
+        from the command."""
+        
+        self.ssh_output = None
+        self._check_connection()
+        try:
+            print(f"Executing command --> {command}")
+            stdin, stdout, stderr = self._client.exec_command(command, timeout=10)
+            self.ssh_output = stdout.read()
+            self.ssh_error = stderr.read()
+            self.exit_status = stdout.channel.recv_exit_status()
+            if self.ssh_error:
+                raise Exception(f"Problem occurred while running command: {command} The error is {self.ssh_error}")
+        except socket.timeout as e:
+            raise Exception("Command timed out.", command)
+        except paramiko.SSHException:
+            raise Exception("Failed to execute the command!", command)
+
+        
