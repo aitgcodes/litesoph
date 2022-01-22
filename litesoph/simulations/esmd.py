@@ -2,7 +2,7 @@ from typing import Any, Dict
 import os
 import pathlib
 from configparser import ConfigParser
-from litesoph.simulations.engine import EngineStrategy
+from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
 from litesoph.utilities.job_submit import JobSubmit
 
 config_file = pathlib.Path.home() / "lsconfig.ini"
@@ -11,6 +11,19 @@ if config_file.is_file is False:
 
 configs = ConfigParser()
 configs.read(config_file)
+
+def get_engine_obj(engine)-> EngineStrategy:
+    """ It takes engine name and returns coresponding EngineStrategy class"""
+
+    list_engine = [EngineGpaw(),
+                    EngineOctopus(),
+                    EngineNwchem()]
+    if engine == 'gpaw':
+        return list_engine[0]
+    elif engine == 'octopus':
+        return list_engine[1]
+    elif engine == 'nwchem':
+        return list_engine[2]
 
 class Task:
 
@@ -89,9 +102,9 @@ class GroundState(Task):
 
 class RT_LCAO_TDDFT(Task):
     
-    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,status, project_dir, filename, keyword:str=None) -> None:
+    def __init__(self, user_input: Dict[str, Any], engine, status, project_dir, filename, keyword:str=None) -> None:
         self.user_input = user_input
-        self.engine = engine
+        self.engine = get_engine_obj(engine)
         self.keyword = keyword
         self.filename = filename
         self.status = status
