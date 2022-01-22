@@ -9,7 +9,7 @@ class Status():
         self.filepath = pathlib.Path(directory) / "status.txt"
         self.status_dict = {}
         if self.filepath.exists():
-            self.status_dict = self.read_status()
+            self.read_status()
         else:
             self.status_dict = {
                 'gs_inp': 0,
@@ -24,8 +24,7 @@ class Status():
             data = f.read()
             data_dict = json.loads(data)
             self.status_dict.update(data_dict)
-            return(self.status_dict)
-
+            
     def update_status(self, key=None, value=None):
         if key is None and value is None:
             dict2file(self.status_dict, self.filepath)
@@ -41,8 +40,12 @@ class Status():
             else:
                 return False
         except KeyError:
-            return False                   
-       
+            return False  
+
+    def get_value(self, key):
+        self.read_status()
+        value = self.status_dict[key]
+        return value
 
 class file_check:
     def __init__(self, check_list:list, dir) -> None:
