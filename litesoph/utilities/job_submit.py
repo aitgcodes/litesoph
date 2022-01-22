@@ -124,7 +124,7 @@ class SubmitNetwork(JobSubmit):
 
 
     def run_job(self):
-
+        "This method creates the job submission command and executes the command on the cluster"
         bash_filename = pathlib.Path(self.upload_files['run_script']).name
         #bash_filename = pathlib.Path(self.remote_path) / bash_filename
         self.command = f"cd {self.remote_path} \n qsub {bash_filename}"
@@ -140,7 +140,8 @@ class SubmitNetwork(JobSubmit):
                 print(line)
 
 class NetworkJobSubmission:
-
+    """This class contain methods connect to remote cluster through ssh and perform common
+    uploadig and downloading of files and also to execute command on the remote cluster."""
     def __init__(self,
                 host,
                 port=22):
@@ -153,7 +154,7 @@ class NetworkJobSubmission:
         self.exit_status = None
              
     def ssh_connect(self, username, password=None, pkey=None):
-        "Login to cluster"
+        "connects to the cluster through ssh."
         try:
             print("Establishing ssh connection")
             self._client = paramiko.SSHClient()
@@ -181,12 +182,13 @@ class NetworkJobSubmission:
         self._client.close()
 
     def _check_connection(self):
+        "This checks whether ssh connection is active or not."
         transport = self._client.get_transport()
         if not transport.is_active() and transport.is_authenticated():
             raise Exception('Not connected to a cluster')
 
     def upload_files(self, local_file_path, remote_path):
-        "This method uploads the file to remote server"
+        """This method uploads the file to remote server."""
        
         self._check_connection()
         sftp = self._client.open_sftp()
@@ -198,7 +200,7 @@ class NetworkJobSubmission:
                 if directory not in sftp.listdir():
                     sftp.mkdir(directory)
                 sftp.chdir(directory)
-            sftp.put(local_file_path, filename)
+            sftp.put(local_file_path, filename)  # for the put function to work file name should be added to the remote path
         except Exception as e:
             print(e)
             raise Exception(f"Unable to upload the file to the remote server {remote_path}")
