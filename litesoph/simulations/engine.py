@@ -114,8 +114,11 @@ class EngineGpaw(EngineStrategy):
 
 class EngineOctopus(EngineStrategy):
 
-    gs = {'out': '/OctGroundState/log',
+    gs = {'out': '/Octopus/log',
         'check_list':['SCF converged']}
+
+    td_delta = {'out': '/Octopus/log',
+             'check_list':[]}    
 
     def get_task_class(self, task: str, user_param):
         if task == "ground state":
@@ -126,7 +129,7 @@ class EngineOctopus(EngineStrategy):
 
     def create_dir(self, directory, task):
         #task_dir = self.get_dir_name(task)
-        directory = pathlib.Path(directory) / task
+        directory = pathlib.Path(directory) / 'Octopus'
         self.create_directory(directory)
         return directory
 
