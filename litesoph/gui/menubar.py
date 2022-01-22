@@ -1,6 +1,5 @@
 from tkinter import *                    # importing tkinter, a standart python interface for GUI.
-from tkinter import ttk                  # importing ttk which is used for styling widgets.
-from tkinter import file_menudialog           # importing file_menudialog which is used for opening windows to read file_menus.
+from tkinter import ttk                  # importing ttk which is used for styling widgets.     
 from tkinter import messagebox
 from tkinter import scrolledtext
 import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
@@ -23,7 +22,6 @@ class MainMenu(tk.Menu):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
 
-        #
 
         file_menu = Menu(self, tearoff=0)
         file_menu.add_command(label="New")
@@ -44,11 +42,11 @@ class MainMenu(tk.Menu):
         edit.add_cascade(label="Edit")
 
         view = Menu(self, tearoff=0)
-        view.add_command(label="file", command=self.text_view)
+        view.add_command(label="file")
         view.add_command(label="Graphs")
         view.add_command(label="Images")
         view.add_command(label="Movies")
-        view.add_command(label="VMD", command=self.geom_vi)
+        view.add_command(label="VMD")
         view.add_command(label="Vesta")
         self.add_cascade(label="View", menu=view)
         
