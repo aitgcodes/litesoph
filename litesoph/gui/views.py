@@ -15,7 +15,6 @@ class StartPage(tk.Frame):
         super().__init__(parent, *args, **kwargs)
         
         self.lsroot = lsroot
-        print(lsroot)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
 
@@ -104,9 +103,10 @@ class WorkManagerPage(tk.Frame):
     Sim_task = ["Delta Kick","Gaussian Pulse"]
     Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
 
-    def __init__(self, parent, directory, *args, **kwargs):
+    def __init__(self, parent, lsroot, directory, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
         
+        self.lsroot = lsroot
         self.directory = directory
         self.proj_path = tk.StringVar()
         self.proj_name = tk.StringVar()
@@ -146,7 +146,7 @@ class WorkManagerPage(tk.Frame):
         self.button_project['font'] = myFont
         self.button_project.place(x=125,y=380)
       
-        self.Frame1_Button_MainPage = tk.Button(self.Frame1, text="Start Page",activebackground="#78d6ff", command=lambda:self.event_generate('<<StartPage'))
+        self.Frame1_Button_MainPage = tk.Button(self.Frame1, text="Start Page",activebackground="#78d6ff", command=lambda:self.event_generate('<<ShowStartPage>>'))
         self.Frame1_Button_MainPage['font'] = myFont
         self.Frame1_Button_MainPage.place(x=10,y=380)
         
@@ -240,36 +240,85 @@ class WorkManagerPage(tk.Frame):
     def _geom_visual(self):
         self.event_generate('<<VisualizeMolecule>>')
     
-    
-    def task_check(self,sub_task):
-        self.st_var = self.controller.status
+
+class TextViewerPage(tk.Frame):
+
+    def __init__(self, parent, controller, file=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.controller = controller
         
-        if sub_task.get()  == "Ground State":
-            path = pathlib.Path(self.controller.directory) / "coordinate.xyz"
-            if path.exists() is True:
-                return True
-            else:
-                messagebox.showerror(message= "Upload geometry file")
-        elif sub_task.get() == "Delta Kick":
-            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-                return True
-            else:
-                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
-        elif sub_task.get() == "Gaussian Pulse":
-            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-                return True
-            else:
-                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
-        elif sub_task.get() == "Spectrum":
-            if self.st_var.check_status('gs_cal', 1) is True:
-                if self.st_var.check_status('td_cal',1) is True or self.st_var.check_status('td_cal',2) is True:
-                    return True
-            else:
-                messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
-        elif sub_task.get() == "Dipole Moment and Laser Pulse":
-            if self.st_var.check_status('gs_cal', 1) is True and self.st_var.check_status('td_cal',2) is True:
-                return True
-            else:
-                messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
+        self.file = file
+        self.template = template
+
+        #self.axis = StringVar()
+
+        myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
+
+        j=tk.font.Font(family ='Courier', size=20,weight='bold')
+        k=tk.font.Font(family ='Courier', size=40,weight='bold')
+        l=tk.font.Font(family ='Courier', size=15,weight='bold')
+
+        self.Frame = tk.Frame(self)
+
+        self.Frame.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.98)
+        self.Frame.configure(relief='groove')
+        self.Frame.configure(borderwidth="2")
+        self.Frame.configure(relief="groove")
+        self.Frame.configure(cursor="fleur")
+  
+        self.FrameTcm1_label_path = tk.Label(self, text="LITESOPH Text Viewer",fg="blue")
+        self.FrameTcm1_label_path['font'] = myFont
+        self.FrameTcm1_label_path.place(x=400,y=10)
+
+        
+        text_scroll =tk.Scrollbar(self)
+        text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
+        self.text_view['font'] = myFont
+        self.text_view.place(x=15,y=60)
+
+        # if self.file:
+        #     self.inserttextfromfile(self.file, my_Text)
+        #     self.current_file = self.file
+        # if self.task:
+        #     self.inserttextfromstring(self.task.template, my_Text)
+        #     self.current_file = self.file
+
+        text_scroll.config(command= self.text_view.yview)
+    
+         
+        #view = tk.Button(self, text="View",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+        #view['font'] = myFont
+        #view.place(x=150,y=380)
+
+        save = tk.Button(self, text="Save",activebackground="#78d6ff",command=lambda:[self.save_txt(my_Text)])
+        save['font'] = myFont
+        save.place(x=320, y=380)
+
+        back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
+        back['font'] = myFont
+        back.place(x=30,y=380)
+
+    #def open_txt(self,my_Text):
+        #text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
+        #self.current_file = text_file_name
+        #self.inserttextfromfile(text_file_name, my_Text)
+    
+   
+    def inserttext(self, text):
+        self.text_view.insert(tk.END, text)
+ 
+    def save_txt(self, my_Text):
+        if self.file:
+            text_file = self.current_file
+            text_file = open(text_file,'w')
+            text_file.write(my_Text.get(1.0, tk.END))
         else:
-            return True
+            self.task.write_input(template=my_Text.get(1.0, tk.END))
+
+    def inserttextfromstring(self, string, my_Text):
+        my_Text.insert(tk.END,string)
+    
+    def back_button(self):
+        self.event_generate('<<ShowWorkManagerPage>>')
