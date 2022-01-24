@@ -22,10 +22,7 @@ class StartPage(tk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        j= font.Font(family ='Courier', size=20,weight='bold')
-        k= font.Font(family ='Courier', size=40,weight='bold')
-        l= font.Font(family ='Courier', size=15,weight='bold')
+        
 
         mainframe = ttk.Frame(self,padding="12 12 24 24")
         #mainframe = ttk.Frame(self)
@@ -38,7 +35,12 @@ class StartPage(tk.Frame):
         frame.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
         frame.grid_rowconfigure(0, weight=1)
         frame.grid_columnconfigure(0, weight=1)
-
+        
+        myFont = font.Font(family='Helvetica', size=15, weight='bold')
+        j= font.Font(family ='Courier', size=20,weight='bold')
+        k= font.Font(family ='Courier', size=40,weight='bold')
+        l= font.Font(family ='Courier', size=10,weight='bold')
+        
         gui_style = ttk.Style()
         gui_style.configure('TButton', foreground='black',background='gainsboro',font=('Helvetica', 20))
 
