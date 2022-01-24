@@ -81,17 +81,6 @@ def search_string(directory, filename, string):
         return False
 
 
-def open_file(outpath):
-    text_file = filedialog.askopenfilename(
-        initialdir="./", title="Select File", filetypes=((" Text Files", "*.xyz"),))
-    text_file = open(text_file, 'r')
-    stuff = text_file.read()
-    out_file = open(pathlib.Path(outpath) / "coordinate.xyz", 'w')
-    out_file.write(stuff)
-    text_file.close()
-    out_file.close()
-
-
 def show_message(label_name, message):
     """
     Shows a update
