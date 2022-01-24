@@ -39,6 +39,7 @@ class AITG(tk.Tk):
     def __init__(self, lsconfig: ConfigParser, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.settings_model = m.SettingsModel
         self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
         self.lsroot = check_config(self.lsconfig, "lsroot")
@@ -59,6 +60,7 @@ class AITG(tk.Tk):
 
         self._frames = {}
         self.task = None
+        self._show_page_events()
         self._bind_event_callbacks()
         self._show_frame(v.StartPage, self.lsroot)
     
@@ -91,19 +93,30 @@ class AITG(tk.Tk):
             self.nav.grid(row=0, column=0, sticky='nw')
 
     def _bind_event_callbacks(self):
-        """binds events specific callback functions"""
+        """binds events and specific callback functions"""
         event_callbacks = {
             '<<GetMolecule>>' : self._on_get_geometry_file,
             '<<VisualizeMolecule>>': self._on_visualize,
             '<<CreateNewProject>>' : self._on_create_project,
             '<<OpenExistingProject>>' : self._on_open_project,
             '<<SelectTask>>' : self._on_task_select,
-            '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.directory),
-            '<<ShowJobSubmissionPage>>' : lambda _: self._show_frame(JobSubPage, self)
+            
+            
         }
 
         for event, callback in event_callbacks.items():
             self.bind(event, callback)                
+    
+    def _show_page_events(self):
+        
+        event_show_page= {
+            '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage, self.lsroot),
+            '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.lsroot, self.directory),
+            '<<ShowJobSubmissionPage>>' : lambda _: self._show_frame(JobSubPage, self)
+
+        }
+        for event, callback in event_show_page.items():
+            self.bind(event, callback)  
 
     def _change_directory(self, path):
         "changes current working directory"
@@ -195,7 +208,38 @@ class AITG(tk.Tk):
                 messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
         elif sub_task.get() == "Kohn Sham Decomposition":
                self._show_frame(TcmPage, self)    
+
+    def _on_ground_state_task(self):
+        pass
+        # inp_dict = self._frames[GroundStatePage].get_parameters()
+
+        # engine = m.GroundStateModel.choose_engine(inp_dict)
+        # filename = m.GroundStateModel.filename
+        # self.job = GroundState(inp_dict, engine, self.status, self.directory, filename)
+        # self.controller.task = self.job
+    
+    def _load_settings(self):
+        """Load settings into our self.settings dict"""
+
+        vartypes = {
+            'bool' : tk.BooleanVar,
+            'str' : tk.StringVar,
+            'int' : tk.IntVar,
+            'float' : tk.DoubleVar
+        }
+
+        self.settings = dict()
+        for key, data in self.settings_model.options.items():
+            vartype = vartypes.get(data['type'], tk.StringVar)
+            self.settings[key] = vartype(value=data['value'])
             
+        for var in self.settings.values():
+            var.trace_add('write', self._save_settings)
+
+    def _save_settings(self, *_):
+        for key, variable in self.settings.items():
+            self.settings_model.set(key, variable.get())
+        self.settings_model.save()
 
 class GroundStatePage(Frame):
   
@@ -827,7 +871,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=260)
         self.entry_pol_x['state'] = 'readonly'
 
-    def gs_inp2dict(self):
+    def get_parameters(self):
         inp_dict_gp = {
             'mode': self.mode.get(),
             'xc': self.xc.get(),
@@ -933,13 +977,13 @@ class GroundStatePage(Frame):
         self.controller.status.update_status('gs_inp', 1)
 
     def save_button(self):
-        inp_dict = self.gs_inp2dict()
+        inp_dict = self.get_parameters()
         self.init_task(inp_dict, 'gs')
         self.write_input()
         show_message(self.label_msg,"Saved")
 
     def view_button(self):
-        inp_dict = self.gs_inp2dict()
+        inp_dict = self.get_parameters()
         self.init_task(inp_dict, 'gs')
         self.controller._show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
 
