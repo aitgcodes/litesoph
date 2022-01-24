@@ -4,40 +4,43 @@ from tkinter import filedialog           # importing filedialog which is used fo
 from tkinter import messagebox
 
 import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
-import subprocess                        # importing subprocess to run command line jobs as in terminal.
+import subprocess
+from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
 from  PIL import Image,ImageTk
 import tkinter as tk
 
 import os
 import pathlib 
-from configparser import ConfigParser, NoOptionError
+import shutil
+from configparser import ConfigParser
 
 from matplotlib.pyplot import show
 
 #---LITESOPH modules
 from litesoph import check_config
 from litesoph.gui.menubar import MainMenu
+from litesoph.gui import models as m
+from litesoph.gui import views as v 
 from litesoph.gui.spec_plot import plot_spectra, plot_files
-from litesoph.lsio.IO import UserInput as ui
 from litesoph.simulations.esmd import RT_LCAO_TDDFT, TCM, GroundState, Spectrum
 from litesoph.simulations import engine
-from litesoph.gui.filehandler import Status,file_check, open_file,show_message
+from litesoph.gui.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import Nav
 from litesoph.gui.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
 from litesoph.simulations.gpaw.gpaw_template import write_laser
-from litesoph.utilities.job_submit import JobSubmit
 
 
 home = pathlib.Path.home()
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
-class AITG(Tk):
+class AITG(tk.Tk):
 
     def __init__(self, lsconfig: ConfigParser, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
+        self.settings_model = m.SettingsModel
         self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
         self.lsroot = check_config(self.lsconfig, "lsroot")
@@ -50,31 +53,37 @@ class AITG(Tk):
         self.refresh_nav(self.directory)
         
         self.check = None
-        self.window = Frame(self)
-        self.window.grid(row=0, column=1)
+        self._window = Frame(self)
+        self._window.grid(row=0, column=1)
         
-        self.window.grid_rowconfigure(700,weight=700)
-        self.window.grid_columnconfigure(800,weight=400)  
+        self._window.grid_rowconfigure(700,weight=700)
+        self._window.grid_columnconfigure(800,weight=400)  
 
-        self.frames = {}
+        self._frames = OrderedDict()
         self.task = None
-        self.show_frame(StartPage)
+        self._show_page_events()
+        self._bind_event_callbacks()
+        self._show_frame(v.StartPage, self.lsroot)
     
     
-    def status_init(self):
+    def _status_init(self):
+        """Initializes the status object."""
         self.status = Status(self.directory)
         
     
-    def show_frame(self, frame, prev = None, next = None,refresh=True, **kwargs):
+    def _show_frame(self, frame,*args, **kwargs):
         
-        if frame in self.frames.keys() and refresh is False:
-            frame = self.frames[frame]
-            frame.tkraise()
+        if frame in self._frames.keys():
+            frame_obj = self._frames[frame]
+            self._frames.move_to_end(frame, last=False)
+            frame_obj.tkraise()
         else:
-            int_frame = frame(self.window, self, prev, next, **kwargs)
-            self.frames[frame]= int_frame
+            int_frame = frame(self._window, *args, **kwargs)
+            self._frames[frame]= int_frame
+            self._frames.move_to_end(frame, last=False)
             int_frame.grid(row=0, column=1, sticky ="nsew")
             int_frame.tkraise()
+
 
     def refresh_nav(self, path):
 
@@ -86,316 +95,169 @@ class AITG(Tk):
             self.nav = Nav(self, path)
             self.nav.grid(row=0, column=0, sticky='nw')
 
-    def task_input(self,sub_task, task_check):
-        if task_check is True:
-            if sub_task.get()  == "Ground State":
-               self.show_frame(GroundStatePage, WorkManagerPage, JobSubPage)
-            #    path1 = projpath.create_folder(self.directory, "GS")
-            #    os.chdir(path1)
-            if sub_task.get() == "Geometry Optimisation":
-               self.show_frame(GeomOptPage, WorkManagerPage, JobSubPage)
-            if sub_task.get() == "Delta Kick":           
-               self.show_frame(TimeDependentPage, WorkManagerPage, JobSubPage)
-            #    path = projpath.create_folder(self.directory, "Spectrum")
-            #    os.chdir(path)  
-            if sub_task.get() == "Gaussian Pulse":
-               self.show_frame(LaserDesignPage, WorkManagerPage, JobSubPage)
-            #    path = projpath.create_folder(self.directory, "Pulse")
-            #    os.chdir(path)
-            if sub_task.get() == "Spectrum":
-               self.show_frame(PlotSpectraPage, WorkManagerPage, JobSubPage)
-            if sub_task.get() == "Dipole Moment and Laser Pulse":
-               self.show_frame(DmLdPage)
-            if sub_task.get() == "Kohn Sham Decomposition":
-               self.show_frame(TcmPage, WorkManagerPage, JobSubPage)                
-        
-class StartPage(Frame):
-
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
-        self.controller = controller
-        self.prev = prev
-        self.next = next
-              
-
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-
-        mainframe = ttk.Frame(self,padding="12 12 24 24")
-        #mainframe = ttk.Frame(self)
-        mainframe.grid(column=1, row=0, sticky=(N, W, E, S))
-        mainframe.columnconfigure(0, weight=1)
-        mainframe.rowconfigure(0, weight=1)
-
-        frame =ttk.Frame(self, relief=SUNKEN, padding="6 6 0 24")
-        #frame =ttk.Frame(self)
-        frame.grid(column=0, row=0, sticky=(N, W, E, S))
-        frame.grid_rowconfigure(0, weight=1)
-        frame.grid_columnconfigure(0, weight=1)
-
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=10,weight='bold')
-        myFont = font.Font(family='Helvetica', size=15, weight='bold')
-
-        gui_style = ttk.Style()
-        gui_style.configure('TButton', foreground='black',background='gainsboro',font=('Helvetica', 20))
-
-        self.configure(bg="grey60")
-
-        # create a canvas to show project list icon
-        canvas_for_project_list_icon=Canvas(frame, bg='gray', height=400, width=400, borderwidth=0, highlightthickness=0)
-        canvas_for_project_list_icon.grid(column=1, row=1, sticky=(W, E) ,columnspan=8,rowspan=8)
-        #canvas_for_project_list_icon.place(x=5,y=5)
-
-        #image_project_list = Image.open('images/project_list.png')
-        #canvas_for_project_list_icon.image = ImageTk.PhotoImage(image_project_list.resize((100,100), Image.ANTIALIAS))
-        #canvas_for_project_list_icon.create_image(0,0, image=canvas_for_project_list_icon.image, anchor='nw')
-        
-        #frame_1_label_1 = Label(frame,text="Manage Job(s)", fg="blue")
-        #frame_1_label_1['font'] = myFont
-        #frame_1_label_1.grid(row=10, column=2, sticky=(W, E) ,columnspan=3,rowspan=2)
-
-        #label_1 = Label(mainframe,text="Welcome to LITESOPH", bg='#0052cc',fg='#ffffff')
-        label_1 = Label(mainframe,text="Welcome to LITESOPH",fg='blue')
-        label_1['font'] = myFont
-        #label_1.grid(row=0,column=1,sticky=(E,S))
-        label_1.place(x=200,y=50)
-        
-        label_2 = Label(mainframe,text="Layer Integrated Toolkit and Engine for Simulations of Photo-induced Phenomena",fg='blue')
-        label_2['font'] = l
-        label_2.grid(row=1,column=1)
-        #label_2.place(x=200,y=100)
-
-        # create a canvas to show image on
-        canvas_for_image = Canvas(mainframe, bg='gray', height=125, width=125, borderwidth=0, highlightthickness=0)
-        #canvas_for_image.grid(row=30,column=0, sticky='nesw', padx=0, pady=0)
-        canvas_for_image.place(x=30,y=5)
-
-        # create image from image location resize it to 100X100 and put in on canvas
-        path1 = pathlib.PurePath(controller.lsroot) / "litesoph" / "gui" / "images"
-
-        image = Image.open(str(pathlib.Path(path1) / "logo_ls.jpg"))
-        canvas_for_image.image = ImageTk.PhotoImage(image.resize((125, 125), Image.ANTIALIAS))
-        canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
-
-        # create a canvas to show project list icon
-        canvas_for_project_create=Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
-        canvas_for_project_create.place(x=20,y=200)
-
-        image_project_create = Image.open(str(pathlib.Path(path1) / "project_create.png"))
-        canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
-        canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
-
-        button_create_project = Button(mainframe,text="Start LITESOPH Project", activebackground="#78d6ff",command=lambda: controller.show_frame(WorkManagerPage))
-        button_create_project['font'] = myFont
-        button_create_project.place(x=80,y=200)
-
-        #button_open_project = Button(mainframe,text="About LITESOPH",fg="white")
-        button_open_project = Button(mainframe,text="About LITESOPH")
-        button_open_project['font'] = myFont
-        button_open_project.place(x=80,y=300)
-
-
-class WorkManagerPage(Frame):
-
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
-        self.controller = controller
-        self.prev = prev
-        self.next = next
-
-        self.proj_path = StringVar()
-        self.proj_name = StringVar()
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-
-        self.Frame1 = tk.Frame(self)
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-
-        self.Frame1_label_path = Label(self.Frame1,text="Project Path",bg="gray",fg="black")
-        self.Frame1_label_path['font'] = myFont
-        self.Frame1_label_path.place(x=10,y=10)
-
-        self.entry_path = Entry(self.Frame1,textvariable=self.proj_path)
-        self.entry_path['font'] = myFont
-        self.entry_path.delete(0, END)
-        self.proj_path.set(self.controller.directory)
-        self.entry_path.place(x=200,y=10)     
-
-        self.label_proj = Label(self.Frame1,text="Project Name",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=70)
-        
-        self.entry_proj = Entry(self.Frame1,textvariable=self.proj_name)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=200,y=70)
-        self.entry_proj.delete(0, END)
-                
-        self.button_project = Button(self.Frame1,text="Create New Project",activebackground="#78d6ff",command=lambda:[self.create_project(),self.controller.refresh_nav(self.controller.directory), self.controller.status_init()])
-        self.button_project['font'] = myFont
-        self.button_project.place(x=125,y=380)
-      
-        self.Frame1_Button_MainPage = Button(self.Frame1, text="Start Page",activebackground="#78d6ff", command=lambda: controller.show_frame(StartPage))
-        self.Frame1_Button_MainPage['font'] = myFont
-        self.Frame1_Button_MainPage.place(x=10,y=380)
-        
-        self.button_project = Button(self.Frame1,text="Open Existing Project",activebackground="#78d6ff",command=lambda:[self.open_project(),self.update_dirPath(),self.controller.refresh_nav(self.controller.directory),self.controller.status_init()])
-        self.button_project['font'] = myFont
-        self.button_project.place(x=290,y=380)
-        
-        #self.message_label = Label(self.Frame2, text='', foreground='red')
-        #self.message_label['font'] = myFont
-        #self.message_label.place(x=270,y=15)
- 
-        #self.message_label2 = Label(self.Frame1, text='', foreground='red')
-        #self.message_label2['font'] = myFont
-        #self.message_label2.place(x=,y=15)
-
-        self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
-
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
-        self.Frame2.configure(cursor="fleur")
-
-        self.Frame2_label_1 = Label(self.Frame2, text="Upload Geometry",bg='gray',fg='black')  
-        self.Frame2_label_1['font'] = myFont
-        self.Frame2_label_1.place(x=10,y=10)
-
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",activebackground="#78d6ff",command=lambda:[open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=200,y=10)
-
-        self.message_label = Label(self.Frame2, text='', foreground='red')
-        self.message_label['font'] = myFont
-        self.message_label.place(x=270,y=15)
-
-        
-        self.Frame2_Button_1 = tk.Button(self.Frame2,text="View",activebackground="#78d6ff",command=self.geom_visual)
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=350,y=10)
-
-        self.label_proj = Label(self.Frame2,text="Job Type",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=70)
-
-        MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
-
-        # Create a list of sub_task
-       
-        Pre_task = ["Ground State","Geometry Optimisation"]
-        Sim_task = ["Delta Kick","Gaussian Pulse"]
-        Post_task = ["Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index"]
-        
-        
-        def pick_task(e):
-            if task.get() == "Preprocessing Jobs":
-                sub_task.config(value = Pre_task)
-                sub_task.current(0)
-            if task.get() == "Simulations":
-                sub_task.config(value = Sim_task)
-                sub_task.current(0)
-            if task.get() == "Postprocessing Jobs":
-                sub_task.config(value = Post_task)
-                sub_task.current(0)
+    def _bind_event_callbacks(self):
+        """binds events and specific callback functions"""
+        event_callbacks = {
+            '<<GetMolecule>>' : self._on_get_geometry_file,
+            '<<VisualizeMolecule>>': self._on_visualize,
+            '<<CreateNewProject>>' : self._on_create_project,
+            '<<OpenExistingProject>>' : self._on_open_project,
+            '<<SelectTask>>' : self._on_task_select,
+            '<<ClickBackButton>>' : self._on_back_button,
             
-        task = ttk.Combobox(self.Frame2,width= 30, values= MainTask)
-        task.set("--choose job task--")
-        task['font'] = myFont
-        task.place(x=200,y=70)
-        task.bind("<<ComboboxSelected>>", pick_task)
-        task['state'] = 'readonly'
+        }
 
-        self.Frame2_label_3 = Label(self.Frame2, text="Sub Task",bg='gray',fg='black')
-        self.Frame2_label_3['font'] = myFont
-        self.Frame2_label_3.place(x=10,y=130)
-          
-        sub_task = ttk.Combobox(self.Frame2, width= 30, value = [" "])
-        sub_task['font'] = myFont
-        sub_task.current(0)
-        sub_task.place(x=200,y=130)
-        sub_task['state'] = 'readonly'   
-           
-        Frame2_Button1 = tk.Button(self.Frame2, text="Proceed",activebackground="#78d6ff",command=lambda:[controller.task_input(sub_task,self.task_check(sub_task))])
-        Frame2_Button1['font'] = myFont
-        Frame2_Button1.place(x=10,y=380)
+        for event, callback in event_callbacks.items():
+            self.bind(event, callback)                
     
-    def change_directory(self,path):
-        self.controller.directory = pathlib.Path(path)
-        os.chdir(self.controller.directory) 
-
-    def update_dirPath(self):
-        self.proj_path.set(self.controller.directory.parent)
-        self.entry_path.config(textvariable=self.proj_path)
-        self.proj_name.set(self.controller.directory.name)
-        self.entry_proj.config(textvariable=self.proj_name)
-
-    def open_project(self):
-        project_path = filedialog.askdirectory()
-        self.change_directory(project_path)
+    def _show_page_events(self):
         
-    def create_project(self):
-        project_path = pathlib.Path(self.entry_path.get()) / self.entry_proj.get()
+        event_show_page= {
+            '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage, self.lsroot),
+            '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.lsroot, self.directory),
+            '<<ShowJobSubmissionPage>>' : lambda _: self._show_frame(JobSubPage, self),
+            '<<ShowGroundStatePage>>' : lambda _: self._show_frame(GroundStatePage, self),
+            '<<ShowTimeDependentPage>>' : lambda _: self._show_frame(TimeDependentPage, self),
+            '<<ShowLaserDesignPage>>' : lambda _: self._show_frame(LaserDesignPage, self),
+            '<<ShowPlotSpectraPage>>' : lambda _: self._show_frame(PlotSpectraPage, self),
+            '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
+            '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self)
+        }
+        for event, callback in event_show_page.items():
+            self.bind(event, callback)  
+
+    def _on_back_button(self, *_):
+        "generates a event to show the first frame in odered_dict"
+        frame = list(self._frames)[1]
+        self._show_frame(frame)
+        # frame = frame.__name__
+        # frame = '<<'+'Show'+frame+'>>'
+        # self.event_generate(f'{frame}')
+
+
+
+    def _change_directory(self, path):
+        "changes current working directory"
+        self.directory = pathlib.Path(path)
+        os.chdir(self.directory) 
+
+    def _on_open_project(self, *_):
+        """creates dialog to get porject path and opens existing project"""
+        project_name = filedialog.askdirectory(title= "Select the existing Litesoph Project")
+        self._change_directory(project_name)
+        self.refresh_nav(self.directory)
+        self._status_init()
+        
+    def _on_create_project(self, *_):
+        """Creates a new litesoph project"""
+        create_dir = None
+        project_path = self._frames[v.WorkManagerPage].get_project_path()
+        
+        dir_exists = m.WorkManagerModel.check_dir_exists(project_path)
+
+        if dir_exists:
+            create_dir = messagebox.askokcancel('directory exists', f"The directory {project_path} already exists," "do you want to open the project?")
+        
+            if create_dir:
+                self._change_directory(project_path)
+                self.refresh_nav(self.directory)
+                self._status_init()
+            return
+        
         try:
-            project_path.mkdir(parents=True, exist_ok=False)
-        except FileExistsError:
-            messagebox.showinfo("Message", f"project:{project_path} already exists, please open the existing project")
+            m.WorkManagerModel.create_dir(project_path)
+        except PermissionError as e:
+            messagebox.showinfo(e)
+        except FileExistsError as e:
+            messagebox.showinfo(e)
         else:
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
-            self.change_directory(project_path)
-
-    def geom_visual(self):
-        cmd = check_config(self.controller.lsconfig,"vis")+ " "+"coordinate.xyz"
-        try:
-           p = subprocess.run(cmd.split(),capture_output=True, cwd=self.controller.directory)
-        except:
-            print("Unable to invoke vmd. Command used to call vmd '{}'. supply the appropriate command in ~/lsconfig.ini".format(cmd.split()[0]))
-
-    
-
-    def task_check(self,sub_task):
-        self.st_var = self.controller.status
+            self._frames[v.WorkManagerPage].update_project_entry(project_path)
+            self._change_directory(project_path)
+            self.refresh_nav(self.directory)
+            self._status_init()
         
-        if sub_task.get()  == "Ground State":
-            path = pathlib.Path(self.controller.directory) / "coordinate.xyz"
+    def _on_get_geometry_file(self, *_):
+        """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
+        self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
+        proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
+        shutil.copy(self.geometry_file, proj_path)
+        
+    def _on_visualize(self, *_):
+        """ Calls an user specified visualization tool """
+        cmd = check_config(self.lsconfig,"vis") + ' ' + "coordinate.xyz"
+        try:
+           subprocess.run(cmd.split(),capture_output=True, cwd=self.directory)
+        except:
+            msg = "Cannot visualize molecule."
+            detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/lsconfig.ini".format(cmd.split()[0])
+            messagebox.showerror(title='Error', message=msg, detail=detail) 
+
+    def _on_task_select(self, *_):
+        
+        sub_task = self._frames[v.WorkManagerPage].sub_task.get()
+
+        if sub_task  == "Ground State":
+            path = pathlib.Path(self.directory) / "coordinate.xyz"
             if path.exists() is True:
-                return True
+                self.event_generate('<<ShowGroundStatePage>>')
             else:
                 messagebox.showerror(message= "Upload geometry file")
-        elif sub_task.get() == "Delta Kick":
-            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-                return True
+        elif sub_task == "Delta Kick":
+            if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
+                self.event_generate('<<ShowTimeDependentPage>>')
             else:
                 messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
-        elif sub_task.get() == "Gaussian Pulse":
-            if self.st_var.check_status('gs_inp', 1) is True and self.st_var.check_status('gs_cal',1) is True:
-                return True
+        elif sub_task == "Gaussian Pulse":
+            if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
+                self.event_generate('<<ShowLaserDesignPage>')
             else:
                 messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
-        elif sub_task.get() == "Spectrum":
-            if self.st_var.check_status('gs_cal', 1) is True:
-                if self.st_var.check_status('td_cal',1) is True or self.st_var.check_status('td_cal',2) is True:
-                    return True
+        elif sub_task == "Spectrum":
+            if self.status.check_status('gs_cal', 1) is True:
+                if self.status.check_status('td_cal',1) is True or self.status.check_status('td_cal',2) is True:
+                    self.event_generate('<<ShowPlotSpectraPage>>')
             else:
                 messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
-        elif sub_task.get() == "Dipole Moment and Laser Pulse":
-            if self.st_var.check_status('gs_cal', 1) is True and self.st_var.check_status('td_cal',2) is True:
-                return True
+        elif sub_task == "Dipole Moment and Laser Pulse":
+            if self.status.check_status('gs_cal', 1) is True and self.status.check_status('td_cal',2) is True:
+                self.event_generate('<<ShowDmLdPage>>')
             else:
                 messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
-        else:
-            return True
+        elif sub_task.get() == "Kohn Sham Decomposition":
+               self.event_generate('<<ShowTcmPage>>')    
 
-                       
+    def _on_ground_state_task(self):
+        pass
+        # inp_dict = self._frames[GroundStatePage].get_parameters()
+
+        # engine = m.GroundStateModel.choose_engine(inp_dict)
+        # filename = m.GroundStateModel.filename
+        # self.job = GroundState(inp_dict, engine, self.status, self.directory, filename)
+        # self.controller.task = self.job
+    
+    def _load_settings(self):
+        """Load settings into our self.settings dict"""
+
+        vartypes = {
+            'bool' : tk.BooleanVar,
+            'str' : tk.StringVar,
+            'int' : tk.IntVar,
+            'float' : tk.DoubleVar
+        }
+
+        self.settings = dict()
+        for key, data in self.settings_model.options.items():
+            vartype = vartypes.get(data['type'], tk.StringVar)
+            self.settings[key] = vartype(value=data['value'])
+            
+        for var in self.settings.values():
+            var.trace_add('write', self._save_settings)
+
+    def _save_settings(self, *_):
+        for key, variable in self.settings.items():
+            self.settings_model.set(key, variable.get())
+        self.settings_model.save()
 
 class GroundStatePage(Frame):
   
@@ -416,11 +278,10 @@ class GroundStatePage(Frame):
     fnsmear = ["semiconducting","fermi_dirac","cold_smearing","methfessel_paxton","spline_smearing"]
     eignsolv = ["rmmdiis","plan","cg","cg_new"]
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         self.job = None
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -618,7 +479,7 @@ class GroundStatePage(Frame):
         Frame2_Button2 = tk.Button(self.Frame6, text="Run Job",activebackground="#78d6ff",command=lambda:[self.run_job_button()])
         Frame2_Button2['font'] = myFont
         Frame2_Button2.place(x=380,y=10)
- 
+
     def gp2oct(self):
         self.check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
         if self.check is True:
@@ -628,7 +489,7 @@ class GroundStatePage(Frame):
             self.octopus_frame()
        
     def back_button(self):
-        self.controller.show_frame(WorkManagerPage)
+        self.event_generate('<<ShowWorkManagerPage>>')
               
             
     def gpaw_frame(self):  
@@ -1028,7 +889,7 @@ class GroundStatePage(Frame):
         self.entry_pol_x.place(x=280,y=260)
         self.entry_pol_x['state'] = 'readonly'
 
-    def gs_inp2dict(self):
+    def get_parameters(self):
         inp_dict_gp = {
             'mode': self.mode.get(),
             'xc': self.xc.get(),
@@ -1130,8 +991,8 @@ class GroundStatePage(Frame):
         self.controller.check = True
             
     def save_button(self):
-        self.inp_dict = self.gs_inp2dict()
-        engine = self.inp_dict['engine']
+        inp_dict = self.get_parameters()
+        self.init_task(inp_dict, 'gs')
         self.init_task(self.inp_dict, 'gs')
         ans = self.engine_msg(engine)
         if ans is True:
@@ -1141,9 +1002,9 @@ class GroundStatePage(Frame):
             pass          
 
     def view_button(self):
-        inp_dict = self.gs_inp2dict()
+        inp_dict = self.get_parameters()
         self.init_task(inp_dict, 'gs')
-        self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
+        self.controller._show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
 
 
     def run_job_button(self):
@@ -1152,7 +1013,7 @@ class GroundStatePage(Frame):
         except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
-            self.controller.show_frame(JobSubPage, GroundStatePage, None)
+            self.event_generate('<<ShowJobSubmissionPage>>')
         
     def engine_msg(self, engine):
         ans = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(engine))
@@ -1178,11 +1039,11 @@ class GeomOptPage(Frame):
     fnsmear = ["semiconducting","fermi_dirac","cold_smearing","methfessel_paxton","spline_smearing"]
     eignsolv = ["rmmdiis","plan","cg","cg_new"]
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         self.job = None
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1383,7 +1244,7 @@ class GeomOptPage(Frame):
         optbutrj.place(x=380,y=10)
     
     def back_button(self):
-        self.controller.show_frame(WorkManagerPage)
+        self.event_generate('<<ShowWorkManagerPage>>')
 
     def save_button(self):
         inp_dict = self.opt_inp2dict()
@@ -1394,7 +1255,7 @@ class GeomOptPage(Frame):
     def view_button(self):
         inp_dict = self.opt_inp2dict()
         self.init_task(inp_dict, 'opt')
-        self.controller.show_frame(TextViewerPage, GeomOptPage, None, task=self.controller.task)
+        self.controller._show_frame(TextViewerPage, GeomOptPage, None, task=self.controller.task)
 
     def run_job_button(self):
         try:
@@ -1402,7 +1263,7 @@ class GeomOptPage(Frame):
         except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
-            self.controller.show_frame(JobSubPage, GeomOptPage, None)
+            self.event_generate('<<ShowJobSubmissionPage>>')
 
     def nwchem_optframe(self):   
 
@@ -1512,11 +1373,10 @@ class GeomOptPage(Frame):
 
 class TimeDependentPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         self.job = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1705,7 +1565,7 @@ class TimeDependentPage(Frame):
     def view_button(self):
         inp_dict = self.td_inp2dict()
         self.init_task(inp_dict, 'td')
-        self.controller.show_frame(TextViewerPage, TimeDependentPage, None, task=self.controller.task)
+        self.controller._show_frame(TextViewerPage,task=self.controller.task)
 
     def run_job_button(self):
         try:
@@ -1713,19 +1573,18 @@ class TimeDependentPage(Frame):
         except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
-            self.controller.show_frame(JobSubPage, TimeDependentPage, None)
+            self.event_generate('<<ShowJobSubmissionPage>>')
 
     def back_button(self):
-        self.controller.show_frame(WorkManagerPage)
+        self.event_generate('<<ShowWorkManagerPage>>')
 
 
 class LaserDesignPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         self.job = None
         self.tdpulse_dict = {}
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1902,7 +1761,7 @@ class LaserDesignPage(Frame):
 
     def view_button(self):
         self.tdpulse_inp2dict('td_pulse')
-        self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.job)
+        self.controller._show_frame(TextViewerPage, LaserDesignPage, None, task=self.job)
 
     def create_frame3(self):
         self.Frame3 = tk.Frame(self)
@@ -1967,7 +1826,7 @@ class LaserDesignPage(Frame):
             self.Frame2_Button3.config(state='active') 
         else:
             messagebox.showinfo(message="Please enter the laser design inputs.") 
-            self.controller.show_frame(LaserDesignPage,WorkManagerPage,JobSubPage)
+            self.controller._show_frame(LaserDesignPage)
 
     def laser_pulse(self):
         l_dict = self.laser_calc()
@@ -2024,7 +1883,7 @@ class LaserDesignPage(Frame):
     def view_button(self):
         inp_dict = self.tdpulse_inp2dict()
         self.init_task(inp_dict, 'tdlaser')
-        self.controller.show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
+        self.controller._show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
 
     def run_job_button(self):
         try:
@@ -2032,10 +1891,10 @@ class LaserDesignPage(Frame):
         except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
-            self.controller.show_frame(JobSubPage, LaserDesignPage, None)
+            self.event_generate('<<ShowJobSubmissionPage>>')
 
     def back_button(self):
-        self.controller.show_frame(WorkManagerPage)
+        self.event_generate('<<ShowWorkManagerPage>>')
 
 def updatekey(dict, key, value):
     dict[key] = value
@@ -2043,11 +1902,10 @@ def updatekey(dict, key, value):
 
 class PlotSpectraPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
 
         self.axis = StringVar()
 
@@ -2081,11 +1939,11 @@ class PlotSpectraPage(Frame):
         self.label_msg['font'] = myFont
         self.label_msg.place(x=420,y=60)
 
-        self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.controller.show_frame(JobSubPage, PlotSpectraPage, None)])
+        self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
         self.Frame2_Run['font'] = myFont
         self.Frame2_Run.place(x=320,y=380)
     
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
 
@@ -2140,11 +1998,10 @@ class PlotSpectraPage(Frame):
 
 class JobSubPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         self.run_script_path = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -2259,11 +2116,11 @@ class JobSubPage(Frame):
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
 
-        back2prev = tk.Button(self.Frame3, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(self.prev, self, None))
+        back2prev = tk.Button(self.Frame3, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ClickBackButton>>'))
         back2prev['font'] = myFont
         back2prev.place(x=15,y=10)
 
-        back = tk.Button(self.Frame3, text="Back to main page",activebackground="#78d6ff",command=lambda:[controller.show_frame(WorkManagerPage)])
+        back = tk.Button(self.Frame3, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
         back['font'] = myFont
         back.place(x=600,y=10)              
 
@@ -2406,11 +2263,10 @@ class JobSubPage(Frame):
        
 class DmLdPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         from litesoph.utilities.units import au_to_fs
         self.plot_task = StringVar()
         self.compo = StringVar()
@@ -2463,7 +2319,7 @@ class DmLdPage(Frame):
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=250,y=380)
     
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
         
@@ -2495,11 +2351,10 @@ def spectrum_show(directory,filename, suffix, axis, x, y):
 
 class TcmPage(Frame):
 
-    def __init__(self, parent, controller,prev, next):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         self.min = DoubleVar()
@@ -2551,7 +2406,7 @@ class TcmPage(Frame):
         #self.Tcm_entry_ns['font'] = myFont
         #self.Tcm_entry_ns.place(x=390,y=280)
 
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:controller.show_frame(WorkManagerPage))
+        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
 
@@ -2560,7 +2415,7 @@ class TcmPage(Frame):
         self.buttonRetrieve['font'] = myFont
         self.buttonRetrieve.place(x=200,y=380)
 
-        self.Frame_run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff", command=lambda:[self.controller.show_frame(JobSubPage, TcmPage, None)])
+        self.Frame_run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff", command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
         self.Frame_run['font'] = myFont
         self.Frame_run.place(x=360,y=380)
         
@@ -2609,11 +2464,10 @@ class TcmPage(Frame):
   
 class TextViewerPage(Frame):
 
-    def __init__(self, parent, controller,prev, next, file=None, task=None):
-        Frame.__init__(self, parent)
+    def __init__(self, parent, controller, file=None, task=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.controller = controller
-        self.prev = prev
-        self.next = next
+        
         self.file = file
         self.task = task
 
@@ -2667,7 +2521,7 @@ class TextViewerPage(Frame):
         back['font'] = myFont
         back.place(x=30,y=380)
 
-        # jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller.show_frame(JobSubPage))
+        # jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller._show_frame(JobSubPage))
         # jobsub['font'] = myFont
         # jobsub.place(x=800,y=380)
 
@@ -2695,7 +2549,7 @@ class TextViewerPage(Frame):
         my_Text.insert(END,string)
     
     def back_button(self):
-        self.controller.show_frame(self.prev, WorkManagerPage, JobSubPage, refresh=False)
+        self.event_generate('<<ClickBackButton>>')
 
         
         
