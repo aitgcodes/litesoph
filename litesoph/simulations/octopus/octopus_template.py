@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict
-from litesoph.utilities.units import ang_to_au
+from litesoph.utilities.units import ang_to_au, au_to_as, as_to_au
 
 
 class OctGroundState:
@@ -136,12 +136,12 @@ class OctTimedependentState:
             }
 
     td = """
-WorkDir = '{work_dir}'    
-FromScratch = {scratch}                
+WorkDir = '.'    
+FromScratch = yes               
 CalculationMode = td
 Dimensions = {dimension} 
 
-Unitsoutput = {out_unit}       
+Unitsoutput = ev_angstrom       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius = {box[radius]}
@@ -166,13 +166,18 @@ TDDeltaStrength = {strength}
 TDPolarizationDirection = 1
 """
 
-    def __init__(self, user_input) -> None:
-        self.temp_dict = self.default_param
+    def __init__(self, user_input, status) -> None:
+        self.status = status
+        self.temp_dict = self.status.get_value('gs_dict')
         self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
         self.check_pol()
-        
+        self.convert_unit()
+
+    def convert_unit(self):
+        self.temp_dict['time_step'] = round(self.temp_dict['time_step']*as_to_au, 2)  
+    
     def check_pol(self):
         if self.e_pol == [1,0,0]:
             self.temp_dict['e_dir'] = 1

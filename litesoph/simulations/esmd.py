@@ -67,10 +67,11 @@ class GroundState(Task):
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
 
-    def __init__(self, user_input: Dict[str, Any],engine: EngineStrategy,status, project_dir, filename) -> None:
+    def __init__(self, user_input: Dict[str, Any],engine,status, project_dir, filename) -> None:
         self.status = status
         self.user_input = user_input
-        self.engine = engine
+        self.engine_name = engine
+        self.engine = get_engine_obj(engine)
         self.project_dir = project_dir
         self.task_dir = None
         self.filename = filename
@@ -87,6 +88,8 @@ class GroundState(Task):
         self.engine.create_script(self.task_dir,self.filename, self.template)
         self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
         self.status.update_status('gs_inp', 1)
+        self.status.update_status('engine', self.engine_name)
+        self.status.update_status('gs_dict', self.user_input)
 
     def c_status(self):
         gs_check= self.status.check_status('gs_inp', 1) 
@@ -116,9 +119,9 @@ class RT_LCAO_TDDFT(Task):
 
     def get_engine_task(self):
         if self.keyword == "delta":
-            return self.engine.get_task_class('LCAO TDDFT Delta', self.user_input)
+            return self.engine.get_task_class('LCAO TDDFT Delta', self.user_input, self.status)
         elif self.keyword == "laser":
-            return self.engine.get_task_class('LCAO TDDFT Laser', self.user_input)
+            return self.engine.get_task_class('LCAO TDDFT Laser', self.user_input, self.status)
 
     def write_input(self, template=None):
         
