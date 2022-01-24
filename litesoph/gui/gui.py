@@ -1046,7 +1046,8 @@ class GroundStatePage(Frame):
             'maxiter' : self.maxiter.get(),
             'box': self.shape.get(),
             'properties': 'get_potential_energy()',
-            'engine':'gpaw'
+            'engine':'gpaw',
+            'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }   
 
         inp_dict_nw = {
@@ -1059,7 +1060,8 @@ class GroundStatePage(Frame):
             'charge' : self.charge.get(),
             'multip' : self.multip.get(),
             'maxiter' : self.maxiter.get(),
-            'engine':'nwchem'
+            'engine':'nwchem',
+            'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }
 
         inp_dict_oct = {
@@ -1078,7 +1080,8 @@ class GroundStatePage(Frame):
             'mixing':self.mix.get(),
             'box':{'shape':self.shape.get()},
             'unit_box' : self.unit_box.get(),
-            'engine':'octopus'
+            'engine':'octopus',
+            'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }
 
         if self.basis.get() == '':
@@ -1098,51 +1101,50 @@ class GroundStatePage(Frame):
             inp_dict_oct['box']={'shape':self.shape.get(),'sizex':self.lx.get(), 'sizey':self.ly.get(), 'sizez':self.lz.get()}
 
         if self.mode.get() == "gaussian":
-            inp_dict_nw['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_nw)
             return inp_dict_nw
 
         if self.mode.get() in ["nao","pw"]:
-            inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_gp)
             return inp_dict_gp
 
         if self.shape.get() in ["minimum","sphere","cylinder"]:
-            inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
             print(inp_dict_oct)
             return inp_dict_oct
 
         if self.shape.get() == "parallelepiped":
             if self.check is False:
-                inp_dict_oct['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
                 print(inp_dict_oct)
                 return inp_dict_oct
             else:
-                inp_dict_gp['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
                 print(inp_dict_gp)
                 return inp_dict_gp
 
-
     def init_task(self, inp_dict: dict, filename):
-        engn = choose_engine(inp_dict)
-        self.job = GroundState(inp_dict,engn,self.controller.status, self.controller.directory, filename)
+        engine = self.inp_dict['engine']
+        self.job = GroundState(inp_dict,engine,self.controller.status, self.controller.directory, filename)
         self.controller.task = self.job
         
-    def write_input(self):
+    def create_input(self):     
         self.job.write_input()
         self.controller.check = True
-        self.controller.status.update_status('gs_inp', 1)
-
+            
     def save_button(self):
-        inp_dict = self.gs_inp2dict()
-        self.init_task(inp_dict, 'gs')
-        self.write_input()
-        show_message(self.label_msg,"Saved")
+        self.inp_dict = self.gs_inp2dict()
+        engine = self.inp_dict['engine']
+        self.init_task(self.inp_dict, 'gs')
+        ans = self.engine_msg(engine)
+        if ans is True:
+            self.create_input()
+            show_message(self.label_msg, "Saved")
+        else:
+            pass          
 
     def view_button(self):
         inp_dict = self.gs_inp2dict()
         self.init_task(inp_dict, 'gs')
         self.controller.show_frame(TextViewerPage, GroundStatePage, None, task=self.controller.task)
+
 
     def run_job_button(self):
         try:
@@ -1152,7 +1154,9 @@ class GroundStatePage(Frame):
         else:
             self.controller.show_frame(JobSubPage, GroundStatePage, None)
         
-    
+    def engine_msg(self, engine):
+        ans = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(engine))
+        return ans 
 
 
 class GeomOptPage(Frame):
@@ -1530,11 +1534,11 @@ class TimeDependentPage(Frame):
         self.Frame1 = tk.Frame(self)
         
         self.strength = StringVar()
-        self.ex = StringVar()
-        self.ey = StringVar()
-        self.ez = StringVar()
-        self.dt = StringVar()
-        self.Nt = StringVar()    
+        self.ex = IntVar()
+        self.ey = IntVar()
+        self.ez = IntVar()
+        self.dt = DoubleVar()
+        self.Nt = IntVar()    
         self.v = StringVar()        
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -1561,10 +1565,10 @@ class TimeDependentPage(Frame):
         self.label_pol_x['font'] = myFont
         self.label_pol_x.place(x=10,y=110)
         
-        pol_list = ["0","1"]
+        pol_list = [0, 1]
         self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self.ex , value = pol_list)
         self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"0")
+        self.ex.set(0)
         self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
 
@@ -1574,7 +1578,7 @@ class TimeDependentPage(Frame):
     
         self.entry_pol_y = ttk.Combobox(self.Frame1, textvariable= self.ey, value = pol_list)
         self.entry_pol_y['font'] = myFont
-        self.entry_pol_y.insert(0,"0")
+        self.ey.set(0)
         self.entry_pol_y.place(x=280,y=160)
         self.entry_pol_y['state'] = 'readonly'
 
@@ -1584,7 +1588,7 @@ class TimeDependentPage(Frame):
  
         self.entry_pol_z = ttk.Combobox(self.Frame1, textvariable= self.ez ,value = pol_list)
         self.entry_pol_z['font'] = myFont
-        self.entry_pol_z.insert(0,"0")
+        self.ez.set(0)
         self.entry_pol_z.place(x=280,y=210)
         self.entry_pol_z['state'] = 'readonly'
 
@@ -1594,7 +1598,7 @@ class TimeDependentPage(Frame):
 
         self.entry_proj = Entry(self.Frame1,textvariable= self.dt)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"10")
+        self.dt.set(10)
         self.entry_proj.place(x=280,y=260)
 
         self.label_proj = Label(self.Frame1,text="Total time steps",bg="gray",fg="black")
@@ -1648,18 +1652,33 @@ class TimeDependentPage(Frame):
         Frame2_Button2.place(x=300,y=380)
 
     def td_inp2dict(self):
-        td_dict = {}
+        engine = self.controller.status.get_value('engine')
         kick = [float(self.strength.get())*float(self.ex.get()),
                 float(self.strength.get())*float(self.ey.get()),
                 float(self.strength.get())*float(self.ez.get())]
-        path = str(self.controller.directory) + "/GS"
-        td_dict['filename'] = path +"/gs.gpw"
-        td_dict['absorption_kick'] = kick
-        td_dict['analysis_tools'] = self.analysis_tool()
-        inp_list = [float(self.dt.get()),float(self.Nt.get())]
-        td_dict['propagate'] = tuple(inp_list)
+        inp_list = [float(self.dt.get()),float(self.Nt.get())] 
 
-        return td_dict
+        td_dict_gp = {
+            'filename': str(self.controller.directory) +"/GS/gs.gpw",
+            'absorption_kick':kick,
+            'analysis_tools':self.analysis_tool(),
+            'propagate': tuple(inp_list)       
+        }
+        
+        td_dict_oct = {
+            'max_step' : self.Nt.get() ,            
+            'time_step' : self.dt.get(),      
+            'td_propagator' : 'aetrs',
+            'strength': self.strength.get(),
+            'e_pol': [self.ex.get(),self.ey.get(),self.ez.get()] 
+          }
+        
+        if engine == 'gpaw':
+            return td_dict_gp
+        elif engine == 'nwchem':
+            pass
+        elif engine == 'octopus':
+            return td_dict_oct            
 
     def analysis_tool(self): 
         if self.v.get() == "1":
@@ -1667,17 +1686,15 @@ class TimeDependentPage(Frame):
         elif self.v.get() == "2":
             return("wavefunction")
     
-
     def init_task(self, td_dict: dict, filename):
-        self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename, keyword='delta')
+        engine = self.controller.status.get_value('engine')   
+        self.job =RT_LCAO_TDDFT(td_dict,engine,self.controller.status,str(self.controller.directory), filename, keyword='delta')
         self.controller.task = self.job
         self.controller.check = True
-
+        
     def write_input(self):
         self.job.write_input()
         self.controller.check = True
-        #self.controller.status.update_status('gs_inp', 1)
-
 
     def save_button(self):
         inp_dict = self.td_inp2dict()
@@ -1701,7 +1718,7 @@ class TimeDependentPage(Frame):
     def back_button(self):
         self.controller.show_frame(WorkManagerPage)
 
-        
+
 class LaserDesignPage(Frame):
 
     def __init__(self, parent, controller,prev, next):
