@@ -4,7 +4,8 @@ from tkinter import filedialog           # importing filedialog which is used fo
 from tkinter import messagebox
 
 import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
-import subprocess                        # importing subprocess to run command line jobs as in terminal.
+import subprocess
+from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
 from  PIL import Image,ImageTk
 import tkinter as tk
 
@@ -58,7 +59,7 @@ class AITG(tk.Tk):
         self._window.grid_rowconfigure(700,weight=700)
         self._window.grid_columnconfigure(800,weight=400)  
 
-        self._frames = {}
+        self._frames = OrderedDict()
         self.task = None
         self._show_page_events()
         self._bind_event_callbacks()
@@ -73,11 +74,13 @@ class AITG(tk.Tk):
     def _show_frame(self, frame,*args, **kwargs):
         
         if frame in self._frames.keys():
-            frame = self._frames[frame]
-            frame.tkraise()
+            frame_obj = self._frames[frame]
+            self._frames.move_to_end(frame, last=False)
+            frame_obj.tkraise()
         else:
             int_frame = frame(self._window, *args, **kwargs)
             self._frames[frame]= int_frame
+            self._frames.move_to_end(frame, last=False)
             int_frame.grid(row=0, column=1, sticky ="nsew")
             int_frame.tkraise()
 
@@ -100,7 +103,7 @@ class AITG(tk.Tk):
             '<<CreateNewProject>>' : self._on_create_project,
             '<<OpenExistingProject>>' : self._on_open_project,
             '<<SelectTask>>' : self._on_task_select,
-            
+            '<<ClickBackButton>>' : self._on_back_button,
             
         }
 
@@ -112,11 +115,26 @@ class AITG(tk.Tk):
         event_show_page= {
             '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage, self.lsroot),
             '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.lsroot, self.directory),
-            '<<ShowJobSubmissionPage>>' : lambda _: self._show_frame(JobSubPage, self)
-
+            '<<ShowJobSubmissionPage>>' : lambda _: self._show_frame(JobSubPage, self),
+            '<<ShowGroundStatePage>>' : lambda _: self._show_frame(GroundStatePage, self),
+            '<<ShowTimeDependentPage>>' : lambda _: self._show_frame(TimeDependentPage, self),
+            '<<ShowLaserDesignPage>>' : lambda _: self._show_frame(LaserDesignPage, self),
+            '<<ShowPlotSpectraPage>>' : lambda _: self._show_frame(PlotSpectraPage, self),
+            '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
+            '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self)
         }
         for event, callback in event_show_page.items():
             self.bind(event, callback)  
+
+    def _on_back_button(self, *_):
+        "generates a event to show the first frame in odered_dict"
+        frame = list(self._frames)[1]
+        self._show_frame(frame)
+        # frame = frame.__name__
+        # frame = '<<'+'Show'+frame+'>>'
+        # self.event_generate(f'{frame}')
+
+
 
     def _change_directory(self, path):
         "changes current working directory"
@@ -182,32 +200,32 @@ class AITG(tk.Tk):
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
             if path.exists() is True:
-                self._show_frame(GroundStatePage, self)
+                self.event_generate('<<ShowGroundStatePage>>')
             else:
                 messagebox.showerror(message= "Upload geometry file")
         elif sub_task == "Delta Kick":
             if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
-                self._show_frame(TimeDependentPage, self)
+                self.event_generate('<<ShowTimeDependentPage>>')
             else:
                 messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
         elif sub_task == "Gaussian Pulse":
             if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
-                self._show_frame(LaserDesignPage, self)
+                self.event_generate('<<ShowLaserDesignPage>')
             else:
                 messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
         elif sub_task == "Spectrum":
             if self.status.check_status('gs_cal', 1) is True:
                 if self.status.check_status('td_cal',1) is True or self.status.check_status('td_cal',2) is True:
-                    self._show_frame(PlotSpectraPage, self)
+                    self.event_generate('<<ShowPlotSpectraPage>>')
             else:
                 messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
         elif sub_task == "Dipole Moment and Laser Pulse":
             if self.status.check_status('gs_cal', 1) is True and self.status.check_status('td_cal',2) is True:
-                self._show_frame(DmLdPage, self)
+                self.event_generate('<<ShowDmLdPage>>')
             else:
                 messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
         elif sub_task.get() == "Kohn Sham Decomposition":
-               self._show_frame(TcmPage, self)    
+               self.event_generate('<<ShowTcmPage>>')    
 
     def _on_ground_state_task(self):
         pass
@@ -2081,7 +2099,7 @@ class JobSubPage(Frame):
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
 
-        back2prev = tk.Button(self.Frame3, text="Back",activebackground="#78d6ff",command=lambda:controller._show_frame(self.prev, self, None))
+        back2prev = tk.Button(self.Frame3, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ClickBackButton>>'))
         back2prev['font'] = myFont
         back2prev.place(x=15,y=10)
 
@@ -2514,7 +2532,7 @@ class TextViewerPage(Frame):
         my_Text.insert(END,string)
     
     def back_button(self):
-        self.event_generate('<<ShowWorkManagerPage>>')
+        self.event_generate('<<ClickBackButton>>')
 
         
         
