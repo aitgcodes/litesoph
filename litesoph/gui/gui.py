@@ -134,15 +134,14 @@ class AITG(tk.Tk):
         # frame = '<<'+'Show'+frame+'>>'
         # self.event_generate(f'{frame}')
 
-
-
     def _change_directory(self, path):
         "changes current working directory"
         self.directory = pathlib.Path(path)
         os.chdir(self.directory) 
 
-    def _on_open_project(self, *_):
+    def _on_open_project(self, event):
         """creates dialog to get porject path and opens existing project"""
+        print(event)
         project_name = filedialog.askdirectory(title= "Select the existing Litesoph Project")
         self._change_directory(project_name)
         self.refresh_nav(self.directory)
@@ -228,13 +227,13 @@ class AITG(tk.Tk):
                self.event_generate('<<ShowTcmPage>>')    
 
     def _on_ground_state_task(self):
-        pass
-        # inp_dict = self._frames[GroundStatePage].get_parameters()
 
-        # engine = m.GroundStateModel.choose_engine(inp_dict)
-        # filename = m.GroundStateModel.filename
-        # self.job = GroundState(inp_dict, engine, self.status, self.directory, filename)
-        # self.controller.task = self.job
+        self.ground_state_view = v.GroundStatePage(self._window, self)
+        inp_dict = self.ground_state_view.get_parameters()
+        engine = inp_dict['engine']
+        filename = m.GroundStateModel.filename
+        self.task = GroundState(inp_dict, engine, self.status, self.directory, filename)
+
     
     def _load_settings(self):
         """Load settings into our self.settings dict"""
@@ -982,7 +981,7 @@ class GroundStatePage(Frame):
                 return inp_dict_gp
 
     def init_task(self, inp_dict: dict, filename):
-        engine = self.inp_dict['engine']
+        engine = inp_dict['engine']
         self.job = GroundState(inp_dict,engine,self.controller.status, self.controller.directory, filename)
         self.controller.task = self.job
         
@@ -992,8 +991,8 @@ class GroundStatePage(Frame):
             
     def save_button(self):
         inp_dict = self.get_parameters()
+        engine = inp_dict['engine']
         self.init_task(inp_dict, 'gs')
-        self.init_task(self.inp_dict, 'gs')
         ans = self.engine_msg(engine)
         if ans is True:
             self.create_input()
@@ -1565,7 +1564,7 @@ class TimeDependentPage(Frame):
     def view_button(self):
         inp_dict = self.td_inp2dict()
         self.init_task(inp_dict, 'td')
-        self.controller._show_frame(TextViewerPage,task=self.controller.task)
+        self.controller._show_frame(TextViewerPage,self.controller,task=self.controller.task)
 
     def run_job_button(self):
         try:
