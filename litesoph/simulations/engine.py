@@ -71,7 +71,7 @@ class EngineGpaw(EngineStrategy):
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
 
-    def get_task_class(self, task: str, user_param):
+    def get_task_class(self, task: str, user_param, *_):
         if task == "ground state":
             return gp.GpawGroundState(user_param) 
         if task == "LCAO TDDFT Delta":
@@ -118,13 +118,13 @@ class EngineOctopus(EngineStrategy):
         'check_list':['SCF converged']}
 
     td_delta = {'out': '/Octopus/log',
-             'check_list':[]}    
+             'check_list':['Finished writing information', 'Calculation ended']}    
 
-    def get_task_class(self, task: str, user_param):
+    def get_task_class(self, task: str, user_param,status=None):
         if task == "ground state":
             return ot.OctGroundState(user_param) 
         if task == "LCAO TDDFT Delta":
-            return ot.OctTimedependentState(user_param)
+            return ot.OctTimedependentState(user_param, status= status)
 
 
     def create_dir(self, directory, task):
