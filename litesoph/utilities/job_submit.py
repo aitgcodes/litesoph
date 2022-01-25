@@ -1,7 +1,5 @@
 from configparser import ConfigParser, NoOptionError
 
-from matplotlib.pyplot import vlines
-from paramiko import sftp, transport
 from litesoph.simulations.engine import EngineStrategy
 import subprocess  
 import pathlib
@@ -10,7 +8,6 @@ import paramiko
 import socket
 import pathlib
 import subprocess
-from scp import SCPClient
 
 def get_submit_class(network=None, **kwargs):
     
