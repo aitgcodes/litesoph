@@ -44,7 +44,8 @@ class EngineStrategy(ABC):
 
 class EngineGpaw(EngineStrategy):
 
-    
+    NAME = 'gpaw'
+
     gs = {'inp':'/GS/gs.py',
             'out': '/GS/gs.out',
             'restart': 'GS/gs.gpw',
@@ -114,6 +115,8 @@ class EngineGpaw(EngineStrategy):
 
 class EngineOctopus(EngineStrategy):
 
+    NAME = 'octopus'
+
     gs = {'out': '/Octopus/log',
         'check_list':['SCF converged']}
 
@@ -151,6 +154,7 @@ class EngineOctopus(EngineStrategy):
 
 class EngineNwchem(EngineStrategy):
 
+    NAME = 'nwchem'
 
     gs = {'inp':'/NwchemGroundState/gs.nwi',
             'out': '/GS/gs.out',
