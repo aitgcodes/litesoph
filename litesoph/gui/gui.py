@@ -163,7 +163,7 @@ class AITG(tk.Tk):
         dir_exists = m.WorkManagerModel.check_dir_exists(project_path)
 
         if dir_exists:
-            create_dir = messagebox.askokcancel('directory exists', f"The directory {project_path} already exists," "do you want to open the project?")
+            create_dir = messagebox.askokcancel('directory exists', f"The directory {project_path} already exists \n do you want to open the project?")
         
             if create_dir:
                 self._change_directory(project_path)
