@@ -375,15 +375,21 @@ class AITG(tk.Tk):
         self.bind('<<SaveRT_TDDFT_LASERScript>>', lambda _ : self._on_td_laser_save_button())
         self.bind('<<ViewRT_TDDFT_LASERScript>>', lambda _ : self._on_td_laser_view_button())
         self.bind('<<SubRT_TDDFT_LASER>>',  self._on_td_laser_run_job_button)
-
-    def laser_button(self):
-        dir = pathlib.Path(self.directory)/ "TD_Laser"
-        write_laser(self.laser_pulse(), 'laser', self.directory )
-        self.plot_canvas(str(self.directory)+"/laser.dat", 1, 'time(in fs)','Laser strength(in au)')
         
     def _on_td_laser_save_button(self, *_):
         self._validate_td_laser_input()
         self._td_create_input()
+
+    def choose_laser(self):
+        check = messagebox.askyesno(message= "Do you want to proceed with this laser set up?")
+        if check is True:
+            self.Frame2.tkraise()
+            self.Frame2_Button1.config(state='active') 
+            self.Frame2_Button2.config(state='active') 
+            self.Frame2_Button3.config(state='active') 
+        else:
+            messagebox.showinfo(message="Please enter the laser design inputs.") 
+            #self.controller._show_frame(LaserDesignPage)
 
     def _on_td_laser_view_button(self, *_):
         template = self._validate_td_laser_input()

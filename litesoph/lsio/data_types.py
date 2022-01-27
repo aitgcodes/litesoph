@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-class InputTypes(Enum):
+class DataTypes(Enum):
     boolen = auto()
     decimal = auto()
     integer = auto()
