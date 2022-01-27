@@ -67,24 +67,34 @@ class GroundState(Task):
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
 
-    def __init__(self, user_input: Dict[str, Any],engine,status, project_dir, filename) -> None:
+    def __init__(self,status, project_dir, filename='gs') -> None:
+        
         self.status = status
-        self.user_input = user_input
-        self.engine_name = engine
-        self.engine = get_engine_obj(engine)
+        self.engine_name = None
+        self.engine = None
         self.project_dir = project_dir
         self.task_dir = None
         self.filename = filename
-        self.task = self.engine.get_task_class('ground state',self.user_input)
-        self.template = self.task.format_template()  
+        self.template = None
 
-    
+    def set_engine(self, engine):
+        self.engine_name = engine
+        self.engine = get_engine_obj(engine)
+
+    def create_template(self, user_input: Dict[str, Any] ):
+        self.user_input = user_input
+        self.task = self.engine.get_task_class('ground state',self.user_input)
+        self.template = self.task.format_template() 
+
     def write_input(self, template=None):
         
         if template:
             self.template = template
         if not self.task_dir:
             self.create_task_dir()
+        if not self.template:
+            msg = 'Template not given or created'
+            raise Exception(msg)
         self.engine.create_script(self.task_dir,self.filename, self.template)
         self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
         self.status.update_status('gs_inp', 1)
