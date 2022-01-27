@@ -36,7 +36,7 @@ class EngineStrategy(ABC):
     def create_command(self):
         pass
 
-    def create_directory(self,directory):
+    def create_directory(self, directory):
         absdir = os.path.abspath(directory)
         if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
             os.makedirs(directory)
@@ -71,23 +71,30 @@ class EngineGpaw(EngineStrategy):
             ('GpawRTLCAOTddftLaser', 'TD_Laser'),
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
+    
+    def __init__(self) -> None:
+        super().__init__()
 
     def get_task_class(self, task: str, user_param, *_):
-        if task == "ground state":
+        if task == "ground_state":
             return gp.GpawGroundState(user_param) 
-        if task == "LCAO TDDFT Delta":
+        if task == "rt_tddft_delta":
+            user_param['gfilename']= self.gs['restart']
             return gp.GpawRTLCAOTddftDelta(user_param)
-        if task == "LCAO TDDFT Laser":
+        if task == "rt_tddft_laser":
+            user_param['gfilename']= self.gs['restart']
             return gp.GpawRTLCAOTddftLaser(user_param)
         if task == "spectrum":
             return gp.GpawSpectrum(user_param) 
         if task == "tcm":
             return gp.GpawCalTCM(user_param)       
     
-    def create_script(self,directory,filename,template: str) -> None:
+    def create_script(self,directory,template: str,filename) -> None:
         """creates the input scripts for gpaw"""
+        if not filename:
+            raise Exception('input filename not given')
         self.directory = directory
-        self.filename = filename + '.py'
+        self.filename = filename
         write2file(self.directory,self.filename,template)
 
     def create_dir(self, directory, task):
@@ -136,7 +143,7 @@ class EngineOctopus(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def create_script(self,directory,filename,template: str) -> None:
+    def create_script(self,directory,template: str, *_) -> None:
         """creates the input scripts for gpaw"""
         self.directory = directory
         self.filename = 'inp' 
@@ -187,10 +194,12 @@ class EngineNwchem(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def create_script(self,directory,filename,template: str) -> None:
+    def create_script(self,directory,template: str,filename) -> None:
         """creates the input scripts for nwchem"""
+        if not filename:
+            raise Exception('input filename not given')
         self.directory = directory
-        self.filename = filename + '.nwi'
+        self.filename = filename 
         write2file(self.directory,self.filename,template)
     
     def create_command(self, cmd: list):

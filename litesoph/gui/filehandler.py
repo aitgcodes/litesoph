@@ -6,17 +6,22 @@ import json
 class Status():
 
     default_dict={
-        'engine_run':'',
-        'gpaw':{'gs':{  'state': 0,
+        'engine':'',
+        'gpaw':{'ground_state':{  'state': 0,
                         'param':{},
                         'inp': 0,
                         'cal': 0
                       },   
-                'td':{  'state': 0,
+                'rt_tddft_delta':{  'state': 0,
                         'param':{},
                         'inp': 0,
                         'cal': 0
-                     },       
+                     },
+                'rt_tddft_laser':{  'state': 0,
+                        'param':{},
+                        'inp': 0,
+                        'cal': 0
+                     },             
                         },
         'octopus':{'gs':{  'state': 0,
                         'param':{},

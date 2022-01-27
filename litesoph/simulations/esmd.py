@@ -38,6 +38,7 @@ class Task:
         self.task = None
         self.filename = None
         self.template = None
+        self.task_state = None
 
     def set_engine(self, engine):
         self.engine_name = engine
@@ -45,11 +46,14 @@ class Task:
 
     def set_task(self, task, user_input: Dict[str, Any], filename=None):
         self.task_name = task
-        if not filename:
-            self.filename = filename
         self.user_input = user_input
+        self.user_input['project_dir'] = str(self.project_dir)
         self.task = self.engine.get_task_class(task, self.user_input)
-
+        if filename:
+            self.filename = filename
+        else:
+            self.filename = self.task.NAME
+        
     def create_template(self):
         if self.task:
             self.template = self.task.format_template() 
@@ -65,11 +69,8 @@ class Task:
         if not self.template:
             msg = 'Template not given or created'
             raise Exception(msg)
-        self.engine.create_script(self.task_dir,self.filename, self.template)
+        self.engine.create_script(self.task_dir, self.template,self.filename)
         self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
-        # self.status.update_status('gs_inp', 1)
-        # self.status.update_status('engine', self.engine_name)
-        # self.status.update_status('gs_dict', self.user_input)
 
     def create_task_dir(self):
         self.task_dir = self.engine.create_dir(self.project_dir, type(self.task).__name__)
