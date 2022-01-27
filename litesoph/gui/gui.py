@@ -22,7 +22,7 @@ from litesoph.gui.menubar import MainMenu
 from litesoph.gui import models as m
 from litesoph.gui import views as v 
 from litesoph.gui.spec_plot import plot_spectra, plot_files
-from litesoph.simulations.esmd import RT_LCAO_TDDFT, TCM, GroundState, Spectrum
+from litesoph.simulations.esmd import Task,TCM, Spectrum
 from litesoph.simulations import engine
 from litesoph.gui.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import Nav
@@ -61,7 +61,8 @@ class AITG(tk.Tk):
         self._window.grid_columnconfigure(800,weight=400)  
 
         self.engine = None
-
+        self.status_bar = tk.StringVar()
+        ttk.Label(self, textvariable=self.status_bar).grid(sticky=(tk.W + tk.E), row=2, padx=10)
         self.ground_state_view = None
         self.ground_state_task = None
         
@@ -75,7 +76,10 @@ class AITG(tk.Tk):
     def _status_init(self):
         """Initializes the status object."""
         self.status = Status(self.directory)
-        
+
+    def _get_engine(self):
+        self.engine = self.status.get_status('engine')
+        self.status_bar.set(self.engine)
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -110,9 +114,9 @@ class AITG(tk.Tk):
             '<<OpenExistingProject>>' : self._on_open_project,
             '<<SelectTask>>' : self._on_task_select,
             '<<ClickBackButton>>' : self._on_back_button,
-            '<<SaveGroundStateScript>>' : self._on_gs_save_button,
-            '<<ViewGroundStateScript>>' : self._on_gs_view_button,
-            '<<SubGroundState>>' : self._on_gs_run_job_button,
+            # '<<SaveGroundStateScript>>' : self._on_gs_save_button,
+            # '<<ViewGroundStateScript>>' : self._on_gs_view_button,
+            # '<<SubGroundState>>' : self._on_gs_run_job_button,
         }
 
         for event, callback in event_callbacks.items():
@@ -125,8 +129,8 @@ class AITG(tk.Tk):
             '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.lsroot, self.directory),
             #'<<ShowJobSubmissionPage>>' : lambda _: self._show_frame(v.JobSubPage, self),
             '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
-            '<<ShowTimeDependentPage>>' : lambda _: self._show_frame(TimeDependentPage, self),
-            '<<ShowLaserDesignPage>>' : lambda _: self._show_frame(LaserDesignPage, self),
+            '<<ShowTimeDependentPage>>' : self._on_rt_tddft_delta_task,
+            '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
             '<<ShowPlotSpectraPage>>' : lambda _: self._show_frame(PlotSpectraPage, self),
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
             '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self)
@@ -154,6 +158,7 @@ class AITG(tk.Tk):
         self._change_directory(project_name)
         self.refresh_nav(self.directory)
         self._status_init()
+        self._get_engine()
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
@@ -174,9 +179,9 @@ class AITG(tk.Tk):
         try:
             m.WorkManagerModel.create_dir(project_path)
         except PermissionError as e:
-            messagebox.showinfo(e)
+            messagebox.showerror(e)
         except FileExistsError as e:
-            messagebox.showinfo(e)
+            messagebox.showerror(e)
         else:
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
             self._frames[v.WorkManagerPage].update_project_entry(project_path)
@@ -211,34 +216,56 @@ class AITG(tk.Tk):
             else:
                 messagebox.showerror(message= "Upload geometry file")
         elif sub_task == "Delta Kick":
-            if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
-                self.event_generate('<<ShowTimeDependentPage>>')
-            else:
-                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
-        elif sub_task == "Gaussian Pulse":
-            if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
-                self.event_generate('<<ShowLaserDesignPage>')
-            else:
-                messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
+            self.event_generate('<<ShowTimeDependentPage>>')   
+        elif sub_task == "Gaussian Pulse":    
+            self.event_generate('<<ShowLaserDesignPage>')   
         elif sub_task == "Spectrum":
-            if self.status.check_status('gs_cal', 1) is True:
-                if self.status.check_status('td_cal',1) is True or self.status.check_status('td_cal',2) is True:
-                    self.event_generate('<<ShowPlotSpectraPage>>')
-            else:
-                messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
+            self.event_generate('<<ShowPlotSpectraPage>>')   
         elif sub_task == "Dipole Moment and Laser Pulse":
-            if self.status.check_status('gs_cal', 1) is True and self.status.check_status('td_cal',2) is True:
-                self.event_generate('<<ShowDmLdPage>>')
-            else:
-                messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
+            self.event_generate('<<ShowDmLdPage>>')
         elif sub_task.get() == "Kohn Sham Decomposition":
                self.event_generate('<<ShowTcmPage>>')    
+
+    # def _on_task_select(self, *_):
+        
+    #     sub_task = self._frames[v.WorkManagerPage].sub_task.get()
+
+    #     if sub_task  == "Ground State":
+    #         path = pathlib.Path(self.directory) / "coordinate.xyz"
+    #         if path.exists() is True:
+    #             self.event_generate('<<ShowGroundStatePage>>')
+    #         else:
+    #             messagebox.showerror(message= "Upload geometry file")
+    #     elif sub_task == "Delta Kick":
+    #         if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
+    #             self.event_generate('<<ShowTimeDependentPage>>')
+    #         else:
+    #             messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
+    #     elif sub_task == "Gaussian Pulse":
+    #         if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
+    #             self.event_generate('<<ShowLaserDesignPage>')
+    #         else:
+    #             messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
+    #     elif sub_task == "Spectrum":
+    #         if self.status.check_status('gs_cal', 1) is True:
+    #             if self.status.check_status('td_cal',1) is True or self.status.check_status('td_cal',2) is True:
+    #                 self.event_generate('<<ShowPlotSpectraPage>>')
+    #         else:
+    #             messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
+    #     elif sub_task == "Dipole Moment and Laser Pulse":
+    #         if self.status.check_status('gs_cal', 1) is True and self.status.check_status('td_cal',2) is True:
+    #             self.event_generate('<<ShowDmLdPage>>')
+    #         else:
+    #             messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
+    #     elif sub_task.get() == "Kohn Sham Decomposition":
+    #            self.event_generate('<<ShowTcmPage>>')    
+
+##----------------------Ground_State_task---------------------------------
 
     def _on_ground_state_task(self, *_):
         self._show_frame(v.GroundStatePage, self)
         self.ground_state_view = self._frames[v.GroundStatePage]
-        filename = m.GroundStateModel.filename
-        self.ground_state_task = GroundState(self.status, self.directory, filename)
+        self.ground_state_task = Task(self.status, self.directory)
 
         self.bind('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
         self.bind('<<ViewGroundStateScript>>', lambda _ : self._on_gs_view_button())
@@ -258,24 +285,24 @@ class AITG(tk.Tk):
     def _validate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
         engine = inp_dict['engine']
+        if self.engine:
+            if self.engine != engine:
+                messagebox.showerror(message = f'This project {self.directory.name} was started with {self.engine} engine. \n If you want to do use different engine. Please create new project with that engine')
+        #filename = m.GroundStateModel.filename
         self.ground_state_task.set_engine(engine)
-        self.ground_state_task.create_template(inp_dict)
+        self.ground_state_task.set_task('ground_state', inp_dict)
+        self.ground_state_task.create_template()
         self.engine = engine
         return self.ground_state_task.template
-
-    
-    def _init_text_veiwer(self,name, template, *_):
-        #self._show_frame(v.TextViewerPage, self)
-        text_veiw = v.TextViewerPage(self._window)
-        text_veiw.grid(row=0, column=1, sticky ="nsew")
-        text_veiw.set_task_name(name)
-        text_veiw.insert_text(template)
-        return text_veiw
 
     def _gs_create_input(self, template=None):     
         confirm_engine = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(self.engine))
         if confirm_engine is True:
             self.ground_state_task.write_input(template)
+            self.status.update_status('engine', self.engine)
+            self.status.update_status(f'{self.engine}.ground_state.inp', 1)
+            self.status.update_status(f'{self.engine}.ground_state.inp',self.ground_state_task.user_input)
+            self.status_bar.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
         else:
             pass  
@@ -292,6 +319,111 @@ class AITG(tk.Tk):
 
             self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
             self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
+
+##----------------------Time_dependent_task_delta---------------------------------
+
+    def _on_rt_tddft_delta_task(self, *_):
+        self._show_frame(v.TimeDependentPage, self, self.engine)
+        self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
+        self.rt_tddft_delta_task = Task(self.status, self.directory)
+
+        self.bind('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
+        self.bind('<<ViewRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_view_button())
+        self.bind('<<SubRT_TDDFT_DELTA>>',  self._on_td_run_job_button)
+
+    def _on_td_save_button(self, *_):
+        self._validate_td_input()
+        self._td_create_input()
+
+    def _on_td_view_button(self, *_):
+        template = self._validate_td_input()
+        text_veiw = self._init_text_veiwer('RT_TDDFT_DELTA', template)
+        text_veiw.bind('<<SaveRT_TDDFT_DELTA>>', lambda _: self._td_create_input(text_veiw.save_txt))
+        text_veiw.bind('<<ViewRT_TDDFT_DELTAPage>>', lambda _: self._show_frame(v.TimeDependentPage))
+
+    def _validate_td_input(self):
+        inp_dict = self.rt_tddft_delta_view.get_parameters()
+        self.rt_tddft_delta_task.set_engine(self.engine)
+        self.rt_tddft_delta_task.set_task('rt_tddft_delta', inp_dict)
+        self.rt_tddft_delta_task.create_template()
+        return self.rt_tddft_delta_task.template
+
+    def _td_create_input(self, template=None):     
+        self.rt_tddft_delta_task.write_input(template)
+        self.rt_tddft_delta_view.set_label_msg('saved')
+        self.check = False
+
+    def _on_td_run_job_button(self, *_):
+        try:
+            getattr(self.rt_tddft_delta_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
+            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+
+            self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+
+##----------------------Time_dependent_task_laser---------------------------------
+
+    def _on_rt_tddft_laser_task(self, *_):
+        self._show_frame(v.LaserDesignPage, self, self.engine)
+        self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
+        self.rt_tddft_laser_task = Task(self.status, self.directory)
+
+        self.bind('<<SaveRT_TDDFT_LASERScript>>', lambda _ : self._on_td_laser_save_button())
+        self.bind('<<ViewRT_TDDFT_LASERScript>>', lambda _ : self._on_td_laser_view_button())
+        self.bind('<<SubRT_TDDFT_LASER>>',  self._on_td_laser_run_job_button)
+
+    def laser_button(self):
+        dir = pathlib.Path(self.directory)/ "TD_Laser"
+        write_laser(self.laser_pulse(), 'laser', self.directory )
+        self.plot_canvas(str(self.directory)+"/laser.dat", 1, 'time(in fs)','Laser strength(in au)')
+        
+    def _on_td_laser_save_button(self, *_):
+        self._validate_td_laser_input()
+        self._td_create_input()
+
+    def _on_td_laser_view_button(self, *_):
+        template = self._validate_td_laser_input()
+        text_veiw = self._init_text_veiwer('RT_TDDFT_LASER', template)
+        text_veiw.bind('<<SaveRT_TDDFT_LASER>>', lambda _: self._td_laser_create_input(text_veiw.save_txt))
+        text_veiw.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
+
+    def _validate_td_laser_input(self):
+        inp_dict = self.rt_tddft_laser_view.get_parameters()
+        self.rt_tddft_laser_task.set_engine(self.engine)
+        self.rt_tddft_laser_task.set_task('rt_tddft_laser', inp_dict)
+        self.rt_tddft_laser_task.create_template()
+        return self.rt_tddft_laser_task.template
+
+    def _td_laser_create_input(self, template=None):     
+        self.rt_tddft_laser_task.write_input(template)
+        self.rt_tddft_laser_view.set_label_msg('saved')
+        self.check = False
+
+    def _on_td_laser_run_job_button(self, *_):
+        try:
+            getattr(self.rt_tddft_laser_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
+            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+
+            self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
+            self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
+
+##----------------------Time_dependent_task---------------------------------
+
+    def _init_text_veiwer(self,name, template, *_):
+        #self._show_frame(v.TextViewerPage, self)
+        text_veiw = v.TextViewerPage(self._window)
+        text_veiw.grid(row=0, column=1, sticky ="nsew")
+        text_veiw.set_task_name(name)
+        text_veiw.insert_text(template)
+        return text_veiw
 
     def _run_local(self, task):
         np = self.job_sub_page.get_processors()
@@ -343,535 +475,326 @@ class AITG(tk.Tk):
             self.settings_model.set(key, variable.get())
         self.settings_model.save()
 
+# class LaserDesignPage(Frame):
 
-class TimeDependentPage(Frame):
-
-    def __init__(self, parent, controller, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+#     def __init__(self, parent, controller, *args, **kwargs):
+#         super().__init__(parent, *args, **kwargs)
+#         self.controller = controller
         
-        self.job = None
+#         self.job = None
+#         self.tdpulse_dict = {}
+#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+#         j=font.Font(family ='Courier', size=20,weight='bold')
+#         k=font.Font(family ='Courier', size=40,weight='bold')
+#         l=font.Font(family ='Courier', size=15,weight='bold')
+        
+#         self.Frame1 = tk.Frame(self)
+#         #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
+#         self.Frame1.configure(relief='groove')
+#         self.Frame1.configure(borderwidth="2")
+#         self.Frame1.configure(relief="groove")
+#         self.Frame1.configure(cursor="fleur")
+#         self.Frame1 = tk.Frame(self)
+        
+#         self.strength = StringVar()
+#         self.inval = DoubleVar()
+#         self.pol_x = StringVar()
+#         self.pol_y = StringVar()
+#         self.pol_z = StringVar()
+#         self.fwhm = StringVar()
+#         self.freq = StringVar()
+#         self.ts = StringVar()
+#         self.ns = StringVar()
+#         self.tin = StringVar()
 
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
+#         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
+#         self.Frame1.configure(relief='groove')
+#         self.Frame1.configure(borderwidth="2")
+#         self.Frame1.configure(relief="groove")
+#         self.Frame1.configure(cursor="fleur")
         
-        self.Frame1 = tk.Frame(self)
-        #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-        self.Frame1 = tk.Frame(self)
-        
-        self.strength = StringVar()
-        self.ex = IntVar()
-        self.ey = IntVar()
-        self.ez = IntVar()
-        self.dt = DoubleVar()
-        self.Nt = IntVar()    
-        self.v = StringVar()        
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")            
-        
-        self.Frame1_label_path = Label(self.Frame1,text="LITESOPH input for Delta Kick",fg='blue')
-        self.Frame1_label_path['font'] = myFont
-        self.Frame1_label_path.place(x=150,y=10)
-      
-        self.label_proj = Label(self.Frame1,text="Laser strength in a.u",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=60)
-        
-        inval = ["1e-5","1e-3"]
-        self.entry_proj = ttk.Combobox(self.Frame1,textvariable= self.strength, value = inval)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"1e-5")
-        self.entry_proj.place(x=280,y=60)
-        self.entry_proj['state'] = 'readonly'
+#         self.Frame1_label_path = Label(self.Frame1,text="LITESOPH Input for Laser Design", fg='blue')
+#         self.Frame1_label_path['font'] = myFont
+#         self.Frame1_label_path.place(x=125,y=10)
 
-        self.label_pol_x = Label(self.Frame1, text="Electric Polarisation in x axis", bg= "grey",fg="black")
-        self.label_pol_x['font'] = myFont
-        self.label_pol_x.place(x=10,y=110)
+#         self.label_proj = Label(self.Frame1,text="Time Origin (tin)",bg="gray",fg="black")
+#         self.label_proj['font'] = myFont
+#         self.label_proj.place(x=10,y=60)
+
+#         self.entry_proj = Entry(self.Frame1,textvariable= self.tin)
+#         self.entry_proj['font'] = myFont
+#         self.entry_proj.insert(0,"0")
+#         self.entry_proj.place(x=280,y=60)
         
-        pol_list = [0, 1]
-        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self.ex , value = pol_list)
-        self.entry_pol_x['font'] = myFont
-        self.ex.set(0)
-        self.entry_pol_x.place(x=280,y=110)
-        self.entry_pol_x['state'] = 'readonly'
-
-        self.label_pol_y = Label(self.Frame1, text="Electric Polarisation in y axis", bg= "grey",fg="black")
-        self.label_pol_y['font'] = myFont
-        self.label_pol_y.place(x=10,y=160)
-    
-        self.entry_pol_y = ttk.Combobox(self.Frame1, textvariable= self.ey, value = pol_list)
-        self.entry_pol_y['font'] = myFont
-        self.ey.set(0)
-        self.entry_pol_y.place(x=280,y=160)
-        self.entry_pol_y['state'] = 'readonly'
-
-        self.label_pol_z = Label(self.Frame1, text="Electric Polarisation in z axis", bg= "grey",fg="black")
-        self.label_pol_z['font'] = myFont
-        self.label_pol_z.place(x=10,y=210)
+#         self.label_inval = Label(self.Frame1,text="-log((E at tin)/Eo),(value>=6)",bg="gray",fg="black")
+#         self.label_inval['font'] = myFont
+#         self.label_inval.place(x=10,y=100)
  
-        self.entry_pol_z = ttk.Combobox(self.Frame1, textvariable= self.ez ,value = pol_list)
-        self.entry_pol_z['font'] = myFont
-        self.ez.set(0)
-        self.entry_pol_z.place(x=280,y=210)
-        self.entry_pol_z['state'] = 'readonly'
+#         # inval_list = ["1e-8", "1e-9"]
+#         # self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= self.inval, value = inval_list)
+#         # self.entry_pol_z['font'] = myFont
+#         # self.entry_pol_z.insert(0,"1e-8")
+#         self.entry_inval = Entry(self.Frame1,textvariable= self.inval)
+#         self.entry_inval['font'] = myFont
+#         self.inval.set(6)
+#         self.entry_inval.place(x=280,y=100)
 
-        self.label_proj = Label(self.Frame1,text="Propagation time step (in attosecond)",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=260)
-
-        self.entry_proj = Entry(self.Frame1,textvariable= self.dt)
-        self.entry_proj['font'] = myFont
-        self.dt.set(10)
-        self.entry_proj.place(x=280,y=260)
-
-        self.label_proj = Label(self.Frame1,text="Total time steps",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=310)
-
-        self.entry_proj = Entry(self.Frame1,textvariable= self.Nt)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"200")
-        self.entry_proj.place(x=280,y=310)
-        
-        Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
-        Frame1_Button3['font'] = myFont
-        Frame1_Button3.place(x=10,y=380)
-
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[td_inp2dict()])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=300,y=380)
-
-        self.label_msg = Label(self.Frame1,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=320,y=350)
-
-        self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
-
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
-        self.Frame2.configure(cursor="fleur")
-   
-        self.Frame2_note = Label(self.Frame2,text="Note: Please select wavefunction for Kohn Sham Decomposition",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.place(x=10,y=70)
+#         self.label_proj = Label(self.Frame1,text="Laser Strength in a.u (Eo)",bg="gray",fg="black")
+#         self.label_proj['font'] = myFont
+#         self.label_proj.place(x=10,y=140)
     
-        values = {"Dipole Moment" :"1","Wavefunction": "2"}
-        self.v.set("1")
-        # Loop is used to create multiple Radiobuttons
-        # rather than creating each button separately
-        for (text, value) in values.items():
-            Radiobutton(self.Frame2, text = text, variable = self.v,
-                value = value).pack(side = TOP, anchor=NW, ipady = 5)
+#         instr = ["1e-5","1e-3"]
+#         self.entry_proj = ttk.Combobox(self.Frame1,textvariable= self.strength, value = instr)
+#         self.entry_proj['font'] = myFont
+#         self.entry_proj.current(0)
+#         self.entry_proj.place(x=280,y=140)
+#         self.entry_proj['state'] = 'readonly'
+
+#         self.label_proj = Label(self.Frame1,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
+#         self.label_proj['font'] = myFont
+#         self.label_proj.place(x=10,y=180)
+
+#         self.entry_proj = Entry(self.Frame1,textvariable= self.fwhm)
+#         self.fwhm.set("0.2")
+#         self.entry_proj['font'] = myFont
+#         self.entry_proj.place(x=280,y=180)
+
+#         self.label_proj = Label(self.Frame1,text="Frequency in eV",bg="gray",fg="black")
+#         self.label_proj['font'] = myFont
+#         self.label_proj.place(x=10,y=220)
+
+#         self.entry_proj = Entry(self.Frame1,textvariable= self.freq)
+#         self.entry_proj['font'] = myFont
+#         self.entry_proj.place(x=280,y=220)
+
+#         self.label_proj = Label(self.Frame1,text="Time step in attosecond ",bg="gray",fg="black")
+#         self.label_proj['font'] = myFont
+#         self.label_proj.place(x=10,y=260)
+
+#         self.entry_proj = Entry(self.Frame1,textvariable= self.ts)
+#         self.entry_proj['font'] = myFont
+#         self.entry_proj.insert(0,"10")
+#         self.entry_proj.place(x=280,y=260)
+        
+#         self.label_proj = Label(self.Frame1,text="Number of Steps",bg="gray",fg="black")
+#         self.label_proj['font'] = myFont
+#         self.label_proj.place(x=10,y=300)
+
+#         self.entry_proj = Entry(self.Frame1,textvariable= self.ns)
+#         self.entry_proj['font'] = myFont
+#         self.entry_proj.insert(0,"2000")
+#         self.entry_proj.place(x=280,y=300)
  
-        Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        Frame2_Button1['font'] = myFont
-        Frame2_Button1.place(x=10,y=380)
-
-        Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
-        Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=300,y=380)
-
-    def td_inp2dict(self):
-        engine = self.controller.status.get_value('engine')
-        kick = [float(self.strength.get())*float(self.ex.get()),
-                float(self.strength.get())*float(self.ey.get()),
-                float(self.strength.get())*float(self.ez.get())]
-        inp_list = [float(self.dt.get()),float(self.Nt.get())] 
-
-        td_dict_gp = {
-            'filename': str(self.controller.directory) +"/GS/gs.gpw",
-            'absorption_kick':kick,
-            'analysis_tools':self.analysis_tool(),
-            'propagate': tuple(inp_list)       
-        }
+#         Frame1_Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
+#         Frame1_Button1['font'] = myFont
+#         Frame1_Button1.place(x=10,y=380)
         
-        td_dict_oct = {
-            'max_step' : self.Nt.get() ,            
-            'time_step' : self.dt.get(),      
-            'td_propagator' : 'aetrs',
-            'strength': self.strength.get(),
-            'e_pol': [self.ex.get(),self.ey.get(),self.ez.get()] 
-          }
-        
-        if engine == 'gpaw':
-            return td_dict_gp
-        elif engine == 'nwchem':
-            pass
-        elif engine == 'octopus':
-            return td_dict_oct            
+#         self.button_project = Button(self.Frame1,text="Next",activebackground="#78d6ff",command=lambda:[self.choose_laser()])
+#         self.button_project['font'] = myFont
+#         self.button_project.place(x=350,y=380)
 
-    def analysis_tool(self): 
-        if self.v.get() == "1":
-            return("dipolemoment")
-        elif self.v.get() == "2":
-            return("wavefunction")
+#         self.button_project = Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
+#         self.button_project['font'] = myFont
+#         self.button_project.place(x=170,y=380)
+
+#         self.Frame2 = tk.Frame(self)
+#         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+
+#         self.Frame2.configure(relief='groove')
+#         self.Frame2.configure(borderwidth="2")
+#         self.Frame2.configure(relief="groove")
+#         self.Frame2.configure(cursor="fleur")
+
+#         self.label_pol_x = Label(self.Frame2, text="Electric Polarisation in x axis", bg= "grey",fg="black")
+#         self.label_pol_x['font'] = myFont
+#         self.label_pol_x.place(x=10,y=60)
+        
+#         pol_list = ["0","1"]
+#         self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.pol_x, value = pol_list)
+#         self.entry_pol_x['font'] = myFont
+#         self.entry_pol_x.insert(0,"0")
+#         self.entry_pol_x.place(x=280,y=60)
+#         self.entry_pol_x['state'] = 'readonly'
+
+#         self.label_pol_y = Label(self.Frame2, text="Electric Polarisation in y axis", bg= "grey",fg="black")
+#         self.label_pol_y['font'] = myFont
+#         self.label_pol_y.place(x=10,y=110)
     
-    def init_task(self, td_dict: dict, filename):
-        engine = self.controller.status.get_value('engine')   
-        self.job =RT_LCAO_TDDFT(td_dict,engine,self.controller.status,str(self.controller.directory), filename, keyword='delta')
-        self.controller.task = self.job
-        self.controller.check = True
-        
-    def write_input(self):
-        self.job.write_input()
-        self.controller.check = True
+#         self.entry_pol_y = ttk.Combobox(self.Frame2,textvariable= self.pol_y, value = pol_list)
+#         self.entry_pol_y['font'] = myFont
+#         self.entry_pol_y.insert(0,"0")
+#         self.entry_pol_y.place(x=280,y=110)
+#         self.entry_pol_y['state'] = 'readonly'
 
-    def save_button(self):
-        inp_dict = self.td_inp2dict()
-        self.init_task(inp_dict, 'td')
-        self.write_input()
-        show_message(self.label_msg,"Saved")
-
-    def view_button(self):
-        inp_dict = self.td_inp2dict()
-        self.init_task(inp_dict, 'td')
-        self.controller._show_frame(TextViewerPage,self.controller,task=self.controller.task)
-
-    def run_job_button(self):
-        try:
-            getattr(self.job.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-        else:
-            self.event_generate('<<ShowJobSubmissionPage>>')
-
-    def back_button(self):
-        self.event_generate('<<ShowWorkManagerPage>>')
-
-
-class LaserDesignPage(Frame):
-
-    def __init__(self, parent, controller, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.controller = controller
-        
-        self.job = None
-        self.tdpulse_dict = {}
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-        
-        self.Frame1 = tk.Frame(self)
-        #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-        self.Frame1 = tk.Frame(self)
-        
-        self.strength = StringVar()
-        self.inval = DoubleVar()
-        self.pol_x = StringVar()
-        self.pol_y = StringVar()
-        self.pol_z = StringVar()
-        self.fwhm = StringVar()
-        self.freq = StringVar()
-        self.ts = StringVar()
-        self.ns = StringVar()
-        self.tin = StringVar()
-
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-        
-        self.Frame1_label_path = Label(self.Frame1,text="LITESOPH Input for Laser Design", fg='blue')
-        self.Frame1_label_path['font'] = myFont
-        self.Frame1_label_path.place(x=125,y=10)
-
-        self.label_proj = Label(self.Frame1,text="Time Origin (tin)",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=60)
-
-        self.entry_proj = Entry(self.Frame1,textvariable= self.tin)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0")
-        self.entry_proj.place(x=280,y=60)
-        
-        self.label_inval = Label(self.Frame1,text="-log((E at tin)/Eo),(value>=6)",bg="gray",fg="black")
-        self.label_inval['font'] = myFont
-        self.label_inval.place(x=10,y=100)
+#         self.label_pol_z = Label(self.Frame2, text="Electric Polarisation in z axis", bg= "grey",fg="black")
+#         self.label_pol_z['font'] = myFont
+#         self.label_pol_z.place(x=10,y=160)
  
-        # inval_list = ["1e-8", "1e-9"]
-        # self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= self.inval, value = inval_list)
-        # self.entry_pol_z['font'] = myFont
-        # self.entry_pol_z.insert(0,"1e-8")
-        self.entry_inval = Entry(self.Frame1,textvariable= self.inval)
-        self.entry_inval['font'] = myFont
-        self.inval.set(6)
-        self.entry_inval.place(x=280,y=100)
+#         self.entry_pol_z = ttk.Combobox(self.Frame2,textvariable= self.pol_z, value = pol_list)
+#         self.entry_pol_z['font'] = myFont
+#         self.entry_pol_z.insert(0,"0")
+#         self.entry_pol_z.place(x=280,y=160) 
+#         self.entry_pol_z['state'] = 'readonly'
 
-        self.label_proj = Label(self.Frame1,text="Laser Strength in a.u (Eo)",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=140)
+#         self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.save_button()])
+#         self.Frame2_Button1['font'] = myFont
+#         self.Frame2_Button1.place(x=10,y=380)
+
+#         self.label_msg = Label(self.Frame2,text="")
+#         self.label_msg['font'] = myFont
+#         self.label_msg.place(x=10,y=350)
+ 
+#         self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.view_button()])
+#         self.Frame2_Button2['font'] = myFont
+#         self.Frame2_Button2.place(x=170,y=380)
+        
+#         self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
+#         self.Frame2_Button3['font'] = myFont
+#         self.Frame2_Button3.place(x=350,y=380)
+#         self.Frame3 = None
+#         self.button_refresh()
+
+#     def view_button(self):
+#         self.tdpulse_inp2dict('td_pulse')
+#         self.controller._show_frame(TextViewerPage, LaserDesignPage, None, task=self.job)
+
+#     def create_frame3(self):
+#         self.Frame3 = tk.Frame(self)
+#         self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+
+#         self.Frame3.configure(relief='groove')
+#         self.Frame3.configure(borderwidth="2")
+#         self.Frame3.configure(relief="groove")
+#         self.Frame3.configure(cursor="fleur")
     
-        instr = ["1e-5","1e-3"]
-        self.entry_proj = ttk.Combobox(self.Frame1,textvariable= self.strength, value = instr)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.current(0)
-        self.entry_proj.place(x=280,y=140)
-        self.entry_proj['state'] = 'readonly'
-
-        self.label_proj = Label(self.Frame1,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=180)
-
-        self.entry_proj = Entry(self.Frame1,textvariable= self.fwhm)
-        self.fwhm.set("0.2")
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=180)
-
-        self.label_proj = Label(self.Frame1,text="Frequency in eV",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=220)
-
-        self.entry_proj = Entry(self.Frame1,textvariable= self.freq)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=220)
-
-        self.label_proj = Label(self.Frame1,text="Time step in attosecond ",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=260)
-
-        self.entry_proj = Entry(self.Frame1,textvariable= self.ts)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"10")
-        self.entry_proj.place(x=280,y=260)
-        
-        self.label_proj = Label(self.Frame1,text="Number of Steps",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=300)
-
-        self.entry_proj = Entry(self.Frame1,textvariable= self.ns)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"2000")
-        self.entry_proj.place(x=280,y=300)
- 
-        Frame1_Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=10,y=380)
-        
-        self.button_project = Button(self.Frame1,text="Next",activebackground="#78d6ff",command=lambda:[self.choose_laser()])
-        self.button_project['font'] = myFont
-        self.button_project.place(x=350,y=380)
-
-        self.button_project = Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
-        self.button_project['font'] = myFont
-        self.button_project.place(x=170,y=380)
-
-        self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
-
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
-        self.Frame2.configure(cursor="fleur")
-
-        self.label_pol_x = Label(self.Frame2, text="Electric Polarisation in x axis", bg= "grey",fg="black")
-        self.label_pol_x['font'] = myFont
-        self.label_pol_x.place(x=10,y=60)
-        
-        pol_list = ["0","1"]
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.pol_x, value = pol_list)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"0")
-        self.entry_pol_x.place(x=280,y=60)
-        self.entry_pol_x['state'] = 'readonly'
-
-        self.label_pol_y = Label(self.Frame2, text="Electric Polarisation in y axis", bg= "grey",fg="black")
-        self.label_pol_y['font'] = myFont
-        self.label_pol_y.place(x=10,y=110)
-    
-        self.entry_pol_y = ttk.Combobox(self.Frame2,textvariable= self.pol_y, value = pol_list)
-        self.entry_pol_y['font'] = myFont
-        self.entry_pol_y.insert(0,"0")
-        self.entry_pol_y.place(x=280,y=110)
-        self.entry_pol_y['state'] = 'readonly'
-
-        self.label_pol_z = Label(self.Frame2, text="Electric Polarisation in z axis", bg= "grey",fg="black")
-        self.label_pol_z['font'] = myFont
-        self.label_pol_z.place(x=10,y=160)
- 
-        self.entry_pol_z = ttk.Combobox(self.Frame2,textvariable= self.pol_z, value = pol_list)
-        self.entry_pol_z['font'] = myFont
-        self.entry_pol_z.insert(0,"0")
-        self.entry_pol_z.place(x=280,y=160) 
-        self.entry_pol_z['state'] = 'readonly'
-
-        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.save_button()])
-        self.Frame2_Button1['font'] = myFont
-        self.Frame2_Button1.place(x=10,y=380)
-
-        self.label_msg = Label(self.Frame2,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=10,y=350)
- 
-        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.view_button()])
-        self.Frame2_Button2['font'] = myFont
-        self.Frame2_Button2.place(x=170,y=380)
-        
-        self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
-        self.Frame2_Button3['font'] = myFont
-        self.Frame2_Button3.place(x=350,y=380)
-        self.Frame3 = None
-        self.button_refresh()
-
-    def view_button(self):
-        self.tdpulse_inp2dict('td_pulse')
-        self.controller._show_frame(TextViewerPage, LaserDesignPage, None, task=self.job)
-
-    def create_frame3(self):
-        self.Frame3 = tk.Frame(self)
-        self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
-
-        self.Frame3.configure(relief='groove')
-        self.Frame3.configure(borderwidth="2")
-        self.Frame3.configure(relief="groove")
-        self.Frame3.configure(cursor="fleur")
-    
-    def laser_button(self):
-        dir = pathlib.Path(self.controller.directory)/ "TD_Laser"
-        write_laser(self.laser_pulse(), 'laser', self.controller.directory )
-        self.plot_canvas(str(self.controller.directory)+"/laser.dat", 1, 'time(in fs)','Laser strength(in au)')
+#     def laser_button(self):
+#         dir = pathlib.Path(self.controller.directory)/ "TD_Laser"
+#         write_laser(self.laser_pulse(), 'laser', self.controller.directory )
+#         self.plot_canvas(str(self.controller.directory)+"/laser.dat", 1, 'time(in fs)','Laser strength(in au)')
        
 
-    def plot_canvas(self,filename, axis, x,y):
-        from litesoph.utilities.units import au_to_fs
-        import numpy as np
-        from matplotlib.figure import Figure
-        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
-        figure = Figure(figsize=(5, 3), dpi=100)
-        data_ej = np.loadtxt(filename) 
-        #plt.figure(figsize=(5, 3), dpi=100)
+#     def plot_canvas(self,filename, axis, x,y):
+#         from litesoph.utilities.units import au_to_fs
+#         import numpy as np
+#         from matplotlib.figure import Figure
+#         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
+#         figure = Figure(figsize=(5, 3), dpi=100)
+#         data_ej = np.loadtxt(filename) 
+#         #plt.figure(figsize=(5, 3), dpi=100)
 
-        if self.Frame3 is not None:
-            self.Frame3.destroy()
+#         if self.Frame3 is not None:
+#             self.Frame3.destroy()
             
-        self.create_frame3()
-        self.ax = figure.add_subplot(1, 1, 1)
-        self.ax.plot(data_ej[:, 0]*au_to_fs, data_ej[:, axis], 'k')
-        self.ax.spines['right'].set_visible(False)
-        self.ax.spines['top'].set_visible(False)
-        self.ax.yaxis.set_ticks_position('left')
-        self.ax.xaxis.set_ticks_position('bottom')
-        self.ax.set_xlabel(x)
-        self.ax.set_ylabel(y)
+#         self.create_frame3()
+#         self.ax = figure.add_subplot(1, 1, 1)
+#         self.ax.plot(data_ej[:, 0]*au_to_fs, data_ej[:, axis], 'k')
+#         self.ax.spines['right'].set_visible(False)
+#         self.ax.spines['top'].set_visible(False)
+#         self.ax.yaxis.set_ticks_position('left')
+#         self.ax.xaxis.set_ticks_position('bottom')
+#         self.ax.set_xlabel(x)
+#         self.ax.set_ylabel(y)
 
-        self.Frame3.canvas = FigureCanvasTkAgg(figure, master=self.Frame3)
-        self.Frame3.canvas.draw()
-        self.Frame3.canvas.get_tk_widget().pack(side =LEFT,fill='both', expand=True)
-        self.Frame3.toolbar = NavigationToolbar2Tk(self.Frame3.canvas, self.Frame3)
-        self.Frame3.toolbar.update()
-        self.Frame3.canvas._tkcanvas.pack(side= tk.TOP,fill ='both')
-        #plt.savefig('pulse.png')
+#         self.Frame3.canvas = FigureCanvasTkAgg(figure, master=self.Frame3)
+#         self.Frame3.canvas.draw()
+#         self.Frame3.canvas.get_tk_widget().pack(side =LEFT,fill='both', expand=True)
+#         self.Frame3.toolbar = NavigationToolbar2Tk(self.Frame3.canvas, self.Frame3)
+#         self.Frame3.toolbar.update()
+#         self.Frame3.canvas._tkcanvas.pack(side= tk.TOP,fill ='both')
+#         #plt.savefig('pulse.png')
 
-    def button_refresh(self):
-        self.st_var = self.controller.status 
-        if self.st_var.check_status('td_inp', 2):
-            self.Frame2.tkraise() 
-            self.Frame2_Button1.config(state='active') 
-            self.Frame2_Button2.config(state='active') 
-            self.Frame2_Button3.config(state='active') 
+#     def button_refresh(self):
+#         self.st_var = self.controller.status 
+#         if self.st_var.check_status('td_inp', 2):
+#             self.Frame2.tkraise() 
+#             self.Frame2_Button1.config(state='active') 
+#             self.Frame2_Button2.config(state='active') 
+#             self.Frame2_Button3.config(state='active') 
                
 
-    def choose_laser(self):
-        check = messagebox.askyesno(message= "Do you want to proceed with this laser set up?")
-        if check is True:
-            self.Frame2.tkraise()
-            self.Frame2_Button1.config(state='active') 
-            self.Frame2_Button2.config(state='active') 
-            self.Frame2_Button3.config(state='active') 
-        else:
-            messagebox.showinfo(message="Please enter the laser design inputs.") 
-            self.controller._show_frame(LaserDesignPage)
+#     def choose_laser(self):
+#         check = messagebox.askyesno(message= "Do you want to proceed with this laser set up?")
+#         if check is True:
+#             self.Frame2.tkraise()
+#             self.Frame2_Button1.config(state='active') 
+#             self.Frame2_Button2.config(state='active') 
+#             self.Frame2_Button3.config(state='active') 
+#         else:
+#             messagebox.showinfo(message="Please enter the laser design inputs.") 
+#             self.controller._show_frame(LaserDesignPage)
 
-    def laser_pulse(self):
-        l_dict = self.laser_calc()
-        l_dict['frequency'] = self.freq.get()
-        l_dict['time0'] ="{}e3".format(l_dict['time0'])
-        range = int(self.ns.get())* float(self.ts.get())
-        l_dict['range'] = range
-        l_dict['sincos'] = 'sin'
-        return(l_dict)              
+#     def laser_pulse(self):
+#         l_dict = self.laser_calc()
+#         l_dict['frequency'] = self.freq.get()
+#         l_dict['time0'] ="{}e3".format(l_dict['time0'])
+#         range = int(self.ns.get())* float(self.ts.get())
+#         l_dict['range'] = range
+#         l_dict['sincos'] = 'sin'
+#         return(l_dict)              
       
-    def laser_calc(self):
-        from litesoph.pre_processing.laser_design import laser_design
-        l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
-        return(l_dict)
+#     def laser_calc(self):
+#         from litesoph.pre_processing.laser_design import laser_design
+#         l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
+#         return(l_dict)
 
-    def tdpulse_inp2dict(self):
-        self.td = self.tdpulse_dict
-        self.dir = self.controller.directory
-        abs_x = float(self.strength.get())*float(self.pol_x.get())
-        abs_y = float(self.strength.get())*float(self.pol_y.get())
-        abs_z = float(self.strength.get())*float(self.pol_z.get())
-        abs_list = [abs_x, abs_y, abs_z]
-        inp_list = [float(self.ts.get()),int(self.ns.get())]
-        epol_list = [float(self.pol_x.get()),float(self.pol_y.get()),float(self.pol_z.get())]
-        laser_dict = self.laser_calc()
-        updatekey(laser_dict, 'frequency', self.freq.get())
-        updatekey(self.td,'absorption_kick',abs_list)
-        updatekey(self.td,'propagate', tuple(inp_list))
-        updatekey(self.td,'electric_pol',epol_list)
-        updatekey(self.td,'dipole_file','dmlaser.dat')
-        updatekey(self.td,'filename', str(self.dir)+'/GS/gs.gpw')
-        updatekey(self.td,'td_potential', True)
-        updatekey(self.td,'txt', 'tdlaser.out')
-        updatekey(self.td,'td_out', 'tdlaser.gpw')
-        updatekey(self.td,'laser', laser_dict)
+#     def tdpulse_inp2dict(self):
+#         self.td = self.tdpulse_dict
+#         self.dir = self.controller.directory
+#         abs_x = float(self.strength.get())*float(self.pol_x.get())
+#         abs_y = float(self.strength.get())*float(self.pol_y.get())
+#         abs_z = float(self.strength.get())*float(self.pol_z.get())
+#         abs_list = [abs_x, abs_y, abs_z]
+#         inp_list = [float(self.ts.get()),int(self.ns.get())]
+#         epol_list = [float(self.pol_x.get()),float(self.pol_y.get()),float(self.pol_z.get())]
+#         laser_dict = self.laser_calc()
+#         updatekey(laser_dict, 'frequency', self.freq.get())
+#         updatekey(self.td,'absorption_kick',abs_list)
+#         updatekey(self.td,'propagate', tuple(inp_list))
+#         updatekey(self.td,'electric_pol',epol_list)
+#         updatekey(self.td,'dipole_file','dmlaser.dat')
+#         updatekey(self.td,'filename', str(self.dir)+'/GS/gs.gpw')
+#         updatekey(self.td,'td_potential', True)
+#         updatekey(self.td,'txt', 'tdlaser.out')
+#         updatekey(self.td,'td_out', 'tdlaser.gpw')
+#         updatekey(self.td,'laser', laser_dict)
 
-        return(self.td)       
+#         return(self.td)       
 
-    def init_task(self, td_dict: dict, filename):
-        self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
-        self.controller.task = self.job
-        self.controller.check = True
+#     def init_task(self, td_dict: dict, filename):
+#         self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
+#         self.controller.task = self.job
+#         self.controller.check = True
 
-    def write_input(self):
-        self.job.write_input()
-        self.controller.check = True
+#     def write_input(self):
+#         self.job.write_input()
+#         self.controller.check = True
         
-    def save_button(self):
-        inp_dict = self.tdpulse_inp2dict()
-        self.init_task(inp_dict, 'tdlaser')
-        self.write_input()
-        show_message(self.label_msg,"Saved")
+#     def save_button(self):
+#         inp_dict = self.tdpulse_inp2dict()
+#         self.init_task(inp_dict, 'tdlaser')
+#         self.write_input()
+#         show_message(self.label_msg,"Saved")
 
-    def view_button(self):
-        inp_dict = self.tdpulse_inp2dict()
-        self.init_task(inp_dict, 'tdlaser')
-        self.controller._show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
+#     def view_button(self):
+#         inp_dict = self.tdpulse_inp2dict()
+#         self.init_task(inp_dict, 'tdlaser')
+#         self.controller._show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
 
-    def run_job_button(self):
-        try:
-            getattr(self.job.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-        else:
-            self.event_generate('<<ShowJobSubmissionPage>>')
+#     def run_job_button(self):
+#         try:
+#             getattr(self.job.engine,'directory')           
+#         except AttributeError:
+#             messagebox.showerror(message="Input not saved. Please save the input before job submission")
+#         else:
+#             self.event_generate('<<ShowJobSubmissionPage>>')
 
-    def back_button(self):
-        self.event_generate('<<ShowWorkManagerPage>>')
+#     def back_button(self):
+#         self.event_generate('<<ShowWorkManagerPage>>')
 
-def updatekey(dict, key, value):
-    dict[key] = value
-    return(dict)
+# def updatekey(dict, key, value):
+#     dict[key] = value
+#     return(dict)
 
 class PlotSpectraPage(Frame):
 

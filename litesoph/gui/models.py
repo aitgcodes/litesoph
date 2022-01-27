@@ -92,6 +92,29 @@ class GroundStateModel:
         else:
             raise ValueError('engine not implemented')
 
+class LaserDesginModel:
+
+    def __init__(self) -> None:
+        pass
+
+    def laser_calc(self, strength,
+                        inval,
+                        tin,
+                        fwhm):
+        from litesoph.pre_processing.laser_design import laser_design
+        l_dict = laser_design(strength, inval, tin , fwhm )
+        return(l_dict)
+    
+    def write_laser(laser_input:dict, filename, directory):
+
+        from litesoph.pre_processing.laser_design import GaussianPulse
+        import numpy as np
+
+        filename = filename + ".dat"
+        filename = pathlib.Path(directory) / filename
+        pulse = GaussianPulse(float(laser_input['strength']), float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])
+        pulse.write(filename, np.arange(laser_input['range']))
+
 class TextVewerModel:
 
     def __init__(self, filename) -> None:
