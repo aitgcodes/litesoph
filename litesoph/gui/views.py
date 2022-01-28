@@ -1542,16 +1542,16 @@ class LaserDesignPage(tk.Frame):
         self.Frame1.configure(cursor="fleur")
         self.Frame1 = tk.Frame(self)
         
-        self.strength = tk.StringVar()
+        self.strength = tk.DoubleVar()
         self.inval = tk.DoubleVar()
         self.pol_x = tk.StringVar()
-        self.pol_y = tk.StringVar()
-        self.pol_z = tk.StringVar()
-        self.fwhm = tk.StringVar()
-        self.frequency = tk.StringVar()
-        self.ts = tk.StringVar()
-        self.ns = tk.StringVar()
-        self.tin = tk.StringVar()
+        self.pol_y =  tk.StringVar()
+        self.pol_z =  tk.StringVar()
+        self.fwhm = tk.DoubleVar()
+        self.frequency =  tk.DoubleVar()
+        self.ts =  tk.IntVar()
+        self.ns =  tk.IntVar()
+        self.tin =  tk.DoubleVar()
 
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
         self.Frame1.configure(relief='groove')
@@ -1569,7 +1569,7 @@ class LaserDesignPage(tk.Frame):
 
         self.entry_proj = tk.Entry(self.Frame1,textvariable= self.tin)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"0")
+        self.tin.set(0)
         self.entry_proj.place(x=280,y=60)
         
         self.label_inval = tk.Label(self.Frame1,text="-log((E at tin)/Eo),(value>=6)",bg="gray",fg="black")
@@ -1601,7 +1601,7 @@ class LaserDesignPage(tk.Frame):
         self.label_proj.place(x=10,y=180)
 
         self.entry_proj = tk.Entry(self.Frame1,textvariable= self.fwhm)
-        self.fwhm.set("0.2")
+        #self.fwhm.set("0.2")
         self.entry_proj['font'] = myFont
         self.entry_proj.place(x=280,y=180)
 
@@ -1619,7 +1619,7 @@ class LaserDesignPage(tk.Frame):
 
         self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ts)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"10")
+        self.ts.set(10)
         self.entry_proj.place(x=280,y=260)
         
         self.label_proj = tk.Label(self.Frame1,text="Number of Steps",bg="gray",fg="black")
@@ -1628,7 +1628,7 @@ class LaserDesignPage(tk.Frame):
 
         self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ns)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"2000")
+        self.ns.set(2000)
         self.entry_proj.place(x=280,y=300)
  
         Frame1_Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
@@ -1698,7 +1698,7 @@ class LaserDesignPage(tk.Frame):
         self.Frame2_Button3['font'] = myFont
         self.Frame2_Button3.place(x=350,y=380)
         self.Frame3 = None
-        #self.button_refresh()
+
 
     def show_laser_plot(self, figure):
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
@@ -1709,34 +1709,6 @@ class LaserDesignPage(tk.Frame):
         self.Frame3.configure(borderwidth="2")
         self.Frame3.configure(relief="groove")
         self.Frame3.configure(cursor="fleur")
-    
-    # def laser_button(self):
-    #     dir = pathlib.Path(self.controller.directory)/ "TD_Laser"
-    #     write_laser(self.laser_pulse(), 'laser', self.controller.directory )
-    #     self.plot_canvas(str(self.controller.directory)+"/laser.dat", 1, 'time(in fs)','Laser strength(in au)')
-       
-
-    # def plot_canvas(self,filename, axis, x,y):
-    #     from litesoph.utilities.units import au_to_fs
-    #     import numpy as np
-    #     from matplotlib.figure import Figure
-       
-    #     figure = Figure(figsize=(5, 3), dpi=100)
-    #     data_ej = np.loadtxt(filename) 
-    #     #plt.figure(figsize=(5, 3), dpi=100)
-
-    #     if self.Frame3 is not None:
-    #         self.Frame3.destroy()
-            
-    #     self.create_frame3()
-    #     self.ax = figure.add_subplot(1, 1, 1)
-    #     self.ax.plot(data_ej[:, 0]*au_to_fs, data_ej[:, axis], 'k')
-    #     self.ax.spines['right'].set_visible(False)
-    #     self.ax.spines['top'].set_visible(False)
-    #     self.ax.yaxis.set_ticks_position('left')
-    #     self.ax.xaxis.set_ticks_position('bottom')
-    #     self.ax.set_xlabel(x)
-    #     self.ax.set_ylabel(y)
 
         self.Frame3.canvas = FigureCanvasTkAgg(figure, master=self.Frame3)
         self.Frame3.canvas.draw()
@@ -1744,11 +1716,11 @@ class LaserDesignPage(tk.Frame):
         self.Frame3.toolbar = NavigationToolbar2Tk(self.Frame3.canvas, self.Frame3)
         self.Frame3.toolbar.update()
         self.Frame3.canvas._tkcanvas.pack(side= tk.TOP,fill ='both')
-        #plt.savefig('pulse.png')
-
+    
+    def laser_button(self):
+        self.event_generate('<<DesignLaser>>')
+   
     def activate_td_frame(self):
-        #self.st_var = self.controller.status 
-        #if self.st_var.check_status('td_inp', 2):
         self.Frame2.tkraise() 
         self.Frame2_Button1.config(state='active') 
         self.Frame2_Button2.config(state='active') 
@@ -1756,25 +1728,10 @@ class LaserDesignPage(tk.Frame):
                
     def destroy_plot(self):
         self.Frame3.destroy()
-    # def choose_laser(self):
-    #     check = messagebox.askyesno(message= "Do you want to proceed with this laser set up?")
-    #     if check is True:
-    #         self.Frame2.tkraise()
-    #         self.Frame2_Button1.config(state='active') 
-    #         self.Frame2_Button2.config(state='active') 
-    #         self.Frame2_Button3.config(state='active') 
-    #     else:
-    #         messagebox.showinfo(message="Please enter the laser design inputs.") 
-    #         self.controller._show_frame(LaserDesignPage)
 
-    # def get_laser_pulse(self):
-    #     l_dict = self.laser_calc()
-    #     l_dict['frequency'] = self.frequency.get()
-    #     l_dict['time0'] ="{}e3".format(l_dict['time0'])
-    #     range = int(self.ns.get())* float(self.ts.get())
-    #     l_dict['range'] = range
-    #     l_dict['sincos'] = 'sin'
-    #     return(l_dict)   
+    def choose_laser(self):
+        self.event_generate('<<ChooseLaser>>')
+
 
     def get_laser_pulse(self):
         laser_input = {
@@ -1786,17 +1743,13 @@ class LaserDesignPage(tk.Frame):
         "pol_z" : self.pol_z.get(),
         "fwhm" :self.fwhm.get(),
         "frequency" :  self.frequency.get(),
-        "ts" : self.ts.get(),
-        "ns": self.ns.get(),
+        "time_step" : self.ts.get(),
+        "number_of_steps": self.ns.get(),
         "tin" : self.tin.get()
         
         }
         return(laser_input)               
-      
-    # def laser_calc(self):
-    #     from litesoph.pre_processing.laser_design import laser_design
-    #     l_dict = laser_design(self.strength.get(), self.inval.get(),self.tin.get(),self.fwhm.get())
-    #     return(l_dict)
+
 
     def get_parameters(self):
         self.td = self.tdpulse_dict
@@ -1807,7 +1760,6 @@ class LaserDesignPage(tk.Frame):
         abs_list = [abs_x, abs_y, abs_z]
         inp_list = [float(self.ts.get()),int(self.ns.get())]
         epol_list = [float(self.pol_x.get()),float(self.pol_y.get()),float(self.pol_z.get())]
-        laser_dict = self.laser_calc()
         self.td = {'frequency': self.frequency.get(),
                         'absorption_kick' :abs_list,
                         'propagate': tuple(inp_list),
@@ -1816,9 +1768,8 @@ class LaserDesignPage(tk.Frame):
                         'filename' : str(self.dir)+'/GS/gs.gpw',
                         'td_potential' : True,
                         'txt' :'tdlaser.out',
-                        'td_out': 'tdlaser.gpw',
-                        'laser': laser_dict}
-
+                        'td_out': 'tdlaser.gpw'}
+                        
         return(self.td)       
 
     def save_button(self):
@@ -1832,36 +1783,6 @@ class LaserDesignPage(tk.Frame):
 
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')
-    # def init_task(self, td_dict: dict, filename):
-    #     self.job =RT_LCAO_TDDFT(td_dict, engine.EngineGpaw(),self.controller.status,str(self.controller.directory), filename,keyword='laser')
-    #     self.controller.task = self.job
-    #     self.controller.check = True
-
-    # def write_input(self):
-    #     self.job.write_input()
-    #     self.controller.check = True
-        
-    # def save_button(self):
-    #     inp_dict = self.tdpulse_inp2dict()
-    #     self.init_task(inp_dict, 'tdlaser')
-    #     self.write_input()
-    #     show_message(self.label_msg,"Saved")
-
-    # def view_button(self):
-    #     inp_dict = self.tdpulse_inp2dict()
-    #     self.init_task(inp_dict, 'tdlaser')
-    #     self.controller._show_frame(TextViewerPage, LaserDesignPage, None, task=self.controller.task)
-
-    # def run_job_button(self):
-    #     try:
-    #         getattr(self.job.engine,'directory')           
-    #     except AttributeError:
-    #         messagebox.showerror(message="Input not saved. Please save the input before job submission")
-    #     else:
-    #         self.event_generate('<<ShowJobSubmissionPage>>')
-
-    # def back_button(self):
-    #     self.event_generate('<<ShowWorkManagerPage>>')
 
 class PlotSpectraPage(tk.Frame):
 

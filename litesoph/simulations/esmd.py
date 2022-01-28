@@ -38,6 +38,7 @@ class Task:
         self.filename = None
         self.template = None
         self.task_state = None
+        self.results = None
 
     def set_engine(self, engine):
         self.engine_name = engine
@@ -47,7 +48,11 @@ class Task:
         self.task_name = task
         self.user_input = user_input
         self.user_input['project_dir'] = str(self.project_dir)
-        self.task = self.engine.get_task_class(task, self.user_input)
+        try:
+            self.task = self.engine.get_task_class(task, self.user_input)
+        except Exception as e:
+            raise Exception(e)
+
         if filename:
             self.filename = filename
         else:
@@ -57,7 +62,7 @@ class Task:
         with open(filename, 'r') as f:
             text = f.read()
             self.template = text
-            
+
     def create_template(self):
         if self.task:
             self.template = self.task.format_template() 
@@ -80,10 +85,10 @@ class Task:
         self.task_dir = self.engine.create_dir(self.project_dir, type(self.task).__name__)
         #os.chdir(self.directory)
 
-    def run(self, submit: JobSubmit):
-        self.submit = submit
-        self.submit.create_command()
-        self.submit.run_job(self.task_dir)
+    # def run(self, submit: JobSubmit):
+    #     self.submit = submit
+    #     self.submit.create_command()
+    #     self.submit.run_job(self.task_dir)
         #print(str(self.submit.result))
 
 # class GeometricOptimization(Task):

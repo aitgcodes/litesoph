@@ -171,19 +171,7 @@ class EngineNwchem(EngineStrategy):
     NAME = 'nwchem'
 
     gs = {'inp':'/NwchemGroundState/gs.nwi',
-            'out': '/GS/gs.out',
-            'restart': 'GS/gs.gpw',
             'check_list':['Converged', 'Fermi level:','Total:']}
-
-    td_delta = {'inp':'/NwchemDeltaKick/td.nwo',
-             'out': '/TD_Delta/tdx.out',
-             'restart': '/TD_Delta/td.gpw',
-             'check_list':['Writing','Total:']}
-
-    laser = {'inp':'/TD_Laser/tdlaser.py',
-             'out': '/TD_Laser/tdlaser.out',
-             'restart': '/TD_Laser/tdlaser.gpw',
-             'check_list':['Writing','Total:']}
 
 
     def __init__(self, status=None) -> None:

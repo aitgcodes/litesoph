@@ -9,6 +9,8 @@ import socket
 import pathlib
 import subprocess
 
+
+
 def get_submit_class(network=None, **kwargs):
     
     if network:
@@ -18,9 +20,9 @@ def get_submit_class(network=None, **kwargs):
 
 def get_mpi_command(engine: EngineStrategy, configs: ConfigParser):
     
-    name = type(engine).__name__.lower()
-    name = name[6:]  
-    name = name + '_mpi'
+    # name = type(engine).__name__.lower()
+    # name = name[6:]  
+    name = engine + '_mpi'
     
     if configs.items('mpi'):
         try:
@@ -36,8 +38,9 @@ def get_mpi_command(engine: EngineStrategy, configs: ConfigParser):
 
 class JobSubmit:
     
-    def __init__(self, engine: EngineStrategy, configs: ConfigParser, keyword:str=None) -> None:
-        self.engine = engine
+    def __init__(self, task , configs: ConfigParser) -> None:
+        self.task = task
+        self.engine = self.task.engine
         self.configs = configs
         
     def run_job(self):
@@ -46,35 +49,45 @@ class JobSubmit:
     
 class SubmitLocal(JobSubmit):
 
-    def __init__(self, engine: EngineStrategy, configs: ConfigParser, nprocessors:int) -> None:
-        super().__init__(engine, configs)
+    def __init__(self, task , configs: ConfigParser, nprocessors:int) -> None:
+        super().__init__(task, configs)
         self.np = nprocessors
         self.command = None
         if self.np > 1:
-            mpi = get_mpi_command(engine, configs)
+            mpi = get_mpi_command(self.engine.NAME, self.configs)
             self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
             
            
     def create_command(self):
         self.command = self.engine.create_command(self.command)
     
-    def run_job(self,directory):
-        job = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
-        result = job.communicate()
-        print("Job started with command:", self.command)
-        print("returncode =", job.returncode)
-       
-        if job.returncode != 0:
-            print("Error...")
-            for line in result[1].decode(encoding='utf-8').split('\n'):
-                print(line)
+    def run_job(self):
+        self.create_command()
+        returncode,  result = self.execute(self.task.task_dir)
+        self.task.results = (returncode, result[0], result[1])
+        print(result)
+
+    def execute(self,directory):
+        try:
+            job = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
+            result = job.communicate()
+        except Exception as e:
+            raise Exception(e)
         else:
-            print("job done..")
-            if result[0]:
-                print("Output...")
-                for line in result[0].decode(encoding='utf-8').split('\n'):
+            print("Job started with command:", self.command)
+            print("returncode =", job.returncode)
+       
+            if job.returncode != 0:
+                print("Error...")
+                for line in result[1].decode(encoding='utf-8').split('\n'):
                     print(line)
-        return result
+            else:
+                print("job done..")
+                if result[0]:
+                    print("Output...")
+                    for line in result[0].decode(encoding='utf-8').split('\n'):
+                        print(line)
+            return job.returncode, result
        
        
 
