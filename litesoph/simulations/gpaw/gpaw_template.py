@@ -5,6 +5,8 @@ from typing import Any, Dict
 class GpawGroundState:
     """This class contains the default parameters and the template for creating gpaw 
     scripts for ground state calculations."""
+    NAME = 'gs.py'
+
     default_param =  {
         'mode': 'fd',
         'xc': 'LDA',
@@ -81,30 +83,6 @@ calc.write('gs.gpw', mode='all')
         self.user_input = self.default_param
         self.user_input.update(user_input)
 
-    # def check(self)-> bool:
-    #     """checks whether user given input parameters is compatable with with gpaw ground state calculation"""
-
-    #     if self.user_input['mode'] not in ['fd', 'lcao', 'pw'] and  self.user_input['engine'] == 'gpaw':
-    #         raise ValueError('This mode is not compatable with gpaw use fd, lcao or paw')
-        
-    #     if self.user_input['engine'] == 'gpaw':
-    #         return  True
-    #     else:
-    #         return False
-
-    # def user2gpaw(self)-> Dict[str, Any]:
-    #     """converts general user given parameters to gpaw specific parameters."""
-    #     import os
-    #     parameters = self
-        
-    #     for key in self.user_input.keys():
-    #         if key not in ['tolerance','convergance','box'] and self.user_input[key] is not None:
-    #             parameters[key] = self.user_input[key]
-
-    #         if key == 'geometry' and self.user_input[key] is None:
-    #             raise ValueError('The structure file is not found')
-    #     self.user_input = parameters
-
     def format_template(self):
         template = self.gs_template.format(**self.user_input)
         return template
@@ -112,6 +90,8 @@ calc.write('gs.gpw', mode='all')
 class GpawRTLCAOTddftDelta:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
+    
+    NAME = 'td.py'
 
     default_input = {'absorption_kick': [1e-5, 0.0, 0.0],
                 'propagate': (20, 150),
@@ -121,7 +101,7 @@ class GpawRTLCAOTddftDelta:
                 'dipole_file':'dm.dat',
                 'wavefunction_file':'wf.ulm',
                 'analysis_tools': None,
-                'filename':'gs.gpw',
+                'gfilename':'gs.gpw',
                 'propagator':None,
                 'td_potential': None,
                 'fxc':None,
@@ -141,7 +121,7 @@ import numpy as np
 from gpaw.lcaotddft.wfwriter import WaveFunctionWriter
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 
-td_calc = LCAOTDDFT(filename='{filename}',txt='{txt}')
+td_calc = LCAOTDDFT(filename='{gfilename}',txt='{txt}')
 
 DipoleMomentWriter(td_calc, '{dipole_file}')
 
@@ -153,10 +133,13 @@ td_calc.propagate{propagate}
 td_calc.write('{td_gpw}', mode='all')
     """
 
-
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
+        grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
+        if not grestart.exists():
+            raise FileNotFoundError('restart file not found')
+        self.user_input['gfilename'] = str(grestart)
         self.tools = self.user_input['analysis_tools']
 
     def check():
@@ -165,6 +148,9 @@ td_calc.write('{td_gpw}', mode='all')
     def get_analysis_tool():
         pass
     
+    def set_path_to_restart_file(self):
+        pass
+
     def format_template(self):
 
         template = self.delta_kick_template.format(**self.user_input)
@@ -177,11 +163,11 @@ td_calc.write('{td_gpw}', mode='all')
             template = """\n""".join(tlines)
             return template
        
-
-
 class GpawRTLCAOTddftLaser:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
+
+    NAME = 'tdlaser.py'
 
     default_input = {
                 'propagate': (20, 150),
@@ -274,17 +260,9 @@ td_calc.write('{td_gpw}', mode='all')
            return template 
 
 
-def write_laser(laser_input:dict, filename, directory):
-
-    from litesoph.pre_processing.laser_design import GaussianPulse
-    import numpy as np
-
-    filename = filename + ".dat"
-    filename = pathlib.Path(directory) / filename
-    pulse = GaussianPulse(float(laser_input['strength']), float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])
-    pulse.write(filename, np.arange(laser_input['range']))
-
 class GpawSpectrum:
+
+    NAME = 'spec.py'
 
     default_input = {
                    'moment_file': 'dm.dat',
@@ -312,6 +290,8 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
 
 class GpawCalTCM:
 
+    NAME = 'tcm.py'
+    
     default_input = {
                     'gfilename' : 'gs.gpw',
                     'wfilename' : 'wf.ulm',
