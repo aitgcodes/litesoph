@@ -22,7 +22,7 @@ from litesoph.gui.menubar import MainMenu
 from litesoph.gui import models as m
 from litesoph.gui import views as v 
 from litesoph.gui.spec_plot import plot_spectra, plot_files
-from litesoph.simulations.esmd import Task,TCM, Spectrum
+from litesoph.simulations.esmd import Task
 from litesoph.simulations import engine
 from litesoph.gui.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import Nav
@@ -62,9 +62,12 @@ class AITG(tk.Tk):
         self.engine = None
         self.status_bar = tk.StringVar()
         ttk.Label(self, textvariable=self.status_bar).grid(sticky=(tk.W + tk.E), row=2, padx=10)
+        
         self.ground_state_view = None
         self.ground_state_task = None
         
+        self.laser_desgin = None
+
         self._frames = OrderedDict()
         
         self._show_page_events()
@@ -173,6 +176,8 @@ class AITG(tk.Tk):
                 self._change_directory(project_path)
                 self.refresh_nav(self.directory)
                 self._status_init()
+                self._get_engine()
+                
             return
         
         try:
@@ -187,6 +192,9 @@ class AITG(tk.Tk):
             self._change_directory(project_path)
             self.refresh_nav(self.directory)
             self._status_init()
+            self.engine = None
+            self.status_bar.set(' ')
+            print(self.engine)
         
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
@@ -271,14 +279,15 @@ class AITG(tk.Tk):
         self.bind('<<SubGroundState>>',  self._on_gs_run_job_button)
 
     def _on_gs_save_button(self, *_):
-        self._validate_gs_input()
-        self._gs_create_input()
+        if self._validate_gs_input():
+            self._gs_create_input()
 
     def _on_gs_view_button(self, *_):
         template = self._validate_gs_input()
-        text_veiw = self._init_text_veiwer('GroundState', template)
-        text_veiw.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_veiw.save_txt))
-        text_veiw.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
+        if template:
+            text_veiw = self._init_text_veiwer('GroundState', template)
+            text_veiw.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_veiw.save_txt))
+            text_veiw.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
 
 
     def _validate_gs_input(self):
@@ -286,17 +295,17 @@ class AITG(tk.Tk):
         engine = inp_dict['engine']
         if self.engine:
             if self.engine != engine:
-                messagebox.showerror(message = f'This project {self.directory.name} was started with {self.engine} engine. \n If you want to do use different engine. Please create new project with that engine')
-        #filename = m.GroundStateModel.filename
+                messagebox.showerror(message = f'This {self.directory.name} project was started with {self.engine} engine. \n If you want to use different engine. Please create new project with that engine')
+                return
         self.ground_state_task.set_engine(engine)
         self.ground_state_task.set_task('ground_state', inp_dict)
         self.ground_state_task.create_template()
-        self.engine = engine
         return self.ground_state_task.template
 
     def _gs_create_input(self, template=None):     
         confirm_engine = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(self.engine))
         if confirm_engine is True:
+            self.engine = self.ground_state_task.engine_name
             self.ground_state_task.write_input(template)
             self.status.update_status('engine', self.engine)
             self.status.update_status(f'{self.engine}.ground_state.inp', 1)
@@ -378,16 +387,27 @@ class AITG(tk.Tk):
     def _on_td_laser_save_button(self, *_):
         self._validate_td_laser_input()
         self._td_create_input()
+    
+    def _on_desgin_laser(self):
+        laser_desgin_inp = self.rt_tddft_laser_view.get_laser_pulse()
+        self.laser_desgin = m.LaserDesginModel(laser_desgin_inp)
+        self.laser_desgin.create_pulse()
+        self.rt_tddft_laser_view.show_laser_plot(self.laser_desgin.plot_time_strength())
 
     def choose_laser(self):
-        check = messagebox.askyesno(message= "Do you want to proceed with this laser set up?")
+        if not self.laser_desgin:
+            messagebox.showerror(message="Laser is not set. Please choose the laser")
+        check = messagebox.askokcancel(message= "Do you want to proceed with this laser set up?")
         if check is True:
-            self.Frame2.tkraise()
-            self.Frame2_Button1.config(state='active') 
-            self.Frame2_Button2.config(state='active') 
-            self.Frame2_Button3.config(state='active') 
+            self.rt_tddft_laser_view.destroy_plot()
+            self.rt_tddft_laser_view.activate_td_frame()
+            # self.Frame2.tkraise()
+            # self.Frame2_Button1.config(state='active') 
+            # self.Frame2_Button2.config(state='active') 
+            # self.Frame2_Button3.config(state='active') 
         else:
-            messagebox.showinfo(message="Please enter the laser design inputs.") 
+            self.laser_desgin = None
+            #messagebox.showinfo(message="Please enter the laser design inputs.") 
             #self.controller._show_frame(LaserDesignPage)
 
     def _on_td_laser_view_button(self, *_):
@@ -888,13 +908,13 @@ class PlotSpectraPage(Frame):
         spec_dict = {}
         spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
         # spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
-        job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
-        job.write_input()
-        self.controller.task = job
-        self.controller.check = True
-        self.controller.status.update_status('spectra', 1)
-        show_message(self.label_msg, "Saved")
-        self.Frame2_Run.config(state='active')
+        # job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
+        # job.write_input()
+        # self.controller.task = job
+        # self.controller.check = True
+        # self.controller.status.update_status('spectra', 1)
+        # show_message(self.label_msg, "Saved")
+        # self.Frame2_Run.config(state='active')
       
 
 class DmLdPage(Frame):
@@ -1074,11 +1094,11 @@ class TcmPage(Frame):
                 'frequencies' : self.freq_list,
                 'name' : "x"
                  }         
-        self.job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
-        self.job.write_input()
-        self.controller.task = self.job 
-        self.controller.check = False
-        self.Frame_run.config(state= 'active')      
+        # self.job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
+        # self.job.write_input()
+        # self.controller.task = self.job 
+        # self.controller.check = False
+        # self.Frame_run.config(state= 'active')      
 
     def freq_listbox(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')

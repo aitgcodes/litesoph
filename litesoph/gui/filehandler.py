@@ -23,24 +23,34 @@ class Status():
                         'cal': 0
                      },             
                         },
-        'octopus':{'gs':{  'state': 0,
+        'octopus':{'ground_state':{  'state': 0,
                         'param':{},
                         'inp': 0,
                         'cal': 0
                       },   
-                'td':{  'state': 0,
+                'rt_tddft_delta':{  'state': 0,
                         'param':{},
                         'inp': 0,
                         'cal': 0
-                      },       
+                      },
+                'rt_tddft_laser':{  'state': 0,
+                        'param':{},
+                        'inp': 0,
+                        'cal': 0
+                     },       
                         },
     
-        'nwchem':{'gs':{  'state': 0,
+        'nwchem':{'ground_state':{  'state': 0,
                         'param':{},
                         'inp': 0,
                         'cal': 0
                       },   
-                'td':{  'state': 0,
+                'rt_tddft_delta':{  'state': 0,
+                        'param':{},
+                        'inp': 0,
+                        'cal': 0
+                     },
+                'rt_tddft_laser':{  'state': 0,
                         'param':{},
                         'inp': 0,
                         'cal': 0
