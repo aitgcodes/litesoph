@@ -5,6 +5,8 @@ from litesoph.utilities.units import ang_to_au, au_to_as, as_to_au
 
 class OctGroundState:
 
+    NAME = 'inp'
+
     default_param = {
             'work_dir' : ".",         # default 
             'scratch' : 'yes',
@@ -103,6 +105,8 @@ ConvEnergy = {e_conv}
         
 class OctTimedependentState:
 
+    NAME = 'inp'
+
     default_param = {
             'work_dir' : ".",         # default 
             'scratch' : 'yes',
@@ -167,9 +171,9 @@ TDPolarizationDirection = 1
 """
    
 
-    def __init__(self, user_input, status) -> None:
-        self.status = status
-        self.temp_dict = self.status.get_value('gs_dict')
+    def __init__(self, user_input) -> None:
+        #self.status = status
+        self.temp_dict = self.default_param 
         self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
@@ -229,6 +233,8 @@ TDPolarizationDirection = 1
 
 class OctTimedependentLaser:
 
+    NAME = 'inp'
+
     default_param = {
             'max_step' : 200 ,            
             'time_step' : 0.002,      
@@ -272,12 +278,9 @@ omega = {frequency}*eV
 
 """ 
 
-    def __init__(self, user_input, status=None) -> None:
-        if status is not None:
-            self.status = status
-            self.temp_dict = self.status.get_status('octopus.gs.param')
-        else:
-            self.temp_dict = self.default_param
+    def __init__(self, user_input) -> None:
+        
+        self.temp_dict = self.default_param
        
         self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape']         
