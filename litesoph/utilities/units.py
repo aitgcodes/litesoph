@@ -40,4 +40,5 @@ au_to_ang = Bohr
 ang_to_au = 1.0/ Bohr
 
 fs_to_eV = 4.141
+autime_to_eV = 0.0368  # 1 eV ~ 0.0368 autime^(-1)
 
