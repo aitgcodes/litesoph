@@ -1,4 +1,5 @@
 import pathlib
+import os
 
 class UserInput:
 
@@ -30,25 +31,14 @@ def write2file(directory,filename, template) -> None:
     """
 
     filename = pathlib.Path(directory) / filename
-
-    with open(filename, 'w+') as f:
-
-        f.truncate()
-        f.seek(0)
-        f.write(template)
-
-def write22file(directory,filename, template, para) -> None:
-    """Write template to a file.
+    file_exists = os.access(filename, os.F_OK)
+    parent_writeable = os.access(filename.parent, os.W_OK)
+    file_writeable = os.access(filename, os.W_OK)
     
-    directroy: str
-        full path of the directory to write to.
-    filename: str
-        name of the file with extension
-    template: str
-        script template which needs to be written to file.
-    """
-    template = template.format(**para)
-    filename = pathlib.Path(directory) / filename
+    if ((not file_exists and not parent_writeable) or
+        (file_exists and not file_writeable)):
+        msg = f'Permission denied acessing file: {filename}'
+        raise PermissionError(msg)
 
     with open(filename, 'w+') as f:
 
