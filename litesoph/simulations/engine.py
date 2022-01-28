@@ -72,8 +72,9 @@ class EngineGpaw(EngineStrategy):
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, status=None) -> None:
+        
+        self.status = status
 
     def get_task_class(self, task: str, user_param, *_):
         if task == "ground_state":
@@ -130,14 +131,20 @@ class EngineOctopus(EngineStrategy):
     td_delta = {'out': '/Octopus/log',
              'check_list':['Finished writing information', 'Calculation ended']}    
 
-    def get_task_class(self, task: str, user_param,status=None):
-        if task == "ground state":
+    def __init__(self, status=None) -> None:
+        
+        self.status = status
+
+    def get_task_class(self, task: str, user_param):
+        if task == "ground_state":
             return ot.OctGroundState(user_param) 
-        if task == "LCAO TDDFT Delta":
-            return ot.OctTimedependentState(user_param, status= status)
+        if task == "rt_tddft_delta":
+            if self.status:
+                gs_inp = self.status.get_status('octopus.ground_state.inp')
+                user_param.update(gs_inp)
+            return ot.OctTimedependentState(user_param)
 
-
-    def create_dir(self, directory, task):
+    def create_dir(self, directory, *_):
         #task_dir = self.get_dir_name(task)
         directory = pathlib.Path(directory) / 'Octopus'
         self.create_directory(directory)
@@ -179,12 +186,16 @@ class EngineNwchem(EngineStrategy):
              'check_list':['Writing','Total:']}
 
 
+    def __init__(self, status=None) -> None:
+        
+        self.status = status
+
     def get_task_class(self, task: str, user_param):
         if task == "optimization":
             return nw.NwchemOptimisation(user_param) 
-        if task == "ground state":
+        if task == "ground_state":
             return nw.NwchemGroundState(user_param) 
-        if task == "LCAO TDDFT Delta":
+        if task == "rt_tddft_delta":
             return nw.NwchemDeltaKick(user_param)
 
 
