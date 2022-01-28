@@ -99,13 +99,13 @@ class LaserDesginModel:
 
         "strength": {'req' : True, 'type': DT.decimal},
         "inval" : {'req' : True, 'type': DT.decimal},
-        "pol_x": {'req' : True, 'type': DT.integer},
-        "pol_y" : {'req' : True, 'type': DT.integer},
-        "pol_z" : {'req' : True, 'type': DT.integer},
+        #"pol_x": {'req' : True, 'type': DT.integer},
+        #"pol_y" : {'req' : True, 'type': DT.integer},
+        #"pol_z" : {'req' : True, 'type': DT.integer},
         "fwhm" : {'req' : True, 'type': DT.decimal},
         "frequency" : {'req' : True, 'type': DT.decimal},
-        "ts" : {'req' : True, 'type': DT.decimal},
-        "ns": {'req' : True, 'type': DT.decimal},
+        "time_step" : {'req' : True, 'type': DT.decimal},
+        "number_of_steps": {'req' : True, 'type': DT.decimal},
         "tin" : {'req' : True, 'type': DT.decimal}
         
         }
