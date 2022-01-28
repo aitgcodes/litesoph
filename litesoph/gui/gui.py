@@ -28,7 +28,6 @@ from litesoph.gui.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import Nav
 from litesoph.gui.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
-from litesoph.simulations.gpaw.gpaw_template import write_laser
 from litesoph.utilities.job_submit import SubmitLocal
 
 
@@ -218,7 +217,7 @@ class AITG(tk.Tk):
         elif sub_task == "Delta Kick":
             self.event_generate('<<ShowTimeDependentPage>>')   
         elif sub_task == "Gaussian Pulse":    
-            self.event_generate('<<ShowLaserDesignPage>')   
+            self.event_generate('<<ShowLaserDesignPage>>')   
         elif sub_task == "Spectrum":
             self.event_generate('<<ShowPlotSpectraPage>>')   
         elif sub_task == "Dipole Moment and Laser Pulse":
@@ -1099,94 +1098,94 @@ class TcmPage(Frame):
         for i in self.listbox.curselection():
             self.tcm.plot(self.tcm_dict, i)        
   
-class TextViewerPage(Frame):
+# class TextViewerPage(Frame):
 
-    def __init__(self, parent, controller, file=None, task=None, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+#     def __init__(self, parent, controller, file=None, task=None, *args, **kwargs):
+#         super().__init__(parent, *args, **kwargs)
+#         self.controller = controller
         
-        self.file = file
-        self.task = task
+#         self.file = file
+#         self.task = task
 
-        #self.axis = StringVar()
+#         #self.axis = StringVar()
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
+#         j=font.Font(family ='Courier', size=20,weight='bold')
+#         k=font.Font(family ='Courier', size=40,weight='bold')
+#         l=font.Font(family ='Courier', size=15,weight='bold')
 
-        self.Frame = tk.Frame(self)
+#         self.Frame = tk.Frame(self)
 
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.98)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
+#         self.Frame.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.98)
+#         self.Frame.configure(relief='groove')
+#         self.Frame.configure(borderwidth="2")
+#         self.Frame.configure(relief="groove")
+#         self.Frame.configure(cursor="fleur")
   
-        self.FrameTcm1_label_path = Label(self, text="LITESOPH Text Viewer",fg="blue")
-        self.FrameTcm1_label_path['font'] = myFont
-        self.FrameTcm1_label_path.place(x=400,y=10)
+#         self.FrameTcm1_label_path = Label(self, text="LITESOPH Text Viewer",fg="blue")
+#         self.FrameTcm1_label_path['font'] = myFont
+#         self.FrameTcm1_label_path.place(x=400,y=10)
 
         
-        text_scroll =Scrollbar(self)
-        text_scroll.pack(side=RIGHT, fill=Y)
+#         text_scroll =Scrollbar(self)
+#         text_scroll.pack(side=RIGHT, fill=Y)
 
-        my_Text = Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
-        my_Text['font'] = myFont
-        my_Text.place(x=15,y=60)
+#         my_Text = Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
+#         my_Text['font'] = myFont
+#         my_Text.place(x=15,y=60)
 
-        if self.file:
-            self.inserttextfromfile(self.file, my_Text)
-            self.current_file = self.file
-        if self.task:
-            self.inserttextfromstring(self.task.template, my_Text)
-            self.current_file = self.file
+#         if self.file:
+#             self.inserttextfromfile(self.file, my_Text)
+#             self.current_file = self.file
+#         if self.task:
+#             self.inserttextfromstring(self.task.template, my_Text)
+#             self.current_file = self.file
 
-        text_scroll.config(command= my_Text.yview)
+#         text_scroll.config(command= my_Text.yview)
     
          
-        #view = tk.Button(self, text="View",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
-        #view['font'] = myFont
-        #view.place(x=150,y=380)
+#         #view = tk.Button(self, text="View",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+#         #view['font'] = myFont
+#         #view.place(x=150,y=380)
 
-        save = tk.Button(self, text="Save",activebackground="#78d6ff",command=lambda:[self.save_txt(my_Text)])
-        save['font'] = myFont
-        save.place(x=320, y=380)
+#         save = tk.Button(self, text="Save",activebackground="#78d6ff",command=lambda:[self.save_txt(my_Text)])
+#         save['font'] = myFont
+#         save.place(x=320, y=380)
 
-        back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
-        back['font'] = myFont
-        back.place(x=30,y=380)
+#         back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
+#         back['font'] = myFont
+#         back.place(x=30,y=380)
 
-        # jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller._show_frame(JobSubPage))
-        # jobsub['font'] = myFont
-        # jobsub.place(x=800,y=380)
+#         # jobsub = tk.Button(self, text="Run Job",bg='blue',fg='white',command=lambda:controller._show_frame(JobSubPage))
+#         # jobsub['font'] = myFont
+#         # jobsub.place(x=800,y=380)
 
-    #def open_txt(self,my_Text):
-        #text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
-        #self.current_file = text_file_name
-        #self.inserttextfromfile(text_file_name, my_Text)
+#     #def open_txt(self,my_Text):
+#         #text_file_name = filedialog.askopenfilename(initialdir= user_path, title="Select File", filetypes=(("All Files", "*"),))
+#         #self.current_file = text_file_name
+#         #self.inserttextfromfile(text_file_name, my_Text)
     
    
-    def inserttextfromfile(self, filename, my_Text):
-        text_file = open(filename, 'r')
-        stuff = text_file.read()
-        my_Text.insert(END,stuff)
-        text_file.close()
+#     def inserttextfromfile(self, filename, my_Text):
+#         text_file = open(filename, 'r')
+#         stuff = text_file.read()
+#         my_Text.insert(END,stuff)
+#         text_file.close()
  
-    def save_txt(self, my_Text):
-        if self.file:
-            text_file = self.current_file
-            text_file = open(text_file,'w')
-            text_file.write(my_Text.get(1.0, END))
-        else:
-            self.task.write_input(template=my_Text.get(1.0, END))
+#     def save_txt(self, my_Text):
+#         if self.file:
+#             text_file = self.current_file
+#             text_file = open(text_file,'w')
+#             text_file.write(my_Text.get(1.0, END))
+#         else:
+#             self.task.write_input(template=my_Text.get(1.0, END))
 
-    def inserttextfromstring(self, string, my_Text):
-        my_Text.insert(END,string)
+#     def inserttextfromstring(self, string, my_Text):
+#         my_Text.insert(END,string)
     
-    def back_button(self):
-        self.event_generate('<<ClickBackButton>>')
+#     def back_button(self):
+#         self.event_generate('<<ClickBackButton>>')
 
         
         
