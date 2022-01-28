@@ -3,113 +3,46 @@ import subprocess
 import pathlib
 import json
 
+
 class Status():
-
-    default_dict={
-        'engine':'',
-        'gpaw':{'ground_state':{  'state': 0,
-                        'param':{},
-                        'inp': 0,
-                        'cal': 0
-                      },   
-                'rt_tddft_delta':{  'state': 0,
-                        'param':{},
-                        'inp': 0,
-                        'cal': 0
-                     },
-                'rt_tddft_laser':{  'state': 0,
-                        'param':{},
-                        'inp': 0,
-                        'cal': 0
-                     },             
-                        },
-        'octopus':{'gs':{  'state': 0,
-                        'param':{},
-                        'inp': 0,
-                        'cal': 0
-                      },   
-                'td':{  'state': 0,
-                        'param':{},
-                        'inp': 0,
-                        'cal': 0
-                      },       
-                        },
-    
-        'nwchem':{'gs':{  'state': 0,
-                        'param':{},
-                        'inp': 0,
-                        'cal': 0
-                      },   
-                'td':{  'state': 0,
-                        'param':{},
-                        'inp': 0,
-                        'cal': 0
-                     },       
-                        }                                
-    }
-
     def __init__(self, directory) -> None:
-
-        self.filepath = pathlib.Path(directory) / "status.json"
+        self.filepath = pathlib.Path(directory) / "status.txt"
         self.status_dict = {}
         if self.filepath.exists():
-            self.read_status()
+            self.status_dict = self.read_status()
         else:
-            self.status_dict = self.default_dict
+            self.status_dict = {
+                'gs_inp': 0,
+                'td_inp': 0,
+                'gs_cal': 0,
+                'td_cal': 0
+            }
         self.update_status()
 
     def read_status(self):
-        """ reads the status object from json file & updates the status dictionary"""
-
-        with open(self.filepath) as f:
-            data_dict = json.load(f)
+        with open(self.filepath, 'r') as f:
+            data = f.read()
+            data_dict = json.loads(data)
             self.status_dict.update(data_dict)
-            
-    def update_status(self, path:str =None, value=None):
-        """ updates the status dictionary and writes to json file
-         if path(string of keys separated by '.') and value are given"""
+            return(self.status_dict)
 
-        if path is None and value is None:
-            dict2json(self.status_dict, self.filepath)
+    def update_status(self, key=None, value=None):
+        if key is None and value is None:
+            dict2file(self.status_dict, self.filepath)
         else:
-            obj = self.status_dict
-            list = path.split('.')
-            for i in range(len(list)):
-                for key in obj.keys():
-                    if key == list[i]:
-                        if isinstance(obj[key],dict):
-                            obj =obj[key]               
-                        else:
-                            obj[key] = value 
+            self.status_dict[key] = value
+            dict2file(self.status_dict, self.filepath)
+            return(self.status_dict)
 
-            dict2json(self.status_dict, self.filepath)
-
-    def get_status(self,path:str):
-        """returns the value from the nested dictionary 
-        with path(string of keys separated by '.')"""
-
-        self.read_status()
+    def check_status(self, key, value):
         try:
-            obj = self.status_dict
-            list = path.split('.')
-            for i in range(len(list)):
-                key = list[i] 
-                obj = obj[key]   
-            return obj
-        except KeyError:
-            raise KeyError("Key not found")  
-
-    def check_status(self, path, value):
-        """ returns boolean value if given path(keys separated by '.') and value match"""
-
-        try:
-            if self.get_value(path) == value:
+            if self.status_dict[key] == value:
                 return True
             else:
                 return False
         except KeyError:
-            return False            
-
+            return False                   
+       
 
 class file_check:
     def __init__(self, check_list:list, dir) -> None:
@@ -129,10 +62,26 @@ class file_check:
                 break    
         return(check)
 
+    # gpaw_gs_dict={'inp':'gs.py',
+    #          'out': 'gs.out',
+    #          'check_list':['Converged', 'Fermi level:','Total:']}
+
+    # gpaw_td_dict={'inp':'td.py',
+    #          'out': 'tdx.out',
+    #          'check_list':['Writing','Total:']}
+
+    # gpaw_pulse_dict={'inp':'td_pulse.py',
+    #          'out': 'tdpulse.out',
+    #          'check_list':['Writing','Total:']}
+
+def dict2file(dictname, filename):
+    filepath = pathlib.Path(filename)
+    with open(filepath, 'w') as status_file:
+        status_file.write(json.dumps(dictname))
+
 
 def search_string(directory, filename, string):
     """ Checks if a string is present in the file and returns boolean"""
-
     inf = str(directory) + '/' + str(filename)
     inf = pathlib.Path(inf)
     if string in open(inf).read():
@@ -141,13 +90,20 @@ def search_string(directory, filename, string):
         return False
 
 
-def show_message(label_name, message):
-    """ Shows a update """
+def open_file(outpath):
+    text_file = filedialog.askopenfilename(
+        initialdir="./", title="Select File", filetypes=((" Text Files", "*.xyz"),))
+    text_file = open(text_file, 'r')
+    stuff = text_file.read()
+    out_file = open(pathlib.Path(outpath) / "coordinate.xyz", 'w')
+    out_file.write(stuff)
+    text_file.close()
+    out_file.close()
 
+
+def show_message(label_name, message):
+    """
+    Shows a update
+    """
     label_name['text'] = message
     label_name['foreground'] = 'black'
-
-def dict2json(dictname, filename):
-    filepath = pathlib.Path(filename)
-    with open(filepath, 'w') as file:
-        json.dump(obj=dictname, fp=file, indent= 3)
