@@ -1701,6 +1701,7 @@ class LaserDesignPage(tk.Frame):
         #self.button_refresh()
 
     def show_laser_plot(self, figure):
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
         self.Frame3 = tk.Frame(self)
         self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
@@ -1719,7 +1720,7 @@ class LaserDesignPage(tk.Frame):
     #     from litesoph.utilities.units import au_to_fs
     #     import numpy as np
     #     from matplotlib.figure import Figure
-        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
+       
     #     figure = Figure(figsize=(5, 3), dpi=100)
     #     data_ej = np.loadtxt(filename) 
     #     #plt.figure(figsize=(5, 3), dpi=100)
@@ -1745,7 +1746,7 @@ class LaserDesignPage(tk.Frame):
         self.Frame3.canvas._tkcanvas.pack(side= tk.TOP,fill ='both')
         #plt.savefig('pulse.png')
 
-    def button_refresh(self):
+    def activate_td_frame(self):
         #self.st_var = self.controller.status 
         #if self.st_var.check_status('td_inp', 2):
         self.Frame2.tkraise() 
@@ -1753,7 +1754,8 @@ class LaserDesignPage(tk.Frame):
         self.Frame2_Button2.config(state='active') 
         self.Frame2_Button3.config(state='active') 
                
-
+    def destroy_plot(self):
+        self.Frame3.destroy()
     # def choose_laser(self):
     #     check = messagebox.askyesno(message= "Do you want to proceed with this laser set up?")
     #     if check is True:
@@ -2147,7 +2149,7 @@ class TcmPage(tk.Frame):
     def freq_plot(self):
         for i in self.listbox.curselection():
             self.tcm.plot(self.tcm_dict, i)  
-                  
+
 class JobSubPage(tk.Frame):
 
     def __init__(self, parent, task, *args, **kwargs):
@@ -2454,7 +2456,6 @@ class TextViewerPage(tk.Frame):
  
     def save(self):
         self.save_txt = self.text_view.get(1.0, tk.END)
-        print(self.task_name)
         self.event_generate(f'<<Save{self.task_name}>>')
     
     def back_button(self):
