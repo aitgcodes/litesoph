@@ -21,7 +21,7 @@ from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV, au_to_fs
 # print("sigma time : ", tau_0)
 # print("pulse centre :", t0)
 
-def laser_design(strength, inval, tin, fwhm):
+def laser_design(inval, tin, fwhm):
     import math
     tin = 0.0 
     fwhm = fwhm*eV_to_au
@@ -33,9 +33,9 @@ def laser_design(strength, inval, tin, fwhm):
     #tau_0 = fs_to_eV/tau_0                           # converted from fms to eV
     tau_0 = tau_0
     laser = {}
-    laser['strength'] = strength
-    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of eV                     
-    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of fms
+    
+    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                     
+    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of au
     return(laser)
 
 class GaussianPulse:
