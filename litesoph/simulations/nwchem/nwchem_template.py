@@ -5,7 +5,8 @@ from typing import Any, Dict
 #################################### Starting of Optimisastion default and template ################
 
 class NwchemOptimisation:
- 
+
+    NAME = 'optimize.nwi'
     default_opt_param= {
             'mode':'gaussian',
             'charge': 0,
@@ -102,6 +103,7 @@ end
 
 class NwchemGroundState:
 
+    NAME = 'gs.nwi'
 
     default_gs_param = {
             'mode':'gaussian',
@@ -198,6 +200,8 @@ end
 #################################### Starting of Delta Kick default and template ################
 
 class NwchemDeltaKick: 
+
+    NAME = 'td.nwi'
 
     default_delta_param= {
             'name': None,
@@ -326,6 +330,8 @@ task dft rt_tddft
 
 class NwchemGaussianPulse:
    
+    NAME = 'tdlaser.nwi'
+    
     default_gp_param= {
             'name': None,
             'title':None,

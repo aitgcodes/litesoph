@@ -4,6 +4,7 @@ import json
 
 from typing import Any, Dict
 from litesoph.simulations.engine import EngineStrategy, EngineGpaw,EngineNwchem,EngineOctopus
+from litesoph.lsio.data_types import DataTypes as  DT
 
 class WorkManagerModel:
     
@@ -91,6 +92,69 @@ class GroundStateModel:
             return list_engine[2]
         else:
             raise ValueError('engine not implemented')
+
+class LaserDesginModel:
+
+    laser_input = {
+
+        "strength": {'req' : True, 'type': DT.decimal},
+        "inval" : {'req' : True, 'type': DT.decimal},
+        #"pol_x": {'req' : True, 'type': DT.integer},
+        #"pol_y" : {'req' : True, 'type': DT.integer},
+        #"pol_z" : {'req' : True, 'type': DT.integer},
+        "fwhm" : {'req' : True, 'type': DT.decimal},
+        "frequency" : {'req' : True, 'type': DT.decimal},
+        "time_step" : {'req' : True, 'type': DT.decimal},
+        "number_of_steps": {'req' : True, 'type': DT.decimal},
+        "tin" : {'req' : True, 'type': DT.decimal}
+        
+        }
+    def __init__(self, user_input) -> None:
+        self.user_input = user_input
+    
+    def laser_pulse(self):
+        l_dict = self.laser_calc()
+        l_dict['frequency'] = self.freq.get()
+        l_dict['time0'] ="{}e3".format(l_dict['time0'])
+        range = int(self.ns.get())* float(self.ts.get())
+        l_dict['range'] = range
+        l_dict['sincos'] = 'sin'
+        return(l_dict)  
+
+    def laser_calc(self, strength, inval, tin, fwhm):
+        from litesoph.pre_processing.laser_design import laser_design
+        l_dict = laser_design(strength, inval, tin , fwhm )
+        return(l_dict)
+    
+    def write_laser(self,laser_input:dict, filename, directory):
+
+        from litesoph.pre_processing.laser_design import GaussianPulse
+        import numpy as np
+
+        self.filename = filename + ".dat"
+        filename = pathlib.Path(directory) / filename
+        pulse = GaussianPulse(float(laser_input['strength']), float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])
+        pulse.write(filename, np.arange(laser_input['range']))
+
+    def plot(self, x_data, y_data, x_label, y_label):
+        from litesoph.utilities.units import au_to_fs
+        import numpy as np
+        from matplotlib.figure import Figure
+        figure = Figure(figsize=(5, 3), dpi=100)
+        #data_ej = np.loadtxt(filename) 
+        #plt.figure(figsize=(5, 3), dpi=100)
+
+        self.ax = figure.add_subplot(1, 1, 1)
+        self.ax.plot(x_data*au_to_fs, y_data, 'k')
+        self.ax.spines['right'].set_visible(False)
+        self.ax.spines['top'].set_visible(False)
+        self.ax.yaxis.set_ticks_position('left')
+        self.ax.xaxis.set_ticks_position('bottom')
+        self.ax.set_xlabel(x_label)
+        self.ax.set_ylabel(y_label)
+
+        return figure
+
 
 class TextVewerModel:
 

@@ -26,7 +26,7 @@ def get_mpi_command(engine: EngineStrategy, configs: ConfigParser):
         try:
             mpi = configs.get('mpi', name)
         except NoOptionError:
-            print("engine specific mpi is not given first option from mpi section will used.")
+            print("Engine specific mpi is not given, first option from mpi section will be used.")
             mpi = list(configs.items('mpi'))[0][1]
         finally:
             return mpi
