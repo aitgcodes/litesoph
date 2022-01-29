@@ -1,3 +1,4 @@
+from re import I
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
@@ -1423,7 +1424,7 @@ class TimeDependentPage(tk.Frame):
 
         self.entry_proj = tk.Entry(self.Frame1,textvariable= self.Nt)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"200")
+        self.Nt.set(200)
         self.entry_proj.place(x=280,y=310)
         
         Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
@@ -1487,12 +1488,18 @@ class TimeDependentPage(tk.Frame):
             'strength': self.strength.get(),
             'e_pol': [self.ex.get(),self.ey.get(),self.ez.get()] 
           }
+
+        td_dict_nwchem = {
+            'tmax': self.Nt.get() * self.dt.get(),
+            'dt': 0.2,
+            'max':self.strength.get(),
+            'e_pol': [self.ex.get(),self.ey.get(),self.ez.get()]
+            }
         
         if self.engine == 'gpaw':
-            print(td_dict_gp)
             return td_dict_gp
         elif self.engine == 'nwchem':
-            pass
+            return td_dict_nwchem
         elif self.engine == 'octopus':
             return td_dict_oct            
 

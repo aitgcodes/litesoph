@@ -75,12 +75,14 @@ class AITG(tk.Tk):
         self._show_frame(v.StartPage, self.lsroot)
     
     
-    def _status_init(self):
+    def _status_init(self, path):
         """Initializes the status object."""
         try:
-            self.status = Status(self.directory)
+            self.status = Status(path)
         except Exception as e:
-            raise Exception(f'.status.json file might be corrupted. Error: {e}')
+            raise Exception(f'status.json file might be corrupted. Error: {e}')
+        else:
+            return True
 
     def _get_engine(self):
         self.engine = self.status.get_status('engine')
@@ -156,14 +158,19 @@ class AITG(tk.Tk):
         self.directory = pathlib.Path(path)
         os.chdir(self.directory) 
 
+    def _init_project(self, path):
+        if not self._status_init(path):       
+            messagebox.showerror(message=f'status.json file might be corrupted. Unable to open the open {project_name.name}')
+            return
+        self._change_directory(path)
+        self.refresh_nav(self.directory)
+        self._get_engine()
+
     def _on_open_project(self, event):
         """creates dialog to get porject path and opens existing project"""
-        print(event)
-        project_name = filedialog.askdirectory(title= "Select the existing Litesoph Project")
-        self._change_directory(project_name)
-        self.refresh_nav(self.directory)
-        self._status_init()
-        self._get_engine()
+        project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
+        self._init_project(project_path)
+       
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
@@ -176,11 +183,7 @@ class AITG(tk.Tk):
             create_dir = messagebox.askokcancel('directory exists', f"The directory {project_path} already exists \n do you want to open the project?")
         
             if create_dir:
-                self._change_directory(project_path)
-                self.refresh_nav(self.directory)
-                self._status_init()
-                self._get_engine()
-                
+               self._init_project(project_path)   
             return
         
         try:
@@ -292,7 +295,6 @@ class AITG(tk.Tk):
             text_veiw.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_veiw.save_txt))
             text_veiw.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
 
-
     def _validate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
         engine = inp_dict['engine']
@@ -309,6 +311,10 @@ class AITG(tk.Tk):
         confirm_engine = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(self.ground_state_task.engine_name))
         if confirm_engine is True:
             self.engine = self.ground_state_task.engine_name
+            try:
+                self.ground_state_task.engine.create_restart_dir()
+            except AttributeError:
+                pass
             self.ground_state_task.write_input(template)
             self.status.update_status('engine', self.engine)
             self.status.update_status(f'{self.engine}.ground_state.inp', 1)
@@ -354,6 +360,7 @@ class AITG(tk.Tk):
 
     def _validate_td_input(self):
         inp_dict = self.rt_tddft_delta_view.get_parameters()
+        print(inp_dict)
         self.rt_tddft_delta_task.set_engine(self.engine)
         self.rt_tddft_delta_task.set_task('rt_tddft_delta', inp_dict)
         self.rt_tddft_delta_task.create_template()
@@ -362,7 +369,7 @@ class AITG(tk.Tk):
     def _td_create_input(self, template=None):     
         self.rt_tddft_delta_task.write_input(template)
         self.status.update_status(f'{self.engine}.rt_tddft_delta.inp', 1)
-        self.status.update_status(f'{self.engine}.rt_tddft_delta.inp',self.ground_state_task.user_input)
+        self.status.update_status(f'{self.engine}.rt_tddft_delta.inp',self.rt_tddft_delta_task.user_input)
         self.rt_tddft_delta_view.set_label_msg('saved')
         self.check = False
 
@@ -468,7 +475,7 @@ class AITG(tk.Tk):
                 messagebox.showerror(message="Job exited with non-zero return code.")
             else:
                 messagebox.showinfo(message='Job completed successfully!')
-                self.status(f'{self.engine}.{task.task_name}.cal', 1)
+                self.status.update_status(f'{self.engine}.{task.task_name}.cal', 1)
 
 
         
