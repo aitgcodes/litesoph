@@ -40,7 +40,8 @@ class Status():
                      },       
                         },
     
-        'nwchem':{'ground_state':{  'state': 0,
+        'nwchem':{'restart' : None,
+                'ground_state':{  'state': 0,
                         'param':{},
                         'inp': 0,
                         'cal': 0
