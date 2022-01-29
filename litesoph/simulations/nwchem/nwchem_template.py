@@ -9,7 +9,8 @@ class NwchemOptimisation:
     NAME = 'optimize.nwi'
     default_opt_param= {
             'mode':'gaussian',
-            'pr_dir':'',
+            'name':'gs',
+            'permanent_dir':'',
             'charge': 0,
             'basis': '6-31g',
             'geometry':'coordinate.xyz',
@@ -25,9 +26,9 @@ class NwchemOptimisation:
    
  
     opt_temp = """echo
-start gs
+start {name}
 
-permanent_dir {pr_dir}
+permanent_dir {permanent_dir}
 title "LITESOPH NWCHEM Optimisation"
 
 charge {charge}
@@ -78,7 +79,8 @@ class NwchemGroundState:
 
     default_gs_param = {
             'mode':'gaussian',
-            'pr_dir':'',
+            'name':'gs',
+            'permanent_dir':'',
             'geometry':'coordinate.xyz',
             'charge': 0,
             'basis': '6-31g',
@@ -93,9 +95,9 @@ class NwchemGroundState:
             } 
 
     gs_temp = """echo
-start gs
+start {name}
 
-permanent_dir {pr_dir}
+permanent_dir {permanent_dir}
 title "LITESOPH NWCHEM Calculations"
 
 charge {charge}
@@ -178,21 +180,19 @@ class NwchemDeltaKick:
     NAME = 'td.nwi'
 
     default_delta_param= {
-            'pr_dir':'',
+            'name':'gs',
+            'permanent_dir':'',
             'geometry':'coordinate.xyz',
             'tmax': 200.0,
             'dt': 0.2,
             'max':0.0001,
-            'polx':None,
-            'poly':'y',
-            'polz':None, 
-            'kick':None,
+            'e_pol':[1,0,0],
             }
      
     delta_temp = """echo
-restart gs
+restart {name}
 
-permanent_dir {pr_dir}
+permanent_dir {permanent_dir}
 title "LITESOPH NWCHEM Delta Kick Calculations"
 
 geometry "system" units angstroms nocenter noautoz noautosym 
@@ -212,7 +212,6 @@ set geometry "system"
     def kickx(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
         max = self.user_input['max']
         x_kick = """
 rt_tddft
@@ -223,7 +222,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization x
     max {}
   end
 
@@ -231,13 +230,12 @@ rt_tddft
   print dipole
 end
 task dft rt_tddft
-    """.format(tmax, dt, polx, max)
+    """.format(tmax, dt, max)
         return x_kick
 
     def kicky(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        poly = self.user_input['poly']
         max = self.user_input['max']
         y_kick = """
 rt_tddft
@@ -248,7 +246,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization y
     max {}
   end
 
@@ -256,13 +254,12 @@ rt_tddft
   print dipole
 end
 task dft rt_tddft
-    """.format(tmax, dt, poly, max)
+    """.format(tmax, dt, max)
         return y_kick
 
     def kickz(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polz = self.user_input['polz']
         max = self.user_input['max']
         z_kick = """
 rt_tddft
@@ -273,7 +270,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization z
     max {}
   end
 
@@ -281,14 +278,12 @@ rt_tddft
   print dipole
 end
 task dft rt_tddft
-    """.format(tmax, dt, polz, max)
+    """.format(tmax, dt, max)
         return z_kick
 
     def kickxy(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
-        poly = self.user_input['poly']
         max = self.user_input['max']
         xy_kick = """
 
@@ -300,8 +295,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
-
+    polarization x 
     max {}
   end
 
@@ -319,9 +313,8 @@ rt_tddft
   tag "kick_y"
 
   field "kick"
-
     type delta
-    polarization {}
+    polarization y
     max {}
   end
 
@@ -330,14 +323,12 @@ rt_tddft
 end
 
 task dft rt_tddft
-    """.format(tmax, dt, polx, max, tmax, dt, poly, max)
+    """.format(tmax, dt, max, tmax, dt, max)
         return xy_kick
 
     def kickyz(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        poly = self.user_input['poly']
-        polz = self.user_input['polz']
         max = self.user_input['max']
         yz_kick = """
 rt_tddft
@@ -348,7 +339,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization y
     max {}
   end
 
@@ -366,7 +357,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization z
     max {}
   end
 
@@ -375,16 +366,14 @@ rt_tddft
 end
 
 task dft rt_tddft
-    """.format(tmax, dt, poly, max, tmax, dt, polz, max)
+    """.format(tmax, dt, max, tmax, dt, max)
         return yz_kick
 
     def kickxz(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
-        polz = self.user_input['polz']
         max = self.user_input['max']
-        yz_kick = """
+        xz_kick = """
 rt_tddft
   tmax {}
   dt {}
@@ -393,7 +382,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization x 
     max {}
   end
 
@@ -411,7 +400,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization z
     max {}
   end
 
@@ -420,15 +409,12 @@ rt_tddft
 end
 
 task dft rt_tddft
-    """.format(tmax, dt, polx, max, tmax, dt, polz, max)
+    """.format(tmax, dt, max, tmax, dt, max)
         return xz_kick
 
     def kickxyz(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
-        poly = self.user_input['poly']
-        polz = self.user_input['polz']
         max = self.user_input['max']
         xyz_kick = """
 rt_tddft
@@ -439,7 +425,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization x
     max {}
   end
 
@@ -457,7 +443,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization y
     max {}
   end
 
@@ -475,7 +461,7 @@ rt_tddft
 
   field "kick"
     type delta
-    polarization {}
+    polarization z
     max {}
   end
 
@@ -484,23 +470,23 @@ rt_tddft
 end
 
 task dft rt_tddft
-    """.format(tmax, dt, polx, max, tmax, dt, poly, max, tmax, dt, polz, max)
+    """.format(tmax, dt, max, tmax, dt, max, tmax, dt, max)
         return xyz_kick
 
     def kick_task(self):
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == None and self.user_input['polz'] == None:
+        if self.user_input['e_pol'] == [1,0,0]:
             self.user_input['kick'] = self.kickx()
-        if self.user_input['polx'] == None and self.user_input['poly'] == 'y' and self.user_input['polz'] == None:
+        if self.user_input['e_pol'] == [0,1,0]:
             self.user_input['kick'] = self.kicky()
-        if self.user_input['polx'] == None and self.user_input['poly'] == None and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [0,0,1]:
             self.user_input['kick'] = self.kickz()
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == 'y' and self.user_input['polz'] == None:
+        if self.user_input['e_pol'] == [1,1,0]:
             self.user_input['kick'] = self.kickxy()
-        if self.user_input['polx'] == None and self.user_input['poly'] == 'y' and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [0,1,1]:
             self.user_input['kick'] = self.kickyz()
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == None and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [1,0,1]:
             self.user_input['kick'] = self.kickxz() 
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == 'y' and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [1,1,1]:
             self.user_input['kick'] = self.kickxyz()
 
     def format_template(self):
@@ -515,24 +501,22 @@ class NwchemGaussianPulse:
     NAME = 'tdlaser.nwi'
     
     default_gp_param= {
-            'pr_dir':'',
+            'name':'gs',
+            'permanent_dir':'',
             'geometry':'coordinate.xyz',
             'tmax': 200.0,
             'dt': 0.2,
-            'polx': None,
-            'poly': None,
-            'polz': None,
+            'e_pol':[1,0,0],
             'max':0.0001,
             'freq': '',
             'center': '',
             'width': '',
-            'pulse': None,
             }
 
     gp_temp = """echo
-restart gs
+restart {name}
 
-permanent_dir {pr_dir}
+permanent_dir {permanent_dir}
 title "LITESOPH NWCHEM Gaussian Pulse Calculation"
 
 geometry "system" units angstroms nocenter noautoz noautosym
@@ -552,7 +536,6 @@ set geometry "system"
     def pulsex(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
         max = self.user_input['max']
         freq = self.user_input['freq']
         center = self.user_input['center']
@@ -564,7 +547,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization x
     frequency {} 
     center {}  
     width {}     
@@ -575,14 +558,13 @@ end
 
 task dft rt_tddft
   
-    """.format(tmax, dt, polx, freq, center, width, max)
+    """.format(tmax, dt, freq, center, width, max)
         return x_pulse
 
  
     def pulsey(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        poly = self.user_input['poly']
         max = self.user_input['max']
         freq = self.user_input['freq']
         center = self.user_input['center']
@@ -594,7 +576,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization y
     frequency {} 
     center {}  
     width {}     
@@ -606,13 +588,12 @@ end
 task dft rt_tddft
   
   
-    """.format(tmax, dt, poly, freq, center, width, max)
+    """.format(tmax, dt, freq, center, width, max)
         return y_pulse
 
     def pulsez(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polz = self.user_input['polz']
         max = self.user_input['max']
         freq = self.user_input['freq']
         center = self.user_input['center']
@@ -624,7 +605,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization z
     frequency {} 
     center {}  
     width {}     
@@ -636,14 +617,12 @@ end
 task dft rt_tddft
   
   
-    """.format(tmax, dt, polz, freq, center, width, max)
+    """.format(tmax, dt, freq, center, width, max)
         return z_pulse
     
     def pulsexy(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
-        poly = self.user_input['poly']
         max = self.user_input['max']
         freq = self.user_input['freq']
         center = self.user_input['center']
@@ -655,7 +634,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization x 
     frequency {} 
     center {}  
     width {}     
@@ -672,7 +651,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization y
     frequency {} 
     center {}  
     width {}     
@@ -683,14 +662,12 @@ end
 
 task dft rt_tddft
 
-      """.format(tmax, dt, polx, freq, center, width, max, tmax, dt, poly, freq, center, width, max)
+      """.format(tmax, dt, freq, center, width, max, tmax, dt, freq, center, width, max)
         return xy_pulse
 
     def pulseyz(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        poly = self.user_input['poly']
-        polz = self.user_input['polz']
         max = self.user_input['max']
         freq = self.user_input['freq']
         center = self.user_input['center']
@@ -702,7 +679,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization y
     frequency {} 
     center {}  
     width {}     
@@ -719,7 +696,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization z
     frequency {} 
     center {}  
     width {}     
@@ -731,14 +708,12 @@ end
 task dft rt_tddft
 
   
-    """.format(tmax, dt, poly, freq, center, width, max, tmax, dt, polz, freq, center, width, max)
+    """.format(tmax, dt, freq, center, width, max, tmax, dt, freq, center, width, max)
         return yz_pulse
   
     def pulsexz(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
-        polz = self.user_input['polz']
         max = self.user_input['max']
         freq = self.user_input['freq']
         center = self.user_input['center']
@@ -750,7 +725,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization x 
     frequency {} 
     center {}  
     width {}     
@@ -767,7 +742,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization z
     frequency {} 
     center {}  
     width {}     
@@ -778,15 +753,12 @@ end
 
 task dft rt_tddft
 
-      """.format(tmax, dt, polx, freq, center, width, max, tmax, dt, polz, freq, center, width, max)
+      """.format(tmax, dt, freq, center, width, max, tmax, dt, freq, center, width, max)
         return xz_pulse
  
     def pulsexyz(self):
         tmax = self.user_input['tmax']
         dt = self.user_input['dt']
-        polx = self.user_input['polx']
-        poly = self.user_input['poly']
-        polz = self.user_input['polz']
         max = self.user_input['max']
         freq = self.user_input['freq']
         center = self.user_input['center']
@@ -798,7 +770,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization x 
     frequency {} 
     center {}  
     width {}     
@@ -815,7 +787,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization y
     frequency {} 
     center {}  
     width {}     
@@ -832,7 +804,7 @@ rt_tddft
 
   field "gpulse"
     type gaussian
-    polarization {}
+    polarization z
     frequency {} 
     center {}  
     width {}     
@@ -843,23 +815,23 @@ end
 
 task dft rt_tddft
   
-    """.format(tmax, dt, polx, freq, center, width, max, tmax, dt, poly, freq, center, width, max, tmax, dt, polz, freq, center, width, max)
+    """.format(tmax, dt, freq, center, width, max, tmax, dt, freq, center, width, max, tmax, dt, freq, center, width, max)
         return xyz_pulse
 
     def pulse_task(self):
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == None and self.user_input['polz'] == None:
+        if self.user_input['e_pol'] == [1,0,0]:
             self.user_input['pulse'] = self.pulsex()
-        if self.user_input['polx'] == None and self.user_input['poly'] == 'y' and self.user_input['polz'] == None:
+        if self.user_input['e_pol'] == [0,1,0]:
             self.user_input['pulse'] = self.pulsey()
-        if self.user_input['polx'] == None and self.user_input['poly'] == None and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [0,0,1]:
             self.user_input['pulse'] = self.pulsez()
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == 'y' and self.user_input['polz'] == None:
+        if self.user_input['e_pol'] == [1,1,0]:
             self.user_input['pulse'] = self.pulsexy()
-        if self.user_input['polx'] == None and self.user_input['poly'] == 'y' and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [0,1,1]:
             self.user_input['pulse'] = self.pulseyz()
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == None and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [1,0,1]:
             self.user_input['pulse'] = self.pulsexz() 
-        if self.user_input['polx'] == 'x' and self.user_input['poly'] == 'y' and self.user_input['polz'] == 'z':
+        if self.user_input['e_pol'] == [1,1,1]:
             self.user_input['pulse'] = self.pulsexyz()
 
     def format_template(self):
