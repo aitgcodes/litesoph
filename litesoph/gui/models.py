@@ -122,7 +122,7 @@ class LaserDesignModel:
         l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])
         laser_input = {
             'frequency': self.user_input['frequency'],
-            'sigma': round(l_design['sigma']*autime_to_eV, 2),
+            'sigma': round(autime_to_eV/l_design['sigma'], 2),
             'time0': round(l_design['time0']*au_to_as, 2) ,       
             'sincos': 'sin'
         }
@@ -153,22 +153,21 @@ class LaserDesignModel:
         return fig 
 
 def plot(x_data, y_data, x_label, y_label):
-    from litesoph.utilities.units import au_to_fs
-    from matplotlib.figure import Figure
-
-    figure = Figure(figsize=(5, 3), dpi=100)
+    """ returns Figure object given x and y data """
+    from matplotlib.figure import Figure  
+    figure = Figure(figsize=(5, 3), dpi=100)  
+      
     ax = figure.add_subplot(1, 1, 1)
-    ax.plot(x_data*au_to_fs, y_data, 'k')
+    ax.plot(x_data, y_data, 'k')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
+ 
+    return figure    
 
-    return figure
-
-    
 
 class TextViewerModel:
 
