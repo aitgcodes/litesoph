@@ -51,6 +51,8 @@ class AITG(tk.Tk):
        
         self.nav = None
         self.refresh_nav(self.directory)
+
+        self.status = None
         
         self.check = None
         self._window = Frame(self)
@@ -79,14 +81,21 @@ class AITG(tk.Tk):
         """Initializes the status object."""
         try:
             self.status = Status(path)
+            print(self.status.status_dict)
         except Exception as e:
-            raise Exception(f'status.json file might be corrupted. Error: {e}')
+            messagebox.showerror(message=f'status.json file might be corrupted. Unable to open the open {path.name}. error {e}')
+            return False
         else:
             return True
 
     def _get_engine(self):
-        self.engine = self.status.get_status('engine')
-        self.status_bar.set(self.engine)
+        try:
+            self.engine = self.status.get_status('engine')
+        except KeyError:
+            self.engine = None
+            self.status_bar.set('')
+        else:
+            self.status_bar.set(self.engine)
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -159,16 +168,19 @@ class AITG(tk.Tk):
         os.chdir(self.directory) 
 
     def _init_project(self, path):
+        
+        self.engine = None
+        path = pathlib.Path(path)
         if not self._status_init(path):       
-            messagebox.showerror(message=f'status.json file might be corrupted. Unable to open the open {project_name.name}')
             return
         self._change_directory(path)
         self.refresh_nav(self.directory)
         self._get_engine()
 
-    def _on_open_project(self, event):
+    def _on_open_project(self, *_):
         """creates dialog to get porject path and opens existing project"""
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
+        self._frames[v.WorkManagerPage].update_project_entry(project_path)
         self._init_project(project_path)
        
         
@@ -193,18 +205,18 @@ class AITG(tk.Tk):
         except FileExistsError as e:
             messagebox.showerror(e)
         else:
+            #self._frames[v.WorkManagerPage].update_project_entry(project_path)
+            self._init_project(project_path)
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
-            self._frames[v.WorkManagerPage].update_project_entry(project_path)
-            self._change_directory(project_path)
-            self.refresh_nav(self.directory)
-            self._status_init()
-            self.engine = None
-            self.status_bar.set(' ')
             
         
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
-        self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
+        try:
+            self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
+        except Exception as e:
+            print(e)
+            return
         proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
         shutil.copy(self.geometry_file, proj_path)
         
@@ -220,7 +232,7 @@ class AITG(tk.Tk):
 
     def _on_task_select(self, *_):
         
-        sub_task = self._frames[v.WorkManagerPage].sub_task.get()
+        sub_task = self._frames[v.WorkManagerPage].get_sub_task()
 
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
@@ -239,6 +251,7 @@ class AITG(tk.Tk):
         elif sub_task.get() == "Kohn Sham Decomposition":
                self.event_generate('<<ShowTcmPage>>')    
 
+        self._frames[v.WorkManagerPage].refresh_var()
     # def _on_task_select(self, *_):
         
     #     sub_task = self._frames[v.WorkManagerPage].sub_task.get()
@@ -278,6 +291,8 @@ class AITG(tk.Tk):
     def _on_ground_state_task(self, *_):
         self._show_frame(v.GroundStatePage, self)
         self.ground_state_view = self._frames[v.GroundStatePage]
+        self.ground_state_view.refresh_var()
+        self.ground_state_view.set_label_msg('')
         self.ground_state_task = Task(self.status, self.directory)
 
         self.bind('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
@@ -318,7 +333,7 @@ class AITG(tk.Tk):
             self.ground_state_task.write_input(template)
             self.status.update_status('engine', self.engine)
             self.status.update_status(f'{self.engine}.ground_state.inp', 1)
-            self.status.update_status(f'{self.engine}.ground_state.inp',self.ground_state_task.user_input)
+            self.status.update_status(f'{self.engine}.ground_state.param',self.ground_state_task.user_input)
             self.status_bar.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
         else:
@@ -331,6 +346,7 @@ class AITG(tk.Tk):
         except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
+            self.ground_state_view.refresh_var()
             self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
 
@@ -369,7 +385,7 @@ class AITG(tk.Tk):
     def _td_create_input(self, template=None):     
         self.rt_tddft_delta_task.write_input(template)
         self.status.update_status(f'{self.engine}.rt_tddft_delta.inp', 1)
-        self.status.update_status(f'{self.engine}.rt_tddft_delta.inp',self.rt_tddft_delta_task.user_input)
+        self.status.update_status(f'{self.engine}.rt_tddft_delta.param',self.rt_tddft_delta_task.user_input)
         self.rt_tddft_delta_view.set_label_msg('saved')
         self.check = False
 
@@ -437,7 +453,7 @@ class AITG(tk.Tk):
     def _td_laser_create_input(self, template=None):     
         self.rt_tddft_laser_task.write_input(template)
         self.status.update_status(f'{self.engine}.rt_tddft_laser.inp', 1)
-        self.status.update_status(f'{self.engine}.rt_tddft_laser.inp',self.ground_state_task.user_input)
+        self.status.update_status(f'{self.engine}.rt_tddft_laser.param',self.ground_state_task.user_input)
         self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 
