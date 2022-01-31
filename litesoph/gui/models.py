@@ -7,6 +7,13 @@ from litesoph.simulations.engine import EngineStrategy, EngineGpaw,EngineNwchem,
 from litesoph.lsio.data_types import DataTypes as  DT
 
 class WorkManagerModel:
+
+    _default_var = {
+            'proj_path' : ['str'],
+            'proj_name' : ['str'],
+            'task' : ['str', '--choose job task--'],
+            'sub_task' : ['str']
+        }
     
     def __init__(self) -> None:
         pass
@@ -72,6 +79,38 @@ class SettingsModel:
 class GroundStateModel:
     
     filename = "gs"
+
+    _default_var = {
+            'mode' : ['str', '--choose mode--'],
+            'xc' : ['str', ''],
+            'basis' : ['str', ''],
+            'charge': ['float', 0],
+            'maxiter' : ['int', 300],
+            'shape' : ['str', ''],
+            'spinpol' : ['str', 'None'],
+            'multip' : ['int', 1],
+            'h' : ['float', 0.23],
+            'nbands' : ['int'],
+            'vacuum' : ['float', 6],
+            'energy' : ['float', 5.0e-7],
+            'density' : ['float'],
+            'bands' : ['str'],
+            'theory' : ['str'],
+            'tolerances' : ['str'],
+            'lx' : ['float'],
+            'ly' : ['float'],
+            'lz' : ['float'],
+            'r' : ['float'],
+            'l' : ['float'],
+            'dxc' : ['int', 3],
+            'mix' : ['float', 0.3],
+            'eigen' : ['str'],
+            'smear' : ['float', 0.1],
+            'smearfn' : ['str'],
+            'unitconv' : ['str'],
+            'unit_box' : ['str', 'au']
+        
+        }
 
     def __init__(self) -> None:
         pass
