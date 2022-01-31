@@ -249,6 +249,9 @@ class WorkManagerPage(tk.Frame):
     def _geom_visual(self):
         self.event_generate('<<VisualizeMolecule>>')
     
+    def get_sub_task(self):
+        return self._var['sub_task'].get()
+        
     def refresh_var(self):
         for key, value in self._default_var.items():
             try:
