@@ -7,54 +7,159 @@ class Status():
 
     default_dict={
         'engine':'',
-        'gpaw':{'ground_state':{  'state': 0,
-                        'param':{},
+        'gpaw':{'ground_state':{ 
+                        'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        
                       },   
-                'rt_tddft_delta':{  'state': 0,
-                        'param':{},
+                'rt_tddft_delta':{
+                        'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
                      },
                 'rt_tddft_laser':{  'state': 0,
-                        'param':{},
+                        'param':'',
                         'inp': 0,
                         'cal': 0
                      },             
                         },
-        'octopus':{'ground_state':{  'state': 0,
-                        'param':{},
+        'octopus':{'ground_state':{ 
+                        'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
                       },   
-                'rt_tddft_delta':{  'state': 0,
-                        'param':{},
+                'rt_tddft_delta':{  
+                        'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
                       },
-                'rt_tddft_laser':{  'state': 0,
-                        'param':{},
+                'rt_tddft_laser':{  
+                        'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
                      },       
                         },
     
-        'nwchem':{'restart' : None,
-                'ground_state':{  'state': 0,
-                        'param':{},
+        'nwchem':{'restart' : '',
+                'ground_state':{  
+                         'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
                       },   
-                'rt_tddft_delta':{  'state': 0,
-                        'param':{},
+                'rt_tddft_delta':{  
+                        'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
                      },
-                'rt_tddft_laser':{  'state': 0,
-                        'param':{},
+                'rt_tddft_laser':{  
+                        'state': 0,
+                        'param':'',
                         'inp': 0,
-                        'cal': 0
+                        'sub_local':{
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
+                        'sub_network':{
+                            'project_path': '',
+                            'returncode' : None,
+                            'n_proc' : None,
+                            'restart' : '',
+                            'log' : ''
+                        },
                      },       
                         }                                
     }
@@ -66,7 +171,7 @@ class Status():
         if self.filepath.exists():
             self.read_status()
         else:
-            self.status_dict = self.default_dict
+            self.status_dict = self.default_dict.copy()
         self.update_status()
 
     def read_status(self):
@@ -81,7 +186,7 @@ class Status():
          if path(string of keys separated by '.') and value are given"""
 
         if path is None and value is None:
-            dict2json(self.status_dict, self.filepath)
+            self.dict2json(self.status_dict, self.filepath)
         else:
             obj = self.status_dict
             list = path.split('.')
@@ -93,7 +198,7 @@ class Status():
                         else:
                             obj[key] = value 
 
-            dict2json(self.status_dict, self.filepath)
+            self.dict2json(self.status_dict, self.filepath)
 
     def get_status(self,path:str):
         """returns the value from the nested dictionary 
@@ -119,7 +224,12 @@ class Status():
             else:
                 return False
         except KeyError:
-            return False            
+            return False         
+
+    def dict2json(self, dictname, filename):
+        filepath = pathlib.Path(filename)
+        with open(filepath, 'w') as file:
+            json.dump(obj=dictname, fp=file, indent= 3)   
 
 
 class file_check:
@@ -130,7 +240,7 @@ class file_check:
     def check_list(self, fname):
         for item in self.list[0:]:
             try:
-                check = search_string(self.dir, fname, item)
+                check = self.search_string(self.dir, fname, item)
                 if check is not True:
                     #print("{} is not found".format(item))
                     break
@@ -141,15 +251,16 @@ class file_check:
         return(check)
 
 
-def search_string(directory, filename, string):
-    """ Checks if a string is present in the file and returns boolean"""
+    def search_string(directory, filename, string):
+        """ Checks if a string is present in the file and returns boolean"""
 
-    inf = str(directory) + '/' + str(filename)
-    inf = pathlib.Path(inf)
-    if string in open(inf).read():
-        return True
-    else:
-        return False
+        filename = pathlib.Path(directory) / filename
+        with open(filename, 'r') as f:
+            text = f.read()
+            if string in text:
+                return True
+            else:
+                return False
 
 
 def show_message(label_name, message):
@@ -158,7 +269,4 @@ def show_message(label_name, message):
     label_name['text'] = message
     label_name['foreground'] = 'black'
 
-def dict2json(dictname, filename):
-    filepath = pathlib.Path(filename)
-    with open(filepath, 'w') as file:
-        json.dump(obj=dictname, fp=file, indent= 3)
+
