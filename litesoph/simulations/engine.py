@@ -80,10 +80,10 @@ class EngineGpaw(EngineStrategy):
         if task == "ground_state":
             return gp.GpawGroundState(user_param) 
         if task == "rt_tddft_delta":
-            user_param['gfilename']= self.gs['restart']
+            user_param['gfilename']= self.ground_state['restart']
             return gp.GpawRTLCAOTddftDelta(user_param)
         if task == "rt_tddft_laser":
-            user_param['gfilename']= self.gs['restart']
+            user_param['gfilename']= self.ground_state['restart']
             return gp.GpawRTLCAOTddftLaser(user_param)
         if task == "spectrum":
             return gp.GpawSpectrum(user_param) 

@@ -469,7 +469,10 @@ class AITG(tk.Tk):
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
         
-##----------------------Time_dependent_task---------------------------------
+##----------------------plot_delta_spec_task---------------------------------
+
+
+##----------------------plot_laser_spec_task---------------------------------
 
     def _init_text_veiwer(self,name, template, *_):
         #self._show_frame(v.TextViewerPage, self)

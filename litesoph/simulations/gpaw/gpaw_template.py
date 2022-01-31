@@ -177,7 +177,7 @@ class GpawRTLCAOTddftLaser:
                 'dipole_file':'dm.dat',
                 'wavefunction_file':'wf.ulm',
                 'analysis_tools': None,
-                'filename':'gs.gpw',
+                'gfilename':'gs.gpw',
                 'propagator':None,
                 'td_potential': None,
                 'fxc':None,
@@ -201,7 +201,7 @@ from gpaw.lcaotddft.laser import GaussianPulse
 pulse = GaussianPulse({strength},{time0}e3,{frequency},{sigma}, 'sin')
 ext = ConstantElectricField(Hartree / Bohr,{electric_pol} )
 td_potential = {{'ext': ext, 'laser': pulse}}
-td_calc = LCAOTDDFT(filename='{filename}',
+td_calc = LCAOTDDFT(filename='{gfilename}',
                     td_potential=td_potential,
                     txt='{txt}')
 DipoleMomentWriter(td_calc, '{dipole_file}')
