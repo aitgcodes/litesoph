@@ -2,7 +2,7 @@ from typing import Any, Dict
 import os
 import pathlib
 from configparser import ConfigParser
-from litesoph.simulations.engine import EngineStrategy
+from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
 from litesoph.utilities.job_submit import JobSubmit
 
 config_file = pathlib.Path.home() / "lsconfig.ini"
@@ -12,7 +12,65 @@ if config_file.is_file is False:
 configs = ConfigParser()
 configs.read(config_file)
 
+def get_engine_obj(engine)-> EngineStrategy:
+    """ It takes engine name and returns coresponding EngineStrategy class"""
+
+    list_engine = [EngineGpaw(),
+                    EngineOctopus(),
+                    EngineNwchem()]
+    if engine == 'gpaw':
+        return list_engine[0]
+    elif engine == 'octopus':
+        return list_engine[1]
+    elif engine == 'nwchem':
+        return list_engine[2]
+
 class Task:
+
+    def __init__(self,status, project_dir) -> None:
+        
+        self.status = status
+        self.engine_name = None
+        self.engine = None
+        self.project_dir = project_dir
+        self.task_dir = None
+        self.task_name = None
+        self.task = None
+        self.filename = None
+        self.template = None
+        self.task_state = None
+
+    def set_engine(self, engine):
+        self.engine_name = engine
+        self.engine = get_engine_obj(engine)
+
+    def set_task(self, task, user_input: Dict[str, Any], filename=None):
+        self.task_name = task
+        self.user_input = user_input
+        self.user_input['project_dir'] = str(self.project_dir)
+        self.task = self.engine.get_task_class(task, self.user_input)
+        if filename:
+            self.filename = filename
+        else:
+            self.filename = self.task.NAME
+        
+    def create_template(self):
+        if self.task:
+            self.template = self.task.format_template() 
+        else:
+            raise AttributeError('task is not set.')
+
+    def write_input(self, template=None):
+        
+        if template:
+            self.template = template
+        if not self.task_dir:
+            self.create_task_dir()
+        if not self.template:
+            msg = 'Template not given or created'
+            raise Exception(msg)
+        self.engine.create_script(self.task_dir, self.template,self.filename)
+        self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
 
     def create_task_dir(self):
         self.task_dir = self.engine.create_dir(self.project_dir, type(self.task).__name__)
@@ -54,26 +112,39 @@ class GroundState(Task):
     the user input parameters to engine specific parameters then creates the script file for that
     specific engine."""
 
-    def __init__(self, user_input: Dict[str, Any],engine: EngineStrategy,status, project_dir, filename) -> None:
+    def __init__(self,status, project_dir, filename='gs') -> None:
+        
         self.status = status
-        self.user_input = user_input
-        self.engine = engine
+        self.engine_name = None
+        self.engine = None
         self.project_dir = project_dir
         self.task_dir = None
         self.filename = filename
-        self.task = self.engine.get_task_class('ground state',self.user_input)
-        self.template = self.task.format_template()  
+        self.template = None
 
-    
+    def set_engine(self, engine):
+        self.engine_name = engine
+        self.engine = get_engine_obj(engine)
+
+    def create_template(self, user_input: Dict[str, Any] ):
+        self.user_input = user_input
+        self.task = self.engine.get_task_class('ground state',self.user_input)
+        self.template = self.task.format_template() 
+
     def write_input(self, template=None):
         
         if template:
             self.template = template
         if not self.task_dir:
             self.create_task_dir()
+        if not self.template:
+            msg = 'Template not given or created'
+            raise Exception(msg)
         self.engine.create_script(self.task_dir,self.filename, self.template)
         self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
         self.status.update_status('gs_inp', 1)
+        self.status.update_status('engine', self.engine_name)
+        self.status.update_status('gs_dict', self.user_input)
 
     def c_status(self):
         gs_check= self.status.check_status('gs_inp', 1) 
@@ -89,9 +160,9 @@ class GroundState(Task):
 
 class RT_LCAO_TDDFT(Task):
     
-    def __init__(self, user_input: Dict[str, Any], engine: EngineStrategy,status, project_dir, filename, keyword:str=None) -> None:
+    def __init__(self, user_input: Dict[str, Any], engine, status, project_dir, filename, keyword:str=None) -> None:
         self.user_input = user_input
-        self.engine = engine
+        self.engine = get_engine_obj(engine)
         self.keyword = keyword
         self.filename = filename
         self.status = status
@@ -103,9 +174,9 @@ class RT_LCAO_TDDFT(Task):
 
     def get_engine_task(self):
         if self.keyword == "delta":
-            return self.engine.get_task_class('LCAO TDDFT Delta', self.user_input)
+            return self.engine.get_task_class('LCAO TDDFT Delta', self.user_input, self.status)
         elif self.keyword == "laser":
-            return self.engine.get_task_class('LCAO TDDFT Laser', self.user_input)
+            return self.engine.get_task_class('LCAO TDDFT Laser', self.user_input, self.status)
 
     def write_input(self, template=None):
         
