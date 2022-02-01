@@ -330,8 +330,8 @@ class AITG(tk.Tk):
                 pass
             self.ground_state_task.write_input(template)
             self.status.update_status('engine', self.engine)
-            self.status.update_status(f'{self.engine}.ground_state.inp', 1)
-            self.status.update_status(f'{self.engine}.ground_state.param',self.ground_state_task.user_input)
+            self.status.update_status(f'{self.ground_state_task.task_name}.script', 1)
+            self.status.update_status(f'{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
             self.status_bar.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
         else:
@@ -383,8 +383,8 @@ class AITG(tk.Tk):
 
     def _td_create_input(self, template=None):     
         self.rt_tddft_delta_task.write_input(template)
-        self.status.update_status(f'{self.engine}.rt_tddft_delta.inp', 1)
-        self.status.update_status(f'{self.engine}.rt_tddft_delta.param',self.rt_tddft_delta_task.user_input)
+        self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.script', 1)
+        self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
         self.rt_tddft_delta_view.set_label_msg('saved')
         self.check = False
 
@@ -416,7 +416,7 @@ class AITG(tk.Tk):
 
     def _on_td_laser_save_button(self, *_):
         self._validate_td_laser_input()
-        self._td_create_input()
+        self._td_laser_create_input()
     
     def _on_desgin_laser(self, *_):
         laser_desgin_inp = self.rt_tddft_laser_view.get_laser_pulse()
@@ -443,6 +443,7 @@ class AITG(tk.Tk):
         text_veiw.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
 
     def _validate_td_laser_input(self):
+        self.rt_tddft_laser_view.set_laser_design_dict(self.laser_design.l_design)
         inp_dict = self.rt_tddft_laser_view.get_parameters()
         inp_dict['laser'] = self.laser_design.pulse.dict
         self.rt_tddft_laser_task.set_engine(self.engine)
@@ -452,8 +453,8 @@ class AITG(tk.Tk):
 
     def _td_laser_create_input(self, template=None):     
         self.rt_tddft_laser_task.write_input(template)
-        self.status.update_status(f'{self.engine}.rt_tddft_laser.inp', 1)
-        self.status.update_status(f'{self.engine}.rt_tddft_laser.param',self.ground_state_task.user_input)
+        self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.script', 1)
+        self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
         self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 
@@ -491,10 +492,13 @@ class AITG(tk.Tk):
             messagebox.showerror(message=f'There was an error when trying to run the job:{e}')
         else:
             if task.results[0] != 0:
-                messagebox.showerror(message="Job exited with non-zero return code.")
+                self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
+                messagebox.showerror(message=f"Job exited with non-zero return code. Error: {task.result[1]}")
             else:
+                self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
+                self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
                 messagebox.showinfo(message='Job completed successfully!')
-                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', 0)
+                
 
 
         

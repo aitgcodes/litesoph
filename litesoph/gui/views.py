@@ -667,7 +667,7 @@ class GroundStatePage(tk.Frame):
             'shape' : ['str', ''],
             'spinpol' : ['str', 'None'],
             'multip' : ['int', 1],
-            'h' : ['float', 0.23],
+            'h' : ['float', 0.3],
             'nbands' : ['str'],
             'vacuum' : ['float', 6],
             'energy' : ['float', 5.0e-7],
@@ -1745,27 +1745,52 @@ class LaserDesignPage(tk.Frame):
         }
         return(laser_input)               
 
+    def set_laser_design_dict(self, l_dict:dict):
+        self.laser_design_dict = l_dict
 
     def get_parameters(self):
-        self.td = self.tdpulse_dict
-        self.dir = self.controller.directory
-        abs_x = float(self.strength.get())*float(self.pol_x.get())
-        abs_y = float(self.strength.get())*float(self.pol_y.get())
-        abs_z = float(self.strength.get())*float(self.pol_z.get())
-        abs_list = [abs_x, abs_y, abs_z]
-        inp_list = [float(self.ts.get()),int(self.ns.get())]
-        epol_list = [float(self.pol_x.get()),float(self.pol_y.get()),float(self.pol_z.get())]
-        self.td = {'frequency': self.frequency.get(),
+        
+        from litesoph.utilities.units import au_to_as,autime_to_eV
+        laser_param = self.laser_design_dict
+        
+       
+        epol_list = [int(self.pol_x.get()),int(self.pol_y.get()),int(self.pol_z.get())]
+       
+        if self.engine == 'gpaw':
+            abs_x = float(self.strength.get())*float(self.pol_x.get())
+            abs_y = float(self.strength.get())*float(self.pol_y.get())
+            abs_z = float(self.strength.get())*float(self.pol_z.get())
+            abs_list = [abs_x, abs_y, abs_z]
+            inp_list = [float(self.ts.get()),int(self.ns.get())]
+
+            l_dict ={
+                'frequency':self.frequency.get(),
+                'strength':self.strength.get(),
+                'sigma': round(autime_to_eV/self.laser_design_dict['sigma'], 2),
+                'time0': round(self.laser_design_dict['time0']*au_to_as, 2)
+            }
+            laser_param.update(l_dict)
+            td_gpaw = {
                         'absorption_kick' :abs_list,
                         'propagate': tuple(inp_list),
-                        'electric_pol': epol_list,
-                        'dipole_file' :'dmlaser.dat',
-                        'filename' : str(self.dir)+'/GS/gs.gpw',
-                        'td_potential' : True,
-                        'txt' :'tdlaser.out',
-                        'td_out': 'tdlaser.gpw'}
+                        'electric_pol': epol_list,             
+                        'td_potential' : True,                     
+                        'laser': laser_param}
                         
-        return(self.td)       
+            return td_gpaw
+            
+        elif self.engine == 'octopus':
+            td_oct = {  'e_pol' :epol_list,
+                        'max_step' : self.ns.get(),
+                        'time_step': self.ts.get(),
+                        'strength' : self.strength.get(),
+                        'time0' :laser_param['time0'],
+                        'sigma' : laser_param['sigma'],
+                        'frequency': self.frequency.get()
+                    }
+                        
+            return td_oct        
+              
 
     def save_button(self):
         self.event_generate('<<SaveRT_TDDFT_LASERScript>>')          
@@ -1778,6 +1803,9 @@ class LaserDesignPage(tk.Frame):
 
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')
+
+    def set_label_msg(self,msg):
+        show_message(self.label_msg, msg)    
 
 class PlotSpectraPage(tk.Frame):
 
