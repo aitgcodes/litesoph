@@ -80,7 +80,6 @@ class AITG(tk.Tk):
         """Initializes the status object."""
         try:
             self.status = Status(path)
-            print(self.status.status_dict)
         except Exception as e:
             messagebox.showerror(message=f'status.json file might be corrupted. Unable to open the open {path.name}. error {e}')
             return False
@@ -377,7 +376,6 @@ class AITG(tk.Tk):
 
     def _validate_td_input(self):
         inp_dict = self.rt_tddft_delta_view.get_parameters()
-        print(inp_dict)
         self.rt_tddft_delta_task.set_engine(self.engine)
         self.rt_tddft_delta_task.set_task('rt_tddft_delta', inp_dict)
         self.rt_tddft_delta_task.create_template()

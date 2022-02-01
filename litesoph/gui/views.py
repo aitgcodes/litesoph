@@ -622,7 +622,6 @@ class GeomOptPage(tk.Frame):
 
         if self.mode.get() == "gaussian":
             inp_dict_nwopt['geometry'] = pathlib.Path(self.controller.directory) / "coordinate.xyz"
-            print(inp_dict_nwopt)
             return inp_dict_nwopt
 
 
@@ -1272,7 +1271,7 @@ class GroundStatePage(tk.Frame):
                     }      
 
         if self.engine == "nwchem":
-            print(inp_dict_nw)
+           
             return inp_dict_nw
 
         elif self.engine == 'gpaw':
@@ -1284,7 +1283,7 @@ class GroundStatePage(tk.Frame):
 
             if self._var['nbands'].get() == '':
                 inp_dict_gp['nbands']= None
-            print(inp_dict_gp)
+           
             return inp_dict_gp
 
         elif self.engine == 'octopus':
@@ -1294,7 +1293,7 @@ class GroundStatePage(tk.Frame):
                 inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get(),'xlength':self._var['l'].get()}
             if self._var['shape'].get() == 'parallelepiped':
                 inp_dict_oct['box']={'shape':self._var['shape'].get(),'sizex':self._var['lx'].get(), 'sizey':self._var['ly'].get(), 'sizez':self._var['lz'].get()}
-            print(inp_dict_oct)
+            
             return inp_dict_oct
        
     def set_label_msg(self,msg):
