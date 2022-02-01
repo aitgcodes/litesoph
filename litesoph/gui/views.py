@@ -672,7 +672,7 @@ class GroundStatePage(tk.Frame):
             'nbands' : ['str'],
             'vacuum' : ['float', 6],
             'energy' : ['float', 5.0e-7],
-            'density' : ['float'],
+            'density' : ['float', 1e-6],
             'bands' : ['str'],
             'theory' : ['str'],
             'tolerances' : ['str'],
@@ -715,6 +715,7 @@ class GroundStatePage(tk.Frame):
                 box_shape.config(value = self.gp_box)
                 box_shape.current(0)
                 self.gpaw_frame()
+                self.engine = 'gpaw'
             if task.get() == "fd":
                 sub_task.config(value = self.fd_task)
                 sub_task.current(0)
@@ -726,12 +727,14 @@ class GroundStatePage(tk.Frame):
                 box_shape.config(value = self.gp_box)
                 box_shape.current(0)
                 self.gpaw_frame()
+                self.engine = 'gpaw'
             if task.get() == "gaussian":
                 sub_task.config(value = self.gauss_task)
                 sub_task.current(0)
                 box_shape.config(value = self.nw_box)
                 box_shape.current(0)
                 self.nwchem_frame()
+                self.engine = 'nwchem'
             
 
         task = ttk.Combobox(self.Frame1, textvariable = self._var['mode'], values= self.Mainmode)
@@ -765,19 +768,19 @@ class GroundStatePage(tk.Frame):
         entry['font'] = myFont
         entry.place(x=280,y=210)
 
-        self.Frame2_note = tk.Label(self.Frame1,text="Energy Convergence",bg="gray",fg="black")
+        self.Frame2_note = tk.Label(self.Frame1,text="Energy Convergence (in au)",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = tk.Entry(self.Frame1, width= 10, textvariable= self._var['energy'])
+        self.entry_proj = tk.Entry(self.Frame1, textvariable= self._var['energy'])
         self.entry_proj['font'] = myFont
         self.entry_proj.place(x=280,y=260)
  
-        unit = ttk.Combobox(self.Frame1,width=5, textvariable= self._var['unitconv'] , value = ["eV","au","Ha","Ry"])
-        unit.current(0)
-        unit['font'] = myFont
-        unit.place(x=380,y=260)
-        unit['state'] = 'readonly'
+        # unit = ttk.Combobox(self.Frame1,width=5, textvariable= self._var['unitconv'] , value = ["eV","au","Ha","Ry"])
+        # unit.current(0)
+        # unit['font'] = myFont
+        # unit.place(x=380,y=260)
+        # unit['state'] = 'readonly'
        
         self.label_proj = tk.Label(self.Frame1,text="Box Shape",bg="gray",fg="black")
         self.label_proj['font'] = myFont
@@ -790,12 +793,15 @@ class GroundStatePage(tk.Frame):
             if box_shape.get() == "minimum": 
                 self.oct_minsph_frame()
                 self.octopus_frame()
+                self.engine = 'octopus'
             if box_shape.get() == "sphere":
                 self.oct_minsph_frame()
                 self.octopus_frame()
+                self.engine = 'octopus'
             if box_shape.get() == "cylinder": 
                 self.oct_cyl_frame()
                 self.octopus_frame()
+                self.engine = 'octopus'
 
         box_shape = ttk.Combobox(self.Frame1, textvariable= self._var['shape'], value = [" "])
         box_shape.current(0)
@@ -836,13 +842,14 @@ class GroundStatePage(tk.Frame):
         self.check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
         if self.check is True:
             self.gpaw_frame()
+            self.engine = 'gpaw'
         else:
             self.oct_ppl_frame()
             self.octopus_frame()
+            self.engine = 'octopus'
        
     def back_button(self):
-        self.event_generate('<<ShowWorkManagerPage>>')
-              
+        self.event_generate('<<ShowWorkManagerPage>>')              
             
     def gpaw_frame(self):  
 
@@ -859,7 +866,7 @@ class GroundStatePage(tk.Frame):
         self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
         
-        self.label_proj = tk.Label(self.Frame2,text="Density",bg="gray",fg="black")
+        self.label_proj = tk.Label(self.Frame2,text="Density Convergence",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=10)
 
@@ -1207,6 +1214,8 @@ class GroundStatePage(tk.Frame):
         self.entry_pol_x['state'] = 'readonly'
 
     def get_parameters(self):
+        
+        from litesoph.utilities.units import au_to_eV
         inp_dict_gp = {
             'mode': self._var['mode'].get(),
             'xc': self._var['xc'].get(),
@@ -1217,7 +1226,7 @@ class GroundStatePage(tk.Frame):
             'charge' : self._var['charge'].get(),
             'spinpol' : self._var['spinpol'].get(), 
             'multip' : self._var['multip'].get(), 
-            'convergence': {'energy' : self._var['energy'].get(),  # eV / electron
+            'convergence': {'energy' : self._var['energy'].get() * round(au_to_eV,2),  # eV / electron f'{x: .2e}'
                         'density' :  self._var['density'].get(),
                         'eigenstates': 4.0e-8,  # eV^2
                         'bands' : self._var['bands'].get()}, 
@@ -1260,44 +1269,34 @@ class GroundStatePage(tk.Frame):
             'unit_box' : self._var['unit_box'].get(),
             'engine':'octopus',
             'geometry': str(self.controller.directory)+"/coordinate.xyz"
-                    }
+                    }      
 
-        if self._var['basis'].get() == '':
-            inp_dict_gp['basis']={}
-
-        if self._var['mode'].get() == 'nao':
-            inp_dict_gp['mode']='lcao'
-
-        if self._var['nbands'].get() == '':
-            inp_dict_gp['nbands']= None
-
-        if self._var['shape'].get() in ['minimum','sphere']:
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get()}
-        if self._var['shape'].get() == 'cylinder':
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get(),'xlength':self._var['l'].get()}
-        if self._var['shape'].get() == 'parallelepiped':
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'sizex':self._var['lx'].get(), 'sizey':self._var['ly'].get(), 'sizez':self._var['lz'].get()}
-
-        if self._var['mode'].get() == "gaussian":
+        if self.engine == "nwchem":
             print(inp_dict_nw)
             return inp_dict_nw
 
-        if self._var['mode'].get() in ["nao","pw"]:
+        elif self.engine == 'gpaw':
+            if self._var['basis'].get() == '':
+                inp_dict_gp['basis']={}
+
+            if self._var['mode'].get() == 'nao':
+                inp_dict_gp['mode']='lcao'
+
+            if self._var['nbands'].get() == '':
+                inp_dict_gp['nbands']= None
             print(inp_dict_gp)
             return inp_dict_gp
 
-        if self._var['shape'].get() in ["minimum","sphere","cylinder"]:
+        elif self.engine == 'octopus':
+            if self._var['shape'].get() in ['minimum','sphere']:
+                inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get()}
+            if self._var['shape'].get() == 'cylinder':
+                inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get(),'xlength':self._var['l'].get()}
+            if self._var['shape'].get() == 'parallelepiped':
+                inp_dict_oct['box']={'shape':self._var['shape'].get(),'sizex':self._var['lx'].get(), 'sizey':self._var['ly'].get(), 'sizez':self._var['lz'].get()}
             print(inp_dict_oct)
             return inp_dict_oct
-
-        if self._var['shape'].get() == "parallelepiped":
-            if self.check is False:
-                print(inp_dict_oct)
-                return inp_dict_oct
-            else:
-                print(inp_dict_gp)
-                return inp_dict_gp
-    
+       
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
             
