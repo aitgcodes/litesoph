@@ -143,6 +143,11 @@ class EngineOctopus(EngineStrategy):
                 gs_inp = self.status.get_status('octopus.ground_state.param')
                 user_param.update(gs_inp)
             return ot.OctTimedependentState(user_param)
+        if task == "rt_tddft_laser":
+            if self.status:
+                gs_inp = self.status.get_status('octopus.ground_state.param')
+                user_param.update(gs_inp)
+            return ot.OctTimedependentLaser(user_param)    
 
     def create_dir(self, directory, *_):
         #task_dir = self.get_dir_name(task)
