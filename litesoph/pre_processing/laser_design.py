@@ -1,5 +1,5 @@
 import numpy as np
-from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV
+from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV, au_to_fs
 # Calculates the half-width in time of the laser pulse and centre of the pulse
 # given the FWHM in frequency space, the amplitude of pulse of time origin, location of time origin
 # Input arguments (in that order) are -log(E(0)), time origin of pulse and FWHM in frequency space of pulse
@@ -21,20 +21,21 @@ from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV
 # print("sigma time : ", tau_0)
 # print("pulse centre :", t0)
 
-def laser_design(strength, inval, tin, fwhm):
+def laser_design(inval, tin, fwhm):
     import math
     tin = 0.0 
-    
+    fwhm = fwhm*eV_to_au
     #loginval = (-1)*(math.log(float(inval)/float(strength)))
-    tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of femtosecond
-    t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(inval)  # in units of femtosecond
+    tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of au
+    t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(inval)  # in units of au
     
     #tau_0 = tau_0*0.2418                              # converted from fms to eV
-    tau_0 = fs_to_eV/tau_0                           # converted from fms to eV
+    #tau_0 = fs_to_eV/tau_0                           # converted from fms to eV
+    tau_0 = tau_0
     laser = {}
-    laser['strength'] = strength
-    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of eV                     
-    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of fms
+    
+    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                     
+    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of au
     return(laser)
 
 class GaussianPulse:
