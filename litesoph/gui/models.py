@@ -158,11 +158,11 @@ class LaserDesignModel:
         from litesoph.pre_processing.laser_design import GaussianPulse
         from litesoph.pre_processing.laser_design import laser_design
         from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au
-        l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])
+        self.l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])
         laser_input = {
             'frequency': self.user_input['frequency'],
-            'sigma': round(autime_to_eV/l_design['sigma'], 2),
-            'time0': round(l_design['time0']*au_to_as, 2) ,       
+            'sigma': round(autime_to_eV/self.l_design['sigma'], 2),
+            'time0': round(self.l_design['time0']*au_to_as, 2) ,       
             'sincos': 'sin'
         }
         self.pulse = GaussianPulse(float(self.user_input['strength']),float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])        

@@ -416,7 +416,7 @@ class AITG(tk.Tk):
 
     def _on_td_laser_save_button(self, *_):
         self._validate_td_laser_input()
-        self._td_create_input()
+        self._td_laser_create_input()
     
     def _on_desgin_laser(self, *_):
         laser_desgin_inp = self.rt_tddft_laser_view.get_laser_pulse()
@@ -443,6 +443,7 @@ class AITG(tk.Tk):
         text_veiw.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
 
     def _validate_td_laser_input(self):
+        self.rt_tddft_laser_view.set_laser_design_dict(self.laser_design.l_design)
         inp_dict = self.rt_tddft_laser_view.get_parameters()
         inp_dict['laser'] = self.laser_design.pulse.dict
         self.rt_tddft_laser_task.set_engine(self.engine)
@@ -453,7 +454,7 @@ class AITG(tk.Tk):
     def _td_laser_create_input(self, template=None):     
         self.rt_tddft_laser_task.write_input(template)
         self.status.update_status(f'{self.engine}.rt_tddft_laser.inp', 1)
-        self.status.update_status(f'{self.engine}.rt_tddft_laser.param',self.ground_state_task.user_input)
+        self.status.update_status(f'{self.engine}.rt_tddft_laser.param',self.rt_tddft_laser_task.user_input)
         self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 
