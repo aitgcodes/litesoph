@@ -93,7 +93,7 @@ class SubmitLocal(JobSubmit):
 
 class SubmitNetwork(JobSubmit):
 
-    def __init__(self, engine: EngineStrategy,
+    def __init__(self,task,
                         configs: ConfigParser, 
                         hostname: str,
                         username: str,
@@ -101,7 +101,7 @@ class SubmitNetwork(JobSubmit):
                         remote_path: str,
                         upload_files: dict) -> None:
 
-        super().__init__(engine, configs)
+        super().__init__(task, configs)
        
         self.remote_path = remote_path
         self.upload_files = upload_files
