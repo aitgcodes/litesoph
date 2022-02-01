@@ -667,7 +667,7 @@ class GroundStatePage(tk.Frame):
             'shape' : ['str', ''],
             'spinpol' : ['str', 'None'],
             'multip' : ['int', 1],
-            'h' : ['float', 0.23],
+            'h' : ['float', 0.3],
             'nbands' : ['str'],
             'vacuum' : ['float', 6],
             'energy' : ['float', 5.0e-7],
@@ -1752,7 +1752,7 @@ class LaserDesignPage(tk.Frame):
         
         from litesoph.utilities.units import au_to_as,autime_to_eV
         laser_param = self.laser_design_dict
-        print(self.laser_design_dict)
+        
        
         epol_list = [int(self.pol_x.get()),int(self.pol_y.get()),int(self.pol_z.get())]
        
@@ -1776,7 +1776,7 @@ class LaserDesignPage(tk.Frame):
                         'electric_pol': epol_list,             
                         'td_potential' : True,                     
                         'laser': laser_param}
-            print(td_gpaw)            
+                        
             return td_gpaw
             
         elif self.engine == 'octopus':
@@ -1788,7 +1788,7 @@ class LaserDesignPage(tk.Frame):
                         'sigma' : laser_param['sigma'],
                         'frequency': self.frequency.get()
                     }
-            print(td_oct)            
+                        
             return td_oct        
               
 
