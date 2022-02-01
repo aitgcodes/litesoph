@@ -143,7 +143,6 @@ class AITG(tk.Tk):
         event_show_page= {
             '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage, self.lsroot),
             '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.lsroot, self.directory),
-            #'<<ShowJobSubmissionPage>>' : lambda _: self._show_frame(v.JobSubPage, self),
             '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
             '<<ShowTimeDependentPage>>' : self._on_rt_tddft_delta_task,
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
@@ -158,9 +157,6 @@ class AITG(tk.Tk):
         "generates a event to show the first frame in odered_dict"
         frame = list(self._frames)[1]
         self._show_frame(frame)
-        # frame = frame.__name__
-        # frame = '<<'+'Show'+frame+'>>'
-        # self.event_generate(f'{frame}')
 
     def _change_directory(self, path):
         "changes current working directory"
@@ -179,7 +175,10 @@ class AITG(tk.Tk):
 
     def _on_open_project(self, *_):
         """creates dialog to get porject path and opens existing project"""
+        
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
+        if not project_path:
+            return
         self._frames[v.WorkManagerPage].update_project_entry(project_path)
         self._init_project(project_path)
        
