@@ -23,7 +23,6 @@ from litesoph.gui import models as m
 from litesoph.gui import views as v 
 from litesoph.gui.spec_plot import plot_spectra, plot_files
 from litesoph.simulations.esmd import Task
-from litesoph.simulations import engine
 from litesoph.gui.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import Nav
 from litesoph.gui.filehandler import Status
@@ -81,7 +80,6 @@ class AITG(tk.Tk):
         """Initializes the status object."""
         try:
             self.status = Status(path)
-            print(self.status.status_dict)
         except Exception as e:
             messagebox.showerror(message=f'status.json file might be corrupted. Unable to open the open {path.name}. error {e}')
             return False
@@ -216,6 +214,7 @@ class AITG(tk.Tk):
         except Exception as e:
             print(e)
             return
+        #self._frames[v.WorkManagerPage]
         proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
         shutil.copy(self.geometry_file, proj_path)
         
@@ -351,12 +350,14 @@ class AITG(tk.Tk):
 
             self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
             self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
+            self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
+        self.rt_tddft_delta_view.engine = self.engine
         self.rt_tddft_delta_task = Task(self.status, self.directory)
 
         self.bind('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
@@ -375,7 +376,6 @@ class AITG(tk.Tk):
 
     def _validate_td_input(self):
         inp_dict = self.rt_tddft_delta_view.get_parameters()
-        print(inp_dict)
         self.rt_tddft_delta_task.set_engine(self.engine)
         self.rt_tddft_delta_task.set_task('rt_tddft_delta', inp_dict)
         self.rt_tddft_delta_task.create_template()
@@ -405,6 +405,7 @@ class AITG(tk.Tk):
     def _on_rt_tddft_laser_task(self, *_):
         self._show_frame(v.LaserDesignPage, self, self.engine)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
+        self.rt_tddft_laser_view.engine = self.engine
         self.rt_tddft_laser_task = Task(self.status, self.directory)
 
         self.bind('<<SaveRT_TDDFT_LASERScript>>', self._on_td_laser_save_button)
@@ -493,7 +494,7 @@ class AITG(tk.Tk):
                 messagebox.showerror(message="Job exited with non-zero return code.")
             else:
                 messagebox.showinfo(message='Job completed successfully!')
-                self.status.update_status(f'{self.engine}.{task.task_name}.cal', 1)
+                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', 0)
 
 
         
@@ -509,7 +510,7 @@ class AITG(tk.Tk):
 
         from litesoph.utilities.job_submit import SubmitNetwork
 
-        submit_network = SubmitNetwork(engine, 
+        submit_network = SubmitNetwork(task, 
                                         self.lsconfig,
                                         hostname=login_dict['ip'],
                                         username=login_dict['username'],
