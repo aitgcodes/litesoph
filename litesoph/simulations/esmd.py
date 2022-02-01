@@ -38,6 +38,8 @@ class Task:
         self.task = None
         self.filename = None
         self.template = None
+        self.input_data_file = None
+        self.output_data_file = None
         self.task_state = None
         self.results = None
 
@@ -93,12 +95,9 @@ class Task:
         #print(str(self.submit.result))
 
 
+def replacetext(filename, search_text,replace_text):
 
-
-
-def replacetext(search_text,replace_text):
-
-	with open('gs.py','r+') as f:
+	with open(filename,'r+') as f:
 		file = f.read()
 		file = re.sub(search_text, replace_text, file)
 		f.seek(0)
