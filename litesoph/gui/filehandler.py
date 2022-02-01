@@ -188,16 +188,28 @@ class Status():
         if path is None and value is None:
             self.dict2json(self.status_dict, self.filepath)
         else:
-            obj = self.status_dict
+            #obj = self.status_dict.copy
             list = path.split('.')
-            for i in range(len(list)):
-                for key in obj.keys():
-                    if key == list[i]:
-                        if isinstance(obj[key],dict):
-                            obj =obj[key]               
-                        else:
-                            obj[key] = value 
-
+            # for i in range(len(list)):
+            #     for key in obj.keys():
+            #         if key == list[i]:
+            #             if isinstance(obj[key],dict):
+            #                 obj = obj[key]               
+            #             else:
+            #                 obj[key] = value 
+            if len(list) == 1:
+                self.status_dict[list[0]] = value
+            elif len(list) == 2:
+                self.status_dict[list[0]][list[1]] = value
+            elif len(list) == 3:
+                self.status_dict[list[0]][list[1]][list[2]] = value
+            elif len(list) == 4:
+                self.status_dict[list[0]][list[1]][list[2]][list[3]] = value
+            elif len(list) == 5:
+                self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]] = value
+            elif len(list) == 6:
+                self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]][list[5]] = value
+            
             self.dict2json(self.status_dict, self.filepath)
 
     def get_status(self,path:str):
