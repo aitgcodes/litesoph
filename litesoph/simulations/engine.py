@@ -46,22 +46,22 @@ class EngineGpaw(EngineStrategy):
 
     NAME = 'gpaw'
 
-    gs = {'inp':'/GS/gs.py',
+    ground_state = {'inp':'/GS/gs.py',
             'out': '/GS/gs.out',
             'restart': 'GS/gs.gpw',
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    td_delta = {'inp':'/TD_Delta/td.py',
+    rt_tddft_delta = {'inp':'/TD_Delta/td.py',
              'out': '/TD_Delta/tdx.out',
              'restart': '/TD_Delta/td.gpw',
              'check_list':['Writing','Total:']}
 
-    laser = {'inp':'/TD_Laser/tdlaser.py',
+    rt_tddft_laser = {'inp':'/TD_Laser/tdlaser.py',
              'out': '/TD_Laser/tdlaser.out',
              'restart': '/TD_Laser/tdlaser.gpw',
              'check_list':['Writing','Total:']}
     
-    spectra = {'inp':'Spectrum/spec.py',
+    spectrum = {'inp':'Spectrum/spec.py',
              'out': '/Spectrum/spec.dat',
              'restart': '/TD_Delta/dm.dat',
              'check_list':['FWHM']}
@@ -72,17 +72,18 @@ class EngineGpaw(EngineStrategy):
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self,project_dir, status=None) -> None:
+        self.project_dir = project_dir
+        self.status = status
 
     def get_task_class(self, task: str, user_param, *_):
         if task == "ground_state":
             return gp.GpawGroundState(user_param) 
         if task == "rt_tddft_delta":
-            user_param['gfilename']= self.gs['restart']
+            user_param['gfilename']= self.ground_state['restart']
             return gp.GpawRTLCAOTddftDelta(user_param)
         if task == "rt_tddft_laser":
-            user_param['gfilename']= self.gs['restart']
+            user_param['gfilename']= self.ground_state['restart']
             return gp.GpawRTLCAOTddftLaser(user_param)
         if task == "spectrum":
             return gp.GpawSpectrum(user_param) 
@@ -130,14 +131,20 @@ class EngineOctopus(EngineStrategy):
     td_delta = {'out': '/Octopus/log',
              'check_list':['Finished writing information', 'Calculation ended']}    
 
-    def get_task_class(self, task: str, user_param,status=None):
-        if task == "ground state":
+    def __init__(self,project_dir, status=None) -> None:
+        self.project_dir = project_dir
+        self.status = status
+
+    def get_task_class(self, task: str, user_param):
+        if task == "ground_state":
             return ot.OctGroundState(user_param) 
-        if task == "LCAO TDDFT Delta":
-            return ot.OctTimedependentState(user_param, status= status)
+        if task == "rt_tddft_delta":
+            if self.status:
+                gs_inp = self.status.get_status('octopus.ground_state.param')
+                user_param.update(gs_inp)
+            return ot.OctTimedependentState(user_param)
 
-
-    def create_dir(self, directory, task):
+    def create_dir(self, directory, *_):
         #task_dir = self.get_dir_name(task)
         directory = pathlib.Path(directory) / 'Octopus'
         self.create_directory(directory)
@@ -164,29 +171,31 @@ class EngineNwchem(EngineStrategy):
     NAME = 'nwchem'
 
     gs = {'inp':'/NwchemGroundState/gs.nwi',
-            'out': '/GS/gs.out',
-            'restart': 'GS/gs.gpw',
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    td_delta = {'inp':'/NwchemDeltaKick/td.nwo',
-             'out': '/TD_Delta/tdx.out',
-             'restart': '/TD_Delta/td.gpw',
-             'check_list':['Writing','Total:']}
+    restart = 'nwchem_restart'
 
-    laser = {'inp':'/TD_Laser/tdlaser.py',
-             'out': '/TD_Laser/tdlaser.out',
-             'restart': '/TD_Laser/tdlaser.gpw',
-             'check_list':['Writing','Total:']}
-
+    def __init__(self,project_dir, status=None) -> None:
+        self.project_dir = project_dir
+        self.status = status
 
     def get_task_class(self, task: str, user_param):
         if task == "optimization":
+            user_param['permanent_dir']= self.restart
             return nw.NwchemOptimisation(user_param) 
-        if task == "ground state":
+        if task == "ground_state":
+            self.restart = pathlib.Path(self.project_dir) / self.restart
+            user_param['permanent_dir']= str(self.restart)
             return nw.NwchemGroundState(user_param) 
-        if task == "LCAO TDDFT Delta":
+        if task == "rt_tddft_delta":
+            if self.status:
+                gs_inp = self.status.get_status('nwchem.ground_state.param')
+                user_param.update(gs_inp)
             return nw.NwchemDeltaKick(user_param)
 
+    def create_restart_dir(self):
+        self.restart = pathlib.Path(self.project_dir) / self.restart
+        self.create_directory(self.restart)
 
     def create_dir(self, directory, task):
         #task_dir = self.get_dir_name(task)
