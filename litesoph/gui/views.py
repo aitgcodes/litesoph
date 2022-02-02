@@ -9,7 +9,7 @@ from tkinter import font
 import pathlib
 
 from litesoph.gui.filehandler import show_message
-from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Fourchar, Validatedconv
+from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, FourChar
 
 
 
@@ -1247,7 +1247,7 @@ class GroundStatePage(tk.Frame):
             'box': self._var['shape'].get(),
             'properties': 'get_potential_energy()',
             'engine':'gpaw',
-            'geometry': str(self.controller.directory)+"/coordinate.xyz"
+            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }   
 
         inp_dict_nw = {
@@ -1261,7 +1261,7 @@ class GroundStatePage(tk.Frame):
             'multip' : self._var['multip'].get(),
             'maxiter' : self._var['maxiter'].get(),
             'engine':'nwchem',
-            'geometry': str(self.controller.directory)+"/coordinate.xyz"
+            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }
 
         inp_dict_oct = {
@@ -1281,7 +1281,7 @@ class GroundStatePage(tk.Frame):
             'box':{'shape':self._var['shape'].get()},
             'unit_box' : self._var['unit_box'].get(),
             'engine':'octopus',
-            'geometry': str(self.controller.directory)+"/coordinate.xyz"
+            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }      
 
         if self.engine == "nwchem":
