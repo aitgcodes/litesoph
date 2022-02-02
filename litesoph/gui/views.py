@@ -9,7 +9,7 @@ from tkinter import font
 import pathlib
 
 from litesoph.gui.filehandler import show_message
-
+from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Fourchar, Validatedconv
 
 
 
@@ -755,15 +755,17 @@ class GroundStatePage(tk.Frame):
         self.label_pol_y['font'] = myFont
         self.label_pol_y.place(x=10,y=160)
     
-        self.entry_proj = tk.Entry(self.Frame1,textvariable=self._var['charge'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=160)
+        self.entry_chrg = ttk.Entry(self.Frame1,textvariable=self._var['charge'])
+        #self._var['charge'] = Onlydigits(self.Frame1)
+        self.entry_chrg['font'] = myFont
+        self.entry_chrg.place(x=280,y=160)
 
         self.label_pol_z = tk.Label(self.Frame1, text="Maximum SCF iteration", bg= "grey",fg="black")
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=210)
  
-        entry = tk.Entry(self.Frame1,textvariable= self._var['maxiter'])
+        entry = ttk.Entry(self.Frame1,textvariable= self._var['maxiter'])
+        #entry = Onlydigits(self.Frame1)
         entry['font'] = myFont
         entry.place(x=280,y=210)
 
@@ -771,9 +773,10 @@ class GroundStatePage(tk.Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = tk.Entry(self.Frame1, textvariable= self._var['energy'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=260)
+        self.entry_ener = tk.Entry(self.Frame1, textvariable= self._var['energy'])
+        #self.entry_ener = Validatedconv(self.Frame1)
+        self.entry_ener['font'] = myFont
+        self.entry_ener.place(x=280,y=260)
  
         # unit = ttk.Combobox(self.Frame1,width=5, textvariable= self._var['unitconv'] , value = ["eV","au","Ha","Ry"])
         # unit.current(0)
@@ -885,13 +888,14 @@ class GroundStatePage(tk.Frame):
         self.entry_pol_x.place(x=280,y=60)
         self.entry_pol_x['state'] = 'readonly'
 
-        self.label_proj = tk.Label(self.Frame2,text="Spacing (in Ang)",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=110)
+        self.label_sp = tk.Label(self.Frame2,text="Spacing (in Ang)",bg="gray",fg="black")
+        self.label_sp['font'] = myFont
+        self.label_sp.place(x=10,y=110)
 
-        self.entry_proj = tk.Entry(self.Frame2,textvariable= self._var['h'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=110)
+        self.entry_sp = tk.Entry(self.Frame2,textvariable= self._var['h'])
+        #self.entry_sp = Onlydigits(self.Frame2)  
+        self.entry_sp['font'] = myFont
+        self.entry_sp.place(x=280,y=110)
         
         self.Frame2_note = tk.Label(self.Frame2,text="Spin Polarisation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -907,17 +911,19 @@ class GroundStatePage(tk.Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=210)
 
-        self.entry_proj = tk.Entry(self.Frame2,textvariable= self._var['nbands'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=210)
+        self.entry_bands = tk.Entry(self.Frame2,textvariable= self._var['nbands'])
+        #self.entry_bands = Onlydigits(self.Frame2)
+        self.entry_bands['font'] = myFont
+        self.entry_bands.place(x=280,y=210)
 
         self.Frame2_note = tk.Label(self.Frame2,text="Vacuum size (in Ang)",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = tk.Entry(self.Frame2,textvariable= self._var['vacuum'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=260)
+        self.entry_vac = tk.Entry(self.Frame2,textvariable= self._var['vacuum'])
+        #self.entry_vac = Onlydigits(self.Frame2)
+        self.entry_vac['font'] = myFont
+        self.entry_vac.place(x=280,y=260)
      
         self.Frame2_note = tk.Label(self.Frame2,text="Band Occupancy",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -970,19 +976,20 @@ class GroundStatePage(tk.Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=110)
 
-        self.entry_proj = tk.Entry(self.Frame2,textvariable= self._var['density'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"1.0e-5")
-        self.entry_proj.place(x=280,y=110)
+        self.entry_den = tk.Entry(self.Frame2,textvariable= self._var['density'])
+        self.entry_den['font'] = myFont
+        self.entry_den.delete(0,tk.END)
+        self.entry_den.insert(0,"1.0e-5")
+        self.entry_den.place(x=280,y=110)
 
         self.Frame2_note = tk.Label(self.Frame2,text="Multiplicity",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=160)
 
-        self.entry_proj = tk.Entry(self.Frame2,textvariable= self._var['multip'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=160)
+        self.entry_mul = tk.Entry(self.Frame2,textvariable= self._var['multip'])
+        #self.entry_mul = Onlydigits(self.Frame2)
+        self.entry_mul['font'] = myFont
+        self.entry_mul.place(x=280,y=160)
 
         self.Frame2_note = tk.Label(self.Frame2,text="Tolerance",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -1026,14 +1033,17 @@ class GroundStatePage(tk.Frame):
         self.note.place(x=10,y=40)
 
         self.entry1 = tk.Entry(self.Frame3,width= 5, textvariable= self._var['lx'])
+        #self.entry1 = Onlydigits(self.Frame3)
         self.entry1['font'] = myFont
         self.entry1.place(x=220,y=40)
  
         self.entry2 = tk.Entry(self.Frame3, width= 5, textvariable= self._var['ly'])
+        #self.entry2 = Onlydigits(self.Frame3)
         self.entry2['font'] = myFont
         self.entry2.place(x=280,y=40)
   
         self.entry3 = tk.Entry(self.Frame3,width=5, textvariable= self._var['lz'])
+        #self.entry3 = Onlydigits(self.Frame3)
         self.entry3['font'] = myFont
         self.entry3.place(x=340,y=40)
 
@@ -1067,9 +1077,10 @@ class GroundStatePage(tk.Frame):
         self.note['font'] = myFont
         self.note.place(x=10,y=40)
 
-        self.entry1 = tk.Entry(self.Frame3, textvariable= self._var['r'], width= 7)
-        self.entry1['font'] = myFont
-        self.entry1.place(x=220,y=40)
+        self.entryr = tk.Entry(self.Frame3, textvariable= self._var['r'], width= 7)
+        #self.entryr = Onlydigits(self.Frame3)
+        self.entryr['font'] = myFont
+        self.entryr.place(x=220,y=40)
 
     def oct_cyl_frame(self):
 
@@ -1100,17 +1111,19 @@ class GroundStatePage(tk.Frame):
         self.note1['font'] = myFont
         self.note1.place(x=10,y=40)
 
-        self.entry1 = tk.Entry(self.Frame3, textvariable= self._var['l'], width= 5)
-        self.entry1['font'] = myFont
+        self.entryl = tk.Entry(self.Frame3, textvariable= self._var['l'], width= 5)
+        #self.entryl = Onlydigits(self.Frame3)
+        self.entryl['font'] = myFont
         self.entry1.place(x=220,y=40)
  
         self.note2 = tk.Label(self.Frame3,text="Radius of Cylinder",bg="gray",fg="black")
         self.note2['font'] = myFont
         self.note2.place(x=280,y=40)
 
-        self.entry2 = tk.Entry(self.Frame3, textvariable= self._var['r'], width= 5)
-        self.entry2['font'] = myFont
-        self.entry2.place(x=430,y=40)
+        self.entrycr = tk.Entry(self.Frame3, textvariable= self._var['r'], width= 5)
+        #self.entrycr = Onlydigits(self.Frame3)
+        self.entrycr['font'] = myFont
+        self.entrycr.place(x=430,y=40)
 
     def octopus_frame(self):   
 
@@ -1160,9 +1173,10 @@ class GroundStatePage(tk.Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
-        self.entry_proj = tk.Entry(self.Frame2,width= 7, textvariable= self._var['h'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=110,y=60)
+        self.entry_oh = tk.Entry(self.Frame2,width= 7, textvariable= self._var['h'])
+        #self.entry_oh = Onlydigits(self.Frame2)
+        self.entry_oh['font'] = myFont
+        self.entry_oh.place(x=110,y=60)
 
         self.label_proj = tk.Label(self.Frame2, text="Smearing (eV)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
@@ -1479,7 +1493,7 @@ class TimeDependentPage(tk.Frame):
 
         td_dict_nwchem = {
             'tmax': self.Nt.get() * self.dt.get(),
-            'dt': 0.2,
+            'dt': self.dt.get(),
             'max':self.strength.get(),
             'e_pol': [self.ex.get(),self.ey.get(),self.ez.get()]
             }
