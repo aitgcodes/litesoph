@@ -9,7 +9,7 @@ from tkinter import font
 import pathlib
 
 from litesoph.gui.filehandler import show_message
-from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Fourchar
+from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Fourchar, Validatedconv
 
 
 
@@ -756,7 +756,7 @@ class GroundStatePage(tk.Frame):
         self.label_pol_y.place(x=10,y=160)
     
         self.entry_chrg = ttk.Entry(self.Frame1,textvariable=self._var['charge'])
-        self._var['charge'] = Onlydigits(self.Frame1)
+        #self._var['charge'] = Onlydigits(self.Frame1)
         self.entry_chrg['font'] = myFont
         self.entry_chrg.place(x=280,y=160)
 
@@ -773,9 +773,10 @@ class GroundStatePage(tk.Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=260)
 
-        self.entry_proj = tk.Entry(self.Frame1, textvariable= self._var['energy'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=260)
+        self.entry_ener = tk.Entry(self.Frame1, textvariable= self._var['energy'])
+        #self.entry_ener = Validatedconv(self.Frame1)
+        self.entry_ener['font'] = myFont
+        self.entry_ener.place(x=280,y=260)
  
         # unit = ttk.Combobox(self.Frame1,width=5, textvariable= self._var['unitconv'] , value = ["eV","au","Ha","Ry"])
         # unit.current(0)
