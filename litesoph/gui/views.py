@@ -9,7 +9,7 @@ from tkinter import font
 import pathlib
 
 from litesoph.gui.filehandler import show_message
-from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, FourChar
+from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
 
 
 
@@ -1394,9 +1394,8 @@ class TimeDependentPage(tk.Frame):
         self.label_proj.place(x=10,y=60)
         
         inval = ["1e-5","1e-4","1e-3"]
-        self.entry_inv = ttk.Combobox(self.Frame1,textvariable= self.strength, value = inval)
+        self.entry_inv = ttk.Combobox(self.Frame1,textvariable= self._var['strength'], value = inval)
         self.entry_inv['font'] = myFont
-        self.entry_inv.current(0)
         self.entry_inv.place(x=280,y=60)
         self.entry_inv['state'] = 'readonly'
 
@@ -1425,7 +1424,6 @@ class TimeDependentPage(tk.Frame):
  
         self.entry_pol_z = ttk.Combobox(self.Frame1, textvariable= self._var['ez'] ,value = pol_list)
         self.entry_pol_z['font'] = myFont
-        #self.ez.set(0)
         self.entry_pol_z.place(x=280,y=210)
         self.entry_pol_z['state'] = 'readonly'
 
@@ -1551,7 +1549,7 @@ class TimeDependentPage(tk.Frame):
             except IndexError:
                 self._var[key].set('')  
 
-    def update_engn_default(self, engn):
+    def update_engine_default(self, engn):
         self.engine = engn
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
