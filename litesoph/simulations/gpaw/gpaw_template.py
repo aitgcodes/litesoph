@@ -7,7 +7,10 @@ class GpawGroundState:
     scripts for ground state calculations."""
     NAME = 'gs.py'
 
+    input_data_files = [('geometry', 'coordinate.xyz')]
+
     default_param =  {
+        'geometry' : 'coordinate.xyz',
         'mode': 'fd',
         'xc': 'LDA',
         'occupations': None,
@@ -93,6 +96,8 @@ class GpawRTLCAOTddftDelta:
     
     NAME = 'td.py'
 
+    input_data_files = [('gfilename', 'gs.gpw')]
+
     default_input = {'absorption_kick': [1e-5, 0.0, 0.0],
                 'propagate': (20, 150),
                 'module': None,
@@ -136,10 +141,10 @@ td_calc.write('{td_gpw}', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
-        grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
-        # if not grestart.exists():
-        #     raise FileNotFoundError('restart file not found')
-        self.user_input['gfilename'] = str(grestart)
+        # grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
+        # # if not grestart.exists():
+        # #     raise FileNotFoundError('restart file not found')
+        # self.user_input['gfilename'] = str(grestart)
         self.tools = self.user_input['analysis_tools']
 
     def check():
@@ -155,19 +160,23 @@ td_calc.write('{td_gpw}', mode='all')
 
         template = self.delta_kick_template.format(**self.user_input)
 
-        if self.tools == "dipolemoment":
-            return template
-        elif self.tools == "wavefunction":
+        # if self.tools == "dipolemoment":
+        #     return template
+        if "wavefunction" in self.tools:
             tlines = template.splitlines()
-            tlines[8] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
+            tlines[9] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
             template = """\n""".join(tlines)
-            return template
+            #return template
+        
+        return template
        
 class GpawRTLCAOTddftLaser:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
 
     NAME = 'tdlaser.py'
+
+    input_data_files = [('gfilename', 'gs.gpw')]
 
     default_input = {
                 'propagate': (20, 150),
@@ -198,7 +207,7 @@ from gpaw.external import ConstantElectricField
 from gpaw.lcaotddft import LCAOTDDFT
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 from gpaw.lcaotddft.laser import GaussianPulse
-pulse = GaussianPulse({strength},{time0}e3,{frequency},{sigma}, 'sin')
+pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
 ext = ConstantElectricField(Hartree / Bohr,{electric_pol} )
 td_potential = {{'ext': ext, 'laser': pulse}}
 td_calc = LCAOTDDFT(filename='{gfilename}',
@@ -214,10 +223,10 @@ td_calc.write('{td_gpw}', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
-        grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
-        # if not grestart.exists():
-        #     raise FileNotFoundError('restart file not found')
-        self.user_input['gfilename'] = str(grestart)
+        # grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
+        # # if not grestart.exists():
+        # #     raise FileNotFoundError('restart file not found')
+        # self.user_input['gfilename'] = str(grestart)
         self.laser = self.user_input['laser']
         self.tools = self.user_input['analysis_tools']
         self.td_potential = self.user_input['td_potential']
@@ -268,6 +277,8 @@ class GpawSpectrum:
 
     NAME = 'spec.py'
 
+    input_data_files = [('moment_file', 'dm.dat')]
+
     default_input = {
                    'moment_file': 'dm.dat',
                    'spectrum_file': 'spec.dat',
@@ -296,6 +307,9 @@ class GpawCalTCM:
 
     NAME = 'tcm.py'
     
+    input_data_file = [('gfilename', 'gs.gpw'),
+                        ('wfilename', 'wf.ulm')]
+
     default_input = {
                     'gfilename' : 'gs.gpw',
                     'wfilename' : 'wf.ulm',
