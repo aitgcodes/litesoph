@@ -134,6 +134,7 @@ class EngineOctopus(EngineStrategy):
         'check_list':['SCF converged']}
 
     rt_tddft_delta = {'out': '/Octopus/log',
+             'req' : ['coordinate.xyz'],
              'check_list':['Finished writing information', 'Calculation ended']}    
 
     def __init__(self,project_dir, status=None) -> None:
@@ -142,6 +143,7 @@ class EngineOctopus(EngineStrategy):
 
     def get_task_class(self, task: str, user_param):
         if task == "ground_state":
+            user_param['geometry']= str(pathlib.Path(self.project_dir.name) / self.ground_state['req'][0])
             return ot.OctGroundState(user_param) 
         if task == "rt_tddft_delta":
             if self.status:
@@ -181,7 +183,11 @@ class EngineNwchem(EngineStrategy):
     NAME = 'nwchem'
 
     ground_state = {'inp':'/NwchemGroundState/gs.nwi',
-            'req' : ['coordinate.xyz'],
+            'req' : ['coordinate.xyz', 'nwchem_restart'],
+            'check_list':['Converged', 'Fermi level:','Total:']}
+
+    rt_tddft_delta = {'inp':'/NwchemGroundState/gs.nwi',
+            'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'nwchem_restart'
@@ -196,6 +202,7 @@ class EngineNwchem(EngineStrategy):
             user_param['permanent_dir']= str(self.restart)
             return nw.NwchemOptimisation(user_param) 
         if task == "ground_state":
+            user_param['geometry']= str(pathlib.Path(self.project_dir.name) / self.ground_state['req'][0])
             user_param['permanent_dir']= str(self.restart)
             return nw.NwchemGroundState(user_param) 
         if task == "rt_tddft_delta":
