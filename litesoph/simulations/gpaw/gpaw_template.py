@@ -141,10 +141,10 @@ td_calc.write('{td_gpw}', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
-        grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
-        # if not grestart.exists():
-        #     raise FileNotFoundError('restart file not found')
-        self.user_input['gfilename'] = str(grestart)
+        # grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
+        # # if not grestart.exists():
+        # #     raise FileNotFoundError('restart file not found')
+        # self.user_input['gfilename'] = str(grestart)
         self.tools = self.user_input['analysis_tools']
 
     def check():
@@ -221,10 +221,10 @@ td_calc.write('{td_gpw}', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
-        grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
-        # if not grestart.exists():
-        #     raise FileNotFoundError('restart file not found')
-        self.user_input['gfilename'] = str(grestart)
+        # grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
+        # # if not grestart.exists():
+        # #     raise FileNotFoundError('restart file not found')
+        # self.user_input['gfilename'] = str(grestart)
         self.laser = self.user_input['laser']
         self.tools = self.user_input['analysis_tools']
         self.td_potential = self.user_input['td_potential']

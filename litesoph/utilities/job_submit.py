@@ -1,4 +1,5 @@
 from configparser import ConfigParser, NoOptionError
+from os import name
 
 from litesoph.simulations.engine import EngineStrategy
 import subprocess  
@@ -76,9 +77,15 @@ class SubmitLocal(JobSubmit):
         with open(filename , 'r+') as f:
             text = f.read()
             for item in self.input_data_files:
-                data_path = path / item
-                item = item.split('/')[-1]
-                text = re.sub(item, str(data_path), text)
+                item = pathlib.Path(path.name) / item
+                data_path = path.parent / item
+                
+                print(str(item))
+                if data_path.is_file():
+                    #item = item.split('/')[-1]
+                    text = re.sub(str(item), str(data_path), text)
+                else:
+                    raise FileNotFoundError(f"The required file for this job {str(data_path)} not found.")
             f.seek(0)
             f.write(text)
             f.truncate() 
