@@ -144,7 +144,7 @@ class AITG(tk.Tk):
             '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
             '<<ShowTimeDependentPage>>' : self._on_rt_tddft_delta_task,
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
-            '<<ShowPlotSpectraPage>>' : lambda _: self._show_frame(PlotSpectraPage, self),
+            '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
             '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self)
         }
@@ -471,8 +471,44 @@ class AITG(tk.Tk):
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
         
 ##----------------------plot_delta_spec_task---------------------------------
+    
+    def _on_spectra_task(self, *_):
+        self._show_frame(v.PlotSpectraPage, self, self.engine)
+        self.spectra_view = self._frames[v.PlotSpectraPage]
+        self.spectra_view.engine = self.engine
+        self.spectra_task = Task(self.status, self.directory)
+        print('_on_spectra_task')
+        self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
 
+    def _validate_spectra_input(self):
+        inp_dict = self.spectra_view.get_parameters()
+        self.spectra_task.set_engine(self.engine)
+        self.spectra_task.set_task('spectrum',inp_dict)
+        self.spectra_task.create_template()
+        return self.spectra_task.template    
 
+    def _on_create_spectra_button(self, *_):
+        self._validate_spectra_input()
+        self._spectra_create_input()
+
+    def _spectra_create_input(self, template=None):     
+        self.spectra_task.write_input(template)
+        # self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.script', 1)
+        # self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
+        # self.rt_tddft_laser_view.set_label_msg('saved')
+        self.check = False
+
+    # def _on_td_laser_run_job_button(self, *_):
+    #     try:
+    #         getattr(self.rt_tddft_laser_task.engine,'directory')           
+    #     except AttributeError:
+    #         messagebox.showerror(message="Input not saved. Please save the input before job submission")
+    #     else:
+    #         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT')
+    #         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+
+    #         self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
+    #         self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
 ##----------------------plot_laser_spec_task---------------------------------
 
     def _init_text_veiwer(self,name, template, *_):
@@ -550,92 +586,92 @@ class AITG(tk.Tk):
         self.settings_model.save()
 
 
-class PlotSpectraPage(Frame):
+# class PlotSpectraPage(Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+#     def __init__(self, parent, controller, *args, **kwargs):
+#         super().__init__(parent, *args, **kwargs)
+#         self.controller = controller
         
 
-        self.axis = StringVar()
+#         self.axis = StringVar()
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
+#         j=font.Font(family ='Courier', size=20,weight='bold')
+#         k=font.Font(family ='Courier', size=40,weight='bold')
+#         l=font.Font(family ='Courier', size=15,weight='bold')
         
-        self.Frame = tk.Frame(self) 
+#         self.Frame = tk.Frame(self) 
         
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
+#         self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
+#         self.Frame.configure(relief='groove')
+#         self.Frame.configure(borderwidth="2")
+#         self.Frame.configure(relief="groove")
+#         self.Frame.configure(cursor="fleur")
         
-        self.heading = Label(self.Frame,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
-        self.heading['font'] = myFont
-        self.heading.place(x=350,y=10)
+#         self.heading = Label(self.Frame,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
+#         self.heading['font'] = myFont
+#         self.heading.place(x=350,y=10)
         
-        self.label_pol = Label(self.Frame, text= "Calculation of absorption spectrum:",bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=60)
+#         self.label_pol = Label(self.Frame, text= "Calculation of absorption spectrum:",bg= "grey",fg="black")
+#         self.label_pol['font'] = myFont
+#         self.label_pol.place(x=10,y=60)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=lambda:[self.createspec()])
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=290,y=60)
+#         self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=lambda:[self.createspec()])
+#         self.Frame2_Button_1['font'] = myFont
+#         self.Frame2_Button_1.place(x=290,y=60)
 
-        self.label_msg = Label(self.Frame, text= "",fg="black")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=420,y=60)
+#         self.label_msg = Label(self.Frame, text= "",fg="black")
+#         self.label_msg['font'] = myFont
+#         self.label_msg.place(x=420,y=60)
 
-        self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
-        self.Frame2_Run['font'] = myFont
-        self.Frame2_Run.place(x=320,y=380)
+#         self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
+#         self.Frame2_Run['font'] = myFont
+#         self.Frame2_Run.place(x=320,y=380)
     
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
-        Frame_Button1['font'] = myFont
-        Frame_Button1.place(x=10,y=380)
+#         Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+#         Frame_Button1['font'] = myFont
+#         Frame_Button1.place(x=10,y=380)
 
-        self.show_plot()
+#         self.show_plot()
 
-    def show_plot(self):
-        check = self.controller.status.check_status('spectra', 2)
-        if check is True:
-            self.create_plot()  
-        else:
-            pass        
+#     def show_plot(self):
+#         check = self.controller.status.check_status('spectra', 2)
+#         if check is True:
+#             self.create_plot()  
+#         else:
+#             pass        
     
-    def create_plot(self):
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+#     def create_plot(self):
+#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
-        self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=130)
+#         self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
+#         self.label_pol['font'] = myFont
+#         self.label_pol.place(x=10,y=130)
 
-        ax_pol = ["x","y","z"]
-        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol, width= 15)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"x")
-        self.entry_pol_x.place(x=160,y=130)
-        self.entry_pol_x['state'] = 'readonly'
+#         ax_pol = ["x","y","z"]
+#         self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol, width= 15)
+#         self.entry_pol_x['font'] = myFont
+#         self.entry_pol_x.insert(0,"x")
+#         self.entry_pol_x.place(x=160,y=130)
+#         self.entry_pol_x['state'] = 'readonly'
         
-        self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Spectrum/spec.dat',str(self.controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
-        self.Frame2_Plot['font'] = myFont
-        self.Frame2_Plot.place(x=320,y= 130)
+#         self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Spectrum/spec.dat',str(self.controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
+#         self.Frame2_Plot['font'] = myFont
+#         self.Frame2_Plot.place(x=320,y= 130)
     
-    def returnaxis(self):
-        if self.axis.get() == "x":
-            axis = 1
-        if self.axis.get() == "y":
-            axis = 2
-        if self.axis.get() == "z":
-            axis = 3
-        return axis
+#     def returnaxis(self):
+#         if self.axis.get() == "x":
+#             axis = 1
+#         if self.axis.get() == "y":
+#             axis = 2
+#         if self.axis.get() == "z":
+#             axis = 3
+#         return axis
 
-    def createspec(self):
-        spec_dict = {}
-        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
+#     def createspec(self):
+#         spec_dict = {}
+#         spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
         # spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
         # job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
         # job.write_input()
