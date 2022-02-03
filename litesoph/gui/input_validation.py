@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from decimal import Decimal
 from pathlib import Path
+import re
 
 class Onlydigits(ttk.Entry):
     def __init__(self, parent, *args, **kwargs):
@@ -35,12 +36,14 @@ class Validatedconv(ttk.Entry):
         validate='all',
         validatecommand=(self.register(self.validate), '%P'),
         )
-  def validate(self, input, **kwargs):
-    if any([(input not in '-1234567890e.')]):
-      return False 
-    elif input is "":
+  def validate(input_number, **kwargs):
+      return bool(re.match(r"\d+.\d+e[-+]\d+", input_number))
+
+      input_number = "5.0e-8"
+      valid = is_valid(input_number)
       return True
-    else: 
+      input_number = "5.0ae-8"
+      valid = is_valid(input_number)
       return False
  
 class Decimalentry(ttk.Entry):
@@ -52,11 +55,11 @@ class Decimalentry(ttk.Entry):
         )
   def validate(self, inp):
     try:
-        return True if float(inp) <= 10 else inp == ''
+        return True if inp == '' else float(inp) <= 100 
     except:
         return False
 
-class FourChar(ttk.Entry):
+class Fourchar(ttk.Entry):
     def __init__(self, parent, *args, **kwargs):
       super().__init__(parent, *args, **kwargs)
       self.configure(
