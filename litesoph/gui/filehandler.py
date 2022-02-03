@@ -4,42 +4,45 @@ import pathlib
 import json
 
 import collections
+import copy
 #import nested_dict 
+
+
 
 def nested_dict():
     return collections.defaultdict(nested_dict)
 
+
 class Status():
 
-    default_dict = {'engine':'',
-                    'ground_state':{ 
-                        'label': '',
-                        'param':'',
-                        'script': 0,
-                        'sub_local':{
-                            'returncode' : None,
-                            'n_proc' : None,
-                            'restart' : '',
-                            'log' : ''
-                        },
-                        'sub_network':{
-                            'project_path': '',
-                            'sub_returncode' : None,
-                            'n_proc' : None,
-                            'restart' : '',
-                            'log' : ''
-                        },
-                        
-                      }}
-
+    __default_task = {'filename': '',
+                    'label': '',
+                    'param':'',
+                    'script': 0,
+                    'sub_local':{
+                        'returncode' : None,
+                        'n_proc' : None,
+                        'restart' : '',
+                        'log' : ''
+                    },
+                    'sub_network':{
+                        'project_path': '',
+                        'sub_returncode' : None,
+                        'n_proc' : None,
+                        'restart' : '',
+                        'log' : ''
+                    },
+                    
+                    }
+    
     def __init__(self, directory) -> None:
 
         self.filepath = pathlib.Path(directory) / "status.json"
-        self.status_dict = nested_dict()
+        self.status_dict = {}
+
         if self.filepath.exists():
             self.read_status()
-        # else:
-        #     self.status_dict = collections.defaultdict() #self.default_dict.copy()    
+    
         self.update_status()
 
     def read_status(self):
@@ -47,7 +50,9 @@ class Status():
 
         with open(self.filepath) as f:
             data_dict = json.load(f)
-            self.status_dict.update(data_dict)
+            #self.status_dict.update(data_dict)
+            for key, value in data_dict.items():
+                self.status_dict[key] = value
             
     def update_status(self, path:str =None, value=None):
         """ updates the status dictionary and writes to json file
@@ -56,15 +61,7 @@ class Status():
         if path is None and value is None:
             self.dict2json(self.status_dict, self.filepath)
         else:
-            #obj = self.status_dict.copy
             list = path.split('.')
-            # for i in range(len(list)):
-            #     for key in obj.keys():
-            #         if key == list[i]:
-            #             if isinstance(obj[key],dict):
-            #                 obj = obj[key]               
-            #             else:
-            #                 obj[key] = value 
             if len(list) == 1:
                 self.status_dict[list[0]] = value
             elif len(list) == 2:
@@ -99,12 +96,26 @@ class Status():
         """ returns boolean value if given path(keys separated by '.') and value match"""
 
         try:
-            if self.get_value(path) == value:
+            if self.get_status(path) == value:
                 return True
             else:
                 return False
         except KeyError:
-            return False         
+            return False        
+
+    def set_new_task(self, task_name):
+        # counter = task_name + "_counter"
+        # try:
+        #     num = self.get_status(counter)
+        # except KeyError:
+        #     self.status_dict[counter] = 1
+        #     task_name = task_name + "_1"
+        # else:
+        #     self.status_dict[counter] = num +1
+        #     task_name = task_name + f"_{num}"
+
+        self.status_dict[task_name] = copy.deepcopy(self.__default_task)
+        
 
     def dict2json(self, dictname, filename):
         filepath = pathlib.Path(filename)
