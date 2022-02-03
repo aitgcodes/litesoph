@@ -1321,7 +1321,6 @@ class TimeDependentPage(tk.Frame):
         super().__init__(parent, *args, **kwargs)
         self.controller = controller
         self.engine = engine
-        
         self.job = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1336,20 +1335,39 @@ class TimeDependentPage(tk.Frame):
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
         self.Frame1.configure(cursor="fleur")
-        self.Frame1 = tk.Frame(self)
+
+        self._default_var = {
+            'strength' : ['float',1e-5],
+            'ex' : ['int',0],
+            'ey' : ['int',0],
+            'ez' : ['int',0],
+            'dt' : ['float'],
+            'Nt' : ['int'],
+            'v' : ['int',1]
+        }
+        self.gpaw_td_default = {
+            'dt' : ['float',10],
+            'Nt' : ['int', 2000]
+        }
+        self.oct_td_default = {
+            'dt' : ['float',2.4],
+            'Nt' : ['int', 1500]
+        }
+        self.nwchem_td_default= {
+            'dt' : ['float',2.4],
+            'Nt' : ['int', 2000]
+        }
+        self._var = var_define(self._default_var)
         
-        self.strength = tk.StringVar()
-        self.ex = tk.IntVar()
-        self.ey = tk.IntVar()
-        self.ez = tk.IntVar()
-        self.dt = tk.DoubleVar()
-        self.Nt = tk.IntVar()    
-        self.v = tk.StringVar()        
+        # self.strength = tk.StringVar()
+        # self.ex = tk.IntVar()
+        # self.ey = tk.IntVar()
+        # self.ez = tk.IntVar()
+        # self.dt = tk.DoubleVar()
+        # self.Nt = tk.IntVar()    
+        # self.v = tk.StringVar()        
         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")            
+        self.Frame1.configure(relief='groove',borderwidth="2",cursor="fleur")
         
         self.Frame1_label_path = tk.Label(self.Frame1,text="LITESOPH input for Delta Kick",fg='blue')
         self.Frame1_label_path['font'] = myFont
@@ -1360,9 +1378,8 @@ class TimeDependentPage(tk.Frame):
         self.label_proj.place(x=10,y=60)
         
         inval = ["1e-5","1e-3"]
-        self.entry_proj = ttk.Combobox(self.Frame1,textvariable= self.strength, value = inval)
+        self.entry_proj = ttk.Combobox(self.Frame1,textvariable= self._var['strength'], value = inval)
         self.entry_proj['font'] = myFont
-        self.entry_proj.insert(0,"1e-5")
         self.entry_proj.place(x=280,y=60)
         self.entry_proj['state'] = 'readonly'
 
@@ -1371,9 +1388,8 @@ class TimeDependentPage(tk.Frame):
         self.label_pol_x.place(x=10,y=110)
         
         pol_list = [0, 1]
-        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self.ex , value = pol_list)
+        self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self._var['ex'] , value = pol_list)
         self.entry_pol_x['font'] = myFont
-        self.ex.set(0)
         self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
 
@@ -1381,9 +1397,8 @@ class TimeDependentPage(tk.Frame):
         self.label_pol_y['font'] = myFont
         self.label_pol_y.place(x=10,y=160)
     
-        self.entry_pol_y = ttk.Combobox(self.Frame1, textvariable= self.ey, value = pol_list)
+        self.entry_pol_y = ttk.Combobox(self.Frame1, textvariable= self._var['ey'], value = pol_list)
         self.entry_pol_y['font'] = myFont
-        self.ey.set(0)
         self.entry_pol_y.place(x=280,y=160)
         self.entry_pol_y['state'] = 'readonly'
 
@@ -1391,9 +1406,9 @@ class TimeDependentPage(tk.Frame):
         self.label_pol_z['font'] = myFont
         self.label_pol_z.place(x=10,y=210)
  
-        self.entry_pol_z = ttk.Combobox(self.Frame1, textvariable= self.ez ,value = pol_list)
+        self.entry_pol_z = ttk.Combobox(self.Frame1, textvariable= self._var['ez'] ,value = pol_list)
         self.entry_pol_z['font'] = myFont
-        self.ez.set(0)
+        #self.ez.set(0)
         self.entry_pol_z.place(x=280,y=210)
         self.entry_pol_z['state'] = 'readonly'
 
@@ -1401,33 +1416,22 @@ class TimeDependentPage(tk.Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=260)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self.dt)
+        self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['dt'])
         self.entry_proj['font'] = myFont
-        self.dt.set(10)
         self.entry_proj.place(x=280,y=260)
 
         self.label_proj = tk.Label(self.Frame1,text="Total time steps",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=310)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self.Nt)
+        self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['Nt'])
         self.entry_proj['font'] = myFont
-        self.Nt.set(200)
         self.entry_proj.place(x=280,y=310)
         
         Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Frame1_Button3['font'] = myFont
         Frame1_Button3.place(x=10,y=380)
-
-        Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[get_parameters()])
-        Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=300,y=380)
-
-        self.label_msg = tk.Label(self.Frame1,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=320,y=350)
-
+        
         self.Frame2 = tk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
@@ -1440,28 +1444,37 @@ class TimeDependentPage(tk.Frame):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.place(x=10,y=70)
     
-        values = {"Dipole Moment" :"1","Wavefunction": "2"}
-        self.v.set("1")
+        values = {"Dipole Moment" :1,"Wavefunction": 2}
         # Loop is used to create multiple Radiobuttons
         # rather than creating each button separately
         for (text, value) in values.items():
-            tk.Radiobutton(self.Frame2, text = text, variable = self.v,
+            tk.Radiobutton(self.Frame2, text = text, variable = self._var['v'],
                 value = value).pack(side = tk.TOP, anchor=tk.NW, ipady = 5)
  
         Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
         Frame2_Button1['font'] = myFont
         Frame2_Button1.place(x=10,y=380)
 
+        Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
+        #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[get_parameters()])
+        Frame1_Button1['font'] = myFont
+        Frame1_Button1.place(x=210,y=380)
+
         Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
         Frame2_Button2['font'] = myFont
-        Frame2_Button2.place(x=300,y=380)
+        Frame2_Button2.place(x=420,y=380)
+
+        self.label_msg = tk.Label(self.Frame2,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.place(x=220,y=360)
+
 
     def get_parameters(self):
         #engine = self.controller.status.get_value('engine')
-        kick = [float(self.strength.get())*float(self.ex.get()),
-                float(self.strength.get())*float(self.ey.get()),
-                float(self.strength.get())*float(self.ez.get())]
-        inp_list = [float(self.dt.get()),float(self.Nt.get())] 
+        kick = [float(self._var['strength'].get())*float(self._var['ex'].get()),
+                float(self._var['strength'].get())*float(self._var['ey'].get()),
+                float(self._var['strength'].get())*float(self._var['ez'].get())]
+        inp_list = [float(self._var['dt'].get()),int(self._var['Nt'].get())] 
 
         td_dict_gp = {
             'absorption_kick':kick,
@@ -1470,18 +1483,18 @@ class TimeDependentPage(tk.Frame):
         }
         
         td_dict_oct = {
-            'max_step' : self.Nt.get() ,            
-            'time_step' : self.dt.get(),      
+            'max_step' : self._var['Nt'].get() ,            
+            'time_step' : self._var['dt'].get(),      
             'td_propagator' : 'aetrs',
-            'strength': self.strength.get(),
-            'e_pol': [self.ex.get(),self.ey.get(),self.ez.get()] 
+            'strength': self._var['strength'].get(),
+            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()] 
           }
 
         td_dict_nwchem = {
-            'tmax': self.Nt.get() * self.dt.get(),
-            'dt': 0.2,
-            'max':self.strength.get(),
-            'e_pol': [self.ex.get(),self.ey.get(),self.ez.get()]
+            'tmax': self._var['Nt'].get() * self._var['dt'].get(),
+            'dt': self._var['dt'].get(),
+            'max':self._var['strength'].get(),
+            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
             }
         
         if self.engine == 'gpaw':
@@ -1492,9 +1505,9 @@ class TimeDependentPage(tk.Frame):
             return td_dict_oct            
 
     def analysis_tool(self): 
-        if self.v.get() == "1":
+        if self._var['v'].get() == 1:
             return("dipolemoment")
-        elif self.v.get() == "2":
+        elif self._var['v'].get() == 2:
             return("wavefunction")
     
     def set_label_msg(self,msg):
@@ -1512,7 +1525,21 @@ class TimeDependentPage(tk.Frame):
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')
 
+    def update_var(self, default_dict:dict):
+        for key, value in default_dict.items():
+            try:
+                self._var[key].set(value[1])
+            except IndexError:
+                self._var[key].set('')  
 
+    def update_engn_default(self, engn):
+        self.engine = engn
+        if engn == 'gpaw':
+            self.update_var(self.gpaw_td_default)
+        elif engn == 'octopus':
+            self.update_var(self.oct_td_default)    
+        elif engn == 'nwchem':
+            self.update_var(self.nwchem_td_default)
 
 class LaserDesignPage(tk.Frame):
 
@@ -1750,10 +1777,8 @@ class LaserDesignPage(tk.Frame):
 
     def get_parameters(self):
         
-        from litesoph.utilities.units import au_to_as,autime_to_eV
-        laser_param = self.laser_design_dict
-        
-       
+        from litesoph.utilities.units import au_to_fs,autime_to_eV
+        laser_param = self.laser_design_dict               
         epol_list = [int(self.pol_x.get()),int(self.pol_y.get()),int(self.pol_z.get())]
        
         if self.engine == 'gpaw':
@@ -1767,7 +1792,7 @@ class LaserDesignPage(tk.Frame):
                 'frequency':self.frequency.get(),
                 'strength':self.strength.get(),
                 'sigma': round(autime_to_eV/self.laser_design_dict['sigma'], 2),
-                'time0': round(self.laser_design_dict['time0']*au_to_as, 2)
+                'time0': round(self.laser_design_dict['time0']*au_to_fs, 2)
             }
             laser_param.update(l_dict)
             td_gpaw = {
@@ -1776,7 +1801,6 @@ class LaserDesignPage(tk.Frame):
                         'electric_pol': epol_list,             
                         'td_potential' : True,                     
                         'laser': laser_param}
-                        
             return td_gpaw
             
         elif self.engine == 'octopus':
@@ -1805,7 +1829,9 @@ class LaserDesignPage(tk.Frame):
         self.event_generate('<<ShowWorkManagerPage>>')
 
     def set_label_msg(self,msg):
-        show_message(self.label_msg, msg)    
+        show_message(self.label_msg, msg) 
+
+   
 
 class PlotSpectraPage(tk.Frame):
 
