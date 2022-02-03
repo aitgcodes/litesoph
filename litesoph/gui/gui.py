@@ -304,9 +304,9 @@ class AITG(tk.Tk):
     def _on_gs_view_button(self, *_):
         template = self._validate_gs_input()
         if template:
-            text_veiw = self._init_text_veiwer('GroundState', template)
-            text_veiw.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_veiw.save_txt))
-            text_veiw.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
+            text_view = self._init_text_viewer('GroundState', template)
+            text_view.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_view.save_txt))
+            text_view.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
 
     def _validate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
@@ -343,7 +343,8 @@ class AITG(tk.Tk):
         try:
             getattr(self.ground_state_task.engine,'directory')           
         except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(title = 'Error' ,message="Input not saved. Please save the input before job submission")
+            return
         else:
             self.ground_state_view.refresh_var()
             self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
@@ -371,9 +372,9 @@ class AITG(tk.Tk):
 
     def _on_td_view_button(self, *_):
         template = self._validate_td_input()
-        text_veiw = self._init_text_veiwer('RT_TDDFT_DELTA', template)
-        text_veiw.bind('<<SaveRT_TDDFT_DELTA>>', lambda _: self._td_create_input(text_veiw.save_txt))
-        text_veiw.bind('<<ViewRT_TDDFT_DELTAPage>>', lambda _: self._show_frame(v.TimeDependentPage))
+        text_view = self._init_text_viewer('RT_TDDFT_DELTA', template)
+        text_view.bind('<<SaveRT_TDDFT_DELTA>>', lambda _: self._td_create_input(text_view.save_txt))
+        text_view.bind('<<ViewRT_TDDFT_DELTAPage>>', lambda _: self._show_frame(v.TimeDependentPage))
 
     def _validate_td_input(self):
         inp_dict = self.rt_tddft_delta_view.get_parameters()
@@ -394,7 +395,8 @@ class AITG(tk.Tk):
         try:
             getattr(self.rt_tddft_delta_task.engine,'directory')           
         except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
+            return
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
@@ -441,9 +443,9 @@ class AITG(tk.Tk):
 
     def _on_td_laser_view_button(self, *_):
         template = self._validate_td_laser_input()
-        text_veiw = self._init_text_veiwer('RT_TDDFT_LASER', template)
-        text_veiw.bind('<<SaveRT_TDDFT_LASER>>', lambda _: self._td_laser_create_input(text_veiw.save_txt))
-        text_veiw.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
+        text_view = self._init_text_viewer('RT_TDDFT_LASER', template)
+        text_view.bind('<<SaveRT_TDDFT_LASER>>', lambda _: self._td_laser_create_input(text_view.save_txt))
+        text_view.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
 
     def _validate_td_laser_input(self):
         self.rt_tddft_laser_view.set_laser_design_dict(self.laser_design.l_design)
@@ -466,7 +468,8 @@ class AITG(tk.Tk):
         try:
             getattr(self.rt_tddft_laser_task.engine,'directory')           
         except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
+            return
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_LASER')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
@@ -479,13 +482,13 @@ class AITG(tk.Tk):
 
 ##----------------------plot_laser_spec_task---------------------------------
 
-    def _init_text_veiwer(self,name, template, *_):
+    def _init_text_viewer(self,name, template, *_):
         #self._show_frame(v.TextViewerPage, self)
-        text_veiw = v.TextViewerPage(self._window)
-        text_veiw.grid(row=0, column=1, sticky ="nsew")
-        text_veiw.set_task_name(name)
-        text_veiw.insert_text(template)
-        return text_veiw
+        text_view = v.TextViewerPage(self._window)
+        text_view.grid(row=0, column=1, sticky ="nsew")
+        text_view.set_task_name(name)
+        text_view.insert_text(template)
+        return text_view
 
     def _run_local(self, task):
         np = self.job_sub_page.get_processors()
@@ -500,12 +503,12 @@ class AITG(tk.Tk):
         try:
             submitlocal.run_job()
         except Exception as e:
-            messagebox.showerror(message=f'There was an error when trying to run the job:{e}')
+            messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             return
         else:
             if task.results[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
-                messagebox.showerror(message=f"Job exited with non-zero return code. Error: {task.results[1]}")
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[1]}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
@@ -518,7 +521,8 @@ class AITG(tk.Tk):
         run_script_path = self.job_sub_page.run_script_path
 
         if not run_script_path:
-            messagebox.showerror(message = "Please upload job script")
+            messagebox.showerror(title = "Error", message = "Please upload job script")
+            return
         login_dict = self.job_sub_page.get_network_dict()
         net_inp = dict(run_script = run_script_path,
                         inp = [task.file_path],
