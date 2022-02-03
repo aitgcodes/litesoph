@@ -5,6 +5,7 @@ import numpy as np
 from typing import Any, Dict
 from litesoph.simulations.engine import EngineStrategy, EngineGpaw,EngineNwchem,EngineOctopus
 from litesoph.lsio.data_types import DataTypes as  DT
+from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
 
 class WorkManagerModel:
 
@@ -157,8 +158,8 @@ class LaserDesignModel:
         """ creates gaussian pulse with given inval,fwhm value """
         from litesoph.pre_processing.laser_design import GaussianPulse
         from litesoph.pre_processing.laser_design import laser_design
-        from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au
-        self.l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])
+        #from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au
+        self.l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])      
         laser_input = {
             'frequency': self.user_input['frequency'],
             'sigma': round(autime_to_eV/self.l_design['sigma'], 2),
@@ -178,7 +179,7 @@ class LaserDesignModel:
 
     def plot_time_strength(self):
         """ returns Figure object for (time,strength) in (X,Y) """
-        fig = plot(self.time_t,self.strength_t, 'Time (in attosec)', 'Pulse Strength (in au)')
+        fig = plot(self.time_t*as_to_au*au_to_fs,self.strength_t, 'Time (in fs)', 'Pulse Strength (in au)')
         return fig
 
     def plot_time_derivative(self):
