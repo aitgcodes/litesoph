@@ -130,7 +130,7 @@ class EngineOctopus(EngineStrategy):
     NAME = 'octopus'
 
     ground_state = {'out': '/Octopus/log',
-        'req' : ['coordinate.xy'],
+        'req' : ['coordinate.xyz'],
         'check_list':['SCF converged']}
 
     rt_tddft_delta = {'out': '/Octopus/log',
@@ -181,7 +181,7 @@ class EngineNwchem(EngineStrategy):
     NAME = 'nwchem'
 
     ground_state = {'inp':'/NwchemGroundState/gs.nwi',
-            'req' : ['coordinate.xy'],
+            'req' : ['coordinate.xyz'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'nwchem_restart'
@@ -205,7 +205,7 @@ class EngineNwchem(EngineStrategy):
             return nw.NwchemDeltaKick(user_param)
 
     def create_restart_dir(self):
-        self.restart = pathlib.Path(self.project_dir) / self.restart
+        self.restart = self.project_dir.parent / self.restart
         self.create_directory(self.restart)
 
     def create_dir(self, directory, task):
