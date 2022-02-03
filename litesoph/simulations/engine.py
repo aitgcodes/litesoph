@@ -47,26 +47,27 @@ class EngineGpaw(EngineStrategy):
     NAME = 'gpaw'
 
     ground_state = {'inp':'/GS/gs.py',
-            'req' : ['coordinate.xy'],
+            'req' : ['coordinate.xyz'],
             'out': 'GS/gs.out',
             'restart': 'GS/gs.gpw',
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/TD_Delta/td.py',
+    rt_tddft_delta = {'inp':'TD_Delta/td.py',
             'req' : ['GS/gs.gpw'],
-             'out': 'TD_Delta/tdx.out',
-             'restart': 'TD_Delta/td.gpw',
-             'check_list':['Writing','Total:']}
+            'out': 'TD_Delta/tdx.out',
+            'restart': 'TD_Delta/td.gpw',
+            'check_list':['Writing','Total:']}
 
     rt_tddft_laser = {'inp':'TD_Laser/tdlaser.py',
-             'out': 'TD_Laser/tdlaser.out',
-             'restart': 'TD_Laser/tdlaser.gpw',
-             'check_list':['Writing','Total:']}
+            'req' : ['GS/gs.gpw'],
+            'out': 'TD_Laser/tdlaser.out',
+            'restart': 'TD_Laser/tdlaser.gpw',
+            'check_list':['Writing','Total:']}
     
     spectrum = {'inp':'Spectrum/spec.py',
-             'out': 'Spectrum/spec.dat',
-             'restart': 'TD_Delta/dm.dat',
-             'check_list':['FWHM']}
+            'out': 'Spectrum/spec.dat',
+            'restart': 'TD_Delta/dm.dat',
+            'check_list':['FWHM']}
 
     task_dirs =[('GpawGroundState', 'GS'),
             ('GpawRTLCAOTddftDelta', 'TD_Delta'),
@@ -80,12 +81,13 @@ class EngineGpaw(EngineStrategy):
 
     def get_task_class(self, task: str, user_param, *_):
         if task == "ground_state":
+            user_param['geometry']= str(pathlib.Path(self.project_dir.name) / self.ground_state['req'][0])
             return gp.GpawGroundState(user_param) 
         if task == "rt_tddft_delta":
-            user_param['gfilename']= self.ground_state['restart']
+            user_param['gfilename']= str(pathlib.Path(self.project_dir.name)  / self.rt_tddft_delta['req'][0])
             return gp.GpawRTLCAOTddftDelta(user_param)
         if task == "rt_tddft_laser":
-            user_param['gfilename']= self.ground_state['restart']
+            user_param['gfilename']= str(pathlib.Path(self.project_dir.name)  / self.rt_tddft_laser['req'][0])
             return gp.GpawRTLCAOTddftLaser(user_param)
         if task == "spectrum":
             return gp.GpawSpectrum(user_param) 
@@ -127,10 +129,11 @@ class EngineOctopus(EngineStrategy):
 
     NAME = 'octopus'
 
-    gs = {'out': '/Octopus/log',
+    ground_state = {'out': '/Octopus/log',
+        'req' : ['coordinate.xy'],
         'check_list':['SCF converged']}
 
-    td_delta = {'out': '/Octopus/log',
+    rt_tddft_delta = {'out': '/Octopus/log',
              'check_list':['Finished writing information', 'Calculation ended']}    
 
     def __init__(self,project_dir, status=None) -> None:
@@ -177,7 +180,8 @@ class EngineNwchem(EngineStrategy):
 
     NAME = 'nwchem'
 
-    gs = {'inp':'/NwchemGroundState/gs.nwi',
+    ground_state = {'inp':'/NwchemGroundState/gs.nwi',
+            'req' : ['coordinate.xy'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'nwchem_restart'
@@ -185,13 +189,13 @@ class EngineNwchem(EngineStrategy):
     def __init__(self,project_dir, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
+        self.restart = pathlib.Path(self.project_dir.name) / self.restart
 
     def get_task_class(self, task: str, user_param):
         if task == "optimization":
-            user_param['permanent_dir']= self.restart
+            user_param['permanent_dir']= str(self.restart)
             return nw.NwchemOptimisation(user_param) 
         if task == "ground_state":
-            self.restart = pathlib.Path(self.project_dir) / self.restart
             user_param['permanent_dir']= str(self.restart)
             return nw.NwchemGroundState(user_param) 
         if task == "rt_tddft_delta":
