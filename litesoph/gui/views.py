@@ -1431,17 +1431,19 @@ class TimeDependentPage(tk.Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=260)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['dt'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=260)
+        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['dt'])
+        self.entry_dt = Decimalentry(self.Frame1, textvariable= self._var['dt'])
+        self.entry_dt['font'] = myFont
+        self.entry_dt.place(x=280,y=260)
 
         self.label_proj = tk.Label(self.Frame1,text="Total time steps",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=310)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['Nt'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=310)
+        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['Nt'])
+        self.entry_nt = Onlydigits(self.Frame1, textvariable= self._var['Nt'])
+        self.entry_nt['font'] = myFont
+        self.entry_nt.place(x=280,y=310)
         
         Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Frame1_Button3['font'] = myFont
@@ -1606,10 +1608,11 @@ class LaserDesignPage(tk.Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self.tin)
-        self.entry_proj['font'] = myFont
+        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.tin)
+        self.entry_tin = Decimalentry(self.Frame1, textvariable= self.tin)
+        self.entry_tin['font'] = myFont
         self.tin.set(0)
-        self.entry_proj.place(x=280,y=60)
+        self.entry_tin.place(x=280,y=60)
         
         self.label_inval = tk.Label(self.Frame1,text="-log((E at tin)/Eo),(value>=6)",bg="gray",fg="black")
         self.label_inval['font'] = myFont
@@ -1619,7 +1622,8 @@ class LaserDesignPage(tk.Frame):
         # self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= self.inval, value = inval_list)
         # self.entry_pol_z['font'] = myFont
         # self.entry_pol_z.insert(0,"1e-8")
-        self.entry_inval = tk.Entry(self.Frame1,textvariable= self.inval)
+        #self.entry_inval = tk.Entry(self.Frame1,textvariable= self.inval)
+        self.entry_inval = Onlydigits(self.Frame1, textvariable= self.inval)
         self.entry_inval['font'] = myFont
         self.inval.set(6)
         self.entry_inval.place(x=280,y=100)
@@ -1639,36 +1643,40 @@ class LaserDesignPage(tk.Frame):
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=180)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self.fwhm)
+        #self.entry_fwhm = tk.Entry(self.Frame1,textvariable= self.fwhm)
+        self.entry_fwhm = Decimalentry(self.Frame1, textvariable= self.fwhm)
         #self.fwhm.set("0.2")
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=180)
+        self.entry_fwhm['font'] = myFont
+        self.entry_fwhm.place(x=280,y=180)
 
         self.label_proj = tk.Label(self.Frame1,text="Frequency in eV",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=220)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self.frequency)
-        self.entry_proj['font'] = myFont
-        self.entry_proj.place(x=280,y=220)
+        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.frequency)
+        self.entry_frq = Decimalentry(self.Frame1,textvariable= self.frequency)
+        self.entry_frq['font'] = myFont
+        self.entry_frq.place(x=280,y=220)
 
         self.label_proj = tk.Label(self.Frame1,text="Time step in attosecond ",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=260)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ts)
-        self.entry_proj['font'] = myFont
+        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ts)
+        self.entry_ts = Decimalentry(self.Frame1,textvariable= self.ts)
+        self.entry_ts['font'] = myFont
         self.ts.set(10)
-        self.entry_proj.place(x=280,y=260)
+        self.entry_ts.place(x=280,y=260)
         
-        self.label_proj = tk.Label(self.Frame1,text="Number of Steps",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=300)
+        self.label_ns = tk.Label(self.Frame1,text="Number of Steps",bg="gray",fg="black")
+        self.label_ns['font'] = myFont
+        self.label_ns.place(x=10,y=300)
 
-        self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ns)
-        self.entry_proj['font'] = myFont
+        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ns)
+        self.entry_ns = Onlydigits(self.Frame1, textvariable= self.ns)
+        self.entry_ns['font'] = myFont
         self.ns.set(2000)
-        self.entry_proj.place(x=280,y=300)
+        self.entry_ns.place(x=280,y=300)
  
         Frame1_Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Frame1_Button1['font'] = myFont
