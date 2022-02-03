@@ -237,7 +237,7 @@ class AITG(tk.Tk):
             if path.exists() is True:
                 self.event_generate('<<ShowGroundStatePage>>')
             else:
-                messagebox.showerror(message= "Upload geometry file")
+                messagebox.showerror(title = 'Error', message= "Upload geometry file")
         elif sub_task == "Delta Kick":
             self.event_generate('<<ShowTimeDependentPage>>')   
         elif sub_task == "Gaussian Pulse":    
@@ -486,6 +486,7 @@ class AITG(tk.Tk):
         self.spectra_task = Task(self.status, self.directory)
         print('_on_spectra_task')
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
+        self.bind('<<SubSpectrum>>', self._on_spectra_run_job_button)
 
     def _validate_spectra_input(self):
         inp_dict = self.spectra_view.get_parameters()
@@ -500,22 +501,23 @@ class AITG(tk.Tk):
 
     def _spectra_create_input(self, template=None):     
         self.spectra_task.write_input(template)
-        # self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.script', 1)
-        # self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
-        # self.rt_tddft_laser_view.set_label_msg('saved')
+        self.status.set_new_task(self.spectra_task.task_name)
+        self.status.update_status(f'{self.spectra_task.task_name}.script', 1)
+        self.status.update_status(f'{self.spectra_task.task_name}.param',self.spectra_task.user_input)
+        #self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 
-    # def _on_td_laser_run_job_button(self, *_):
-    #     try:
-    #         getattr(self.rt_tddft_laser_task.engine,'directory')           
-    #     except AttributeError:
-    #         messagebox.showerror(message="Input not saved. Please save the input before job submission")
-    #     else:
-    #         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT')
-    #         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+    def _on_spectra_run_job_button(self, *_):
+        try:
+            getattr(self.spectra_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
+            self.job_sub_page = v.JobSubPage(self._window, 'Spectrum')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
 
-    #         self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
-    #         self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
+            self.job_sub_page.bind('<<RunSpectrumLocal>>', lambda _: self._run_local(self.spectra_task))
+            self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.spectra_task))
 ##----------------------plot_laser_spec_task---------------------------------
 
     def _init_text_viewer(self,name, template, *_):
