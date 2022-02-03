@@ -8,6 +8,7 @@ import paramiko
 import socket
 import pathlib
 import subprocess
+import re
 
 
 
@@ -59,15 +60,36 @@ class SubmitLocal(JobSubmit):
             
            
     def create_command(self):
+        """creates creates the command to run the job"""
         self.command = self.engine.create_command(self.command)
     
+    def prepare_input(self, path):
+        """this adds in the proper path to the data file required for the job"""
+        filename = self.task.file_path
+        path = pathlib.Path(path)
+        try:
+            self.input_data_files = getattr(self.task.engine, self.task.task_name)
+            self.input_data_files = self.input_data_files['req']
+        except AttributeError as e:
+            raise AttributeError(e)
+
+        with open(filename , 'r+') as f:
+            text = f.read()
+            for item in self.input_data_files:
+                data_path = path / item
+                item = item.split('/')[-1]
+                text = re.sub(item, str(data_path), text)
+            f.seek(0)
+            f.write(text)
+            f.truncate() 
+
     def run_job(self):
         self.create_command()
         returncode,  result = self.execute(self.task.task_dir)
         self.task.results = (returncode, result[0], result[1])
         print(result)
 
-    def execute(self,directory):
+    def execute(self, directory):
         try:
             job = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
             result = job.communicate()

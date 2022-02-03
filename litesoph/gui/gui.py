@@ -464,7 +464,7 @@ class AITG(tk.Tk):
         except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
-            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT')
+            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_LASER')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
 
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
@@ -485,7 +485,9 @@ class AITG(tk.Tk):
 
     def _run_local(self, task):
         np = self.job_sub_page.get_processors()
+        #task.prepare_input(self.directory, task.file_path)
         submitlocal = SubmitLocal(task, self.lsconfig, np)
+        submitlocal.prepare_input(self.directory)
         try:
             submitlocal.run_job()
         except Exception as e:
