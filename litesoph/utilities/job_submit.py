@@ -1,4 +1,5 @@
 from configparser import ConfigParser, NoOptionError
+from os import name
 
 from litesoph.simulations.engine import EngineStrategy
 import subprocess  
@@ -8,6 +9,7 @@ import paramiko
 import socket
 import pathlib
 import subprocess
+import re
 
 
 
@@ -59,15 +61,42 @@ class SubmitLocal(JobSubmit):
             
            
     def create_command(self):
+        """creates creates the command to run the job"""
         self.command = self.engine.create_command(self.command)
     
+    def prepare_input(self, path):
+        """this adds in the proper path to the data file required for the job"""
+        filename = self.task.file_path
+        path = pathlib.Path(path)
+        try:
+            self.input_data_files = getattr(self.task.engine, self.task.task_name)
+            self.input_data_files = self.input_data_files['req']
+        except AttributeError as e:
+            raise AttributeError(e)
+
+        with open(filename , 'r+') as f:
+            text = f.read()
+            for item in self.input_data_files:
+                item = pathlib.Path(path.name) / item
+                data_path = path.parent / item
+                
+                print(str(item))
+                if data_path.is_file() or data_path.is_dir():
+                    #item = item.split('/')[-1]
+                    text = re.sub(str(item), str(data_path), text)
+                else:
+                    raise FileNotFoundError(f"The required file for this job {str(data_path)} not found.")
+            f.seek(0)
+            f.write(text)
+            f.truncate() 
+
     def run_job(self):
         self.create_command()
         returncode,  result = self.execute(self.task.task_dir)
         self.task.results = (returncode, result[0], result[1])
         print(result)
 
-    def execute(self,directory):
+    def execute(self, directory):
         try:
             job = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
             result = job.communicate()

@@ -144,7 +144,7 @@ class AITG(tk.Tk):
             '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
             '<<ShowTimeDependentPage>>' : self._on_rt_tddft_delta_task,
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
-            '<<ShowPlotSpectraPage>>' : lambda _: self._show_frame(PlotSpectraPage, self),
+            '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
             '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self)
         }
@@ -237,7 +237,7 @@ class AITG(tk.Tk):
             if path.exists() is True:
                 self.event_generate('<<ShowGroundStatePage>>')
             else:
-                messagebox.showerror(message= "Upload geometry file")
+                messagebox.showerror(title = 'Error', message= "Upload geometry file")
         elif sub_task == "Delta Kick":
             self.event_generate('<<ShowTimeDependentPage>>')   
         elif sub_task == "Gaussian Pulse":    
@@ -304,9 +304,9 @@ class AITG(tk.Tk):
     def _on_gs_view_button(self, *_):
         template = self._validate_gs_input()
         if template:
-            text_veiw = self._init_text_veiwer('GroundState', template)
-            text_veiw.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_veiw.save_txt))
-            text_veiw.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
+            text_view = self._init_text_viewer('GroundState', template)
+            text_view.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_view.save_txt))
+            text_view.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
 
     def _validate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
@@ -330,6 +330,7 @@ class AITG(tk.Tk):
                 pass
             self.ground_state_task.write_input(template)
             self.status.update_status('engine', self.engine)
+            self.status.set_new_task(self.ground_state_task.task_name)
             self.status.update_status(f'{self.ground_state_task.task_name}.script', 1)
             self.status.update_status(f'{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
             self.status_bar.set(self.engine)
@@ -342,22 +343,23 @@ class AITG(tk.Tk):
         try:
             getattr(self.ground_state_task.engine,'directory')           
         except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(title = 'Error' ,message="Input not saved. Please save the input before job submission")
+            return
         else:
             self.ground_state_view.refresh_var()
             self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-
+            self.job_sub_page.activate_run_button()
             self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
             self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
-            self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
+            #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
-        self.rt_tddft_delta_view.engine = self.engine
+        self.rt_tddft_delta_view.update_engine_default(self.engine) 
         self.rt_tddft_delta_task = Task(self.status, self.directory)
 
         self.bind('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
@@ -370,9 +372,9 @@ class AITG(tk.Tk):
 
     def _on_td_view_button(self, *_):
         template = self._validate_td_input()
-        text_veiw = self._init_text_veiwer('RT_TDDFT_DELTA', template)
-        text_veiw.bind('<<SaveRT_TDDFT_DELTA>>', lambda _: self._td_create_input(text_veiw.save_txt))
-        text_veiw.bind('<<ViewRT_TDDFT_DELTAPage>>', lambda _: self._show_frame(v.TimeDependentPage))
+        text_view = self._init_text_viewer('RT_TDDFT_DELTA', template)
+        text_view.bind('<<SaveRT_TDDFT_DELTA>>', lambda _: self._td_create_input(text_view.save_txt))
+        text_view.bind('<<ViewRT_TDDFT_DELTAPage>>', lambda _: self._show_frame(v.TimeDependentPage))
 
     def _validate_td_input(self):
         inp_dict = self.rt_tddft_delta_view.get_parameters()
@@ -383,6 +385,7 @@ class AITG(tk.Tk):
 
     def _td_create_input(self, template=None):     
         self.rt_tddft_delta_task.write_input(template)
+        self.status.set_new_task(self.rt_tddft_delta_task.task_name)
         self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.script', 1)
         self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
         self.rt_tddft_delta_view.set_label_msg('saved')
@@ -392,10 +395,12 @@ class AITG(tk.Tk):
         try:
             getattr(self.rt_tddft_delta_task.engine,'directory')           
         except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
+            return
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+            self.job_sub_page.activate_run_button()
 
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
@@ -438,9 +443,9 @@ class AITG(tk.Tk):
 
     def _on_td_laser_view_button(self, *_):
         template = self._validate_td_laser_input()
-        text_veiw = self._init_text_veiwer('RT_TDDFT_LASER', template)
-        text_veiw.bind('<<SaveRT_TDDFT_LASER>>', lambda _: self._td_laser_create_input(text_veiw.save_txt))
-        text_veiw.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
+        text_view = self._init_text_viewer('RT_TDDFT_LASER', template)
+        text_view.bind('<<SaveRT_TDDFT_LASER>>', lambda _: self._td_laser_create_input(text_view.save_txt))
+        text_view.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
 
     def _validate_td_laser_input(self):
         self.rt_tddft_laser_view.set_laser_design_dict(self.laser_design.l_design)
@@ -453,6 +458,7 @@ class AITG(tk.Tk):
 
     def _td_laser_create_input(self, template=None):     
         self.rt_tddft_laser_task.write_input(template)
+        self.status.set_new_task(self.rt_tddft_laser_task.task_name)
         self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.script', 1)
         self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
         self.rt_tddft_laser_view.set_label_msg('saved')
@@ -462,38 +468,85 @@ class AITG(tk.Tk):
         try:
             getattr(self.rt_tddft_laser_task.engine,'directory')           
         except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
+            return
         else:
-            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT')
+            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_LASER')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-
+            self.job_sub_page.activate_run_button()
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
         
 ##----------------------plot_delta_spec_task---------------------------------
+    
+    def _on_spectra_task(self, *_):
+        self._show_frame(v.PlotSpectraPage, self, self.engine)
+        self.spectra_view = self._frames[v.PlotSpectraPage]
+        self.spectra_view.engine = self.engine
+        self.spectra_task = Task(self.status, self.directory)
+        print('_on_spectra_task')
+        self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
+        self.bind('<<SubSpectrum>>', self._on_spectra_run_job_button)
 
+    def _validate_spectra_input(self):
+        inp_dict = self.spectra_view.get_parameters()
+        self.spectra_task.set_engine(self.engine)
+        self.spectra_task.set_task('spectrum',inp_dict)
+        self.spectra_task.create_template()
+        return self.spectra_task.template    
 
+    def _on_create_spectra_button(self, *_):
+        self._validate_spectra_input()
+        self._spectra_create_input()
+
+    def _spectra_create_input(self, template=None):     
+        self.spectra_task.write_input(template)
+        self.status.set_new_task(self.spectra_task.task_name)
+        self.status.update_status(f'{self.spectra_task.task_name}.script', 1)
+        self.status.update_status(f'{self.spectra_task.task_name}.param',self.spectra_task.user_input)
+        #self.rt_tddft_laser_view.set_label_msg('saved')
+        self.check = False
+
+    def _on_spectra_run_job_button(self, *_):
+        try:
+            getattr(self.spectra_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
+            self.job_sub_page = v.JobSubPage(self._window, 'Spectrum')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+
+            self.job_sub_page.bind('<<RunSpectrumLocal>>', lambda _: self._run_local(self.spectra_task))
+            self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.spectra_task))
 ##----------------------plot_laser_spec_task---------------------------------
 
-    def _init_text_veiwer(self,name, template, *_):
+    def _init_text_viewer(self,name, template, *_):
         #self._show_frame(v.TextViewerPage, self)
-        text_veiw = v.TextViewerPage(self._window)
-        text_veiw.grid(row=0, column=1, sticky ="nsew")
-        text_veiw.set_task_name(name)
-        text_veiw.insert_text(template)
-        return text_veiw
+        text_view = v.TextViewerPage(self._window)
+        text_view.grid(row=0, column=1, sticky ="nsew")
+        text_view.set_task_name(name)
+        text_view.insert_text(template)
+        return text_view
 
     def _run_local(self, task):
         np = self.job_sub_page.get_processors()
+        self.job_sub_page.disable_run_button()
+        #task.prepare_input(self.directory, task.file_path)
         submitlocal = SubmitLocal(task, self.lsconfig, np)
+        try:
+            submitlocal.prepare_input(self.directory)
+        except FileNotFoundError as e:
+            messagebox.showerror(message=e)
+            return
         try:
             submitlocal.run_job()
         except Exception as e:
-            messagebox.showerror(message=f'There was an error when trying to run the job:{e}')
+            messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
+            return
         else:
             if task.results[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
-                messagebox.showerror(message=f"Job exited with non-zero return code. Error: {task.result[1]}")
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[1]}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
@@ -506,7 +559,8 @@ class AITG(tk.Tk):
         run_script_path = self.job_sub_page.run_script_path
 
         if not run_script_path:
-            messagebox.showerror(message = "Please upload job script")
+            messagebox.showerror(title = "Error", message = "Please upload job script")
+            return
         login_dict = self.job_sub_page.get_network_dict()
         net_inp = dict(run_script = run_script_path,
                         inp = [task.file_path],
@@ -548,92 +602,92 @@ class AITG(tk.Tk):
         self.settings_model.save()
 
 
-class PlotSpectraPage(Frame):
+# class PlotSpectraPage(Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+#     def __init__(self, parent, controller, *args, **kwargs):
+#         super().__init__(parent, *args, **kwargs)
+#         self.controller = controller
         
 
-        self.axis = StringVar()
+#         self.axis = StringVar()
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
+#         j=font.Font(family ='Courier', size=20,weight='bold')
+#         k=font.Font(family ='Courier', size=40,weight='bold')
+#         l=font.Font(family ='Courier', size=15,weight='bold')
         
-        self.Frame = tk.Frame(self) 
+#         self.Frame = tk.Frame(self) 
         
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
+#         self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
+#         self.Frame.configure(relief='groove')
+#         self.Frame.configure(borderwidth="2")
+#         self.Frame.configure(relief="groove")
+#         self.Frame.configure(cursor="fleur")
         
-        self.heading = Label(self.Frame,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
-        self.heading['font'] = myFont
-        self.heading.place(x=350,y=10)
+#         self.heading = Label(self.Frame,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
+#         self.heading['font'] = myFont
+#         self.heading.place(x=350,y=10)
         
-        self.label_pol = Label(self.Frame, text= "Calculation of absorption spectrum:",bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=60)
+#         self.label_pol = Label(self.Frame, text= "Calculation of absorption spectrum:",bg= "grey",fg="black")
+#         self.label_pol['font'] = myFont
+#         self.label_pol.place(x=10,y=60)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=lambda:[self.createspec()])
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=290,y=60)
+#         self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=lambda:[self.createspec()])
+#         self.Frame2_Button_1['font'] = myFont
+#         self.Frame2_Button_1.place(x=290,y=60)
 
-        self.label_msg = Label(self.Frame, text= "",fg="black")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=420,y=60)
+#         self.label_msg = Label(self.Frame, text= "",fg="black")
+#         self.label_msg['font'] = myFont
+#         self.label_msg.place(x=420,y=60)
 
-        self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
-        self.Frame2_Run['font'] = myFont
-        self.Frame2_Run.place(x=320,y=380)
+#         self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
+#         self.Frame2_Run['font'] = myFont
+#         self.Frame2_Run.place(x=320,y=380)
     
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
-        Frame_Button1['font'] = myFont
-        Frame_Button1.place(x=10,y=380)
+#         Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+#         Frame_Button1['font'] = myFont
+#         Frame_Button1.place(x=10,y=380)
 
-        self.show_plot()
+#         self.show_plot()
 
-    def show_plot(self):
-        check = self.controller.status.check_status('spectra', 2)
-        if check is True:
-            self.create_plot()  
-        else:
-            pass        
+#     def show_plot(self):
+#         check = self.controller.status.check_status('spectra', 2)
+#         if check is True:
+#             self.create_plot()  
+#         else:
+#             pass        
     
-    def create_plot(self):
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+#     def create_plot(self):
+#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
-        self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=130)
+#         self.label_pol = Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
+#         self.label_pol['font'] = myFont
+#         self.label_pol.place(x=10,y=130)
 
-        ax_pol = ["x","y","z"]
-        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol, width= 15)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"x")
-        self.entry_pol_x.place(x=160,y=130)
-        self.entry_pol_x['state'] = 'readonly'
+#         ax_pol = ["x","y","z"]
+#         self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.axis, value = ax_pol, width= 15)
+#         self.entry_pol_x['font'] = myFont
+#         self.entry_pol_x.insert(0,"x")
+#         self.entry_pol_x.place(x=160,y=130)
+#         self.entry_pol_x['state'] = 'readonly'
         
-        self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Spectrum/spec.dat',str(self.controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
-        self.Frame2_Plot['font'] = myFont
-        self.Frame2_Plot.place(x=320,y= 130)
+#         self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Spectrum/spec.dat',str(self.controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
+#         self.Frame2_Plot['font'] = myFont
+#         self.Frame2_Plot.place(x=320,y= 130)
     
-    def returnaxis(self):
-        if self.axis.get() == "x":
-            axis = 1
-        if self.axis.get() == "y":
-            axis = 2
-        if self.axis.get() == "z":
-            axis = 3
-        return axis
+#     def returnaxis(self):
+#         if self.axis.get() == "x":
+#             axis = 1
+#         if self.axis.get() == "y":
+#             axis = 2
+#         if self.axis.get() == "z":
+#             axis = 3
+#         return axis
 
-    def createspec(self):
-        spec_dict = {}
-        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
+#     def createspec(self):
+#         spec_dict = {}
+#         spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
         # spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
         # job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
         # job.write_input()
