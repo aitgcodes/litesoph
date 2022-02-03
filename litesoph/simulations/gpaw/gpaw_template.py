@@ -7,7 +7,10 @@ class GpawGroundState:
     scripts for ground state calculations."""
     NAME = 'gs.py'
 
+    input_data_files = [('geometry', 'coordinate.xyz')]
+
     default_param =  {
+        'geometry' : 'coordinate.xyz',
         'mode': 'fd',
         'xc': 'LDA',
         'occupations': None,
@@ -93,6 +96,8 @@ class GpawRTLCAOTddftDelta:
     
     NAME = 'td.py'
 
+    input_data_files = [('gfilename', 'gs.gpw')]
+
     default_input = {'absorption_kick': [1e-5, 0.0, 0.0],
                 'propagate': (20, 150),
                 'module': None,
@@ -169,6 +174,8 @@ class GpawRTLCAOTddftLaser:
 
     NAME = 'tdlaser.py'
 
+    input_data_files = [('gfilename', 'gs.gpw')]
+
     default_input = {
                 'propagate': (20, 150),
                 'module': None,
@@ -198,7 +205,7 @@ from gpaw.external import ConstantElectricField
 from gpaw.lcaotddft import LCAOTDDFT
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 from gpaw.lcaotddft.laser import GaussianPulse
-pulse = GaussianPulse({strength},{time0}e3,{frequency},{sigma}, 'sin')
+pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
 ext = ConstantElectricField(Hartree / Bohr,{electric_pol} )
 td_potential = {{'ext': ext, 'laser': pulse}}
 td_calc = LCAOTDDFT(filename='{gfilename}',
@@ -268,6 +275,8 @@ class GpawSpectrum:
 
     NAME = 'spec.py'
 
+    input_data_files = [('moment_file', 'dm.dat')]
+
     default_input = {
                    'moment_file': 'dm.dat',
                    'spectrum_file': 'spec.dat',
@@ -296,6 +305,9 @@ class GpawCalTCM:
 
     NAME = 'tcm.py'
     
+    input_data_file = [('gfilename', 'gs.gpw'),
+                        ('wfilename', 'wf.ulm')]
+
     default_input = {
                     'gfilename' : 'gs.gpw',
                     'wfilename' : 'wf.ulm',
