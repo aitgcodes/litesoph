@@ -1560,7 +1560,7 @@ class LaserDesignPage(tk.Frame):
         self.pol_z =  tk.StringVar()
         self.fwhm = tk.DoubleVar()
         self.frequency =  tk.DoubleVar()
-        self.ts =  tk.IntVar()
+        self.ts =  tk.DoubleVar()
         self.ns =  tk.IntVar()
         self.tin =  tk.DoubleVar()
 
@@ -1817,8 +1817,8 @@ class LaserDesignPage(tk.Frame):
                           'freq': self.frequency.get()   
                         }
 
+            print(td_nwchem)
             return td_nwchem
-
 
     def save_button(self):
         self.event_generate('<<SaveRT_TDDFT_LASERScript>>')          
