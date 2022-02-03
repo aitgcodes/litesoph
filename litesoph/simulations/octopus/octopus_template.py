@@ -315,3 +315,19 @@ omega = {frequency}*eV
         #temp = self.format_pol()
         template = self.td.format(**self.temp_dict)
         return(template)
+
+class OctSpectrum:
+
+    NAME = 'inp'
+
+    spec = """  
+UnitsOutput = eV_angstrom
+"""  
+
+    def __init__(self):
+        pass
+
+    def format_template(self):        
+        #template = self.td.format(**self.temp_dict)
+        template = self.spec
+        return(template)
