@@ -160,13 +160,15 @@ td_calc.write('{td_gpw}', mode='all')
 
         template = self.delta_kick_template.format(**self.user_input)
 
-        if self.tools == "dipolemoment":
-            return template
-        elif self.tools == "wavefunction":
+        # if self.tools == "dipolemoment":
+        #     return template
+        if "wavefunction" in self.tools:
             tlines = template.splitlines()
-            tlines[8] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
+            tlines[9] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
             template = """\n""".join(tlines)
-            return template
+            #return template
+        
+        return template
        
 class GpawRTLCAOTddftLaser:
     """This class contains the template  for creating gpaw 
