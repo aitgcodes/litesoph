@@ -65,6 +65,7 @@ class EngineGpaw(EngineStrategy):
             'check_list':['Writing','Total:']}
     
     spectrum = {'inp':'Spectrum/spec.py',
+            'req' : ['TD_Delta/dm.dat'],
             'out': 'Spectrum/spec.dat',
             'restart': 'TD_Delta/dm.dat',
             'check_list':['FWHM']}
@@ -90,6 +91,7 @@ class EngineGpaw(EngineStrategy):
             user_param['gfilename']= str(pathlib.Path(self.project_dir.name)  / self.rt_tddft_laser['req'][0])
             return gp.GpawRTLCAOTddftLaser(user_param)
         if task == "spectrum":
+            user_param['moment_file']= str(pathlib.Path(self.project_dir.name) / self.spectrum['req'][0])
             return gp.GpawSpectrum(user_param) 
         if task == "tcm":
             return gp.GpawCalTCM(user_param)       
@@ -136,6 +138,9 @@ class EngineOctopus(EngineStrategy):
     rt_tddft_delta = {'out': '/Octopus/log',
              'req' : ['coordinate.xyz'],
              'check_list':['Finished writing information', 'Calculation ended']}    
+    
+    rt_tddft_laser = {'out': '/Octopus/log',
+             'req' : ['coordinate.xyz']}
 
     def __init__(self,project_dir, status=None) -> None:
         self.project_dir = project_dir
@@ -190,6 +195,10 @@ class EngineNwchem(EngineStrategy):
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
+    rt_tddft_laser = {'inp':'/NwchemGroundState/gs.nwi',
+            'req' : ['coordinate.xyz', 'nwchem_restart'],
+            'check_list':['Converged', 'Fermi level:','Total:']}
+
     restart = 'nwchem_restart'
 
     def __init__(self,project_dir, status=None) -> None:
@@ -210,6 +219,11 @@ class EngineNwchem(EngineStrategy):
                 gs_inp = self.status.get_status('ground_state.param')
                 user_param.update(gs_inp)
             return nw.NwchemDeltaKick(user_param)
+        if task == "rt_tddft_laser":
+            if self.status:
+                gs_inp = self.status.get_status('ground_state.param')
+                user_param.update(gs_inp)
+            return nw.NwchemGaussianPulse(user_param)
 
     def create_restart_dir(self):
         self.restart = self.project_dir.parent / self.restart
