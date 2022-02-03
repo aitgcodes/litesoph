@@ -81,7 +81,7 @@ class SubmitLocal(JobSubmit):
                 data_path = path.parent / item
                 
                 print(str(item))
-                if data_path.is_file():
+                if data_path.is_file() or data_path.is_dir():
                     #item = item.split('/')[-1]
                     text = re.sub(str(item), str(data_path), text)
                 else:
