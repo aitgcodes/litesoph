@@ -8,6 +8,8 @@ from tkinter import font
 
 import pathlib
 
+from numpy import pad
+
 from litesoph.gui.filehandler import show_message
 from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
 
@@ -1864,10 +1866,32 @@ class LaserDesignPage(tk.Frame):
 
 class PlotSpectraPage(tk.Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
+    def __init__(self, parent, controller, engine, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.controller = controller
+        self.engine = engine
         
+        self._default_var = {
+            'del_e' : ['float', 0.05],
+            'e_max' : ['float', 30.0],
+            'e_min' : ['float']
+        }
+        self.gpaw_td_default = {
+            'del_e' : ['float'],
+            'e_max' : ['float'],
+            'e_min' : ['float']
+        }
+        self.oct_td_default = {
+            'del_e' : ['float'],
+            'e_max' : ['float'],
+            'e_min' : ['float']
+        }
+        self.nwchem_td_default= {
+            'del_e' : ['float'],
+            'e_max' : ['float'],
+            'e_min' : ['float']
+        }
+        self._var = var_define(self._default_var)
 
         self.axis = tk.StringVar()
 
@@ -1893,15 +1917,39 @@ class PlotSpectraPage(tk.Frame):
         self.label_pol['font'] = myFont
         self.label_pol.place(x=10,y=60)
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=lambda:[self.createspec()])
+        self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=self.create_button)
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.place(x=290,y=60)
+
+        self.label_estep = tk.Label(self.Frame,text="Energy step (in eV)",bg="gray",fg="black")
+        self.label_estep['font'] = myFont
+        self.label_estep.place(x=10,y=100)
+
+        self.entry_estep = tk.Entry(self.Frame,textvariable =self._var['del_e'])
+        self.entry_estep['font'] = myFont
+        self.entry_estep.place(x=300,y=100)
+
+        self.label_emax = tk.Label(self.Frame,text="Minimum energy in the spectrum (in eV)",bg="gray",fg="black")
+        self.label_emax['font'] = myFont
+        self.label_emax.place(x=10,y=130)
+
+        self.entry_emax = tk.Entry(self.Frame,textvariable =self._var['e_max'])
+        self.entry_emax['font'] = myFont
+        self.entry_emax.place(x=300,y=130)
+
+        self.label_emax = tk.Label(self.Frame,text="Maximum energy in the spectrum (in eV)",bg="gray",fg="black")
+        self.label_emax['font'] = myFont
+        self.label_emax.place(x=10,y=160)
+
+        self.entry_emax = tk.Entry(self.Frame,textvariable = self._var['e_min'])
+        self.entry_emax['font'] = myFont
+        self.entry_emax.place(x=300,y=160)
 
         self.label_msg = tk.Label(self.Frame, text= "",fg="black")
         self.label_msg['font'] = myFont
         self.label_msg.place(x=420,y=60)
 
-        self.Frame2_Run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
+        self.Frame2_Run = tk.Button(self.Frame,text="Run Job",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
         self.Frame2_Run['font'] = myFont
         self.Frame2_Run.place(x=320,y=380)
     
@@ -1909,15 +1957,38 @@ class PlotSpectraPage(tk.Frame):
         Frame_Button1['font'] = myFont
         Frame_Button1.place(x=10,y=380)
 
-        self.show_plot()
+        #self.show_plot()
 
-    def show_plot(self):
-        check = self.controller.status.check_status('spectra', 2)
-        if check is True:
-            self.create_plot()  
-        else:
-            pass        
-    
+    # def show_plot(self):
+    #     check = self.controller.status.check_status('spectra', 2)
+    #     if check is True:
+    #         self.create_plot()  
+    #     else:
+    #         pass  
+
+    def get_parameters(self):
+        td_dict_gp = {
+            'del_e':self._var['del_e'].get(),
+            'e_max':self._var['e_max'].get(),
+            'e_min': self._var['e_min'].get()       
+        }
+        
+        td_dict_oct = {
+            'del_e':self._var['del_e'].get(),
+            'e_max':self._var['e_max'].get(),
+            'e_min': self._var['e_min'].get()
+          }
+
+        td_dict_nwchem = {
+            }
+        
+        if self.engine == 'gpaw':
+            return td_dict_gp
+        elif self.engine == 'nwchem':
+            return td_dict_nwchem
+        elif self.engine == 'octopus':
+            return td_dict_oct            
+
     def create_plot(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
@@ -1932,9 +2003,9 @@ class PlotSpectraPage(tk.Frame):
         self.entry_pol_x.place(x=160,y=130)
         self.entry_pol_x['state'] = 'readonly'
         
-        self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Spectrum/spec.dat',str(self.controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
-        self.Frame2_Plot['font'] = myFont
-        self.Frame2_Plot.place(x=320,y= 130)
+        # self.Frame2_Plot = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff",command=lambda:[plot_spectra(self.returnaxis(),str(self.controller.directory)+'/Spectrum/spec.dat',str(self.controller.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None)])
+        # self.Frame2_Plot['font'] = myFont
+        # self.Frame2_Plot.place(x=320,y= 130)
     
     def returnaxis(self):
         if self.axis.get() == "x":
@@ -1945,17 +2016,21 @@ class PlotSpectraPage(tk.Frame):
             axis = 3
         return axis
 
-    def createspec(self):
-        spec_dict = {}
-        spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
-        # spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
-        job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
-        job.write_input()
-        self.controller.task = job
-        self.controller.check = True
-        self.controller.status.update_status('spectra', 1)
-        show_message(self.label_msg, "Saved")
-        self.Frame2_Run.config(state='active')
+    def create_button(self):
+        print('view')
+        self.event_generate('<<CreateSpectraScript>>')
+
+    # def createspec(self, engn):
+    #     spec_dict = {}
+    #     spec_dict['moment_file'] = pathlib.Path(self.controller.directory) / "TD_Delta" / "dm.dat"
+    #     # spec_dict['spectrum_file'] = pathlib.Path(self.controller.directory) / "Spectrum"/ specfile
+    #     job = Spectrum(spec_dict,  engine.EngineGpaw(), str(self.controller.directory),'spec') 
+    #     job.write_input()
+    #     self.controller.task = job
+    #     self.controller.check = True
+    #     self.controller.status.update_status('spectra', 1)
+    #     show_message(self.label_msg, "Saved")
+    #     self.Frame2_Run.config(state='active')
       
 
 class DmLdPage(tk.Frame):
