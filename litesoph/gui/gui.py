@@ -330,6 +330,7 @@ class AITG(tk.Tk):
                 pass
             self.ground_state_task.write_input(template)
             self.status.update_status('engine', self.engine)
+            self.status.set_new_task(self.ground_state_task.task_name)
             self.status.update_status(f'{self.ground_state_task.task_name}.script', 1)
             self.status.update_status(f'{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
             self.status_bar.set(self.engine)
@@ -347,17 +348,17 @@ class AITG(tk.Tk):
             self.ground_state_view.refresh_var()
             self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-
+            self.job_sub_page.activate_run_button()
             self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
             self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
-            self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
+            #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
-        self.rt_tddft_delta_view.engine = self.engine
+        self.rt_tddft_delta_view.update_engine_default(self.engine) 
         self.rt_tddft_delta_task = Task(self.status, self.directory)
 
         self.bind('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
@@ -383,6 +384,7 @@ class AITG(tk.Tk):
 
     def _td_create_input(self, template=None):     
         self.rt_tddft_delta_task.write_input(template)
+        self.status.set_new_task(self.rt_tddft_delta_task.task_name)
         self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.script', 1)
         self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
         self.rt_tddft_delta_view.set_label_msg('saved')
@@ -396,6 +398,7 @@ class AITG(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+            self.job_sub_page.activate_run_button()
 
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
@@ -453,6 +456,7 @@ class AITG(tk.Tk):
 
     def _td_laser_create_input(self, template=None):     
         self.rt_tddft_laser_task.write_input(template)
+        self.status.set_new_task(self.rt_tddft_laser_task.task_name)
         self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.script', 1)
         self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
         self.rt_tddft_laser_view.set_label_msg('saved')
@@ -466,7 +470,7 @@ class AITG(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_LASER')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-
+            self.job_sub_page.activate_run_button()
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
         
@@ -485,17 +489,23 @@ class AITG(tk.Tk):
 
     def _run_local(self, task):
         np = self.job_sub_page.get_processors()
+        self.job_sub_page.disable_run_button()
         #task.prepare_input(self.directory, task.file_path)
         submitlocal = SubmitLocal(task, self.lsconfig, np)
-        submitlocal.prepare_input(self.directory)
+        try:
+            submitlocal.prepare_input(self.directory)
+        except FileNotFoundError as e:
+            messagebox.showerror(message=e)
+            return
         try:
             submitlocal.run_job()
         except Exception as e:
             messagebox.showerror(message=f'There was an error when trying to run the job:{e}')
+            return
         else:
             if task.results[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
-                messagebox.showerror(message=f"Job exited with non-zero return code. Error: {task.result[1]}")
+                messagebox.showerror(message=f"Job exited with non-zero return code. Error: {task.results[1]}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
