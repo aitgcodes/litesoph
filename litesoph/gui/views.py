@@ -2193,9 +2193,9 @@ class JobSubPage(tk.Frame):
         #sbj_label1['font'] = myFont
         #sbj_label1.place(x=15,y=110)
 
-        sbj_button1 = tk.Button(self.Frame1, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
-        sbj_button1['font'] = myFont
-        sbj_button1.place(x=600, y=50)
+        self.sbj_button1 = tk.Button(self.Frame1, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
+        self.sbj_button1['font'] = myFont
+        self.sbj_button1.place(x=600, y=50)
 
         self.msg_label1 = tk.Label(self.Frame1, text='', fg='blue')
         self.msg_label1['font'] = myFont
@@ -2284,6 +2284,13 @@ class JobSubPage(tk.Frame):
     def submitjob_local(self):
         event = '<<Run'+self.task+'Local>>'
         self.event_generate(event)
+
+    def disable_run_button(self):
+        self.sbj_button1.config(state='disabled')
+
+    def activate_run_button(self):
+        self.sbj_button1.config(state='active')
+
     #     if self.controller.check is not True:
     #         from litesoph.utilities.job_submit import get_submit_class
     #         self.submit = get_submit_class(engine=self.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
