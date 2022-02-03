@@ -538,11 +538,12 @@ set geometry "system"
         self.user_input = self.default_gp_param
         self.user_input.update(user_input)
         self.convert_unit()
+        print(self.user_input)
    
     def convert_unit(self):
-        self.user_input['dt'] = round(self.user_input['dt']*as_to_au, 2)
+        self.user_input['dt'] = round(self.user_input['dt']*as_to_au, 1)
         self.user_input['tmax'] = round(self.user_input['tmax']*as_to_au, 2)
-        self.user_input['freq'] = round(self.user_input['freq']*eV_to_au, 2)
+        self.user_input['freq'] = round(self.user_input['freq']*eV_to_au, 3)
 
     def pulsex(self):
         tmax = self.user_input['tmax']
