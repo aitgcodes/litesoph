@@ -47,23 +47,25 @@ class EngineGpaw(EngineStrategy):
     NAME = 'gpaw'
 
     ground_state = {'inp':'/GS/gs.py',
-            'out': '/GS/gs.out',
+            'req' : ['coordinate.xy'],
+            'out': 'GS/gs.out',
             'restart': 'GS/gs.gpw',
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_delta = {'inp':'/TD_Delta/td.py',
-             'out': '/TD_Delta/tdx.out',
-             'restart': '/TD_Delta/td.gpw',
+            'req' : ['GS/gs.gpw'],
+             'out': 'TD_Delta/tdx.out',
+             'restart': 'TD_Delta/td.gpw',
              'check_list':['Writing','Total:']}
 
-    rt_tddft_laser = {'inp':'/TD_Laser/tdlaser.py',
-             'out': '/TD_Laser/tdlaser.out',
-             'restart': '/TD_Laser/tdlaser.gpw',
+    rt_tddft_laser = {'inp':'TD_Laser/tdlaser.py',
+             'out': 'TD_Laser/tdlaser.out',
+             'restart': 'TD_Laser/tdlaser.gpw',
              'check_list':['Writing','Total:']}
     
     spectrum = {'inp':'Spectrum/spec.py',
-             'out': '/Spectrum/spec.dat',
-             'restart': '/TD_Delta/dm.dat',
+             'out': 'Spectrum/spec.dat',
+             'restart': 'TD_Delta/dm.dat',
              'check_list':['FWHM']}
 
     task_dirs =[('GpawGroundState', 'GS'),
