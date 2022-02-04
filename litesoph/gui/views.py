@@ -1941,7 +1941,7 @@ class PlotSpectraPage(tk.Frame):
         self.label_emax['font'] = myFont
         self.label_emax.place(x=10,y=130)
 
-        self.entry_emax = tk.Entry(self.Frame,textvariable =self._var['e_max'])
+        self.entry_emax = tk.Entry(self.Frame,textvariable =self._var['e_min'])
         self.entry_emax['font'] = myFont
         self.entry_emax.place(x=300,y=130)
 
@@ -1949,7 +1949,7 @@ class PlotSpectraPage(tk.Frame):
         self.label_emax['font'] = myFont
         self.label_emax.place(x=10,y=160)
 
-        self.entry_emax = tk.Entry(self.Frame,textvariable = self._var['e_min'])
+        self.entry_emax = tk.Entry(self.Frame,textvariable = self._var['e_max'])
         self.entry_emax['font'] = myFont
         self.entry_emax.place(x=300,y=160)
 
