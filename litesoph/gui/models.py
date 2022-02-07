@@ -43,9 +43,29 @@ class WorkManagerModel:
 class SettingsModel:
 
     options ={
-        'validate job' : {'type': 'bool', 'value': True}
+        'validate job' : {'type': 'bool', 'value': True},
+        'autofill date': {'type': 'bool', 'value': True},
+        'autofill sheet data': {'type': 'bool', 'value': True},
+        'font size': {'type': 'int', 'value': 9},
+        'font family': {'type': 'str', 'value': ''},
+        'theme': {'type': 'str', 'value': 'default'},
+        'db_host': {'type': 'str', 'value': 'localhost'},
+        'db_name': {'type': 'str', 'value': 'abq'},
+        'weather_station': {'type': 'str', 'value': 'KBMG'},
+        'abq_rest_url': {
+        'type': 'str',
+        'value': 'http://localhost:8000'
+        },
+        'host': {'type': 'str', 'value': 'localhost'},
+        'port': {'type': 'int', 'value': 22},
+        'path': {'type': 'str', 'value': 'ABQ/BLTN_IN'}
     }
     
+    config_dirs = {
+    "Linux": pathlib.Path(os.environ.get('$LS_CONFIG_HOME', pathlib.Path.home() / '.lsconfig')),
+    'Windows': pathlib.Path.home() / 'AppData' / 'Local'
+  }
+
     def __init__(self) -> None:
         filename = "ls_settings.json"
         self.filepath = pathlib.Path.home() / filename

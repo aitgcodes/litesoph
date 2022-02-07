@@ -9,6 +9,7 @@ Requirements
   * Python 3.7 or higher
   * Tkinter
   * Numpy
+  * Matplotlib
   * Paramiko
 
 Usage

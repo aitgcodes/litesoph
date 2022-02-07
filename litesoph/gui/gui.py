@@ -10,6 +10,7 @@ from  PIL import Image,ImageTk
 import tkinter as tk
 
 import os
+import platform
 import pathlib 
 import shutil
 from configparser import ConfigParser
@@ -18,7 +19,7 @@ from matplotlib.pyplot import show
 
 #---LITESOPH modules
 from litesoph import check_config
-from litesoph.gui.menubar import MainMenu
+from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui import models as m
 from litesoph.gui import views as v 
 from litesoph.gui.spec_plot import plot_spectra, plot_files
@@ -40,25 +41,30 @@ class AITG(tk.Tk):
         super().__init__(*args, **kwargs)
 
         self.settings_model = m.SettingsModel
-        self.mainmenu = MainMenu(self)
+        self._load_settings()
+        #self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
         self.lsroot = check_config(self.lsconfig, "lsroot")
         self.directory = pathlib.Path(self.lsconfig.get("project_path", "lsproject", fallback=str(home)))
     
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=6)
-       
+        #self.columnconfigure(1, weight=6)
+
+        menu_class = get_main_menu_for_os(platform.system())
+        menu = menu_class(self, self.settings)
+        self.config(menu=menu)
+
         self.nav = None
         self.refresh_nav(self.directory)
-
+       
         self.status = None
         
         self.check = None
         self._window = Frame(self)
         self._window.grid(row=0, column=1)
         
-        self._window.grid_rowconfigure(700,weight=700)
-        self._window.grid_columnconfigure(800,weight=400)  
+        # self._window.grid_rowconfigure(700,weight=700)
+        # self._window.grid_columnconfigure(800,weight=400)  
 
         self.engine = None
         self.status_bar = tk.StringVar()
