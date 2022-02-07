@@ -1,0 +1,21 @@
+============================
+ LITESOPH
+============================
+
+
+Requirements
+============
+
+  * Python 3.7 or higher
+  * Tkinter
+  * Numpy
+  * Paramiko
+
+Usage
+=====
+
+To start the application, run::
+
+   litesoph gui
+
+
