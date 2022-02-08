@@ -50,15 +50,11 @@ class SettingsModel:
         'font family': {'type': 'str', 'value': ''},
         'theme': {'type': 'str', 'value': 'default'},
         'db_host': {'type': 'str', 'value': 'localhost'},
-        'db_name': {'type': 'str', 'value': 'abq'},
+        'db_name': {'type': 'str', 'value': ''},
         'weather_station': {'type': 'str', 'value': 'KBMG'},
-        'abq_rest_url': {
-        'type': 'str',
-        'value': 'http://localhost:8000'
-        },
         'host': {'type': 'str', 'value': 'localhost'},
         'port': {'type': 'int', 'value': 22},
-        'path': {'type': 'str', 'value': 'ABQ/BLTN_IN'}
+        'path': {'type': 'str', 'value': ''}
     }
     
     config_dirs = {
