@@ -5,35 +5,56 @@ import tkinter.ttk as ttk
 from tkinter.filedialog import askopenfile
 from tkinter import filedialog
 
-class Nav(ttk.Frame):
+class ProjectList(tk.Frame):
 
-    def __init__(self, master,path):
-        super().__init__(master)
-        self.path = path
+    def __init__(self, parent, *args, **Kwargs):
+        super().__init__( parent, *args, **Kwargs)
+        
         self.nodes = dict()
-        # self.columnconfigure(0, weight=1)
-        # self.columnconfigure(1, weight=1)
-        # self.rowconfigure(1, weight=1)
-        self.__create_treeview()
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+       
+        self.tree = ttk.Treeview(self, columns=['ProjectList'], selectmode='browse')
 
-    def __create_treeview(self):
+        self.tree.grid(row=0, column=0, sticky='NSEW')
 
-        self.tree = ttk.Treeview(self, height=20)
-        ysb = ttk.Scrollbar(self, orient='vertical', command=self.tree.yview)
-        xsb = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
-        self.tree.configure(yscroll=ysb.set, xscroll=xsb.set)
-        self.tree.heading('#0',anchor='w')
+        self.tree.bind('<Double-1>', self._on_open_record)
+        self.tree.bind('<Retrun>', self._on_open_record)
+        
+        self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
+        # xsb = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
+        self.tree.configure(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.grid(row=0, column=1, sticky='NSW')
+
+        # self.tree.heading('#0',anchor='w')
        
 
-        self.tree.grid(row=0, column=0)
-        ysb.grid(row=0, column=1, sticky='ns')
-        xsb.grid(row=1, column=0, sticky='ew')
         
- 
+        # ysb.grid(row=0, column=1, sticky='ns')
+        # xsb.grid(row=1, column=0, sticky='ew')
+        
+       
+
         abspath = os.path.abspath(self.path)
         self.insert_node('', abspath, abspath)
         self.tree.bind('<<TreeviewOpen>>', self.open_node)
         
+    def populate(self, project_list):
+
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+        
+        abspath = os.path.abspath(self.path)
+        self.insert_node('', abspath, abspath)
+    
+
+    def _on_open_record(self, *args):
+        self.event_generate('<<OpenProject>>')
+
+    @property
+    def selection_id(self):
+        selection = self.tree.selection()
+        return int(selection[0]) if selection else None
 
     def insert_node(self, parent, text, abspath):
         node = self.tree.insert(parent, 'end', text=text, open=False)

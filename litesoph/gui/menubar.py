@@ -64,7 +64,7 @@ import os
 #         self.configure(bg="gainsboro")
 
     
-"""The Main Menu class for ABQ Data Entry"""
+
 
 import tkinter as tk
 from tkinter import ttk
@@ -129,24 +129,6 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('quit'), compound=tk.LEFT
     )
 
-  def _add_weather_download(self, menu):
-    menu.add_command(
-      label="Update Weather Data",
-      command=self._event('<<UpdateWeatherData>>'),
-    )
-
-  def _add_rest_upload(self, menu):
-    menu.add_command(
-      label="Upload CSV to corporate REST",
-      command=self._event('<<UploadToCorporateREST>>'),
-    )
-
-  def _add_sftp_upload(self, menu):
-    menu.add_command(
-      label="Upload CSV to corporate SFTP",
-      command=self._event('<<UploadToCorporateSFTP>>'),
-    )
-
   def _add_autofill_date(self, menu):
     menu.add_checkbutton(
       label='Autofill Date', variable=self.settings['autofill date']
@@ -157,35 +139,6 @@ class GenericMainMenu(tk.Menu):
       label='Autofill Sheet data',
       variable=self.settings['autofill sheet data']
     )
-
-  def _add_font_size_menu(self, menu):
-    font_size_menu = tk.Menu(self, tearoff=False, **self.styles)
-    for size in range(6, 17, 1):
-      font_size_menu.add_radiobutton(
-        label=size, value=size,
-        variable=self.settings['font size']
-      )
-    menu.add_cascade(label='Font size', menu=font_size_menu)
-
-  def _add_font_family_menu(self, menu):
-    font_family_menu = tk.Menu(self, tearoff=False, **self.styles)
-    for family in font.families():
-      font_family_menu.add_radiobutton(
-        label=family, value=family,
-        variable=self.settings['font family']
-    )
-    menu.add_cascade(label='Font family', menu=font_family_menu)
-
-  def _add_themes_menu(self, menu):
-    style = ttk.Style()
-    themes_menu = tk.Menu(self, tearoff=False, **self.styles)
-    for theme in style.theme_names():
-      themes_menu.add_radiobutton(
-        label=theme, value=theme,
-        variable=self.settings['theme']
-      )
-    menu.add_cascade(label='Theme', menu=themes_menu)
-    self.settings['theme'].trace_add('write', self._on_theme_change)
 
   def _add_go_record_list(self, menu):
     menu.add_command(
@@ -205,16 +158,6 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('about'), compound=tk.LEFT
     )
 
-  def _add_growth_chart(self, menu):
-    menu.add_command(
-      label='Show Growth Chart', command=self._event('<<ShowGrowthChart>>')
-    )
-
-  def _add_yield_chart(self, menu):
-    menu.add_command(
-      label='Show Yield Chart', command=self._event('<<ShowYieldChart>>')
-    )
-
   def _build_menu(self):
     # The file menu
     self._menus['File'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -224,19 +167,12 @@ class GenericMainMenu(tk.Menu):
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False, **self.styles)
-    self._add_weather_download(self._menus['Tools'])
-    self._add_rest_upload(self._menus['Tools'])
-    self._add_sftp_upload(self._menus['Tools'])
-    self._add_growth_chart(self._menus['Tools'])
-    self._add_yield_chart(self._menus['Tools'])
 
     # The options menu
     self._menus['Options'] = tk.Menu(self, tearoff=False, **self.styles)
     self._add_autofill_date(self._menus['Options'])
     self._add_autofill_sheet(self._menus['Options'])
-    self._add_font_size_menu(self._menus['Options'])
-    self._add_font_family_menu(self._menus['Options'])
-    self._add_themes_menu(self._menus['Options'])
+    
 
     # switch from recordlist to recordform
     self._menus['Go'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -319,18 +255,11 @@ class LinuxMainMenu(GenericMainMenu):
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False, **self.styles)
-    self._add_weather_download(self._menus['Tools'])
-    self._add_rest_upload(self._menus['Tools'])
-    self._add_sftp_upload(self._menus['Tools'])
-    self._add_growth_chart(self._menus['Tools'])
-    self._add_yield_chart(self._menus['Tools'])
-
+    
 
     # The View menu
     self._menus['View'] = tk.Menu(self, tearoff=False, **self.styles)
-    self._add_font_size_menu(self._menus['View'])
-    self._add_font_family_menu(self._menus['View'])
-    self._add_themes_menu(self._menus['View'])
+   
 
     # switch from recordlist to recordform
     self._menus['Go'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -370,17 +299,17 @@ class MacOsMainMenu(GenericMainMenu):
 
   def _add_about(self, menu):
     menu.add_command(
-      label='About ABQ Data Entry', command=self.show_about,
+      label='About', command=self.show_about,
       #image=self.icons.get('about'), compound=tk.LEFT
     )
 
   def _build_menu(self):
-    self._menus['ABQ Data Entry'] = tk.Menu(
+    self._menus['LITESOPH'] = tk.Menu(
       self, tearoff=False,
       name='apple'
     )
-    self._add_about(self._menus['ABQ Data Entry'])
-    self._menus['ABQ Data Entry'].add_separator()
+    self._add_about(self._menus['LITESOPH'])
+    self._menus['LITESOPH'].add_separator()
 
     self._menus['File'] = tk.Menu(self, tearoff=False)
 #    self._add_file_open(self._menus['File'])
@@ -391,17 +320,11 @@ class MacOsMainMenu(GenericMainMenu):
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False)
-    self._add_weather_download(self._menus['Tools'])
-    self._add_rest_upload(self._menus['Tools'])
-    self._add_sftp_upload(self._menus['Tools'])
-    self._add_growth_chart(self._menus['Tools'])
-    self._add_yield_chart(self._menus['Tools'])
+    
 
     # View menu
     self._menus['View'] = tk.Menu(self, tearoff=False)
-    self._add_font_size_menu(self._menus['View'])
-    self._add_font_family_menu(self._menus['View'])
-    self._add_themes_menu(self._menus['View'])
+   
 
     # Window Menu
     self._menus['Window'] = tk.Menu(self, name='window', tearoff=False)

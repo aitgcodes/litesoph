@@ -50,7 +50,7 @@ class AITG(tk.Tk):
         self.columnconfigure(0, weight=1)
         #self.columnconfigure(1, weight=6)
 
-        menu_class = get_main_menu_for_os(platform.system())
+        menu_class = get_main_menu_for_os('Linux')
         menu = menu_class(self, self.settings)
         self.config(menu=menu)
 
