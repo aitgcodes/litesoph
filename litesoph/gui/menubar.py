@@ -79,15 +79,13 @@ class GenericMainMenu(tk.Menu):
   accelerators = {
     'file_open': 'Ctrl+O',
     'quit': 'Ctrl+Q',
-    'record_list': 'Ctrl+L',
-    'new_record': 'Ctrl+R',
+    
   }
 
   keybinds = {
     '<Control-o>': '<<FileSelect>>',
     '<Control-q>': '<<FileQuit>>',
-    '<Control-n>': '<<NewRecord>>',
-    '<Control-l>': '<<ShowRecordlist>>'
+   
   }
 
   styles = {}
@@ -100,21 +98,6 @@ class GenericMainMenu(tk.Menu):
 
     return callback
 
-  def _create_icons(self):
-
-    # must be done in a method because PhotoImage can't be created
-    # until there is a Tk instance.
-    # There isn't one when the class is defined, but there is when
-    # the instance is created.
-    self.icons = {
-    #  'file_open': tk.PhotoImage(file=images.SAVE_ICON),
-      'record_list': tk.PhotoImage(file=images.LIST_ICON),
-      'new_record': tk.PhotoImage(file=images.FORM_ICON),
-      'quit': tk.BitmapImage(file=images.QUIT_BMP, foreground='red'),
-      'about': tk.BitmapImage(
-          file=images.ABOUT_BMP, foreground='#CC0', background='#A09'
-       ),
-    }
 
   def _add_file_open(self, menu):
 
@@ -123,34 +106,26 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 
+  def _add_new_project(self, menu):
+
+    menu.add_command(
+      label='New Project…', command=self._event('<<CreateNewProject>>'),
+      #image=self.icons.get('file'), compound=tk.LEFT
+  )
+
+  def _add_open_project(self, menu):
+
+    menu.add_command(
+      label='Open Project…', command=self._event('<<OpenExistingProject>>'),
+      #image=self.icons.get('file'), compound=tk.LEFT
+  )
+
   def _add_quit(self, menu):
     menu.add_command(
-      label='Quit', command=self._event('<<FileQuit>>'),
+      label='Exit', command=self._event('<<ProjectQuit>>'),
       #image=self.icons.get('quit'), compound=tk.LEFT
     )
 
-  def _add_autofill_date(self, menu):
-    menu.add_checkbutton(
-      label='Autofill Date', variable=self.settings['autofill date']
-    )
-
-  def _add_autofill_sheet(self, menu):
-    menu.add_checkbutton(
-      label='Autofill Sheet data',
-      variable=self.settings['autofill sheet data']
-    )
-
-  def _add_go_record_list(self, menu):
-    menu.add_command(
-      label="Record List", command=self._event('<<ShowRecordlist>>'),
-      #image=self.icons.get('record_list'), compound=tk.LEFT
-    )
-
-  def _add_go_new_record(self, menu):
-    menu.add_command(
-      label="New Record", command=self._event('<<NewRecord>>'),
-      #image=self.icons.get('new_record'), compound=tk.LEFT
-    )
 
   def _add_about(self, menu):
     menu.add_command(
@@ -158,10 +133,18 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('about'), compound=tk.LEFT
     )
 
+  def _add_webpage(self, menu):
+    menu.add_command(
+      label='Webpage', command=self.show_about,
+      #image=self.icons.get('about'), compound=tk.LEFT
+    )
+
   def _build_menu(self):
     # The file menu
     self._menus['File'] = tk.Menu(self, tearoff=False, **self.styles)
     #self._add_file_open(self._menus['File'])
+    self._add_new_project(self._menus['File'])
+    self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
     self._add_quit(self._menus['File'])
 
@@ -170,14 +153,12 @@ class GenericMainMenu(tk.Menu):
 
     # The options menu
     self._menus['Options'] = tk.Menu(self, tearoff=False, **self.styles)
-    self._add_autofill_date(self._menus['Options'])
-    self._add_autofill_sheet(self._menus['Options'])
+    
     
 
     # switch from recordlist to recordform
     self._menus['Go'] = tk.Menu(self, tearoff=False, **self.styles)
-    self._add_go_record_list(self._menus['Go'])
-    self._add_go_new_record(self._menus['Go'])
+    
 
     # The help menu
     self._menus['Help'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -191,7 +172,6 @@ class GenericMainMenu(tk.Menu):
   def __init__(self, parent, settings, **kwargs):
     super().__init__(parent, **kwargs)
     self.settings = settings
-    #self._create_icons()
     self._menus = dict()
     self._build_menu()
     self._bind_accelerators()
@@ -245,13 +225,14 @@ class LinuxMainMenu(GenericMainMenu):
   def _build_menu(self):
     self._menus['File'] = tk.Menu(self, tearoff=False, **self.styles)
 #    self._add_file_open(self._menus['File'])
+    self._add_new_project(self._menus['File'])
+    self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
     self._add_quit(self._menus['File'])
 
     # The edit menu
     self._menus['Edit'] = tk.Menu(self, tearoff=False, **self.styles)
-    self._add_autofill_date(self._menus['Edit'])
-    self._add_autofill_sheet(self._menus['Edit'])
+  
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -263,12 +244,12 @@ class LinuxMainMenu(GenericMainMenu):
 
     # switch from recordlist to recordform
     self._menus['Go'] = tk.Menu(self, tearoff=False, **self.styles)
-    self._add_go_record_list(self._menus['Go'])
-    self._add_go_new_record(self._menus['Go'])
+    
 
     # The help menu
     self._menus['Help'] = tk.Menu(self, tearoff=False, **self.styles)
     self._add_about(self._menus['Help'])
+    self._add_webpage(self._menus['Help'])
 
     for label, menu in self._menus.items():
       self.add_cascade(label=label, menu=menu)
@@ -288,13 +269,11 @@ class MacOsMainMenu(GenericMainMenu):
   """
   keybinds = {
       '<Command-o>': '<<FileSelect>>',
-      '<Command-n>': '<<NewRecord>>',
-      '<Command-l>': '<<ShowRecordlist>>'
+     
     }
   accelerators = {
     'file_open': 'Cmd-O',
-    'record_list': 'Cmd-L',
-    'new_record': 'Cmd-R',
+   
     }
 
   def _add_about(self, menu):
@@ -315,8 +294,7 @@ class MacOsMainMenu(GenericMainMenu):
 #    self._add_file_open(self._menus['File'])
 
     self._menus['Edit'] = tk.Menu(self, tearoff=False)
-    self._add_autofill_date(self._menus['Edit'])
-    self._add_autofill_sheet(self._menus['Edit'])
+    
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False)
@@ -328,8 +306,7 @@ class MacOsMainMenu(GenericMainMenu):
 
     # Window Menu
     self._menus['Window'] = tk.Menu(self, name='window', tearoff=False)
-    self._add_go_record_list(self._menus['Window'])
-    self._add_go_new_record(self._menus['Window'])
+    
 
     for label, menu in self._menus.items():
       self.add_cascade(label=label, menu=menu)
