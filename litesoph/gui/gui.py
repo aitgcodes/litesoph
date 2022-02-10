@@ -189,17 +189,19 @@ class AITG(tk.Tk):
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
-        create_dir = None
-        project_path = self._frames[v.WorkManagerPage].get_project_path()
+       
+        project_name = self._frames[v.WorkManagerPage].get_project_name()
         
-        dir_exists = m.WorkManagerModel.check_dir_exists(project_path)
-
-        if dir_exists:
-            create_dir = messagebox.askokcancel('directory exists', f"The directory {project_path} already exists \n do you want to open the project?")
-        
-            if create_dir:
-               self._init_project(project_path)   
+        if not project_name:
+            messagebox.showerror(title='Error', message='Please set the project name.')
             return
+
+        project_path = filedialog.askdirectory(title= "Select the directory to create Litesoph Project")
+        
+        if not project_path:
+            return
+
+        project_path = pathlib.Path(project_path) / project_name
         
         try:
             m.WorkManagerModel.create_dir(project_path)
