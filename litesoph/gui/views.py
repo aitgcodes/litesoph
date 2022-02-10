@@ -131,52 +131,35 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame1 =tk.Frame(self)
         self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
+       
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
         self.Frame1.configure(cursor="fleur")
-
-        # self.Frame1_label_path = tk.Label(self.Frame1,text="Project Path",bg="gray",fg="black")
-        # self.Frame1_label_path['font'] = myFont
-        # self.Frame1_label_path.grid(column=0, row= 0, sticky=tk.W, pady=10, padx=10)
-        #self.Frame1_label_path.place(x=10,y=10)
-
-        # self.entry_path = tk.Entry(self.Frame1,textvariable=self._var['proj_path'])
-        # #self.entry_path = tk.Entry(self.Frame1,textvariable=proj_path)
-        # self.entry_path['font'] = myFont
-        # self.entry_path.delete(0, tk.END)
-        # self.entry_path.grid(column=1, row= 0, sticky=tk.W)
-        #self.proj_path.set(self.directory)
-        #self.entry_path.place(x=200,y=10)     
+    
 
         self.label_proj = tk.Label(self.Frame1,text="Project Name",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)
-        #self.label_proj.place(x=10,y=70)
+        
         
         self.entry_proj = tk.Entry(self.Frame1,textvariable=self._var['proj_name'])
         self.entry_proj['font'] = myFont
         self.entry_proj.grid(column=1, row= 0, sticky=tk.W)
-        #self.entry_proj.place(x=200,y=70)
         self.entry_proj.delete(0, tk.END)
                 
         self.button_project = tk.Button(self.Frame1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
         self.button_project['font'] = myFont
         self.button_project.grid(column=2, row= 0, sticky=tk.W, padx= 10, pady=10)
-        #self.button_project.place(x=125,y=380)
-      
-       
-        #self.Frame1_Button_MainPage.place(x=10,y=380)
+        
         
         self.button_project = tk.Button(self.Frame1,text="Open Existing Project",activebackground="#78d6ff",command=self._open_project)
         self.button_project['font'] = myFont
         self.button_project.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10)
-        #self.button_project.place(x=290,y=380)
 
         self.Frame2 = tk.Frame(self )
         self.Frame2.grid(column=1, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        #self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
+
 
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -186,51 +169,50 @@ class WorkManagerPage(tk.Frame):
         self.Frame2_label_1 = tk.Label(self.Frame2, text="Upload Geometry",bg='gray',fg='black')  
         self.Frame2_label_1['font'] = myFont
         self.Frame2_label_1.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)
-        #self.Frame2_label_1.place(x=10,y=10)
+       
 
         self.Frame2_Button_1 = tk.Button(self.Frame2,text="Select",activebackground="#78d6ff",command=self._get_geometry_file)
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.grid(column=1, row= 0, sticky=tk.W,  pady=10, padx=10)
-        #self.Frame2_Button_1.place(x=200,y=10)
+       
 
         self.message_label = tk.Label(self.Frame2, text='', foreground='red')
         self.message_label['font'] = myFont
         self.message_label.grid(column=2, row= 0, sticky=tk.W)
-        #self.message_label.place(x=270,y=15)
+       
         
         self.Frame2_Button_1 = tk.Button(self.Frame2,text="View",activebackground="#78d6ff",command=self._geom_visual)
         self.Frame2_Button_1['font'] = myFont
         self.Frame2_Button_1.grid(column=3, row= 0, sticky=tk.W)
-        #self.Frame2_Button_1.place(x=350,y=10)
+        
 
         self.label_proj = tk.Label(self.Frame2,text="Job Type",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.grid(column=0, row= 1, sticky=tk.W,  pady=10, padx=10)
-        #self.label_proj.grid(column=1, row= 0, sticky=tk.W)
-        #self.label_proj.place(x=10,y=70)
+       
             
         self.entry_task = ttk.Combobox(self.Frame2,width= 30, textvariable= self._var['task'], values= self.MainTask)
         self.entry_task['font'] = myFont
         self.entry_task.grid(column=1, row= 1, columnspan=3, sticky=tk.W,  pady=10, padx=10)
-        #self.entry_task.place(x=200,y=70)
+       
         self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
         self.entry_task['state'] = 'readonly'
 
         self.Frame2_label_3 = tk.Label(self.Frame2, text="Sub Task",bg='gray',fg='black')
         self.Frame2_label_3['font'] = myFont
         self.Frame2_label_3.grid(column=0, row= 2, sticky=tk.W,  pady=10, padx=10)
-        #self.Frame2_label_3.place(x=10,y=130)
+        
           
         self.entry_sub_task = ttk.Combobox(self.Frame2, width= 30, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myFont
         self.entry_sub_task.current(0)
         self.entry_sub_task.grid(column=1, row= 2, columnspan=3, sticky=tk.W,  pady=10, padx=10)
-        #self.entry_sub_task.place(x=200,y=130)
+       
         self.entry_sub_task['state'] = 'readonly'   
 
         self.Frame3 = tk.Frame(self )
         self.Frame3.grid(column=0, row=1, columnspan=2, pady=(150,0), sticky=(tk.N, tk.W, tk.E, tk.S))
-        #self.Frame2.place(relx=0.501, rely=0.01, relheight=0.99, relwidth=0.492)
+        
 
         self.Frame3.configure(relief='groove')
         self.Frame3.configure(borderwidth="2")
@@ -244,7 +226,7 @@ class WorkManagerPage(tk.Frame):
         Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=lambda:self.event_generate('<<SelectTask>>'))
         Frame3_Button1['font'] = myFont
         Frame3_Button1.grid(column=1, row= 0, sticky=tk.N, padx=(600,0))
-        #Frame2_Button1.place(x=10,y=380)        
+           
 
     def pick_task(self, *_):
             if self._var['task'].get() == "Preprocessing Jobs":
