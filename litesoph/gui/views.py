@@ -249,9 +249,9 @@ class WorkManagerPage(tk.Frame):
     def _open_project(self):
         self.event_generate('<<OpenExistingProject>>')
 
-    def get_project_path(self):
-        project_path = pathlib.Path(self.entry_path.get()) / self.entry_proj.get()
-        return project_path
+    def get_project_name(self):
+        project_name = self.entry_proj.get()
+        return project_name
 
     def _create_project(self):
         self.event_generate('<<CreateNewProject>>')
