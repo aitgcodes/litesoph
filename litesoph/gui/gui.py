@@ -25,7 +25,7 @@ from litesoph.gui import views as v
 from litesoph.gui.spec_plot import plot_spectra, plot_files
 from litesoph.simulations.esmd import Task
 from litesoph.gui.filehandler import Status, file_check, show_message
-from litesoph.gui.navigation import Nav
+from litesoph.gui.navigation import ProjectList
 from litesoph.gui.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
 from litesoph.utilities.job_submit import SubmitLocal
@@ -54,8 +54,9 @@ class AITG(tk.Tk):
         menu = menu_class(self, self.settings)
         self.config(menu=menu)
 
-        self.nav = None
-        self.refresh_nav(self.directory)
+        self.navigation = ProjectList(self)
+        self.navigation.grid(row=0,column=0, sticky='NSW')
+        
        
         self.status = None
         
@@ -68,7 +69,7 @@ class AITG(tk.Tk):
 
         self.engine = None
         self.status_bar = tk.StringVar()
-        ttk.Label(self, textvariable=self.status_bar).grid(sticky=(tk.W + tk.E), row=2, padx=10)
+        ttk.Label(self, textvariable=self.status_bar).grid(row=1,rowspan=2, sticky='NSW', )
         
         self.ground_state_view = None
         self.ground_state_task = None
@@ -114,16 +115,6 @@ class AITG(tk.Tk):
             int_frame.grid(row=0, column=1, sticky ="nsew")
             int_frame.tkraise()
 
-
-    def refresh_nav(self, path):
-
-        if isinstance(self.nav, Nav):
-            self.nav.destroy()
-            self.nav = Nav(self, path)
-            self.nav.grid(row=0, column=0, sticky='nw')
-        else:
-            self.nav = Nav(self, path)
-            self.nav.grid(row=0, column=0, sticky='nw')
 
     def _bind_event_callbacks(self):
         """binds events and specific callback functions"""
@@ -174,7 +165,7 @@ class AITG(tk.Tk):
         if not self._status_init(path):       
             return
         self._change_directory(path)
-        self.refresh_nav(self.directory)
+        self.navigation.populate(self.directory)
         self._get_engine()
 
     def _on_open_project(self, *_):
@@ -183,7 +174,7 @@ class AITG(tk.Tk):
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
         if not project_path:
             return
-        self._frames[v.WorkManagerPage].update_project_entry(project_path)
+        #self._frames[v.WorkManagerPage].update_project_entry(project_path)
         self._init_project(project_path)
        
         

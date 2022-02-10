@@ -1,5 +1,6 @@
+from importlib.util import set_loader
 import os
-import pathlib
+from pathlib import Path
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.filedialog import askopenfile
@@ -14,51 +15,34 @@ class ProjectList(tk.Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
        
-        self.tree = ttk.Treeview(self, columns=['ProjectList'], selectmode='browse')
+        self.tree = ttk.Treeview(self, selectmode='none')
+
+        self.tree.heading('#0',text='ProjectList', anchor='w')
 
         self.tree.grid(row=0, column=0, sticky='NSEW')
 
-        self.tree.bind('<Double-1>', self._on_open_record)
-        self.tree.bind('<Retrun>', self._on_open_record)
-        
-        self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
-        # xsb = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
-        self.tree.configure(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.grid(row=0, column=1, sticky='NSW')
-
-        # self.tree.heading('#0',anchor='w')
+        self.scrollbar_y = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
+        self.scrollbar_x = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.tree.xview)
        
-
+        self.tree.configure(yscrollcommand=self.scrollbar_y.set)
+        self.tree.configure(xscrollcommand=self.scrollbar_x.set)
+        self.scrollbar_y.grid(row=0, column=1, sticky='NSW')
+        self.scrollbar_x.grid(row=1, column=0, sticky='NSEW')
         
-        # ysb.grid(row=0, column=1, sticky='ns')
-        # xsb.grid(row=1, column=0, sticky='ew')
-        
-       
-
-        abspath = os.path.abspath(self.path)
-        self.insert_node('', abspath, abspath)
         self.tree.bind('<<TreeviewOpen>>', self.open_node)
         
-    def populate(self, project_list):
+    def populate(self, project_path: Path):
+        rot = self.tree.get_children()
+        if rot:
+            self.tree.delete(rot)
+        #paths = project_path.glob('**/*')
 
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        
-        abspath = os.path.abspath(self.path)
-        self.insert_node('', abspath, abspath)
-    
+        self.insert_node('', project_path.name, project_path)
 
-    def _on_open_record(self, *args):
-        self.event_generate('<<OpenProject>>')
-
-    @property
-    def selection_id(self):
-        selection = self.tree.selection()
-        return int(selection[0]) if selection else None
 
     def insert_node(self, parent, text, abspath):
         node = self.tree.insert(parent, 'end', text=text, open=False)
-        if os.path.isdir(abspath):
+        if Path.is_dir(abspath):
             self.nodes[node] = abspath
             self.tree.insert(node, 'end')
 
@@ -67,6 +51,6 @@ class ProjectList(tk.Frame):
         abspath = self.nodes.pop(node, None)
         if abspath:
             self.tree.delete(self.tree.get_children(node))
-            for p in os.listdir(abspath):
-                self.insert_node(node, p, os.path.join(abspath, p))
+            for p in Path.iterdir(abspath):
+                self.insert_node(node, p.name, Path.joinpath(abspath, p))
 
