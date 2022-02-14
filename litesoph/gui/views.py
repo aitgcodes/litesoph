@@ -8,9 +8,6 @@ from tkinter import font
 
 import pathlib
 
-from numpy import pad
-from sqlalchemy import column
-from tables import BoolAtom
 
 from litesoph.gui.filehandler import show_message
 from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
