@@ -42,34 +42,34 @@ class AITG(tk.Tk):
 
         self.settings_model = m.SettingsModel
         self._load_settings()
-        #self.mainmenu = MainMenu(self)
         self.lsconfig = lsconfig
         self.lsroot = check_config(self.lsconfig, "lsroot")
         self.directory = pathlib.Path(self.lsconfig.get("project_path", "lsproject", fallback=str(home)))
     
-        self.columnconfigure(0, weight=1)
-        #self.columnconfigure(1, weight=6)
 
         menu_class = get_main_menu_for_os('Linux')
         menu = menu_class(self, self.settings)
         self.config(menu=menu)
 
-        self.navigation = ProjectList(self)
-        self.navigation.grid(row=0,column=0, sticky='NSW')
+        self.status_bar = ttk.Frame(self)
+        self.status_bar.pack(fill = tk.BOTH,side=tk.BOTTOM)
+        self.status_bar.config(relief= tk.RAISED)
         
-       
+        # self.navigation_frame = ttk.Frame(self)
+        # self.navigation_frame.pack(fill = tk.BOTH,side=tk.RIGHT)
+
+        self.navigation = ProjectList(self)
+        self.navigation.pack(fill = tk.BOTH,side=tk.LEFT)
+        
         self.status = None
         
         self.check = None
         self._window = Frame(self)
-        self._window.grid(row=0, column=1)
+        self._window.pack(fill = tk.BOTH, side=tk.LEFT)
         
-        # self._window.grid_rowconfigure(700,weight=700)
-        # self._window.grid_columnconfigure(800,weight=400)  
-
         self.engine = None
-        self.status_bar = tk.StringVar()
-        ttk.Label(self, textvariable=self.status_bar).grid(row=1,rowspan=2, sticky='NSW', )
+        self.status_engine = tk.StringVar()
+        ttk.Label(self.status_bar, textvariable=self.status_engine).pack(side= tk.LEFT) 
         
         self.ground_state_view = None
         self.ground_state_task = None
@@ -98,9 +98,9 @@ class AITG(tk.Tk):
             self.engine = self.status.get_status('engine')
         except KeyError:
             self.engine = None
-            self.status_bar.set('')
+            self.status_engine.set('')
         else:
-            self.status_bar.set(self.engine)
+            self.status_engine.set(self.engine)
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -112,7 +112,7 @@ class AITG(tk.Tk):
             int_frame = frame(self._window, *args, **kwargs)
             self._frames[frame]= int_frame
             self._frames.move_to_end(frame, last=False)
-            int_frame.grid(row=0, column=1, sticky ="nsew")
+            int_frame.grid(row=0, column=1, sticky ='NSEW')
             int_frame.tkraise()
 
 
@@ -332,7 +332,7 @@ class AITG(tk.Tk):
             self.status.set_new_task(self.ground_state_task.task_name)
             self.status.update_status(f'{self.ground_state_task.task_name}.script', 1)
             self.status.update_status(f'{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
-            self.status_bar.set(self.engine)
+            self.status_engine.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
         else:
             pass  
