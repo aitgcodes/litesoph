@@ -1342,11 +1342,11 @@ class View1(tk.Frame):
         self.parent = parent
         self.job = None
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
         self.Frame2 = tk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        #self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
         self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
         # layout all of the main containers
         #self.grid_rowconfigure(0, weight=1)
@@ -1361,19 +1361,22 @@ class View1(tk.Frame):
         self.Frame1.grid(row=1, rowspan=100, column=0,
                          columnspan=4, sticky='nsew', ipadx=10, ipady=5)
         self.Frame2.grid(row=1, column=5, columnspan=2, sticky='nsew')
-        self.Frame3.grid(row=1, column=9, sticky='nswe')
+        #self.Frame3.grid(row=1, column=9, sticky='nswe')
         #self.Frame2.grid(row=4,  sticky="nsew")
         # btm_frame.grid(row=3, sticky="ew")
         # btm_frame2.grid(row=4, sticky="ew")
         
         self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
 
+    def add_job_frame(self):    
+        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3.grid(row=1, column=9, sticky='nswe')
         View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
-        View_Button1['font'] = myFont
+        View_Button1['font'] = self.myFont
         View_Button1.grid(row=2, column=1, sticky='nsew')
 
-        Run_Button1 = tk.Button(self.Frame3, text="Run Job",activebackground="#78d6ff", command=lambda: [self.view_button()])
-        Run_Button1['font'] = myFont
+        Run_Button1 = tk.Button(self.Frame3, text="Run Job",activebackground="#78d6ff", command=lambda: [self.run_job_button()])
+        Run_Button1['font'] = self.myFont
         Run_Button1.grid(row=1, column=1, sticky='nsew')
 
 class TimeDependentPage(View1):
@@ -1386,7 +1389,7 @@ class TimeDependentPage(View1):
         self.job = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-
+        self.add_job_frame()   
         self._default_var = {
             'strength': ['float', 1e-5],
             'ex': ['int', 0],
@@ -1461,15 +1464,16 @@ class TimeDependentPage(View1):
             tk.Radiobutton(self.Frame1, text=text, variable=self._var['var1'], font=myFont, justify='left',
                            value=value).grid(row=value+5, column=0, ipady=5, sticky='w')
 
-        label_add = tk.Label(self.Frame1, text="Please add polarization vectors:", bg="gray", fg="black")
-        label_add['font'] = myFont
-        label_add.grid(row=7, column=1, sticky='w', padx=2, pady=4)
-
         frame_pol = tk.Frame(self.Frame1, borderwidth=2)
-        frame_pol.grid(row=8, column=1)
+        frame_pol.grid(row=8, column=0)
+        
+        # label_add = tk.Label(frame_pol, text="Please add polarization vectors:", bg="gray", fg="black")
+        # label_add['font'] = myFont
+        # label_add.grid(row=0, column=1, sticky='w', padx=2, pady=4)
         
         label_E = tk.Label(frame_pol, text="E:",  fg="black", font=myFont)
         label_E.grid(row=1, column =0, sticky='nsew')
+
         pol_list = [0, 1]
         self.entry_pol_x = ttk.Combobox(frame_pol, textvariable=self._var['ex'], value=pol_list, width=3)
         self.entry_pol_x['font'] = myFont
@@ -1490,6 +1494,13 @@ class TimeDependentPage(View1):
         Frame1_Button3 = tk.Button(frame_pol, text="Add",activebackground="#78d6ff",command=lambda:self.add_button())
         Frame1_Button3['font'] = myFont
         Frame1_Button3.grid(row =1, column=4, padx =5, pady=2)
+
+        # options = [1,2,3,4]
+        # options.append([self._var['ex'].get(),self._var['ez'].get()])
+        # E_list = tk.Listbox(frame_pol)
+        # E_list.grid(row=2, column=1)
+        # for i in range(len(options)):
+        #     E_list.insert(i,options[i])
 
         self.Frame1_Button1 = tk.Button(self.frame_button, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.Frame1_Button1['font'] = myFont
@@ -1519,6 +1530,11 @@ class TimeDependentPage(View1):
             tk.Radiobutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, justify='left',
                            value=value).grid(row=value+3, column=6, ipady=5, sticky='w')
 
+    def pol_option(self):
+        if self._var['var1'] == 1:
+            pass
+        elif self._var['var1'] == 2:
+            pass    
 
     def get_parameters(self):
         kick = [float(self._var['strength'].get())*float(self._var['ex'].get()),
