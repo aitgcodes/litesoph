@@ -14,7 +14,7 @@ class Onlydigits(ttk.Entry):
     def validate_digit(self, input):
       if input.isdigit():
         return True 
-      elif input is "":
+      elif input == "":
         return True
       else:
         return False
