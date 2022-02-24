@@ -26,7 +26,7 @@ class ProjectList(tk.Frame):
        
         self.tree.configure(yscrollcommand=self.scrollbar_y.set)
         self.tree.configure(xscrollcommand=self.scrollbar_x.set)
-        self.scrollbar_y.grid(row=0, column=1, sticky='NSW')
+        self.scrollbar_y.grid(row=0, column=1,rowspan=2, sticky='NSW')
         self.scrollbar_x.grid(row=1, column=0, sticky='NSEW')
         
         self.tree.bind('<<TreeviewOpen>>', self.open_node)
