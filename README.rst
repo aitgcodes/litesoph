@@ -8,6 +8,7 @@ Requirements
 
   * Python 3.7 or higher
   * Tkinter
+  * click
   * Numpy
   * Matplotlib
   * Paramiko
