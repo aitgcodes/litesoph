@@ -9,7 +9,7 @@ from tkinter import font
 import pathlib
 
 
-from litesoph.gui.filehandler import show_message
+from litesoph.simulations.filehandler import show_message
 from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
 
 
