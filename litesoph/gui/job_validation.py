@@ -1,5 +1,5 @@
 import tkinter as tk
-from litesoph.gui.filehandler import show_message, file_check
+from litesoph.simulations.filehandler import show_message, file_check
 
 
 def select_job(job_frame, job, status ):
