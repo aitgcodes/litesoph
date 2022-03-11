@@ -1,8 +1,10 @@
+from distutils.command import config
 import os 
 import subprocess
 import pathlib
 from configparser import ConfigParser
 
+import litesoph
 
 sections = {
     'visualization_tools' : ['vmd', 'vesta'],
@@ -11,7 +13,7 @@ sections = {
     'mpi' : ['mpirun'],
 }
 
-lsroot = pathlib.Path.cwd()
+lsroot = pathlib.Path(litesoph.__file__).parent.parent
 home = pathlib.Path.home() 
 #bash_file = pathlib.Path(home) / ".bashrc"
 config_file = pathlib.Path(home) / "lsconfig.ini"
@@ -36,7 +38,7 @@ def create_default_config(config: ConfigParser, sections: dict):
             if set is not None:
                 config.set(key, option, set)
             else:
-                config.set(key, f"#{option} =", None)
+                config.set(key, option , '')
 
 def write_config():
     config = ConfigParser(allow_no_value=True)
@@ -46,12 +48,19 @@ def write_config():
     config.set('path','lsroot',str(lsroot))
     create_default_config(config, sections)
 
-    config.set('mpi', '# gpaw_mpi =', None)
-    config.set('mpi', '# octopus_mpi =', None)
-    config.set('mpi', '# nwchem_mpi =', None)
+    config.set('mpi', 'gpaw_mpi', '')
+    config.set('mpi', 'octopus_mpi', '')
+    config.set('mpi', 'nwchem_mpi', '')
 
-    with open(config_file, 'w+') as configfile:
-        config.write(configfile)
+    print('Creating ~/lsconfig.ini ...')
+    try:
+        with open(config_file, 'w+') as configfile:
+            config.write(configfile)
+    except Exception as e:
+        raise e
+    else:
+        print('Done.')
+
 
 # print("##----<added by litesoph>-----##")
 # print(f"export PYTHONPATH=$PYTHONPATH:{lsroot}/")
