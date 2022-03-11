@@ -13,11 +13,18 @@ Requirements
   * Matplotlib
   * Paramiko
 
+Installation
+============
+
+  $git clone https://github.com/13sachin/litesoph.git
+  $pip install litesoph
+
+
 Usage
 =====
 
-To start the application, run::
+To start gui application, run::
 
-   litesoph gui
+  $litesoph gui
 
 
