@@ -18,7 +18,7 @@ from configparser import ConfigParser
 from matplotlib.pyplot import show
 
 #---LITESOPH modules
-from litesoph import check_config
+from litesoph.config import check_config
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.simulations import models as m
 from litesoph.gui import views as v 
