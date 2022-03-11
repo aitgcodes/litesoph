@@ -18,8 +18,8 @@ Installation
 
 .. code-block:: console
 
-  $git clone https://github.com/13sachin/litesoph.git
-  $pip install litesoph
+  $ git clone https://github.com/13sachin/litesoph.git
+  $ pip install litesoph
 
 
 Usage
@@ -29,6 +29,6 @@ To start gui application, run:
 
 .. code-block:: console
 
-  $litesoph gui
+  $ litesoph gui
 
 
