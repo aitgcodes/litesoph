@@ -13,11 +13,22 @@ Requirements
   * Matplotlib
   * Paramiko
 
+Installation
+============
+
+.. code-block:: console
+
+  $ git clone https://github.com/13sachin/litesoph.git
+  $ pip install litesoph
+
+
 Usage
 =====
 
-To start the application, run::
+To start gui application, run:
 
-   litesoph gui
+.. code-block:: console
+
+  $ litesoph gui
 
 
