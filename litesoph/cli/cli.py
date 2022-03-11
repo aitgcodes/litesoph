@@ -1,7 +1,7 @@
 import os
 import pathlib
 from configparser import ConfigParser
-
+import subprocess
 import click
 
 import litesoph 
@@ -28,3 +28,19 @@ def gui():
     app.title('LITESOPH')
     app.resizable(True, True)
     app.mainloop()
+
+@cli.command()
+@click.option('-c', '--create', is_flag=True,
+                help = "creates config file with guess values.")
+@click.option('-e', '--open-file', is_flag=True,
+                help = "opens lsconfig file in terminal.")
+def config(create, open_file):
+    
+    from litesoph.config import write_config
+    if create:
+        write_config()
+        return
+
+    if open_file:
+        subprocess.run(['vim',f'{config_file}'])
+        return
