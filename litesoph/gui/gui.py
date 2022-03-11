@@ -20,13 +20,13 @@ from matplotlib.pyplot import show
 #---LITESOPH modules
 from litesoph import check_config
 from litesoph.gui.menubar import get_main_menu_for_os
-from litesoph.gui import models as m
+from litesoph.simulations import models as m
 from litesoph.gui import views as v 
-from litesoph.gui.spec_plot import plot_spectra, plot_files
+from litesoph.visualization.spec_plot import plot_spectra, plot_files
 from litesoph.simulations.esmd import Task
-from litesoph.gui.filehandler import Status, file_check, show_message
+from litesoph.simulations.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import ProjectList
-from litesoph.gui.filehandler import Status
+from litesoph.simulations.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
 from litesoph.utilities.job_submit import SubmitLocal
 

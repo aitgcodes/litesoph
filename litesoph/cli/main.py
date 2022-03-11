@@ -16,7 +16,7 @@ class CLIError(Exception):
 
 commands = [
     #('run', 'litesoph.cli.run'),
-    ('gui', 'litesoph.gui.guicli'),
+    ('gui', 'litesoph.cli.guicli'),
     ('preproc', 'litesoph.pre_processing.preproc_cli'),
     ('postproc', 'litesoph.post_processing.postproc_cli')
 ]
