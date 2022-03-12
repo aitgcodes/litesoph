@@ -29,13 +29,14 @@ def gui():
     app.resizable(True, True)
     app.mainloop()
 
-@cli.command()
+
+@cli.command(no_args_is_help=True)
 @click.option('-c', '--create', is_flag=True,
-                help = "creates config file with guess values.")
+                help = "creates config file with guess values: ~/lsconfig.ini")
 @click.option('-e', '--open-file', is_flag=True,
                 help = "opens lsconfig file in terminal.")
 def config(create, open_file):
-    
+    """create and edit lsconfig.ini file."""
     from litesoph.config import write_config
     if create:
         write_config()
