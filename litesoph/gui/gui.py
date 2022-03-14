@@ -35,7 +35,7 @@ home = pathlib.Path.home()
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
-class AITG(tk.Tk):
+class GUIAPP(tk.Tk):
 
     def __init__(self, lsconfig: ConfigParser, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -905,7 +905,7 @@ class TcmPage(Frame):
 if __name__ == '__main__':
    
     
-    app = AITG()
+    app = GUIAPP()
     app.title("AITG - LITESOPH")
     #app.geometry("1500x700")
     app.resizable(True,True)
