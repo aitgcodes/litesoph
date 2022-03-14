@@ -23,8 +23,8 @@ def gui():
     lsconfig = ConfigParser()
     lsconfig.read(config_file)
 
-    from litesoph.gui.gui import AITG
-    app = AITG(lsconfig)
+    from litesoph.gui.gui import GUIAPP
+    app = GUIAPP(lsconfig)
     app.title('LITESOPH')
     app.resizable(True, True)
     app.mainloop()
