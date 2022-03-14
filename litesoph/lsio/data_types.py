@@ -1,7 +1,7 @@
 from enum import Enum, auto
 
 class DataTypes(Enum):
-    boolen = auto()
+    boolean = auto()
     decimal = auto()
     integer = auto()
     string = auto()
