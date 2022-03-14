@@ -8,7 +8,7 @@ from tkinter import font
 
 import pathlib
 
-
+from litesoph.gui import images
 from litesoph.simulations.filehandler import show_message
 from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
 
@@ -75,10 +75,7 @@ class StartPage(tk.Frame):
         #canvas_for_image.grid(row=30,column=0, sticky='nesw', padx=0, pady=0)
         canvas_for_image.place(x=30,y=5)
 
-        # create image from image location resize it to 100X100 and put in on canvas
-        path1 = pathlib.PurePath(self.lsroot) / "litesoph" / "gui" / "images"
-
-        image = Image.open(str(pathlib.Path(path1) / "logo_ls.jpg"))
+        image = Image.open(images.LITESOPH_LOGO_BIG)
         canvas_for_image.image = ImageTk.PhotoImage(image.resize((125, 125), Image.ANTIALIAS))
         canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
 
@@ -86,7 +83,7 @@ class StartPage(tk.Frame):
         canvas_for_project_create=tk.Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
         canvas_for_project_create.place(x=20,y=200)
 
-        image_project_create = Image.open(str(pathlib.Path(path1) / "project_create.png"))
+        image_project_create = Image.open(images.PROJECT_CREATE_ICON)
         canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
 
