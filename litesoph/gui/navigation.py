@@ -1,43 +1,48 @@
+from importlib.util import set_loader
 import os
-import pathlib
+from pathlib import Path
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.filedialog import askopenfile
 from tkinter import filedialog
 
-class Nav(ttk.Frame):
+class ProjectList(tk.Frame):
 
-    def __init__(self, master,path):
-        super().__init__(master)
-        self.path = path
-        self.nodes = dict()
-        # self.columnconfigure(0, weight=1)
-        # self.columnconfigure(1, weight=1)
-        # self.rowconfigure(1, weight=1)
-        self.__create_treeview()
-
-    def __create_treeview(self):
-
-        self.tree = ttk.Treeview(self, height=20)
-        ysb = ttk.Scrollbar(self, orient='vertical', command=self.tree.yview)
-        xsb = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
-        self.tree.configure(yscroll=ysb.set, xscroll=xsb.set)
-        self.tree.heading('#0',anchor='w')
-       
-
-        self.tree.grid(row=0, column=0)
-        ysb.grid(row=0, column=1, sticky='ns')
-        xsb.grid(row=1, column=0, sticky='ew')
+    def __init__(self, parent, *args, **Kwargs):
+        super().__init__( parent, *args, **Kwargs)
         
- 
-        abspath = os.path.abspath(self.path)
-        self.insert_node('', abspath, abspath)
+        self.nodes = dict()
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+       
+        self.tree = ttk.Treeview(self, selectmode='none')
+
+        self.tree.heading('#0',text='ProjectList', anchor='w')
+
+        self.tree.grid(row=0, column=0, sticky='NSEW')
+
+        self.scrollbar_y = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
+        self.scrollbar_x = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.tree.xview)
+       
+        self.tree.configure(yscrollcommand=self.scrollbar_y.set)
+        self.tree.configure(xscrollcommand=self.scrollbar_x.set)
+        self.scrollbar_y.grid(row=0, column=1,rowspan=2, sticky='NSW')
+        self.scrollbar_x.grid(row=1, column=0, sticky='NSEW')
+        
         self.tree.bind('<<TreeviewOpen>>', self.open_node)
         
+    def populate(self, project_path: Path):
+        rot = self.tree.get_children()
+        if rot:
+            self.tree.delete(rot)
+        #paths = project_path.glob('**/*')
+
+        self.insert_node('', project_path.name, project_path)
+
 
     def insert_node(self, parent, text, abspath):
         node = self.tree.insert(parent, 'end', text=text, open=False)
-        if os.path.isdir(abspath):
+        if Path.is_dir(abspath):
             self.nodes[node] = abspath
             self.tree.insert(node, 'end')
 
@@ -46,6 +51,6 @@ class Nav(ttk.Frame):
         abspath = self.nodes.pop(node, None)
         if abspath:
             self.tree.delete(self.tree.get_children(node))
-            for p in os.listdir(abspath):
-                self.insert_node(node, p, os.path.join(abspath, p))
+            for p in Path.iterdir(abspath):
+                self.insert_node(node, p.name, Path.joinpath(abspath, p))
 

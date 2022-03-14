@@ -10,6 +10,7 @@ from  PIL import Image,ImageTk
 import tkinter as tk
 
 import os
+import platform
 import pathlib 
 import shutil
 from configparser import ConfigParser
@@ -17,15 +18,15 @@ from configparser import ConfigParser
 from matplotlib.pyplot import show
 
 #---LITESOPH modules
-from litesoph import check_config
-from litesoph.gui.menubar import MainMenu
-from litesoph.gui import models as m
+from litesoph.config import check_config
+from litesoph.gui.menubar import get_main_menu_for_os
+from litesoph.simulations import models as m
 from litesoph.gui import views as v 
-from litesoph.gui.spec_plot import plot_spectra, plot_files
+from litesoph.visualization.spec_plot import plot_spectra, plot_files
 from litesoph.simulations.esmd import Task
-from litesoph.gui.filehandler import Status, file_check, show_message
-from litesoph.gui.navigation import Nav
-from litesoph.gui.filehandler import Status
+from litesoph.simulations.filehandler import Status, file_check, show_message
+from litesoph.gui.navigation import ProjectList
+from litesoph.simulations.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
 from litesoph.utilities.job_submit import SubmitLocal
 
@@ -40,29 +41,35 @@ class AITG(tk.Tk):
         super().__init__(*args, **kwargs)
 
         self.settings_model = m.SettingsModel
-        self.mainmenu = MainMenu(self)
+        self._load_settings()
         self.lsconfig = lsconfig
         self.lsroot = check_config(self.lsconfig, "lsroot")
         self.directory = pathlib.Path(self.lsconfig.get("project_path", "lsproject", fallback=str(home)))
     
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=6)
-       
-        self.nav = None
-        self.refresh_nav(self.directory)
 
+        menu_class = get_main_menu_for_os('Linux')
+        menu = menu_class(self, self.settings)
+        self.config(menu=menu)
+
+        self.status_bar = ttk.Frame(self)
+        self.status_bar.pack(fill = tk.BOTH,side=tk.BOTTOM)
+        self.status_bar.config(relief= tk.RAISED)
+        
+        # self.navigation_frame = ttk.Frame(self)
+        # self.navigation_frame.pack(fill = tk.BOTH,side=tk.RIGHT)
+
+        self.navigation = ProjectList(self)
+        self.navigation.pack(fill = tk.BOTH,side=tk.LEFT)
+        
         self.status = None
         
         self.check = None
         self._window = Frame(self)
-        self._window.grid(row=0, column=1)
+        self._window.pack(fill = tk.BOTH, side=tk.LEFT)
         
-        self._window.grid_rowconfigure(700,weight=700)
-        self._window.grid_columnconfigure(800,weight=400)  
-
         self.engine = None
-        self.status_bar = tk.StringVar()
-        ttk.Label(self, textvariable=self.status_bar).grid(sticky=(tk.W + tk.E), row=2, padx=10)
+        self.status_engine = tk.StringVar()
+        ttk.Label(self.status_bar, textvariable=self.status_engine).pack(side= tk.LEFT) 
         
         self.ground_state_view = None
         self.ground_state_task = None
@@ -91,9 +98,9 @@ class AITG(tk.Tk):
             self.engine = self.status.get_status('engine')
         except KeyError:
             self.engine = None
-            self.status_bar.set('')
+            self.status_engine.set('')
         else:
-            self.status_bar.set(self.engine)
+            self.status_engine.set(self.engine)
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -105,19 +112,9 @@ class AITG(tk.Tk):
             int_frame = frame(self._window, *args, **kwargs)
             self._frames[frame]= int_frame
             self._frames.move_to_end(frame, last=False)
-            int_frame.grid(row=0, column=1, sticky ="nsew")
+            int_frame.grid(row=0, column=1, sticky ='NSEW')
             int_frame.tkraise()
 
-
-    def refresh_nav(self, path):
-
-        if isinstance(self.nav, Nav):
-            self.nav.destroy()
-            self.nav = Nav(self, path)
-            self.nav.grid(row=0, column=0, sticky='nw')
-        else:
-            self.nav = Nav(self, path)
-            self.nav.grid(row=0, column=0, sticky='nw')
 
     def _bind_event_callbacks(self):
         """binds events and specific callback functions"""
@@ -168,7 +165,7 @@ class AITG(tk.Tk):
         if not self._status_init(path):       
             return
         self._change_directory(path)
-        self.refresh_nav(self.directory)
+        self.navigation.populate(self.directory)
         self._get_engine()
 
     def _on_open_project(self, *_):
@@ -177,23 +174,25 @@ class AITG(tk.Tk):
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
         if not project_path:
             return
-        self._frames[v.WorkManagerPage].update_project_entry(project_path)
+        #self._frames[v.WorkManagerPage].update_project_entry(project_path)
         self._init_project(project_path)
        
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
-        create_dir = None
-        project_path = self._frames[v.WorkManagerPage].get_project_path()
+       
+        project_name = self._frames[v.WorkManagerPage].get_project_name()
         
-        dir_exists = m.WorkManagerModel.check_dir_exists(project_path)
-
-        if dir_exists:
-            create_dir = messagebox.askokcancel('directory exists', f"The directory {project_path} already exists \n do you want to open the project?")
-        
-            if create_dir:
-               self._init_project(project_path)   
+        if not project_name:
+            messagebox.showerror(title='Error', message='Please set the project name.')
             return
+
+        project_path = filedialog.askdirectory(title= "Select the directory to create Litesoph Project")
+        
+        if not project_path:
+            return
+
+        project_path = pathlib.Path(project_path) / project_name
         
         try:
             m.WorkManagerModel.create_dir(project_path)
@@ -333,7 +332,7 @@ class AITG(tk.Tk):
             self.status.set_new_task(self.ground_state_task.task_name)
             self.status.update_status(f'{self.ground_state_task.task_name}.script', 1)
             self.status.update_status(f'{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
-            self.status_bar.set(self.engine)
+            self.status_engine.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
         else:
             pass  
