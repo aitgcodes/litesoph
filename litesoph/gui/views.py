@@ -793,7 +793,7 @@ class GroundStatePage(View_note):
         self.label_proj['font'] = myFont
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        def pick_task(e):
+        def pick_box(e):
             if task.get() == "nao":
                 sub_task.config(value = self.nao_task)
                 sub_task.current(0)
@@ -822,12 +822,12 @@ class GroundStatePage(View_note):
                 box_shape.current(0)
                 #self.nwchem_frame()
                 self.engine = 'nwchem'
-            
+            self.engine_specific_frame()
 
         task = ttk.Combobox(mode_frame, textvariable = self._var['mode'], values= self.Mainmode)
         task['font'] = myFont
         task.grid(row=2, column= 1, sticky='w', padx=2, pady=2)
-        task.bind("<<ComboboxSelected>>", pick_task)
+        task.bind("<<ComboboxSelected>>", pick_box)
         task['state'] = 'readonly'
 
         self.basis = tk.Label(mode_frame, text="Basis",bg='gray',fg='black')
@@ -857,32 +857,29 @@ class GroundStatePage(View_note):
                 if task.get() == "fd":
                     self.gp2oct()
             if box_shape.get() == "minimum": 
-                #self.oct_simbox()
-                #self.oct_minsph_frame()
-                #self.octopus_frame()
+                self.oct_simbox()
+                self.oct_minsph_frame()
                 self.engine = 'octopus'
             if box_shape.get() == "sphere":
-                #self.oct_simbox()
-                #self.oct_minsph_frame()
-                #self.octopus_frame()
+                self.oct_simbox()
+                self.oct_minsph_frame()
                 self.engine = 'octopus'
             if box_shape.get() == "cylinder": 
-                #self.oct_simbox()
-                #self.oct_cyl_frame()
-                #self.octopus_frame()
+                self.oct_simbox()
+                self.oct_cyl_frame()
                 self.engine = 'octopus'
 
         box_shape = ttk.Combobox(mode_frame, textvariable= self._var['shape'], value = [" "])
         box_shape.current(0)
         box_shape['font'] = myFont
-        box_shape.bind("<<ComboboxSelected>>", pick_frame)
+        #box_shape.bind("<<ComboboxSelected>>", pick_frame)
         box_shape['state'] = 'readonly'
         box_shape.grid(row=8, column=1, sticky='w', padx=2, pady=2)
         
     def gp_simbox(self,parent):
 
         gp_simb = tk.Frame(parent)
-        gp_simb.grid(row=0, column=0)
+        gp_simb.grid(row=1, column=0, sticky='w')
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
  
@@ -908,7 +905,7 @@ class GroundStatePage(View_note):
 
     def oct_simbox(self, parent):
         oct_simb = tk.Frame(parent)
-        oct_simb.grid(row=0, column=0)
+        oct_simb.grid(row=1, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j= font.Font(family ='Courier', size=20,weight='bold')
@@ -1068,13 +1065,10 @@ class GroundStatePage(View_note):
     def gp2oct(self):
         self.check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
         if self.check is True:
-            #self.gp_simbox()
-            #self.gpaw_frame()
             self.engine = 'gpaw'
         else:
-            #self.oct_simbox()
-            #self.oct_ppl_frame()
-            #self.octopus_frame()
+            self.oct_simbox(self.Frame1)
+            self.oct_ppl_frame(oct_simbox)
             self.engine = 'octopus'
        
     def back_button(self):
@@ -1237,7 +1231,7 @@ class GroundStatePage(View_note):
     def common_convergence(self, parent):
         
         com_conv = tk.Frame(parent, borderwidth=2)
-        com_conv.grid(row=0, column=0)
+        com_conv.grid(row=0, column=0, sticky='w')
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
          
@@ -1273,7 +1267,7 @@ class GroundStatePage(View_note):
  
     def nwchem_convergence(self, parent):
         nwchem_conv = tk.Frame(parent, borderwidth=2)
-        nwchem_conv.grid(row=0, column=0)
+        nwchem_conv.grid(row=1, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -1282,21 +1276,21 @@ class GroundStatePage(View_note):
         #self.label_proj.place(x=10,y=10)
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(nwchem_conv,textvariable= self._var['gradient'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.delete(0,tk.END)
-        #self.entry_proj.insert(0,"1.0e-4")
+        self.entry_grd = tk.Entry(nwchem_conv,textvariable= self._var['gradient'])
+        self.entry_grd['font'] = myFont
+        self.entry_grd.delete(0,tk.END)
+        self.entry_grd.insert(0,"1.0e-4")
         #self.entry_proj.place(x=280,y=10)
-        self.entry_proj.grid(row=2, column=1, sticky='w', padx=12, pady=2)
+        self.entry_grd.grid(row=2, column=1, sticky='w', padx=40, pady=2)
    
         
     def gpaw_convergence(self, parent):
         gp_conv = tk.Frame(parent, borderwidth=2)
-        gp_conv.grid(row=1, column=0)
+        gp_conv.grid(row=1, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
-        self.label_proj = tk.Label(gp_conv,text="Convergence of eigenstates",fg="black")
+        self.label_proj = tk.Label(gp_conv,text="Convergence of eigenstates",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
@@ -1308,7 +1302,7 @@ class GroundStatePage(View_note):
         #self.entry_proj.pl]ace(x=280,y=10)
         self.entry_proj.grid(row=2, column=1, sticky='w', padx=12, pady=2)
     
-        self.bdocc = tk.Label(gp_conv,text="Band Occupancy",fg="black")
+        self.bdocc = tk.Label(gp_conv,text="Band Occupancy",bg="gray",fg="black")
         self.bdocc['font'] = myFont
         #self.bdocc.place(x=10,y=310)
         self.bdocc.grid(row=4, column=0, sticky='w', padx=2, pady=4)
@@ -1320,7 +1314,7 @@ class GroundStatePage(View_note):
         self.occ['state'] = 'readonly'
         self.occ.grid(row=4, column=1, sticky='w', padx=12, pady=2)
 
-        self.lb2 = tk.Label(gp_conv,text="Smearing Function",fg="black")
+        self.lb2 = tk.Label(gp_conv,text="Smearing Function",bg="gray",fg="black")
         self.lb2['font'] = myFont
         #self.lb2.place(x=10,y=110)
         self.lb2.grid(row=6, column=0, sticky='w', padx=2, pady=4)
@@ -1332,7 +1326,7 @@ class GroundStatePage(View_note):
         self.entry_pol_x['state'] = 'readonly'
         self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=12, pady=2)
 
-        self.label_proj = tk.Label(gp_conv, text="Smearing (eV)",fg="black")
+        self.label_proj = tk.Label(gp_conv, text="Smearing (eV)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=260,y=60)
         self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
@@ -1345,11 +1339,11 @@ class GroundStatePage(View_note):
         
     def octopus_convergence(self, parent):
         oct_conv = tk.Frame(parent, borderwidth=2)
-        oct_conv.grid(row=0, column=0)
+        oct_conv.grid(row=1, column=0, sticky = 'w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
-        self.label_proj = tk.Label(oct_conv,text="Absolute Convergence",fg="blue")
+        self.label_proj = tk.Label(oct_conv,text="Absolute Convergence",bg="gray",fg="blue")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
@@ -1448,28 +1442,95 @@ class GroundStatePage(View_note):
         self.mode_frame(self.Frame1)
         self.tab1_button_frame(self.Frame1)
         self.tab2_button_frame(self.Frame2)
-
-        def select_frame(self):
-            if self.engine == 'nwchem':
-                self.nwchem_frame(self.Frame2)
-                self.nwchem_convergence(self.Frame3)
-            if self.engine == 'gpaw':
-                self.gp_simbox(self.Frame1)
-                self.gpaw_frame(self.Frame2)
-                self.gpaw_convergence(self.Frame3)    
-            if self.engine == 'octopus':
-                self.oct_simbox(self.Frame1)
-                self.octopus_frame(self.Frame2)               
-                self.octopus_convergence(self.Frame3)
-                if box_shape.get() == "cylinder":
-                    self.oct_cyl_frame(oct_simbox)
-                if box_shape.get() == "minimum":
-                    self.oct_minsph_frame(oct_simbox)
-                if box_shape.get() == "sphere":
-                    self.oct_minsph_frame(oct_simbox)
-                
         self.common_convergence(self.Frame3)
+
+    def engine_specific_frame(self):
+        if self.engine == "nwchem":
+            self.nwchem_frame(self.Frame2)
+            self.nwchem_convergence(self.Frame3)
+        if self.engine == "gpaw":
+            self.gp_simbox(self.Frame1)
+            self.gpaw_frame(self.Frame2)
+            self.gpaw_convergence(self.Frame3)  
+        if self.engine == "octopus":
+            self.oct_simbox(self.Frame1)
+            self.octopus_frame(self.Frame2)               
+            self.octopus_convergence(self.Frame3)
+        #if self.box_shape.get() == "minimum":
+            #self.oct_simbox(self.Frame1)
+            #self.oct_minsph_frame(self.oct_simbox)
+            #self.octopus_frame(self.Frame2)               
+            #self.octopus_convergence(self.Frame3)
+        #if self.box_shape.get() == "sphere":
+            #self.oct_simbox(self.Frame1)
+            #self.oct_minsph_frame(self.oct_simbox)
+            #self.octopus_frame(self.Frame2)
+            #self.octopus_convergence(self.Frame3)
+        #if self.box_shape.get() == "parallelepiped":
+            #if self.task.get() == "fd":
+                #self.gp2oct()
+
+        
         #self.gpaw_convergence(self.Frame3)
+
+    def min_parameters(self):
+        
+        from litesoph.utilities.units import au_to_eV
+        inp_dict_gp = {
+            'mode': self._var['mode'].get(),
+            'xc': self._var['gpxc'].get(),
+            'vacuum': self._var['vacuum'].get(),
+            'basis':{'default': self._var['basis'].get()},
+            'h': self._var['h'].get(),
+            'nbands' : self._var['nbands'].get(),
+            'charge' : self._var['charge'].get(),
+            'spinpol' : self._var['gpspinpol'].get(), 
+            'multip' : self._var['multip'].get(), 
+            'maxiter' : self._var['maxiter'].get(),
+            'box': self._var['shape'].get(),
+            'properties': 'get_potential_energy()',
+            'engine':'gpaw',
+            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
+                    }   
+
+        inp_dict_nw = {
+            'mode': self._var['mode'].get(),
+            'xc': self._var['nwxc'].get(),
+            'tolerances': self._var['tolerances'].get(),
+            'basis': self._var['basis'].get(),
+            'energy': self._var['energy'].get(),
+            'density' : self._var['density'].get(),
+            'charge' : self._var['charge'].get(),
+            'gradient':self._var['gradient'].get(),
+            'multip' : self._var['multip'].get(),
+            'maxiter' : self._var['maxiter'].get(),
+            'engine':'nwchem',
+            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
+                    }
+
+        inp_dict_oct = {
+            'mode': self._var['mode'].get(),
+            'xc': self._var['ocxc'].get(),
+            'energy': self._var['energy'].get(),
+            'dimension' : self._var['dxc'].get(),
+            'spacing': self._var['h'].get(),
+            'spin_pol': self._var['ocspinpol'].get(),
+            'charge': self._var['charge'].get(),
+            'e_conv': self._var['energy'].get(),
+            'max_iter': self._var['maxiter'].get(),
+            'eigensolver':self._var['eigen'].get(),
+            'smearing':self._var['smear'].get(),
+            'smearing_func':self._var['ocsmearfn'].get(),
+            'mixing':self._var['mix'].get(),
+            'box':{'shape':self._var['shape'].get()},
+            'unit_box' : self._var['unit_box'].get(),
+            'engine':'octopus',
+            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
+                    }      
+
+        if self.engine == "nwchem":
+           
+            return inp_dict_nw
 
     def get_parameters(self):
         
