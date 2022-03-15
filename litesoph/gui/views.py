@@ -652,7 +652,8 @@ class View_note(tk.Frame):
         self.Frame1 = tk.Frame(notebook, borderwidth=2, relief='groove')
         self.Frame2 = tk.Frame(notebook, borderwidth=2, relief='groove')
         self.Frame3 = tk.Frame(notebook, borderwidth=2, relief='groove')
-        
+       
+        #self.Frame3.grid(row=0, column=0, rowspan=11) 
         notebook.add(self.Frame1, text='General Info')
         notebook.add(self.Frame2, text='Advanced Info')
         notebook.add(self.Frame3, text='SCF Convergence')
@@ -799,30 +800,28 @@ class GroundStatePage(View_note):
                 sub_task.current(0)
                 box_shape.config(value = self.gp_box)
                 box_shape.current(0)
-                #self.gp_simbox()
-                #self.gpaw_frame()
                 self.engine = 'gpaw'
-            if task.get() == "fd":
-                sub_task.config(value = self.fd_task)
-                sub_task.current(0)
-                box_shape.config(value = self.octgp_box)
-                box_shape.set("--choose box--")
+                self.engine_specific_frame()
             if task.get() == "pw":
                 sub_task.config(value = self.pw_task)
                 sub_task.current(0)
                 box_shape.config(value = self.gp_box)
                 box_shape.current(0)
-                #self.gp_simbox()
-                #self.gpaw_frame()
                 self.engine = 'gpaw'
+                self.engine_specific_frame()
             if task.get() == "gaussian":
                 sub_task.config(value = self.gauss_task)
                 sub_task.current(0)
                 box_shape.config(value = self.nw_box)
                 box_shape.current(0)
-                #self.nwchem_frame()
                 self.engine = 'nwchem'
-            self.engine_specific_frame()
+                self.engine_specific_frame()
+            elif task.get() == "fd":
+                sub_task.config(value = self.fd_task)
+                sub_task.current(0)
+                box_shape.config(value = self.octgp_box)
+                box_shape.set("--choose box--")
+
 
         task = ttk.Combobox(mode_frame, textvariable = self._var['mode'], values= self.Mainmode)
         task['font'] = myFont
@@ -857,25 +856,53 @@ class GroundStatePage(View_note):
                 if task.get() == "fd":
                     self.gp2oct()
             if box_shape.get() == "minimum": 
-                self.oct_simbox()
-                self.oct_minsph_frame()
                 self.engine = 'octopus'
+                self.engine_specific_frame()
             if box_shape.get() == "sphere":
-                self.oct_simbox()
-                self.oct_minsph_frame()
                 self.engine = 'octopus'
+                self.engine_specific_frame()
             if box_shape.get() == "cylinder": 
-                self.oct_simbox()
-                self.oct_cyl_frame()
                 self.engine = 'octopus'
+                self.engine_specific_frame()
 
         box_shape = ttk.Combobox(mode_frame, textvariable= self._var['shape'], value = [" "])
         box_shape.current(0)
         box_shape['font'] = myFont
-        #box_shape.bind("<<ComboboxSelected>>", pick_frame)
+        box_shape.bind("<<ComboboxSelected>>", pick_frame)
         box_shape['state'] = 'readonly'
         box_shape.grid(row=8, column=1, sticky='w', padx=2, pady=2)
-        
+       
+        empty_frame = tk.Frame(mode_frame, borderwidth=2)
+        empty_frame.grid(row=10, column=0)
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=2, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=4, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=6, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=8, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=10, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=12, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=14, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=16, column=0, sticky= 'NSEW')
+
+        empty_frame.grid_columnconfigure(0, weight=1)
+        empty_frame.grid_rowconfigure(1, weight=1)
+
+             
     def gp_simbox(self,parent):
 
         gp_simb = tk.Frame(parent)
@@ -1066,23 +1093,28 @@ class GroundStatePage(View_note):
         self.check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
         if self.check is True:
             self.engine = 'gpaw'
+            self.engine_specific_frame()
         else:
-            self.oct_simbox(self.Frame1)
-            self.oct_ppl_frame(oct_simbox)
             self.engine = 'octopus'
-       
+            self.engine_specific_frame()
+ 
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')              
             
     def gpaw_frame(self,parent):  
 
         gp_frame = tk.Frame(parent, borderwidth=2)
-        gp_frame.grid(row=0, column=0)
+        gp_frame.grid(row=0, column=0, sticky='w')
+        #gp_frame.grid_columnconfigure(0, weight=1)
 
         #self.Frame2 = tk.Frame(self)
         #self.Frame2.place(relx=0.5, rely=0.01, relheight=0.87, relwidth=0.492)
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        
+
+        self.Frame2_note = tk.Label(gp_frame,text="LITESOPH input for Gpaw        ",fg="blue")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+
         self.Frame2_note = tk.Label(gp_frame,text="Exchange Correlation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.grid(row=2, column=0, sticky='w', padx=2, pady=4)
@@ -1091,7 +1123,7 @@ class GroundStatePage(View_note):
         self.gpxc.current(0)
         self.gpxc['font'] = myFont
         self.gpxc['state'] = 'readonly'
-        self.gpxc.grid(row=2, column=1, sticky='w', padx=12, pady=2)
+        self.gpxc.grid(row=2, column=1, sticky='w', padx=2, pady=2)
 
         self.spin = tk.Label(gp_frame,text="Spin Polarisation",bg="gray",fg="black")
         self.spin['font'] = myFont
@@ -1101,7 +1133,7 @@ class GroundStatePage(View_note):
         self.spinpol.current(0)
         self.spinpol['font'] = myFont
         self.spinpol['state'] = 'readonly'
-        self.spinpol.grid(row=4, column=1, padx=12, pady=2)
+        self.spinpol.grid(row=4, column=1, padx=2, pady=2)
 
         self.nb = tk.Label(gp_frame,text="Number of Bands",bg="gray",fg="black")
         self.nb['font'] = myFont
@@ -1109,18 +1141,39 @@ class GroundStatePage(View_note):
 
         self.entry_bands = Onlydigits(gp_frame,textvariable= self._var['nbands'])
         self.entry_bands['font'] = myFont
-        self.entry_bands.grid(row=6, column=1, sticky='w', padx=12, pady=2)
+        self.entry_bands.grid(row=6, column=1, sticky='w', padx=2, pady=2)
+      
+        self.label_sp = tk.Label(gp_frame,text="Spacing (in Ang)",bg="gray",fg="black")
+        self.label_sp['font'] = myFont
+        self.label_sp.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_sp = Decimalentry(gp_frame,textvariable= self._var['h'])
+        self.entry_sp['font'] = myFont
+        self.entry_sp.grid(row=8, column=1, sticky='w', padx=2, pady=2)
+
+        self.Frame2_note = tk.Label(gp_frame,text="Vacuum size (in Ang)",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_vac = Decimalentry(gp_frame,textvariable= self._var['vacuum'])
+        self.entry_vac['font'] = myFont
+        self.entry_vac.grid(row=10, column=1, sticky='w', padx=2, pady=2)
+ 
 
     def nwchem_frame(self,parent):   
 
         nw_frame = tk.Frame(parent, borderwidth=2)
-        nw_frame.grid(row=0, column=0)
-
+        nw_frame.grid(row=0, column=0, sticky='w')
+        #nw_frame.grid_columnconfigure(0, weight=1)
         #self.Frame2 = tk.Frame(self)
         #self.Frame2.place(relx=0.5, rely=0.01, relheight=0.87, relwidth=0.492)
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        
+       
+        self.Frame2_note = tk.Label(nw_frame,text="LITESOPH input for Nwchem      ",fg="blue")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+ 
         self.nwxc = tk.Label(nw_frame,text="Exchange Correlation",bg="gray",fg="black")
         self.nwxc['font'] = myFont
         self.nwxc.grid(row=2, column=0, sticky='w', padx=2, pady=4)
@@ -1129,7 +1182,7 @@ class GroundStatePage(View_note):
         self.entry_pol_x.current(4)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=2, column=1, sticky='w', padx=12, pady=2)
+        self.entry_pol_x.grid(row=2, column=1, sticky='w', padx=2, pady=2)
    
         self.mul = tk.Label(nw_frame,text="Multiplicity",bg="gray",fg="black")
         self.mul['font'] = myFont
@@ -1141,7 +1194,7 @@ class GroundStatePage(View_note):
         self.entry_mul['font'] = myFont
         #self.entry_mul.insert(0,"1")
         #self.entry_mul.place(x=280,y=160)
-        self.entry_mul.grid(row=4, column=1, sticky='w', padx=12, pady=2)
+        self.entry_mul.grid(row=4, column=1, sticky='w', padx=2, pady=2)
       
         self.Frame2_note = tk.Label(nw_frame,text="Tolerances",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -1150,19 +1203,32 @@ class GroundStatePage(View_note):
         self.entry_pol_x = ttk.Combobox(nw_frame, textvariable= self._var['tolerances'], value = ["tight","accCoul","radius"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=12, pady=2)
+        self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=2, pady=2)
         self.entry_pol_x['state'] = 'readonly'
-  
+ 
+        em_frame = tk.Frame(nw_frame, borderwidth=2)
+        em_frame.grid(row=8, column=0)
+        
+        title = tk.Label(em_frame,  height=3)
+        title.grid(row=0, column=0, sticky= 'NSEW')
+
+        em_frame.grid_columnconfigure(0, weight=1)
+        em_frame.grid_rowconfigure(1, weight=1)
+ 
     def octopus_frame(self,parent):   
 
         oct_frame = tk.Frame(parent, borderwidth=2)
-        oct_frame.grid(row=0, column=0)
+        oct_frame.grid(row=0, column=0, sticky='w')
 
         #self.Frame2 = tk.Frame(self)
         #self.Frame2.place(relx=0.5, rely=0.21, relheight=0.67, relwidth=0.492)
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        
+
+        self.Frame2_note = tk.Label(oct_frame,text="LITESOPH input for Octopus     ",fg="blue")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+
         #self.Frame2.configure(relief='groove')
         #self.Frame2.configure(borderwidth="2")
         #self.Frame2.configure(relief="groove")
@@ -1189,7 +1255,7 @@ class GroundStatePage(View_note):
         #self.cb1.place(x=110,y=10)
         self.cb1.bind("<<ComboboxSelected>>", pick_xc)
         self.cb1['state'] = 'readonly'
-        self.cb1.grid(row=2, column=1, sticky='w', padx=12, pady=2)
+        self.cb1.grid(row=2, column=1, sticky='w', padx=2, pady=2)
 
        
         self.Frame2_note = tk.Label(oct_frame,text="Exchange Correlation",bg="gray",fg="black")
@@ -1202,7 +1268,7 @@ class GroundStatePage(View_note):
         #xc_octopus.place(x=280,y=160)
         xc_octopus['state'] = 'readonly'
         xc_octopus.current(0)
-        xc_octopus.grid(row=4, column=1, sticky='w', padx=12, pady=2)
+        xc_octopus.grid(row=4, column=1, sticky='w', padx=2, pady=2)
 
         self.Frame2_note = tk.Label(oct_frame,text="Spin Polarisation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -1214,7 +1280,7 @@ class GroundStatePage(View_note):
         self.entry_pol_x['font'] = myFont
         #self.entry_pol_x.place(x=280,y=210)
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=12, pady=2)
+        self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=2, pady=2)
     
         self.Frame2_note = tk.Label(oct_frame,text="Eigen Solver",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -1226,7 +1292,28 @@ class GroundStatePage(View_note):
         self.entry_pol_x['font'] = myFont
         #self.entry_pol_x.place(x=280,y=260)
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=12, pady=2)
+        self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=2, pady=2)
+       
+        self.boxlabel = tk.Label(occyl_frame,text="Simulation box unit",bg="gray",fg="black")
+        self.boxlabel['font'] = myFont
+        self.boxlabel.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+
+        unit = ttk.Combobox(occyl_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        unit.current(0)
+        unit['font'] = myFont
+        unit.grid(row=10, column=1, sticky='w', padx=2, pady=2)
+        unit['state'] = 'readonly'
+
+        def octopus_choose_box_frame(self):
+            if self.box_shape == 'pa':
+        #em_frame = tk.Frame(oct_frame, borderwidth=2)
+        #em_frame.grid(row=10, column=0)
+
+        #title = tk.Label(em_frame,  height=3)
+        #title.grid(row=0, column=0, sticky= 'NSEW')
+
+        #em_frame.grid_columnconfigure(0, weight=1)
+        #em_frame.grid_rowconfigure(1, weight=1)
 
     def common_convergence(self, parent):
         
@@ -1266,194 +1353,348 @@ class GroundStatePage(View_note):
         self.entry_proj.grid(row=6, column=1, sticky='w', padx=12, pady=2)     
  
     def nwchem_convergence(self, parent):
+        parent.grid_remove()
         nwchem_conv = tk.Frame(parent, borderwidth=2)
-        nwchem_conv.grid(row=1, column=0, sticky='w')
+        nwchem_conv.grid(row=0, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
+     
+        self.label_pol_z = tk.Label(nwchem_conv, text="SCF Convergence for NWChem     ", fg="blue")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.grid(row=0, column=0, sticky='w', padx=2, pady=4)
 
-        self.label_proj = tk.Label(nwchem_conv,text="Gradient Convergence",bg="gray",fg="black")
+        self.label_pol_z = tk.Label(nwchem_conv, text="Maximum SCF iteration", bg= "grey",fg="black")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+
+        #entry = ttk.Entry(self.Frame1,textvariable= self._var['maxiter'])
+        entry = Onlydigits(nwchem_conv,textvariable= self._var['maxiter'])
+        entry['font'] = myFont
+        entry.grid(row=2, column=1, sticky='w', padx=6, pady=2)
+
+        self.Frame2_note = tk.Label(nwchem_conv,text="Energy(in au)",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_ener = tk.Entry(nwchem_conv, textvariable= self._var['energy'])
+        #self.entry_ener = Validatedconv(self.Frame1)
+        self.entry_ener['font'] = myFont
+        self.entry_ener.grid(row=4, column=1, sticky='w', padx=2, pady=2)
+
+        self.label_proj = tk.Label(nwchem_conv,text="Density",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_proj = tk.Entry(nwchem_conv,textvariable= self._var['density'])
+        self.entry_proj['font'] = myFont
+        self.entry_proj.delete(0,tk.END)
+        self.entry_proj.insert(0,"1.0e-4")
+        #self.entry_proj.place(x=280,y=10)
+        self.entry_proj.grid(row=6, column=1, sticky='w', padx=2, pady=2)
+
+        self.label_proj = tk.Label(nwchem_conv,text="Gradient",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        #self.label_proj.place(x=10,y=10)
+        self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_grd = tk.Entry(nwchem_conv,textvariable= self._var['gradient'])
         self.entry_grd['font'] = myFont
         self.entry_grd.delete(0,tk.END)
         self.entry_grd.insert(0,"1.0e-4")
         #self.entry_proj.place(x=280,y=10)
-        self.entry_grd.grid(row=2, column=1, sticky='w', padx=40, pady=2)
+        self.entry_grd.grid(row=8, column=1, sticky='w', padx=2, pady=2)
    
-        
+        empty_frame = tk.Frame(nwchem_conv, borderwidth=2)
+        empty_frame.grid(row=10, column=0)
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=2, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=4, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=6, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=8, column=0, sticky= 'NSEW')
+      
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=10, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=12, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=14, column=0, sticky= 'NSEW')
+ 
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=16, column=0, sticky= 'NSEW')
+
+        empty_frame.grid_columnconfigure(0, weight=1)
+        empty_frame.grid_rowconfigure(1, weight=1)
+
     def gpaw_convergence(self, parent):
+        parent.grid_remove()
         gp_conv = tk.Frame(parent, borderwidth=2)
-        gp_conv.grid(row=1, column=0, sticky='w')
+        gp_conv.grid(row=0, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
-        self.label_proj = tk.Label(gp_conv,text="Convergence of eigenstates",bg="gray",fg="black")
+        self.label_pol_z = tk.Label(gp_conv, text="SCF Convergence for Gpaw       ", fg="blue")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+ 
+        self.label_pol_z = tk.Label(gp_conv, text="Maximum SCF iteration", bg= "grey",fg="black")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+
+        #entry = ttk.Entry(self.Frame1,textvariable= self._var['maxiter'])
+        entry = Onlydigits(gp_conv,textvariable= self._var['maxiter'])
+        entry['font'] = myFont
+        entry.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+
+        self.Frame2_note = tk.Label(gp_conv,text="Energy(in au)",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_ener = tk.Entry(gp_conv, textvariable= self._var['energy'])
+        #self.entry_ener = Validatedconv(self.Frame1)
+        self.entry_ener['font'] = myFont
+        self.entry_ener.grid(row=4, column=1, sticky='w', padx=2, pady=2)
+
+        self.label_proj = tk.Label(gp_conv,text="Density",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_proj = tk.Entry(gp_conv,textvariable= self._var['density'])
+        self.entry_proj['font'] = myFont
+        self.entry_proj.delete(0,tk.END)
+        self.entry_proj.insert(0,"1.0e-4")
+        #self.entry_proj.place(x=280,y=10)
+        self.entry_proj.grid(row=6, column=1, sticky='w', padx=2, pady=2)
+
+        self.label_proj = tk.Label(gp_conv,text="eigenstates",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        #self.label_proj.place(x=10,y=10)
+        self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_proj = tk.Entry(gp_conv,textvariable= self._var['eigenstate'])
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,tk.END)
-        #self.entry_proj.insert(0,"1.0e-4")
+        self.entry_proj.insert(0,"1.0e-4")
         #self.entry_proj.pl]ace(x=280,y=10)
-        self.entry_proj.grid(row=2, column=1, sticky='w', padx=12, pady=2)
+        self.entry_proj.grid(row=8, column=1, sticky='w', padx=2, pady=2)
     
         self.bdocc = tk.Label(gp_conv,text="Band Occupancy",bg="gray",fg="black")
         self.bdocc['font'] = myFont
         #self.bdocc.place(x=10,y=310)
-        self.bdocc.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.bdocc.grid(row=10, column=0, sticky='w', padx=2, pady=4)
 
         self.occ = ttk.Combobox(gp_conv, textvariable= self._var['bands'], value = ["occupied","unoccupied"])
         self.occ.current(0)
         self.occ['font'] = myFont
         #self.occ.place(x=280,y=310)
         self.occ['state'] = 'readonly'
-        self.occ.grid(row=4, column=1, sticky='w', padx=12, pady=2)
+        self.occ.grid(row=10, column=1, sticky='w', padx=2, pady=2)
 
         self.lb2 = tk.Label(gp_conv,text="Smearing Function",bg="gray",fg="black")
         self.lb2['font'] = myFont
         #self.lb2.place(x=10,y=110)
-        self.lb2.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.lb2.grid(row=12, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_pol_x = ttk.Combobox(gp_conv, textvariable= self._var['gpsmearfn'], value = self.gpfnsmear)
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         #self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=12, pady=2)
+        self.entry_pol_x.grid(row=12, column=1, sticky='w', padx=2, pady=2)
 
         self.label_proj = tk.Label(gp_conv, text="Smearing (eV)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=260,y=60)
-        self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=14, column=0, sticky='w', padx=2, pady=4)
 
         #self.entry_proj = tk.Entry(self.Frame2, width= 7,textvariable= self._var['smear'])
         self.entry_sm = Decimalentry(gp_conv, width= 7, textvariable= self._var['smear']) 
         self.entry_sm['font'] = myFont
         #self.entry_sm.place(x=360,y=60)
-        self.entry_sm.grid(row=8, column=1, sticky='w', padx=12, pady=2)
-        
+        self.entry_sm.grid(row=14, column=1, sticky='w', padx=2, pady=2)
+ 
+        empty_frame = tk.Frame(gp_conv, borderwidth=2)
+        empty_frame.grid(row=16, column=0, sticky='w')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=2, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=4, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=6, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=8, column=0, sticky= 'NSEW')
+
+        title = tk.Label(empty_frame,  height=3)
+        title.grid(row=10, column=0, sticky= 'NSEW')
+
+        empty_frame.grid_columnconfigure(0, weight=1)
+        empty_frame.grid_rowconfigure(1, weight=1)
+
     def octopus_convergence(self, parent):
         oct_conv = tk.Frame(parent, borderwidth=2)
-        oct_conv.grid(row=1, column=0, sticky = 'w')
-
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        oct_conv.grid(row=0, column=0, sticky = 'w')
         
-        self.label_proj = tk.Label(oct_conv,text="Absolute Convergence",bg="gray",fg="blue")
-        self.label_proj['font'] = myFont
-        #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        self.label_pol_z = tk.Label(oct_conv, text="SCF Convergence for Octopus    ", fg="blue")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+      
+        self.label_pol_z = tk.Label(oct_conv, text="Maximum SCF iteration", bg= "grey",fg="black")
+        self.label_pol_z['font'] = myFont
+        self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+
+        #entry = ttk.Entry(self.Frame1,textvariable= self._var['maxiter'])
+        entry = Onlydigits(oct_conv,textvariable= self._var['maxiter'])
+        entry['font'] = myFont
+        entry.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+
+        self.Frame2_note = tk.Label(oct_conv,text="Energy(in au)",bg="gray",fg="black")
+        self.Frame2_note['font'] = myFont
+        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_ener = tk.Entry(oct_conv, textvariable= self._var['energy'])
+        #self.entry_ener = Validatedconv(self.Frame1)
+        self.entry_ener['font'] = myFont
+        self.entry_ener.grid(row=4, column=1, sticky='w', padx=2, pady=2)
 
         self.label_proj = tk.Label(oct_conv,text="Density",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['density'])
+        self.entry_proj['font'] = myFont
+        self.entry_proj.delete(0,tk.END)
+        self.entry_proj.insert(0,"1.0e-4")
+        #self.entry_proj.place(x=280,y=10)
+        self.entry_proj.grid(row=6, column=1, sticky='w', padx=2, pady=2)
+ 
+        self.label_proj = tk.Label(oct_conv,text="Absolute Convergence",fg="blue")
+        self.label_proj['font'] = myFont
+        #self.label_proj.place(x=10,y=10)
+        self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+
+        self.label_proj = tk.Label(oct_conv,text="Density",bg="gray",fg="black")
+        self.label_proj['font'] = myFont
+        #self.label_proj.place(x=10,y=10)
+        self.label_proj.grid(row=10, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['absdensity'])
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,tk.END)
         self.entry_proj.insert(0,"0.0")
         #self.entry_proj.place(x=280,y=10)
-        self.entry_proj.grid(row=4, column=1, sticky='w', padx=12, pady=2)
+        self.entry_proj.grid(row=10, column=1, sticky='w', padx=2, pady=2)
      
         self.label_proj = tk.Label(oct_conv,text="Sum of eigen values",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=12, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['abseigen'])
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,tk.END)
         self.entry_proj.insert(0,"0.0")
         #self.entry_proj.place(x=280,y=10)
-        self.entry_proj.grid(row=6, column=1, sticky='w', padx=12, pady=2)
+        self.entry_proj.grid(row=12, column=1, sticky='w', padx=2, pady=2)
     
-        oct_rlt = tk.Frame(parent, borderwidth=2)
-        oct_rlt.grid(row=1, column=0)
+        #oct_rlt = tk.Frame(parent, borderwidth=2)
+        #oct_rlt.grid(row=1, column=0)
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        #myFont = font.Font(family='Helvetica', size=10, weight='bold')
  
-        self.label_proj = tk.Label(oct_rlt,text="Relative Convergence",fg="blue")
+        self.label_proj = tk.Label(oct_conv,text="Relative Convergence",fg="blue")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=14, column=0, sticky='w', padx=2, pady=4)
         
-        self.label_proj = tk.Label(oct_rlt, text="Sum of eigen values",bg="gray",fg="black")
+        self.label_proj = tk.Label(oct_conv, text="Sum of eigen values",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=16, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(oct_rlt, textvariable= self._var['rlteigen'])
+        self.entry_proj = tk.Entry(oct_conv, textvariable= self._var['rlteigen'])
         self.entry_proj['font'] = myFont
         self.entry_proj.delete(0,tk.END)
         self.entry_proj.insert(0,"0.0")
         #self.entry_proj.place(x=280,y=10)
-        self.entry_proj.grid(row=4, column=1, sticky='w', padx=12, pady=2)
+        self.entry_proj.grid(row=16, column=1, sticky='w', padx=2, pady=2)
 
-        oct_mix = tk.Frame(parent, borderwidth=2)
-        oct_mix.grid(row=2, column=0)
+        #oct_mix = tk.Frame(parent, borderwidth=2)
+        #oct_mix.grid(row=2, column=0)
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        #myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.lb = tk.Label(oct_mix,text="Other Scf Parameters",fg="blue")
+        self.lb = tk.Label(oct_conv,text="Other Scf Parameters",fg="blue")
         self.lb['font'] = myFont
         #self.lb2.place(x=260,y=10)
-        self.lb.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.lb.grid(row=18, column=0, sticky='w', padx=2, pady=4)
 
-        self.lb2 = tk.Label(oct_mix,text="Mixing",bg="gray",fg="black")
+        self.lb2 = tk.Label(oct_conv,text="Mixing",bg="gray",fg="black")
         self.lb2['font'] = myFont
         #self.lb2.place(x=260,y=10)
-        self.lb2.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.lb2.grid(row=20, column=0, sticky='w', padx=2, pady=4)
 
         #self.en1 = tk.Entry(self.Frame2,width= 7, textvariable= self._var['mix'])
-        self.en1 = Decimalentry(oct_mix, textvariable= self._var['mix'])
+        self.en1 = Decimalentry(oct_conv, textvariable= self._var['mix'])
         self.en1['font'] = myFont
-        self.en1.place(x=360,y=10)
-        self.en1.grid(row=4, column=1, sticky='w',padx=12, pady=2)
+        #self.en1.place(x=360,y=10)
+        self.en1.grid(row=20, column=1, sticky='w',padx=2, pady=2)
 
-        self.label_proj = tk.Label(oct_mix, text="Smearing (eV)",bg="gray",fg="black")
+        self.label_proj = tk.Label(oct_conv, text="Smearing (eV)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         #self.label_proj.place(x=260,y=60)
-        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj.grid(row=22, column=0, sticky='w', padx=2, pady=4)
 
         #self.entry_proj = tk.Entry(self.Frame2, width= 7,textvariable= self._var['smear'])
-        self.entry_sm = Decimalentry(oct_mix, textvariable= self._var['smear']) 
+        self.entry_sm = Decimalentry(oct_conv, textvariable= self._var['smear']) 
         self.entry_sm['font'] = myFont
         #self.entry_sm.place(x=360,y=60)
-        self.entry_sm.grid(row=6, column=1, sticky='w', padx=12, pady=2)
+        self.entry_sm.grid(row=22, column=1, sticky='w', padx=2, pady=2)
 
-        self.lb2 = tk.Label(oct_mix,text="Smearing Function",bg="gray",fg="black")
+        self.lb2 = tk.Label(oct_conv,text="Smearing Function",bg="gray",fg="black")
         self.lb2['font'] = myFont
         #self.lb2.place(x=10,y=110)
-        self.lb2.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+        self.lb2.grid(row=24, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_pol_x = ttk.Combobox(oct_mix, textvariable= self._var['ocsmearfn'], value = self.fnsmear)
+        self.entry_pol_x = ttk.Combobox(oct_conv, textvariable= self._var['ocsmearfn'], value = self.fnsmear)
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         #self.entry_pol_x.place(x=280,y=110)
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=12, pady=2)
+        self.entry_pol_x.grid(row=24, column=1, sticky='w', padx=2, pady=2)
 
     def frame_collection(self):
         self.mode_frame(self.Frame1)
         self.tab1_button_frame(self.Frame1)
         self.tab2_button_frame(self.Frame2)
-        self.common_convergence(self.Frame3)
+        #self.common_convergence(self.Frame3)
 
     def engine_specific_frame(self):
         if self.engine == "nwchem":
+            #self.Frame2.grid_remove()
             self.nwchem_frame(self.Frame2)
             self.nwchem_convergence(self.Frame3)
         if self.engine == "gpaw":
-            self.gp_simbox(self.Frame1)
+            #self.Frame2.grid_remove()
             self.gpaw_frame(self.Frame2)
             self.gpaw_convergence(self.Frame3)  
         if self.engine == "octopus":
-            self.oct_simbox(self.Frame1)
             self.octopus_frame(self.Frame2)               
             self.octopus_convergence(self.Frame3)
         #if self.box_shape.get() == "minimum":
