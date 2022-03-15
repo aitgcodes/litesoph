@@ -20,7 +20,7 @@ def cli():
 def gui():
     """Starts the gui."""
 
-    lsconfig = ConfigParser()
+    lsconfig = ConfigParser(allow_no_value=False)
     lsconfig.read(config_file)
 
     from litesoph.gui.gui import GUIAPP
