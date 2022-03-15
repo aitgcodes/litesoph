@@ -1294,18 +1294,18 @@ class GroundStatePage(View_note):
         self.entry_pol_x['state'] = 'readonly'
         self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=2, pady=2)
        
-        self.boxlabel = tk.Label(occyl_frame,text="Simulation box unit",bg="gray",fg="black")
+        self.boxlabel = tk.Label(oct_frame,text="Simulation box unit",bg="gray",fg="black")
         self.boxlabel['font'] = myFont
         self.boxlabel.grid(row=10, column=0, sticky='w', padx=2, pady=4)
 
-        unit = ttk.Combobox(occyl_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        unit = ttk.Combobox(oct_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
         unit.current(0)
         unit['font'] = myFont
         unit.grid(row=10, column=1, sticky='w', padx=2, pady=2)
         unit['state'] = 'readonly'
 
-        def octopus_choose_box_frame(self):
-            if self.box_shape == 'pa':
+        #def octopus_choose_box_frame(self):
+            #if self.box_shape == 'pa':
         #em_frame = tk.Frame(oct_frame, borderwidth=2)
         #em_frame.grid(row=10, column=0)
 
