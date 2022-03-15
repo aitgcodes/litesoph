@@ -257,7 +257,7 @@ td_calc.write('{td_gpw}', mode='all')
     def format_template(self):
 
         if self.laser is None:
-            template = self.delta_kick_template.format(**self.user_input)
+            template = self.external_field_template.format(**self.user_input)
 
             if self.tools == "dipolemoment":
                 return template

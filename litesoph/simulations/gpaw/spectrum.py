@@ -1,3 +1,31 @@
+from litesoph.simulations.esmd import Task
+from litesoph.simulations.gpaw.gpaw_template import GpawRTLCAOTddftDelta
+
+
+
+class RTSpecRecipe:
+
+    def __init__(self, status, directory, input_dict:dict) -> None:
+        self.status = status
+        self.directory = directory
+        self.input_dict = input_dict
+        self.gs_data = None
+        self.directions = self.input_dict.popitem['direction']
+        if not self.directions:
+            self.directions = [[1,0,0],[0,1,0],[0,0,1]]
+
+    def create_templates(self):
+        self.task = GpawRTLCAOTddftDelta(self.input_dict)
+        self.template = self.task.format_template() 
+
+
+
+
+
+
+
+
+
 class spectrum:
     """This class contains the gpaw template for getting spectrum
     from dipole moment."""
