@@ -29,10 +29,12 @@ def get_mpi_command(engine: EngineStrategy, configs: ConfigParser):
     if configs.items('mpi'):
         try:
             mpi = configs.get('mpi', name)
+            if not mpi:
+                print("Engine specific mpi is not given, first option from mpi section will be used.")
+                mpi = list(configs.items('mpi'))[0][1]
         except NoOptionError:
-            print("Engine specific mpi is not given, first option from mpi section will be used.")
-            mpi = list(configs.items('mpi'))[0][1]
-        finally:
+            print("Please set path to mpi in lsconfig.ini")
+        else:
             return mpi
     else:
         print("Please set path to mpi in lsconfig.ini")
@@ -57,6 +59,7 @@ class SubmitLocal(JobSubmit):
         self.command = None
         if self.np > 1:
             mpi = get_mpi_command(self.engine.NAME, self.configs)
+            print(mpi)
             self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
             
            

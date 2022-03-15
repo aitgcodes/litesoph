@@ -14,9 +14,9 @@ config_file = pathlib.Path.home() / "lsconfig.ini"
 if config_file.is_file is False:
     raise FileNotFoundError("lsconfig.ini doesn't exists")
 
-configs = configparser.SafeConfigParser({'python':'/usr/bin/python',
+configs = configparser.ConfigParser({'python':'/usr/bin/python',
                                         'nwchem':'nwchem',
-                                        'octopus':'octopus'})
+                                        'octopus':'octopus'}, allow_no_value=False)
 configs.read(config_file)
 
 
