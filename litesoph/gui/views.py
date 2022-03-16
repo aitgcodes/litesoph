@@ -1377,9 +1377,9 @@ class View1(tk.Frame):
     def add_job_frame(self):    
         self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
         self.Frame3.grid(row=1, column=9, sticky='nswe')
-        View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
-        View_Button1['font'] = self.myFont
-        View_Button1.grid(row=2, column=1, sticky='nsew')
+        # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
+        # View_Button1['font'] = self.myFont
+        # View_Button1.grid(row=2, column=1, sticky='nsew')
 
         Run_Button1 = tk.Button(self.Frame3, text="Run Job",activebackground="#78d6ff", command=lambda: [self.run_job_button()])
         Run_Button1['font'] = self.myFont
@@ -1404,7 +1404,7 @@ class TimeDependentPage(View1):
             'dt': ['float'],
             'Nt': ['int'],
             'var1': ['int', 1],
-            'var2': ['int',1]
+            'var2': ['int',0]
         }
         self.gpaw_td_default = {
             'dt': ['float', 10],
@@ -1497,9 +1497,9 @@ class TimeDependentPage(View1):
         self.entry_pol_z.grid(row=1, column=3, padx=2, pady=2)
         self.entry_pol_z['state'] = 'readonly'
 
-        Frame1_Button3 = tk.Button(frame_pol, text="Add",activebackground="#78d6ff",command=lambda:self.add_button())
-        Frame1_Button3['font'] = myFont
-        Frame1_Button3.grid(row =1, column=4, padx =5, pady=2)
+        # Frame1_Button3 = tk.Button(frame_pol, text="Add",activebackground="#78d6ff",command=lambda:self.add_button())
+        # Frame1_Button3['font'] = myFont
+        # Frame1_Button3.grid(row =1, column=4, padx =5, pady=2)
 
         # options = [1,2,3,4]
         # options.append([self._var['ex'].get(),self._var['ez'].get()])
@@ -1529,12 +1529,11 @@ class TimeDependentPage(View1):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.grid(row=2, column=6)
 
-        values = {"Dipole Moment": 1, "Wavefunction": 2}
+        values = {"Wavefunction": 2}
         # Loop is used to create multiple Radiobuttons
         # rather than creating each button separately
         for (text, value) in values.items():
-            tk.Radiobutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, justify='left',
-                           value=value).grid(row=value+3, column=6, ipady=5, sticky='w')
+            tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
 
     def pol_option(self):
         if self._var['var1'] == 1:
@@ -1580,8 +1579,6 @@ class TimeDependentPage(View1):
 
     def analysis_tool(self):
         if self._var['var2'].get() == 1:
-            return("dipolemoment")
-        elif self._var['var2'].get() == 2:
             return("wavefunction")
 
     def set_label_msg(self,msg):
