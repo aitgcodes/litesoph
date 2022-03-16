@@ -5,6 +5,7 @@ from tkinter import filedialog           # importing filedialog which is used fo
 from tkinter import messagebox
 from  PIL import Image,ImageTk
 from tkinter import font
+# from numpy import matplotlib as plot
 
 import pathlib
 
@@ -798,29 +799,29 @@ class GroundStatePage(View_note):
             if task.get() == "nao":
                 sub_task.config(value = self.nao_task)
                 sub_task.current(0)
-                box_shape.config(value = self.gp_box)
-                box_shape.current(0)
+                self.box_shape.config(value = self.gp_box)
+                self.box_shape.current(0)
                 self.engine = 'gpaw'
                 self.engine_specific_frame()
             if task.get() == "pw":
                 sub_task.config(value = self.pw_task)
                 sub_task.current(0)
-                box_shape.config(value = self.gp_box)
-                box_shape.current(0)
+                self.box_shape.config(value = self.gp_box)
+                self.box_shape.current(0)
                 self.engine = 'gpaw'
                 self.engine_specific_frame()
             if task.get() == "gaussian":
                 sub_task.config(value = self.gauss_task)
                 sub_task.current(0)
-                box_shape.config(value = self.nw_box)
-                box_shape.current(0)
+                self.box_shape.config(value = self.nw_box)
+                self.box_shape.current(0)
                 self.engine = 'nwchem'
                 self.engine_specific_frame()
             elif task.get() == "fd":
                 sub_task.config(value = self.fd_task)
                 sub_task.current(0)
-                box_shape.config(value = self.octgp_box)
-                box_shape.set("--choose box--")
+                self.box_shape.config(value = self.octgp_box)
+                self.box_shape.set("--choose box--")
 
 
         task = ttk.Combobox(mode_frame, textvariable = self._var['mode'], values= self.Mainmode)
@@ -852,25 +853,25 @@ class GroundStatePage(View_note):
         self.shape.grid(row=8, column=0, sticky='w', padx=2, pady=4)
 
         def pick_frame(e):
-            if box_shape.get() == "parallelepiped":
+            if self.box_shape.get() == "parallelepiped":
                 if task.get() == "fd":
                     self.gp2oct()
-            if box_shape.get() == "minimum": 
+            if self.box_shape.get() == "minimum": 
                 self.engine = 'octopus'
                 self.engine_specific_frame()
-            if box_shape.get() == "sphere":
+            if self.box_shape.get() == "sphere":
                 self.engine = 'octopus'
                 self.engine_specific_frame()
-            if box_shape.get() == "cylinder": 
+            if self.box_shape.get() == "cylinder": 
                 self.engine = 'octopus'
                 self.engine_specific_frame()
 
-        box_shape = ttk.Combobox(mode_frame, textvariable= self._var['shape'], value = [" "])
-        box_shape.current(0)
-        box_shape['font'] = myFont
-        box_shape.bind("<<ComboboxSelected>>", pick_frame)
-        box_shape['state'] = 'readonly'
-        box_shape.grid(row=8, column=1, sticky='w', padx=2, pady=2)
+        self.box_shape = ttk.Combobox(mode_frame, textvariable= self._var['shape'], value = [" "])
+        self.box_shape.current(0)
+        self.box_shape['font'] = myFont
+        self.box_shape.bind("<<ComboboxSelected>>", pick_frame)
+        self.box_shape['state'] = 'readonly'
+        self.box_shape.grid(row=8, column=1, sticky='w', padx=2, pady=2)
        
         empty_frame = tk.Frame(mode_frame, borderwidth=2)
         empty_frame.grid(row=10, column=0)
@@ -1158,7 +1159,7 @@ class GroundStatePage(View_note):
         self.entry_vac = Decimalentry(gp_frame,textvariable= self._var['vacuum'])
         self.entry_vac['font'] = myFont
         self.entry_vac.grid(row=10, column=1, sticky='w', padx=2, pady=2)
- 
+        
 
     def nwchem_frame(self,parent):   
 
@@ -1218,7 +1219,7 @@ class GroundStatePage(View_note):
     def octopus_frame(self,parent):   
 
         oct_frame = tk.Frame(parent, borderwidth=2)
-        oct_frame.grid(row=0, column=0, sticky='w')
+        oct_frame.grid(row=0, column=0, sticky='nw')
 
         #self.Frame2 = tk.Frame(self)
         #self.Frame2.place(relx=0.5, rely=0.21, relheight=0.67, relwidth=0.492)
@@ -1294,27 +1295,32 @@ class GroundStatePage(View_note):
         self.entry_pol_x['state'] = 'readonly'
         self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=2, pady=2)
        
-        self.boxlabel = tk.Label(oct_frame,text="Simulation box unit",bg="gray",fg="black")
-        self.boxlabel['font'] = myFont
-        self.boxlabel.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+        # self.boxlabel = tk.Label(oct_frame,text="Simulation box unit",bg="gray",fg="black")
+        # self.boxlabel['font'] = myFont
+        # self.boxlabel.grid(row=10, column=0, sticky='w', padx=2, pady=4)
 
-        unit = ttk.Combobox(oct_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
-        unit.current(0)
-        unit['font'] = myFont
-        unit.grid(row=10, column=1, sticky='w', padx=2, pady=2)
-        unit['state'] = 'readonly'
+        # unit = ttk.Combobox(oct_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        # unit.current(0)
+        # unit['font'] = myFont
+        # unit.grid(row=10, column=1, sticky='w', padx=2, pady=2)
+        # unit['state'] = 'readonly'
 
-        #def octopus_choose_box_frame(self):
-            #if self.box_shape == 'pa':
-        #em_frame = tk.Frame(oct_frame, borderwidth=2)
-        #em_frame.grid(row=10, column=0)
-
-        #title = tk.Label(em_frame,  height=3)
-        #title.grid(row=0, column=0, sticky= 'NSEW')
-
-        #em_frame.grid_columnconfigure(0, weight=1)
-        #em_frame.grid_rowconfigure(1, weight=1)
-
+        if self.box_shape.get() == "parallelepiped":
+            self.box1=self.oct_ppl_frame(oct_frame)
+            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+                
+        if self.box_shape.get() == "minimum": 
+            self.box1=self.oct_minsph_frame(oct_frame)
+            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+                
+        if self.box_shape.get() == "sphere":
+            self.box1=self.oct_minsph_frame(oct_frame)
+            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+                
+        if self.box_shape.get() == "cylinder": 
+            self.box1=self.oct_cyl_frame(oct_frame)
+            
+                
     def common_convergence(self, parent):
         
         com_conv = tk.Frame(parent, borderwidth=2)
@@ -1687,29 +1693,47 @@ class GroundStatePage(View_note):
 
     def engine_specific_frame(self):
         if self.engine == "nwchem":
-            #self.Frame2.grid_remove()
+            #To refresh the frames by removing the all existing widgets 
+
+            for widget in self.Frame2.winfo_children():
+                widget.destroy()
+            for widget in self.Frame3.winfo_children():
+                widget.destroy()
+
             self.nwchem_frame(self.Frame2)
             self.nwchem_convergence(self.Frame3)
+
         if self.engine == "gpaw":
-            #self.Frame2.grid_remove()
+            for widget in self.Frame2.winfo_children():
+                widget.destroy()
+            for widget in self.Frame3.winfo_children():
+                widget.destroy()
+
             self.gpaw_frame(self.Frame2)
             self.gpaw_convergence(self.Frame3)  
+
         if self.engine == "octopus":
+            for widget in self.Frame2.winfo_children():
+                widget.destroy()
+            for widget in self.Frame3.winfo_children():
+                widget.destroy()
+
             self.octopus_frame(self.Frame2)               
             self.octopus_convergence(self.Frame3)
-        #if self.box_shape.get() == "minimum":
-            #self.oct_simbox(self.Frame1)
-            #self.oct_minsph_frame(self.oct_simbox)
-            #self.octopus_frame(self.Frame2)               
-            #self.octopus_convergence(self.Frame3)
-        #if self.box_shape.get() == "sphere":
-            #self.oct_simbox(self.Frame1)
-            #self.oct_minsph_frame(self.oct_simbox)
-            #self.octopus_frame(self.Frame2)
-            #self.octopus_convergence(self.Frame3)
-        #if self.box_shape.get() == "parallelepiped":
-            #if self.task.get() == "fd":
-                #self.gp2oct()
+
+        # if self.box_shape.get() == "minimum":
+        #     self.oct_simbox(self.Frame1)
+        #     self.oct_minsph_frame(self.oct_simbox)
+        #     self.octopus_frame(self.Frame2)               
+        #     self.octopus_convergence(self.Frame3)
+        # if self.box_shape.get() == "sphere":
+        #     self.oct_simbox(self.Frame1)
+        #     self.oct_minsph_frame(self.oct_simbox)
+        #     self.octopus_frame(self.Frame2)
+        #     self.octopus_convergence(self.Frame3)
+        # if self.box_shape.get() == "parallelepiped":
+        #     if self.task.get() == "fd":
+        #         self.gp2oct()
 
         
         #self.gpaw_convergence(self.Frame3)
