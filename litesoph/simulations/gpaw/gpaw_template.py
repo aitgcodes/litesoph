@@ -123,7 +123,6 @@ class GpawRTLCAOTddftDelta:
     delta_kick_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
 import numpy as np
-from gpaw.lcaotddft.wfwriter import WaveFunctionWriter
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 
 td_calc = LCAOTDDFT(filename='{gfilename}',txt='{txt}')
@@ -162,8 +161,9 @@ td_calc.write('{td_gpw}', mode='all')
 
         # if self.tools == "dipolemoment":
         #     return template
-        if "wavefunction" in self.tools:
+        if self.tools and "wavefunction" in self.tools:
             tlines = template.splitlines()
+            tlines[4] = "from gpaw.lcaotddft.wfwriter import WaveFunctionWriter"
             tlines[9] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
             template = """\n""".join(tlines)
             #return template
