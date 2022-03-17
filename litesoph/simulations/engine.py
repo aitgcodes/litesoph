@@ -179,6 +179,8 @@ class EngineOctopus(EngineStrategy):
 
         ofilename = "log"
         command = configs.get('engine', 'octopus')
+        if not command:
+            command = 'octopus'
         command = command + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
@@ -250,6 +252,10 @@ class EngineNwchem(EngineStrategy):
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
         command = configs.get('engine', 'nwchem')
+        print('here')
+        print(command, 'here')
+        if not command:
+            command = 'nwchem'
         command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
