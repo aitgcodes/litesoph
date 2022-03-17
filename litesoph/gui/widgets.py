@@ -40,7 +40,6 @@ class ValidatedMixin:
 
   def _validate(self, proposed, current, char, event, index, action):
     """The validation method.
-
     Don't override this, override _key_validate, and _focus_validate
     """
     self.error.set('')
