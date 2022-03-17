@@ -2859,7 +2859,7 @@ class JobSubPage(tk.Frame):
         j=font.Font(family ='Courier', size=20,weight='bold')
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
-
+        self.myfont = myFont
         self.Frame1 = tk.Frame(self)
         self.processors = tk.IntVar()
         self.ip = tk.StringVar()
@@ -2973,7 +2973,12 @@ class JobSubPage(tk.Frame):
 
         back = tk.Button(self.Frame3, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
         back['font'] = myFont
-        back.place(x=600,y=10)              
+        back.place(x=600,y=10)      
+
+    def plot_button(self):
+        self.plot_button1 = tk.Button(self.Frame1, text="Plot",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowSpectrumPlot>>')])
+        self.plot_button1['font'] = self.myfont
+        self.plot_button1.place(x=800, y=50)        
 
     def get_processors(self):
         return self.processors.get()
