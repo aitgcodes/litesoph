@@ -753,7 +753,7 @@ class GroundStatePage(View_note):
         #btframe.grid(row=101, column=0,columnspan=5, sticky='nswe')
         self.Frame1_Button1 = tk.Button(self.frame_button, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.Frame1_Button1['font'] = myFont
-        self.Frame1_Button1.grid(row=0, column=1, sticky='nsew', padx=3, pady=3)
+        self.Frame1_Button1.grid(row=0, column=1, padx=3, pady=3)
         self.frame_button.grid_columnconfigure(2, weight=1)
         self.frame_button.grid_columnconfigure(4, weight=1)
 
@@ -763,15 +763,19 @@ class GroundStatePage(View_note):
         #btframe.grid(row=101, column=0,columnspan=5, sticky='nswe')
         self.Frame1_Button2 = tk.Button(self.frame_button, text="View Input", activebackground="#78d6ff", command=lambda: self.view_button())
         self.Frame1_Button2['font'] = myFont
-        self.Frame1_Button2.grid(row=0, column=1, sticky='nsew', padx=3, pady=3)
+        self.Frame1_Button2.grid(row=0, column=2)
         
         self.Frame1_Button3 = tk.Button(self.frame_button, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.Frame1_Button3['font'] = myFont
-        self.Frame1_Button3.grid(row=0, column=3, sticky='nswe', padx=3, pady=3)
+        self.Frame1_Button3.grid(row=0, column=4, padx=3, pady=3)
 
         self.label_msg = tk.Label(self.frame_button,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=2)
+        self.label_msg.grid(row=0, column=3)
+
+        self.Frame1_Button3 = tk.Button(self.frame_button, text="Run Job", activebackground="#78d6ff", command=lambda: self.run_job_button())
+        self.Frame1_Button3['font'] = myFont
+        self.Frame1_Button3.grid(row=0, column=6, padx=3, pady=3)
 
     def test(self):
         #test_frame = tk.Frame(self)
@@ -1809,7 +1813,7 @@ class GroundStatePage(View_note):
             'multip' : self._var['multip'].get(), 
             'convergence': {'energy' : self._var['energy'].get() * round(au_to_eV,2),  # eV / electron f'{x: .2e}'
                         'density' :  self._var['density'].get(),
-                        'eigenstates': self._var['eigenstate'],  # eV^2
+                        'eigenstates': self._var['eigenstate'].get(),  # eV^2
                         'bands' : self._var['bands'].get()}, 
             'maxiter' : self._var['maxiter'].get(),
             'box': self._var['shape'].get(),
