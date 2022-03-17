@@ -514,7 +514,8 @@ class GUIAPP(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'Spectrum')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-
+            self.job_sub_page.plot_button()
+            self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
             self.job_sub_page.bind('<<RunSpectrumLocal>>', lambda _: self._run_local(self.spectra_task))
             self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.spectra_task))
 ##----------------------plot_laser_spec_task---------------------------------
