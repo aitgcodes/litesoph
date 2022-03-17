@@ -316,18 +316,44 @@ omega = {frequency}*eV
         template = self.td.format(**self.temp_dict)
         return(template)
 
+# class OctSpectrum:
+
+#     NAME = 'inp'
+
+#     spec = """  
+# UnitsOutput = eV_angstrom
+# """  
+
+#     def __init__(self):
+#         pass
+
+#     def format_template(self):        
+#         #template = self.td.format(**self.temp_dict)
+#         template = self.spec
+#         return(templ
+
 class OctSpectrum:
 
     NAME = 'inp'
 
+    default_param ={
+        'e_min' : 0.0,
+        'e_max'  : 30.0,
+        'del_e'  : 0.05
+    }
+
     spec = """  
 UnitsOutput = eV_angstrom
+PropagationSpectrumMinEnergy  =    {e_min}*eV
+PropagationSpectrumMaxEnergy  =    {e_max}*eV
+PropagationSpectrumEnergyStep =    {del_e}*eV
 """  
 
-    def __init__(self):
-        pass
+    def __init__(self, user_input):
+        self.temp_dict = self.default_param       
+        self.temp_dict.update(user_input)
 
     def format_template(self):        
         #template = self.td.format(**self.temp_dict)
-        template = self.spec
+        template = self.spec.format(**self.temp_dict)
         return(template)
