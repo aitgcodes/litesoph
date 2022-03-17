@@ -160,6 +160,8 @@ class EngineOctopus(EngineStrategy):
                 gs_inp = self.status.get_status('ground_state.param')
                 user_param.update(gs_inp)
             return ot.OctTimedependentLaser(user_param)    
+        if task == "spectrum":
+            return ot.OctSpectrum(user_param)
 
     def create_dir(self, directory, *_):
         #task_dir = self.get_dir_name(task)
