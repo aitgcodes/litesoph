@@ -92,11 +92,11 @@ ConvEnergy = {e_conv}
 
         elif self.boxshape == "parallelepiped":
             tlines = self.gs_min.splitlines()
-            self.temp_dict['box']['sizex'] = round(self.temp_dict['box']['sizex']/2, 2)
-            self.temp_dict['box']['sizey'] = round(self.temp_dict['box']['sizey']/2, 2)
-            self.temp_dict['box']['sizez'] = round(self.temp_dict['box']['sizez']/2, 2)
+            lx = round(self.temp_dict['box']['sizex']/2, 2)
+            ly = round(self.temp_dict['box']['sizey']/2, 2)
+            lz = round(self.temp_dict['box']['sizez']/2, 2)
             tlines[9] = "%LSize"
-            tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
+            tlines[10] = "{}|{}|{}".format(lx, ly, lz)
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             template = temp.format(**self.temp_dict)
@@ -159,6 +159,7 @@ TDTimeStep = {time_step}
 
 TDDeltaStrength = {strength}
 
+
 """         
 
     tlines_pol = """
@@ -216,11 +217,11 @@ TDPolarizationDirection = 1
 
         elif self.boxshape == "parallelepiped":
             tlines = self.td.splitlines()
-            self.temp_dict['box']['sizex'] = round(self.temp_dict['box']['sizex']/2, 2)
-            self.temp_dict['box']['sizey'] = round(self.temp_dict['box']['sizey']/2, 2)
-            self.temp_dict['box']['sizez'] = round(self.temp_dict['box']['sizez']/2, 2)
+            lx = round(self.temp_dict['box']['sizex']/2, 2)
+            ly = round(self.temp_dict['box']['sizey']/2, 2)
+            lz = round(self.temp_dict['box']['sizez']/2, 2)
             tlines[9] = "%LSize"
-            tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
+            tlines[10] = "{}|{}|{}".format(lx, ly, lz)
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
