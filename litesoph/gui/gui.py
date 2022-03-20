@@ -546,7 +546,7 @@ class GUIAPP(tk.Tk):
         else:
             if task.results[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
-                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[1]}")
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[2].decode(encoding='utf-8')}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
@@ -565,7 +565,7 @@ class GUIAPP(tk.Tk):
         net_inp = dict(run_script = run_script_path,
                         inp = [task.file_path],
                         geometry = str(pathlib.Path(self.directory) / "coordinate.xyz"))
-
+    
         from litesoph.utilities.job_submit import SubmitNetwork
 
         submit_network = SubmitNetwork(task, 

@@ -100,13 +100,14 @@ class SubmitLocal(JobSubmit):
         print(result)
 
     def execute(self, directory):
+        
+        print("Job started with command:", self.command)
         try:
             job = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
             result = job.communicate()
         except Exception as e:
             raise Exception(e)
         else:
-            print("Job started with command:", self.command)
             print("returncode =", job.returncode)
        
             if job.returncode != 0:
@@ -131,9 +132,9 @@ class SubmitNetwork(JobSubmit):
                         username: str,
                         password: str,
                         remote_path: str,
-                        upload_files: dict) -> None:
+                        upload_files: list) -> None:
 
-        super().__init__(task, configs)
+        #super().__init__(task, configs)
        
         self.remote_path = remote_path
         self.upload_files = upload_files
@@ -236,13 +237,11 @@ class NetworkJobSubmission:
         sftp = self._client.open_sftp()
         
         try:
-            filename = pathlib.Path(local_file_path).name
-            remote_path = pathlib.Path(remote_path) 
-            for directory in remote_path.parts:
+            for directory in remote_path.parent.parts:
                 if directory not in sftp.listdir():
                     sftp.mkdir(directory)
                 sftp.chdir(directory)
-            sftp.put(local_file_path, filename)  # for the put function to work file name should be added to the remote path
+            sftp.put(local_file_path, remote_path.name)  # for the put function to work file name should be added to the remote path
         except Exception as e:
             print(e)
             raise Exception(f"Unable to upload the file to the remote server {remote_path}")
