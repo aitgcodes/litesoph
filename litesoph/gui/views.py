@@ -679,7 +679,7 @@ class View_note(tk.Frame):
 class GroundStatePage(View_note):
   
     Mainmode = ["nao","fd","pw","gaussian"]
-    nao_task = ["dzp","pvalence.dz"]
+    nao_task = ["sz","dz","szp","dzp","pvalence.dz"]
     fd_task = [""]
     pw_task = [""]
     gauss_task = ["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"]
