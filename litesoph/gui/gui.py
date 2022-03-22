@@ -536,7 +536,7 @@ class GUIAPP(tk.Tk):
         try:
             submitlocal.prepare_input(self.directory)
         except FileNotFoundError as e:
-            messagebox.showerror(message=e)
+            messagebox.showerror(title='yes',message=e)
             return
         try:
             submitlocal.run_job()
@@ -556,16 +556,23 @@ class GUIAPP(tk.Tk):
 
         
     def _run_network(self, task):
+
         run_script_path = self.job_sub_page.run_script_path
+        bash_file = pathlib.Path(self.directory) / task.bash_filename 
+        shutil.copy(run_script_path,bash_file)
 
         if not run_script_path:
             messagebox.showerror(title = "Error", message = "Please upload job script")
             return
+
+        try:
+            task.check_prerequisite(network = True)
+        except FileNotFoundError as e:
+            messagebox.showerror(title = "Error", message = e)
+            return
+
         login_dict = self.job_sub_page.get_network_dict()
-        net_inp = dict(run_script = run_script_path,
-                        inp = [task.file_path],
-                        geometry = str(pathlib.Path(self.directory) / "coordinate.xyz"))
-    
+        
         from litesoph.utilities.job_submit import SubmitNetwork
 
         submit_network = SubmitNetwork(task, 
@@ -574,7 +581,7 @@ class GUIAPP(tk.Tk):
                                         username=login_dict['username'],
                                         password=login_dict['password'],
                                         remote_path=login_dict['remote_path'],
-                                        upload_files=net_inp)
+                                        )
 
         submit_network.run_job()
 
