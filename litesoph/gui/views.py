@@ -155,10 +155,8 @@ class WorkManagerPage(tk.Frame):
         self.Frame2 = tk.Frame(self )
         self.Frame2.grid(column=1, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
 
-
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
         self.Frame2.configure(cursor="fleur")
 
         self.Frame2_label_1 = tk.Label(self.Frame2, text="Upload Geometry",bg='gray',fg='black')  
@@ -650,8 +648,7 @@ class View_note(tk.Frame):
         self.Frame1 = tk.Frame(notebook, borderwidth=2, relief='groove')
         self.Frame2 = tk.Frame(notebook, borderwidth=2, relief='groove')
         self.Frame3 = tk.Frame(notebook, borderwidth=2, relief='groove')
-       
-        #self.Frame3.grid(row=0, column=0, rowspan=11) 
+
         notebook.add(self.Frame1, text='General Info')
         notebook.add(self.Frame2, text='Advanced Info')
         notebook.add(self.Frame3, text='SCF Convergence')
@@ -661,9 +658,9 @@ class View_note(tk.Frame):
         #self.grid_rowconfigure(0, weight=1)
         #self.grid_rowconfigure(0, weight=1)
         #self.grid_rowconfigure(1, weight=8)
-        self.grid_columnconfigure(9, weight=3)
-        self.grid_rowconfigure(1, weight=2)
-        self.grid_columnconfigure(5, weight=5)
+        # self.grid_columnconfigure(9, weight=3)
+        # self.grid_rowconfigure(1, weight=2)
+        # self.grid_columnconfigure(5, weight=5)
         #self.grid_rowconfigure(2, weight=3)
         #self.grid_columnconfigure(8, weight=1)
 
@@ -674,7 +671,7 @@ class View_note(tk.Frame):
         # btm_frame.grid(row=3, sticky="ew")
         # btm_frame2.grid(row=4, sticky="ew")
         
-        self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
+        self.frame_button.grid(row=10, column=0,columnspan=10, sticky='nswe')
 
 class GroundStatePage(View_note):
   
@@ -689,10 +686,13 @@ class GroundStatePage(View_note):
     xc_gp = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
     # xc_nw = ["acm","b3lyp","beckehandh","Hfexch","pbe0","becke88","xpbe96","bhlyp","cam-s12g","cam-s12h","xperdew91","pbeop"]
     xc_nw = ["pbe96","pbe0","b3lyp","pw91", "bp86", "bp91","bhlyp"]
-    xc_oct1 = ["lda_x_1d + lda_e_1d"]
-    xc_oct2 = ["lda_x_2d + lda_c_2d_amgb"]
-    xc_oct3 = ["lda_x + lda_c_pz_mod"]
-    dxc_oct = ["1","2","3"]
+    oct_lda_x = ["lda_x"]
+    oct_lda_c = ["lda_c_pz_mod"]
+    oct_pbe_x = ["gga_x_pbe","gga_x_pbe_r"]
+    oct_pbe_c = ["gga_c_pbe"]
+    expt_option = ["yes", "no"]
+    oct_expt_yes = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_lda","pseudodojo_lda_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_lda", "hscv_pbe"]
+    oct_expt_no = ["standard", "hgh_lda_sc","hgh_lda"]
     fnsmear = ["semiconducting","fermi_dirac","cold_smearing","methfessel_paxton","spline_smearing"]
     eignsolv = ["rmmdiis","plan","cg","cg_new"]
     nwc_theory = ["SCF","DFT"]
@@ -708,7 +708,12 @@ class GroundStatePage(View_note):
             'mode' : ['str', '--choose mode--'],
             'nwxc' : ['str', 'pbe0'],
             'gpxc' : ['str','LDA'],
-            'ocxc' : ['str',''],
+            'var_oct_xc' : ['int', 1],
+            'oct_xc' : ['str',''],
+            'oct_x' : ['str',''],
+            'oct_c' : ['str',''],
+            'pseudo' : ['str', ''],
+            'expt' : ['str', '--choose option--'],
             'basis' : ['str', ''],
             'charge': ['int', 0],
             'maxiter' : ['int', 300],
@@ -745,9 +750,10 @@ class GroundStatePage(View_note):
         }
         self._var = var_define(self._default_var)
         self.frame_collection()
+        
         #self.test()
  
-    def tab1_button_frame(self,parent):
+    def tab1_button_frame(self):
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         #btframe = tk.Frame(parent, borderwidth=2)
@@ -755,10 +761,10 @@ class GroundStatePage(View_note):
         self.Frame1_Button1 = tk.Button(self.frame_button, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.Frame1_Button1['font'] = myFont
         self.Frame1_Button1.grid(row=0, column=1, padx=3, pady=3)
-        self.frame_button.grid_columnconfigure(2, weight=1)
-        self.frame_button.grid_columnconfigure(4, weight=1)
+        # self.frame_button.grid_columnconfigure(2, weight=1)
+        # self.frame_button.grid_columnconfigure(4, weight=1)
 
-    def tab2_button_frame(self,parent):
+    def tab2_button_frame(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         #btframe = tk.Frame(parent, borderwidth=2)
         #btframe.grid(row=101, column=0,columnspan=5, sticky='nswe')
@@ -778,14 +784,10 @@ class GroundStatePage(View_note):
         self.Frame1_Button3['font'] = myFont
         self.Frame1_Button3.grid(row=0, column=6, padx=3, pady=3)
 
-    def test(self):
-        #test_frame = tk.Frame(self)
-        self.gpaw_convergence(self.Frame1)
-
     def mode_frame(self,parent):
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        mode_frame = tk.Frame(parent, borderwidth=2)
+        mode_frame = tk.Frame(parent)
         mode_frame.grid(row=0, column=0)      
 
         self.heading = tk.Label(mode_frame,text="LITESOPH input for Ground State",fg='blue')
@@ -858,13 +860,7 @@ class GroundStatePage(View_note):
             if self.box_shape.get() == "parallelepiped":
                 if task.get() == "fd":
                     self.gp2oct()
-            if self.box_shape.get() == "minimum": 
-                self.engine = 'octopus'
-                self.engine_specific_frame()
-            if self.box_shape.get() == "sphere":
-                self.engine = 'octopus'
-                self.engine_specific_frame()
-            if self.box_shape.get() == "cylinder": 
+            elif self.box_shape.get() in ["minimum","sphere","cylinder"] : 
                 self.engine = 'octopus'
                 self.engine_specific_frame()
 
@@ -906,53 +902,81 @@ class GroundStatePage(View_note):
         empty_frame.grid_rowconfigure(1, weight=1)
 
              
-    def gp_simbox(self,parent):
+    # def gp_simbox(self,parent):
 
-        gp_simb = tk.Frame(parent)
-        gp_simb.grid(row=1, column=0, sticky='w')
+    #     gp_simb = tk.Frame(parent)
+    #     gp_simb.grid(row=1, column=0, sticky='w')
         
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+    #     myFont = font.Font(family='Helvetica', size=10, weight='bold')
  
-        self.subheading = tk.Label(gp_simb,text="Simulation Box",fg='blue')
-        self.subheading['font'] = myFont
-        self.subheading.grid(row=0, column=0, sticky='w')
+    #     self.subheading = tk.Label(gp_simb,text="Simulation Box",fg='blue')
+    #     self.subheading['font'] = myFont
+    #     self.subheading.grid(row=0, column=0, sticky='w')
      
-        self.label_sp = tk.Label(gp_simb,text="Spacing (in Ang)",bg="gray",fg="black")
-        self.label_sp['font'] = myFont
-        self.label_sp.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+    #     self.label_sp = tk.Label(gp_simb,text="Spacing (in Ang)",bg="gray",fg="black")
+    #     self.label_sp['font'] = myFont
+    #     self.label_sp.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_sp = Decimalentry(gp_simb,textvariable= self._var['h'])  
-        self.entry_sp['font'] = myFont
-        self.entry_sp.grid(row=2, column=1, sticky='w', padx=8, pady=2)  
+    #     self.entry_sp = Decimalentry(gp_simb,textvariable= self._var['h'])  
+    #     self.entry_sp['font'] = myFont
+    #     self.entry_sp.grid(row=2, column=1, sticky='w', padx=8, pady=2)  
     
-        self.Frame2_note = tk.Label(gp_simb,text="Vacuum size (in Ang)",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+    #     self.Frame2_note = tk.Label(gp_simb,text="Vacuum size (in Ang)",bg="gray",fg="black")
+    #     self.Frame2_note['font'] = myFont
+    #     self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
        
-        self.entry_vac = Decimalentry(gp_simb,textvariable= self._var['vacuum'])
-        self.entry_vac['font'] = myFont
-        self.entry_vac.grid(row=4, column=1, sticky='w', padx=8, pady=2)
+    #     self.entry_vac = Decimalentry(gp_simb,textvariable= self._var['vacuum'])
+    #     self.entry_vac['font'] = myFont
+    #     self.entry_vac.grid(row=4, column=1, sticky='w', padx=8, pady=2)
 
     def oct_simbox(self, parent):
-        oct_simb = tk.Frame(parent)
-        oct_simb.grid(row=1, column=0, sticky='w')
+        self.oct_simb = tk.Frame(parent)
+        self.oct_simb.grid(row=2, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j= font.Font(family ='Courier', size=20,weight='bold')
         k= font.Font(family ='Courier', size=40,weight='bold')
         l= font.Font(family ='Courier', size=15,weight='bold')
 
-        self.subheading = tk.Label(oct_simb,text="Simulation Box",fg='blue')
+        self.subheading = tk.Label(self.oct_simb,text="Simulation Box",fg='blue')
         self.subheading['font'] = myFont
         self.subheading.grid(row=0, column=0, sticky='w')
   
-        self.label_sp = tk.Label(oct_simb,text="Spacing (in Ang)",bg="gray",fg="black")
+        self.label_sp = tk.Label(self.oct_simb,text="Spacing (in Ang)",bg="gray",fg="black")
         self.label_sp['font'] = myFont
         self.label_sp.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_sp = Decimalentry(oct_simb,textvariable= self._var['h'])  
+        self.entry_sp = Decimalentry(self.oct_simb,textvariable= self._var['h'])  
         self.entry_sp['font'] = myFont
         self.entry_sp.grid(row=2, column=1, sticky= 'w', padx=8, pady=2)
+
+        self.boxlabel = tk.Label(self.oct_simb,text="Simulation box unit",bg="gray",fg="black")
+        self.boxlabel['font'] = myFont
+        self.boxlabel.grid(row=3, column=0, sticky='w', padx=2, pady=4)
+        
+        
+        unit = ttk.Combobox(self.oct_simb, width=5, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        unit.current(0)
+        unit['font'] = myFont
+        unit.grid(row=3, column=1, sticky='w', padx=12, pady=2)
+        unit['state'] = 'readonly'
+
+        # self.oct_minsph_frame(self.oct_simb)
+        if self.box_shape.get() == "parallelepiped":
+            self.oct_ppl_frame(self.oct_simb)
+            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+                
+        if self.box_shape.get() == "minimum": 
+            self.oct_minsph_frame(self.oct_simb)
+            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+                
+        if self.box_shape.get() == "sphere":
+            self.oct_minsph_frame(self.oct_simb)
+            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+                
+        if self.box_shape.get() == "cylinder": 
+            self.oct_cyl_frame(self.oct_simb)
+        # return oct_simb
   
     def oct_ppl_frame(self,parent):
     
@@ -962,8 +986,8 @@ class GroundStatePage(View_note):
         #self.Frame3 = tk.Frame(self)
         #self.Frame3.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
       
-        ocpl_frame = tk.Frame(parent)
-        ocpl_frame.grid(row=0, column=0)
+        oct_ppd_frame = tk.Frame(parent)
+        oct_ppd_frame.grid(row=4, column=0, columnspan=3)
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -972,36 +996,36 @@ class GroundStatePage(View_note):
         #self.Frame3.configure(relief="groove")
         #self.Frame3.configure(cursor="fleur")
    
-        self.boxlabel = tk.Label(ocpl_frame,text="Simulation box unit",bg="gray",fg="black")
-        self.boxlabel['font'] = myFont
-        #self.boxlabel.place(x=10,y=10)
-        self.boxlabel.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        # self.boxlabel = tk.Label(oct_ppd_frame,text="Simulation box unit",bg="gray",fg="black")
+        # self.boxlabel['font'] = myFont
+        # #self.boxlabel.place(x=10,y=10)
+        # self.boxlabel.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        unit = ttk.Combobox(ocpl_frame, width=5, textvariable= self._var['unit_box'], value = ["au","angstrom"])
-        unit.current(0)
-        unit['font'] = myFont
-        unit.grid(row=2, column=1, sticky='w', padx=8, pady=2)
-        unit['state'] = 'readonly'
+        # unit = ttk.Combobox(oct_ppd_frame, width=5, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        # unit.current(0)
+        # unit['font'] = myFont
+        # unit.grid(row=2, column=1, sticky='w', padx=8, pady=2)
+        # unit['state'] = 'readonly'
        
-        self.note = tk.Label(ocpl_frame,text="Length of Box (lx, ly, lz)",bg="gray",fg="black")
+        self.note = tk.Label(oct_ppd_frame,text="Length of Box (lx, ly, lz)",bg="gray",fg="black")
         self.note['font'] = myFont
         #self.note.place(x=10,y=40)
         self.note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
 
         #self.entry1 = tk.Entry(self.Frame3,width= 5, textvariable= self._var['lx'])
-        self.entry1 = Decimalentry(ocpl_frame, width =5, textvariable = self._var['lx'])
+        self.entry1 = Decimalentry(oct_ppd_frame, width =5, textvariable = self._var['lx'])
         self.entry1['font'] = myFont
         #self.entry1.place(x=220,y=40)
         self.entry1.grid(row=4, column=1, sticky='w', padx=8, pady=2)
 
         #self.entry2 = tk.Entry(self.Frame3, width= 5, textvariable= self._var['ly'])
-        self.entry2 = Decimalentry(ocpl_frame,width= 5, textvariable= self._var['ly'])
+        self.entry2 = Decimalentry(oct_ppd_frame,width= 5, textvariable= self._var['ly'])
         self.entry2['font'] = myFont
         #self.entry2.place(x=280,y=40)
         self.entry2.grid(row=4, column=2, sticky='w', padx=16, pady=2)
 
         #self.entry3 = tk.Entry(self.Frame3,width=5, textvariable= self._var['lz'])
-        self.entry3 = Decimalentry(ocpl_frame, width= 5, textvariable= self._var['lz'])
+        self.entry3 = Decimalentry(oct_ppd_frame, width= 5, textvariable= self._var['lz'])
         self.entry3['font'] = myFont
         #self.entry3.place(x=340,y=40)
         self.entry3.grid(row=4, column=3, sticky='w', padx=16, pady=2)
@@ -1009,23 +1033,23 @@ class GroundStatePage(View_note):
     def oct_minsph_frame(self,parent):
   
         ocms_frame = tk.Frame(parent, borderwidth=2)
-        ocms_frame.grid(row=0, column=0)
+        ocms_frame.grid(row=4, column=0)
 
         #self.Frame3 = tk.Frame(self)
         #self.Frame3.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.boxlabel = tk.Label(ocms_frame,text="Simulation box unit",bg="gray",fg="black")
-        self.boxlabel['font'] = myFont
-        self.boxlabel.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        # self.boxlabel = tk.Label(ocms_frame,text="Simulation box unit",bg="gray",fg="black")
+        # self.boxlabel['font'] = myFont
+        # self.boxlabel.grid(row=2, column=0, sticky='w', padx=2, pady=4)
         
         
-        unit = ttk.Combobox(ocms_frame, width=5, textvariable= self._var['unit_box'], value = ["au","angstrom"])
-        unit.current(0)
-        unit['font'] = myFont
-        unit.grid(row=2, column=1, sticky='w', padx=12, pady=2)
-        unit['state'] = 'readonly'
+        # unit = ttk.Combobox(ocms_frame, width=5, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        # unit.current(0)
+        # unit['font'] = myFont
+        # unit.grid(row=2, column=1, sticky='w', padx=12, pady=2)
+        # unit['state'] = 'readonly'
 
         self.note = tk.Label(ocms_frame,text="Radius of Box",bg="gray",fg="black")
         self.note['font'] = myFont
@@ -1039,22 +1063,22 @@ class GroundStatePage(View_note):
     def oct_cyl_frame(self, parent):
 
         occyl_frame = tk.Frame(parent, borderwidth=2)
-        occyl_frame.grid(row=0, column=0)
+        occyl_frame.grid(row=4, column=0)
 
         #self.Frame3 = tk.Frame(self)
         #self.Frame3.place(relx=0.5, rely=0.01, relheight=0.2, relwidth=0.492)
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.boxlabel = tk.Label(occyl_frame,text="Simulation box unit",bg="gray",fg="black")
-        self.boxlabel['font'] = myFont
-        self.boxlabel.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        # self.boxlabel = tk.Label(occyl_frame,text="Simulation box unit",bg="gray",fg="black")
+        # self.boxlabel['font'] = myFont
+        # self.boxlabel.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        unit = ttk.Combobox(occyl_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
-        unit.current(0)
-        unit['font'] = myFont
-        unit.grid(row=2, column=1, sticky='w', padx=12, pady=2)
-        unit['state'] = 'readonly'
+        # unit = ttk.Combobox(occyl_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        # unit.current(0)
+        # unit['font'] = myFont
+        # unit.grid(row=2, column=1, sticky='w', padx=12, pady=2)
+        # unit['state'] = 'readonly'
 
         self.note1 = tk.Label(occyl_frame,text="Length of Cylinder",bg="gray",fg="black")
         self.note1['font'] = myFont
@@ -1075,7 +1099,7 @@ class GroundStatePage(View_note):
         self.entrycr.grid(row=6, column=1, sticky='w', padx=12, pady=2)
     
     def nwc_theory(self):
-        nwc_thy = tk.Frame(self.Frame1)
+        nwc_thy = tk.Frame(self.Frame1_sub)
         nwc_thy.grid(row=8, column=0)
  
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1218,150 +1242,117 @@ class GroundStatePage(View_note):
         em_frame.grid_columnconfigure(0, weight=1)
         em_frame.grid_rowconfigure(1, weight=1)
  
-    def octopus_frame(self,parent):   
+    def octopus_frame(self,parent): 
+        """Creates widgets for advanced info tab/Octopus""" 
 
         oct_frame = tk.Frame(parent, borderwidth=2)
-        oct_frame.grid(row=0, column=0, sticky='nw')
-
-        #self.Frame2 = tk.Frame(self)
-        #self.Frame2.place(relx=0.5, rely=0.21, relheight=0.67, relwidth=0.492)
-        
+        oct_frame.grid(row=1, column=0, sticky='nsew')
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         self.Frame2_note = tk.Label(oct_frame,text="LITESOPH input for Octopus     ",fg="blue")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.grid(row=0, column=0, sticky='w', padx=2, pady=4)
-
-        #self.Frame2.configure(relief='groove')
-        #self.Frame2.configure(borderwidth="2")
-        #self.Frame2.configure(relief="groove")
-        #self.Frame2.configure(cursor="fleur")
          
-        self.lb1 = tk.Label(oct_frame,text="Dimension",bg="gray",fg="black")
+        self.expt_label = tk.Label(oct_frame,text="Experimental Features",bg="gray",fg="black")
+        self.expt_label['font'] = myFont
+        self.expt_label.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+
+        def pick_expt(e):
+            if self.expt_combo.get() == "yes":
+                self.cb1.config(value = self.oct_expt_yes)
+                self.cb1.current(0)
+            if self.expt_combo.get() == "no":
+                self.cb1.config(value = self.oct_expt_no)
+                self.cb1.current(0)
+
+        self.expt_combo = ttk.Combobox(oct_frame,width= 10, textvariable= self._var['expt'], value = self.expt_option)
+        self.expt_combo['font'] = myFont
+        self.expt_combo.bind("<<ComboboxSelected>>", pick_expt)
+        self.expt_combo['state'] = 'readonly'
+        self.expt_combo.grid(row=2, column=1, sticky='we', padx=2, pady=2)
+
+        self.lb1 = tk.Label(oct_frame,text="Pseudo Potential",bg="gray",fg="black")
         self.lb1['font'] = myFont
-        #self.lb1.place(x=10,y=10)
-        self.lb1.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.lb1.grid(row=3, column=0, sticky='w', padx=2, pady=4)
 
         def pick_xc(e):
-            if self.cb1.get() == "1":
-                xc_octopus.config(value = self.xc_oct1)
-                xc_octopus.current(0)
-            if self.cb1.get() == "2":
-                xc_octopus.config(value = self.xc_oct2)
-                xc_octopus.current(0)
-            if self.cb1.get() == "3":
-                xc_octopus.config(value = self.xc_oct3)
-                xc_octopus.current(0)
+            if self._var['expt'].get() == "no":
+                self.x_entry.config(value = self.oct_lda_x)
+                self.x_entry.current(0)
+                self.c_entry.config(value = self.oct_lda_c)
+                self.c_entry.current(0)
+                print("xc =lda")
+            elif self._var['expt'].get() == "yes":
+                pbe_list = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15","hscv_pbe"]
+                lda_list = ["pseudodojo_lda","hscv_lda"]
+                #oct_expt_yes = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_lda","pseudodojo_lda_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_lda", "hscv_pbe"]
+                if self._var['pseudo'].get() in pbe_list:
+                    self.x_entry.config(value = self.oct_pbe_x)
+                    self.x_entry.current(0)
+                    self.c_entry.config(value = self.oct_pbe_c)
+                    self.c_entry.current(0)
+                elif self._var['pseudo'].get() in lda_list:
+                    self.x_entry.config(value = self.oct_lda_x)
+                    self.x_entry.current(0)
+                    self.c_entry.config(value = self.oct_lda_c)
+                    self.c_entry.current(0)
 
-        self.cb1 = ttk.Combobox(oct_frame,width= 10, textvariable= self._var['dxc'], value = self.dxc_oct)
+        self.cb1 = ttk.Combobox(oct_frame,width= 10, textvariable= self._var['pseudo'], value = "-- choose option --")
         self.cb1['font'] = myFont
-        #self.cb1.place(x=110,y=10)
         self.cb1.bind("<<ComboboxSelected>>", pick_xc)
         self.cb1['state'] = 'readonly'
-        self.cb1.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+        self.cb1.grid(row=3, column=1, sticky='we', padx=2, pady=2)
 
+        oct_xc_frame = tk.Frame(oct_frame)
+        oct_xc_frame.grid(row = 5, column=0, columnspan=4)
        
         self.Frame2_note = tk.Label(oct_frame,text="Exchange Correlation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        #self.Frame2_note.place(x=10,y=160)
-        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
-    
-        xc_octopus = ttk.Combobox(oct_frame, textvariable= self._var['ocxc'], value = self.xc_oct3)
-        xc_octopus['font'] = myFont
-        #xc_octopus.place(x=280,y=160)
-        xc_octopus['state'] = 'readonly'
-        xc_octopus.current(0)
-        xc_octopus.grid(row=4, column=1, sticky='w', padx=2, pady=2)
+        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=4, pady=4)
+        
+        x_label = tk.Label(oct_xc_frame,text="x",bg="gray",fg="black")
+        x_label['font'] = myFont
+        x_label.grid(row=0, column=1, sticky='we', padx=2, pady=4)
+
+        self.x_entry = ttk.Combobox(oct_xc_frame, textvariable= self._var['oct_x'])
+        self.x_entry['font'] = myFont
+        self.x_entry.grid(row=0, column=2, sticky='we', padx=2, pady=2)
+
+        c_label = tk.Label(oct_xc_frame,text="c",bg="gray",fg="black")
+        c_label['font'] = myFont
+        c_label.grid(row=0, column=3, sticky='we', padx=2, pady=4)
+
+        self.c_entry = ttk.Combobox(oct_xc_frame, textvariable= self._var['oct_c'])
+        self.c_entry['font'] = myFont
+        self.c_entry.grid(row=0, column=4, sticky='we', padx=2, pady=2)  
+
+        def frame_destroy(frame:tk.Frame):
+            for widget in frame.winfo_children():
+                print(widget)
+                widget.destroy()  
 
         self.Frame2_note = tk.Label(oct_frame,text="Spin Polarisation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        #self.Frame2_note.place(x=10,y=210)
         self.Frame2_note.grid(row=6, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_pol_x = ttk.Combobox(oct_frame, textvariable= self._var['ocspinpol'], value = ["unpolarized","spin_polarized", "spinors"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
-        #self.entry_pol_x.place(x=280,y=210)
         self.entry_pol_x['state'] = 'readonly'
         self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=2, pady=2)
     
         self.Frame2_note = tk.Label(oct_frame,text="Eigen Solver",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        #self.Frame2_note.place(x=10,y=260)
         self.Frame2_note.grid(row=8, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_pol_x = ttk.Combobox(oct_frame, textvariable= self._var['eigen'], value = self.eignsolv)
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
-        #self.entry_pol_x.place(x=280,y=260)
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=2, pady=2)
-       
-        # self.boxlabel = tk.Label(oct_frame,text="Simulation box unit",bg="gray",fg="black")
-        # self.boxlabel['font'] = myFont
-        # self.boxlabel.grid(row=10, column=0, sticky='w', padx=2, pady=4)
-
-        # unit = ttk.Combobox(oct_frame, width=9, textvariable= self._var['unit_box'], value = ["au","angstrom"])
-        # unit.current(0)
-        # unit['font'] = myFont
-        # unit.grid(row=10, column=1, sticky='w', padx=2, pady=2)
-        # unit['state'] = 'readonly'
-
-        if self.box_shape.get() == "parallelepiped":
-            self.box1=self.oct_ppl_frame(oct_frame)
-            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
-                
-        if self.box_shape.get() == "minimum": 
-            self.box1=self.oct_minsph_frame(oct_frame)
-            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
-                
-        if self.box_shape.get() == "sphere":
-            self.box1=self.oct_minsph_frame(oct_frame)
-            # self.box1.grid(row=12, column=0, sticky='w', padx=2, pady=4)
-                
-        if self.box_shape.get() == "cylinder": 
-            self.box1=self.oct_cyl_frame(oct_frame)
-            
-                
-    def common_convergence(self, parent):
-        
-        com_conv = tk.Frame(parent, borderwidth=2)
-        com_conv.grid(row=0, column=0, sticky='w')
-        
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-         
-        self.label_pol_z = tk.Label(com_conv, text="Maximum SCF iteration", bg= "grey",fg="black")
-        self.label_pol_z['font'] = myFont
-        self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
-
-        #entry = ttk.Entry(self.Frame1,textvariable= self._var['maxiter'])
-        entry = Onlydigits(com_conv,textvariable= self._var['maxiter'])
-        entry['font'] = myFont
-        entry.grid(row=2, column=1, sticky='w', padx=12, pady=2)
-
-        self.Frame2_note = tk.Label(com_conv,text="Energy Convergence (in au)",bg="gray",fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
-
-        self.entry_ener = tk.Entry(com_conv, textvariable= self._var['energy'])
-        #self.entry_ener = Validatedconv(self.Frame1)
-        self.entry_ener['font'] = myFont
-        self.entry_ener.grid(row=4, column=1, sticky='w', padx=12, pady=2)
-     
-        self.label_proj = tk.Label(com_conv,text="Density Convergence",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        #self.label_proj.place(x=10,y=10)
-        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
-
-        self.entry_proj = tk.Entry(com_conv,textvariable= self._var['density'])
-        self.entry_proj['font'] = myFont
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"1.0e-4")
-        #self.entry_proj.place(x=280,y=10)
-        self.entry_proj.grid(row=6, column=1, sticky='w', padx=12, pady=2)     
- 
+        self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=2, pady=2)              
+    
     def nwchem_convergence(self, parent):
-        parent.grid_remove()
+        #parent.grid_remove()
         nwchem_conv = tk.Frame(parent, borderwidth=2)
         nwchem_conv.grid(row=0, column=0, sticky='w')
 
@@ -1444,7 +1435,7 @@ class GroundStatePage(View_note):
         empty_frame.grid_rowconfigure(1, weight=1)
 
     def gpaw_convergence(self, parent):
-        parent.grid_remove()
+        # parent.grid_remove()
         gp_conv = tk.Frame(parent, borderwidth=2)
         gp_conv.grid(row=0, column=0, sticky='w')
 
@@ -1688,40 +1679,51 @@ class GroundStatePage(View_note):
         self.entry_pol_x.grid(row=24, column=1, sticky='w', padx=2, pady=2)
 
     def frame_collection(self):
-        self.mode_frame(self.Frame1)
-        self.tab1_button_frame(self.Frame1)
-        self.tab2_button_frame(self.Frame2)
+        self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2, relief='groove')
+        self.Frame1_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky='we')
+        self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2, relief='groove')
+        self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
+        self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2, relief='groove')
+        self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
+        self.mode_frame(self.Frame1_sub)
+        self.tab1_button_frame()
+        self.tab2_button_frame()
         #self.common_convergence(self.Frame3)
 
     def engine_specific_frame(self):
+        # self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2, relief='groove')
+        # self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
+        # self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2, relief='groove')
+        # self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
         if self.engine == "nwchem":
             #To refresh the frames by removing the all existing widgets 
 
-            for widget in self.Frame2.winfo_children():
+            for widget in self.Frame2_sub.winfo_children():
                 widget.destroy()
-            for widget in self.Frame3.winfo_children():
+            for widget in self.Frame3_sub.winfo_children():
                 widget.destroy()
 
-            self.nwchem_frame(self.Frame2)
-            self.nwchem_convergence(self.Frame3)
+            self.nwchem_frame(self.Frame2_sub)
+            self.nwchem_convergence(self.Frame3_sub)
 
         if self.engine == "gpaw":
-            for widget in self.Frame2.winfo_children():
+            for widget in self.Frame2_sub.winfo_children():
                 widget.destroy()
-            for widget in self.Frame3.winfo_children():
+            for widget in self.Frame3_sub.winfo_children():
                 widget.destroy()
 
-            self.gpaw_frame(self.Frame2)
-            self.gpaw_convergence(self.Frame3)  
+            self.gpaw_frame(self.Frame2_sub)
+            self.gpaw_convergence(self.Frame3_sub)  
 
         if self.engine == "octopus":
-            for widget in self.Frame2.winfo_children():
+            for widget in self.Frame2_sub.winfo_children():
                 widget.destroy()
-            for widget in self.Frame3.winfo_children():
+            for widget in self.Frame3_sub.winfo_children():
                 widget.destroy()
-
-            self.octopus_frame(self.Frame2)               
-            self.octopus_convergence(self.Frame3)
+            
+            self.octopus_frame(self.Frame2_sub)
+            self.oct_simbox(self.Frame2_sub)               
+            self.octopus_convergence(self.Frame3_sub)
 
         # if self.box_shape.get() == "minimum":
         #     self.oct_simbox(self.Frame1)
@@ -1840,7 +1842,9 @@ class GroundStatePage(View_note):
 
         inp_dict_oct = {
             'mode': self._var['mode'].get(),
-            'xc': self._var['ocxc'].get(),
+            'exp' : self._var['expt'].get(),
+            'xc': {'option':1,'x':self._var['oct_x'].get(),'c':self._var['oct_c'].get()},
+            'pseudo' : self._var['pseudo'].get(),
             'energy': self._var['energy'].get(),
             'dimension' : self._var['dxc'].get(),
             'spacing': self._var['h'].get(),
@@ -1903,6 +1907,11 @@ class GroundStatePage(View_note):
             except IndexError:
                 self._var[key].set('')     
 
+    def read_atoms(self, geom_xyz):
+        from ase.io import read
+        atoms = read(geom_xyz)
+        atom_list = list(atoms.symbols)
+        return atom_list
 
 class View1(tk.Frame):
 
@@ -3170,124 +3179,32 @@ class TextViewerPage(tk.Frame):
     def back_button(self):
         self.event_generate(f'<<View{self.task_name}Page>>')
 
-# class View1(tk.Frame):
+class View_Text(tk.Frame):
+    """ Text_View class with grid options"""
 
-#     def __init__(self, parent, controller, engine, *args, **kwargs):
-#         super().__init__(parent, *args, **kwargs)
-#         self.controller = controller
-#         self.engine = engine
-#         self.job = None
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent,*args, **kwargs)
 
-#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
 
-#         j=font.Font(family ='Courier', size=20,weight='bold')
-#         k=font.Font(family ='Courier', size=40,weight='bold')
-#         l=font.Font(family ='Courier', size=15,weight='bold')
+        text_scroll =tk.Scrollbar(self)
+        text_scroll.grid(row=0, column=1, sticky='nsew' )
+        #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
-#         self.Frame1 = tk.Frame(self)
-#         #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-#         self.Frame1.configure(relief='groove',borderwidth="2",cursor="fleur")
- 
-#         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
-#         # self.Frame1.configure(relief='groove',borderwidth="2",cursor="fleur")
-        
-#         # self.Frame1_label_path = tk.Label(self.Frame1,text="LITESOPH input for Delta Kick",fg='blue')
-#         # self.Frame1_label_path['font'] = myFont
-#         # self.Frame1_label_path.place(x=150,y=10)
-      
-#         # self.label_proj = tk.Label(self.Frame1,text="Laser strength in a.u",bg="gray",fg="black")
-#         # self.label_proj['font'] = myFont
-#         # self.label_proj.place(x=10,y=60)
-        
-#         # inval = ["1e-5","1e-4","1e-3"]
-#         # self.entry_inv = ttk.Combobox(self.Frame1,textvariable= self._var['strength'], value = inval)
-#         # self.entry_inv['font'] = myFont
-#         # self.entry_inv.place(x=280,y=60)
-#         # self.entry_inv['state'] = 'readonly'
-
-#         # self.label_pol_x = tk.Label(self.Frame1, text="Electric Polarisation in x axis", bg= "grey",fg="black")
-#         # self.label_pol_x['font'] = myFont
-#         # self.label_pol_x.place(x=10,y=110)
-        
-#         # pol_list = [0, 1]
-#         # self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self._var['ex'] , value = pol_list)
-#         # self.entry_pol_x['font'] = myFont
-#         # self.entry_pol_x.place(x=280,y=110)
-#         # self.entry_pol_x['state'] = 'readonly'
-
-#         # self.label_pol_y = tk.Label(self.Frame1, text="Electric Polarisation in y axis", bg= "grey",fg="black")
-#         # self.label_pol_y['font'] = myFont
-#         # self.label_pol_y.place(x=10,y=160)
+        #self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
+        self.text_view = tk.Text(self, yscrollcommand= text_scroll.set)
+        self.text_view['font'] = myFont
+        self.text_view.grid(row=0, column=0, padx=5, pady=5)
+        text_scroll.config(command=self.text_view.yview)        
     
-#         # self.entry_pol_y = ttk.Combobox(self.Frame1, textvariable= self._var['ey'], value = pol_list)
-#         # self.entry_pol_y['font'] = myFont
-#         # self.entry_pol_y.place(x=280,y=160)
-#         # self.entry_pol_y['state'] = 'readonly'
+    def clear_text(self):
+        self.text_view.delete("1.0", tk.END)
 
-#         # self.label_pol_z = tk.Label(self.Frame1, text="Electric Polarisation in z axis", bg= "grey",fg="black")
-#         # self.label_pol_z['font'] = myFont
-#         # self.label_pol_z.place(x=10,y=210)
- 
-#         # self.entry_pol_z = ttk.Combobox(self.Frame1, textvariable= self._var['ez'] ,value = pol_list)
-#         # self.entry_pol_z['font'] = myFont
-#         # self.entry_pol_z.place(x=280,y=210)
-#         # self.entry_pol_z['state'] = 'readonly'
-
-#         # self.label_proj = tk.Label(self.Frame1,text="Propagation time step (in attosecond)",bg="gray",fg="black")
-#         # self.label_proj['font'] = myFont
-#         # self.label_proj.place(x=10,y=260)
-
-#         # #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['dt'])
-#         # self.entry_dt = Decimalentry(self.Frame1, textvariable= self._var['dt'])
-#         # self.entry_dt['font'] = myFont
-#         # self.entry_dt.place(x=280,y=260)
-
-#         # self.label_proj = tk.Label(self.Frame1,text="Total time steps",bg="gray",fg="black")
-#         # self.label_proj['font'] = myFont
-#         # self.label_proj.place(x=10,y=310)
-
-#         # #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['Nt'])
-#         # self.entry_nt = Onlydigits(self.Frame1, textvariable= self._var['Nt'])
-#         # self.entry_nt['font'] = myFont
-#         # self.entry_nt.place(x=280,y=310)
+    def insert_text(self, text):
+        self.text_view.configure(state='normal')
+        self.clear_text()
         
-#         # Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
-#         # Frame1_Button3['font'] = myFont
-#         # Frame1_Button3.place(x=10,y=380)
-        
-#         self.Frame2 = tk.Frame(self)
-#         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.text_view.insert(tk.END, text)
+        self.text_view.configure(state='disabled')
 
-#         self.Frame2.configure(relief='groove')
-#         self.Frame2.configure(borderwidth="2")
-#         self.Frame2.configure(relief="groove")
-#         # self.Frame2.configure(cursor="fleur")
-   
-        # self.Frame2_note = tk.Label(self.Frame2,text="Note: Please select wavefunction for Kohn Sham Decomposition",fg="black")
-        # self.Frame2_note['font'] = myFont
-        # self.Frame2_note.place(x=10,y=70)
-    
-        # values = {"Dipole Moment" :1,"Wavefunction": 2}
-        # # Loop is used to create multiple Radiobuttons
-        # # rather than creating each button separately
-        # for (text, value) in values.items():
-        #     tk.Radiobutton(self.Frame2, text = text, variable = self._var['v'],
-        #         value = value).pack(side = tk.TOP, anchor=tk.NW, ipady = 5)
- 
-        # Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        # Frame2_Button1['font'] = myFont
-        # Frame2_Button1.place(x=10,y=380)
-
-        # Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        # #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[get_parameters()])
-        # Frame1_Button1['font'] = myFont
-        # Frame1_Button1.place(x=210,y=380)
-
-        # Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
-        # Frame2_Button2['font'] = myFont
-        # Frame2_Button2.place(x=420,y=380)
-
-        # self.label_msg = tk.Label(self.Frame2,text="")
-        # self.label_msg['font'] = myFont
-        # self.label_msg.place(x=220,y=360)
 
