@@ -45,7 +45,7 @@ class StartPage(tk.Frame):
         gui_style = ttk.Style()
         gui_style.configure('TButton', foreground='black',background='gainsboro',font=('Helvetica', 20))
 
-        parent.configure(bg="grey60")
+        #parent.configure(bg="grey60")
 
         # create a canvas to show project list icon
         canvas_for_project_list_icon=tk.Canvas(frame, bg='gray', height=400, width=400, borderwidth=0, highlightthickness=0)
@@ -99,7 +99,6 @@ class StartPage(tk.Frame):
 
 class WorkManagerPage(tk.Frame):
 
-
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
     Pre_task = ["Ground State","Geometry Optimisation"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
@@ -125,14 +124,17 @@ class WorkManagerPage(tk.Frame):
         l= font.Font(family ='Courier', size=15,weight='bold')
 
         self.Frame1 =tk.Frame(self)
-        self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S), pady=10)
        
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
         self.Frame1.configure(cursor="fleur")
-    
 
+        self.grid_columnconfigure(0, weight=1)
+        # self.grid_rowconfigure(0, weight=1)
+        # self.grid_rowconfigure(1, weight=1)
+        # self.grid_rowconfigure(2, weight=1)
         self.label_proj = tk.Label(self.Frame1,text="Project Name",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)
@@ -152,8 +154,10 @@ class WorkManagerPage(tk.Frame):
         self.button_project['font'] = myFont
         self.button_project.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10)
 
-        self.Frame2 = tk.Frame(self )
-        self.Frame2.grid(column=1, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        self.Frame2 = tk.LabelFrame(self)
+        self.Frame2.grid(column=0, row=1, sticky=(tk.N, tk.W, tk.E, tk.S))
+        self.grid_columnconfigure(1, weight=1)
+
 
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -199,13 +203,25 @@ class WorkManagerPage(tk.Frame):
         self.entry_sub_task = ttk.Combobox(self.Frame2, width= 30, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myFont
         self.entry_sub_task.current(0)
-        self.entry_sub_task.grid(column=1, row= 2, columnspan=3, sticky=tk.W,  pady=10, padx=10)
-       
+        self.entry_sub_task.grid(column=1, row= 2, columnspan=3, sticky=tk.W,  pady=10, padx=10)       
         self.entry_sub_task['state'] = 'readonly'   
 
+        # self.status_frame = tk.Frame(self)
+        # self.status_frame.grid(row=3, column=0, sticky='nsew', columnspan=2)        
+        # self.status_frame.configure(relief='groove',borderwidth="2",cursor="fleur")
+
+        # update_label = tk.Label(self.status_frame)
+        # update_label['font'] = myFont
+        # update_label.grid(row=0, column=0)
+
+        # self.text = View_Text(self.status_frame)
+        # self.text.grid(row=0, column=0, sticky='nsew')
+        # lines = "LITESOPH PROJECT"
+        # self.text.text_view.insert('end', lines)
+        # self.text.text_view.configure(state='disabled')
+       
         self.Frame3 = tk.Frame(self )
-        self.Frame3.grid(column=0, row=1, columnspan=2, pady=(150,0), sticky=(tk.N, tk.W, tk.E, tk.S))
-        
+        self.Frame3.grid(column=0, row=2, columnspan=1,  sticky=(tk.N, tk.W, tk.E, tk.S))        
 
         self.Frame3.configure(relief='groove')
         self.Frame3.configure(borderwidth="2")
@@ -214,11 +230,11 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame3_Button_MainPage = tk.Button(self.Frame3, text="Start Page",activebackground="#78d6ff", command=lambda:self.event_generate('<<ShowStartPage>>'))
         self.Frame3_Button_MainPage['font'] = myFont
-        self.Frame3_Button_MainPage.grid(column=0, row= 0, sticky=tk.W)
+        self.Frame3_Button_MainPage.grid(column=0, row= 0, sticky="we")
            
         Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=lambda:self.event_generate('<<SelectTask>>'))
         Frame3_Button1['font'] = myFont
-        Frame3_Button1.grid(column=1, row= 0, sticky=tk.N, padx=(600,0))
+        Frame3_Button1.grid(column=1, row= 0, sticky="we", padx=(600,0))
            
 
     def pick_task(self, *_):
@@ -1251,11 +1267,11 @@ class GroundStatePage(View_note):
 
         self.Frame2_note = tk.Label(oct_frame,text="LITESOPH input for Octopus     ",fg="blue")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+        self.Frame2_note.grid(row=0, column=0, sticky='w', padx=2, pady=6)
          
         self.expt_label = tk.Label(oct_frame,text="Experimental Features",bg="gray",fg="black")
         self.expt_label['font'] = myFont
-        self.expt_label.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.expt_label.grid(row=2, column=0, sticky='w', padx=2, pady=6)
 
         def pick_expt(e):
             if self.expt_combo.get() == "yes":
@@ -1269,11 +1285,11 @@ class GroundStatePage(View_note):
         self.expt_combo['font'] = myFont
         self.expt_combo.bind("<<ComboboxSelected>>", pick_expt)
         self.expt_combo['state'] = 'readonly'
-        self.expt_combo.grid(row=2, column=1, sticky='we', padx=2, pady=2)
+        self.expt_combo.grid(row=2, column=1, sticky='we', padx=2, pady=6)
 
         self.lb1 = tk.Label(oct_frame,text="Pseudo Potential",bg="gray",fg="black")
         self.lb1['font'] = myFont
-        self.lb1.grid(row=3, column=0, sticky='w', padx=2, pady=4)
+        self.lb1.grid(row=3, column=0, sticky='w', padx=2, pady=6)
 
         def pick_xc(e):
             if self._var['expt'].get() == "no":
@@ -1281,7 +1297,7 @@ class GroundStatePage(View_note):
                 self.x_entry.current(0)
                 self.c_entry.config(value = self.oct_lda_c)
                 self.c_entry.current(0)
-                print("xc =lda")
+
             elif self._var['expt'].get() == "yes":
                 pbe_list = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15","hscv_pbe"]
                 lda_list = ["pseudodojo_lda","hscv_lda"]
@@ -1301,14 +1317,14 @@ class GroundStatePage(View_note):
         self.cb1['font'] = myFont
         self.cb1.bind("<<ComboboxSelected>>", pick_xc)
         self.cb1['state'] = 'readonly'
-        self.cb1.grid(row=3, column=1, sticky='we', padx=2, pady=2)
+        self.cb1.grid(row=3, column=1, sticky='we', padx=2, pady=6)
 
         oct_xc_frame = tk.Frame(oct_frame)
         oct_xc_frame.grid(row = 5, column=0, columnspan=4)
        
         self.Frame2_note = tk.Label(oct_frame,text="Exchange Correlation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=4, pady=4)
+        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=4, pady=6)
         
         x_label = tk.Label(oct_xc_frame,text="x",bg="gray",fg="black")
         x_label['font'] = myFont
@@ -1316,7 +1332,8 @@ class GroundStatePage(View_note):
 
         self.x_entry = ttk.Combobox(oct_xc_frame, textvariable= self._var['oct_x'])
         self.x_entry['font'] = myFont
-        self.x_entry.grid(row=0, column=2, sticky='we', padx=2, pady=2)
+        self.x_entry.grid(row=0, column=2, sticky='we', padx=2, pady=4)
+        self.x_entry['state'] = 'readonly'
 
         c_label = tk.Label(oct_xc_frame,text="c",bg="gray",fg="black")
         c_label['font'] = myFont
@@ -1324,7 +1341,8 @@ class GroundStatePage(View_note):
 
         self.c_entry = ttk.Combobox(oct_xc_frame, textvariable= self._var['oct_c'])
         self.c_entry['font'] = myFont
-        self.c_entry.grid(row=0, column=4, sticky='we', padx=2, pady=2)  
+        self.c_entry.grid(row=0, column=4, sticky='we', padx=2, pady=4)
+        self.c_entry['state'] = 'readonly'  
 
         def frame_destroy(frame:tk.Frame):
             for widget in frame.winfo_children():
@@ -1333,23 +1351,23 @@ class GroundStatePage(View_note):
 
         self.Frame2_note = tk.Label(oct_frame,text="Spin Polarisation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.Frame2_note.grid(row=6, column=0, sticky='w', padx=2, pady=6)
 
         self.entry_pol_x = ttk.Combobox(oct_frame, textvariable= self._var['ocspinpol'], value = ["unpolarized","spin_polarized", "spinors"])
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=2, pady=2)
+        self.entry_pol_x.grid(row=6, column=1, sticky='w', padx=2, pady=6)
     
         self.Frame2_note = tk.Label(oct_frame,text="Eigen Solver",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+        self.Frame2_note.grid(row=8, column=0, sticky='w', padx=2, pady=6)
 
         self.entry_pol_x = ttk.Combobox(oct_frame, textvariable= self._var['eigen'], value = self.eignsolv)
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = myFont
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=2, pady=2)              
+        self.entry_pol_x.grid(row=8, column=1, sticky='w', padx=2, pady=6)              
     
     def nwchem_convergence(self, parent):
         #parent.grid_remove()
@@ -3206,5 +3224,3 @@ class View_Text(tk.Frame):
         
         self.text_view.insert(tk.END, text)
         self.text_view.configure(state='disabled')
-
-
