@@ -46,7 +46,7 @@ class EngineGpaw(EngineStrategy):
 
     NAME = 'gpaw'
 
-    ground_state = {'inp':'/GS/gs.py',
+    ground_state = {'inp':'GS/gs.py',
             'req' : ['coordinate.xyz'],
             'out': 'GS/gs.out',
             'restart': 'GS/gs.gpw',
@@ -131,15 +131,18 @@ class EngineOctopus(EngineStrategy):
 
     NAME = 'octopus'
 
-    ground_state = {'out': '/Octopus/log',
+    ground_state = {'inp':'Octopus/inp',
+        'out': '/Octopus/log',
         'req' : ['coordinate.xyz'],
         'check_list':['SCF converged']}
 
-    rt_tddft_delta = {'out': '/Octopus/log',
+    rt_tddft_delta = {'inp':'Octopus/inp',
+            'out': '/Octopus/log',
              'req' : ['coordinate.xyz'],
              'check_list':['Finished writing information', 'Calculation ended']}    
     
-    rt_tddft_laser = {'out': '/Octopus/log',
+    rt_tddft_laser = {'inp':'Octopus/inp',
+            'out': '/Octopus/log',
              'req' : ['coordinate.xyz']}
 
     def __init__(self,project_dir, status=None) -> None:
@@ -160,6 +163,8 @@ class EngineOctopus(EngineStrategy):
                 gs_inp = self.status.get_status('ground_state.param')
                 user_param.update(gs_inp)
             return ot.OctTimedependentLaser(user_param)    
+        if task == "spectrum":
+            return ot.OctSpectrum(user_param)
 
     def create_dir(self, directory, *_):
         #task_dir = self.get_dir_name(task)
@@ -177,10 +182,11 @@ class EngineOctopus(EngineStrategy):
 
         ofilename = "log"
         command = configs.get('engine', 'octopus')
+        if not command:
+            command = 'octopus'
         command = command + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
-            print(command)
         return command
 
 class EngineNwchem(EngineStrategy):
@@ -191,11 +197,11 @@ class EngineNwchem(EngineStrategy):
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/NwchemGroundState/gs.nwi',
+    rt_tddft_delta = {'inp':'/NwchemDeltaKick/gs.nwi',
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_laser = {'inp':'/NwchemGroundState/gs.nwi',
+    rt_tddft_laser = {'inp':'/NwchemGaussianPulse/gs.nwi',
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
@@ -248,6 +254,8 @@ class EngineNwchem(EngineStrategy):
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
         command = configs.get('engine', 'nwchem')
+        if not command:
+            command = 'nwchem'
         command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command

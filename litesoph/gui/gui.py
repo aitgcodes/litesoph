@@ -349,6 +349,8 @@ class GUIAPP(tk.Tk):
             self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
+            self.job_sub_page.show_output_button('View Output','GroundState')
+            self.job_sub_page.bind('<<OutputGroundState>>', )
             self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
             self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
             #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
@@ -400,7 +402,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
-
+            
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
 
@@ -473,6 +475,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_LASER')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
+            self.job_sub_page.show_output_button('View Output','RT_TDDFT_LASER')
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
         
@@ -514,7 +517,7 @@ class GUIAPP(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'Spectrum')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.plot_button()
+            self.job_sub_page.show_output_button('Plot','SpectrumPlot')
             self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
             self.job_sub_page.bind('<<RunSpectrumLocal>>', lambda _: self._run_local(self.spectra_task))
             self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.spectra_task))
@@ -536,7 +539,7 @@ class GUIAPP(tk.Tk):
         try:
             submitlocal.prepare_input(self.directory)
         except FileNotFoundError as e:
-            messagebox.showerror(message=e)
+            messagebox.showerror(title='yes',message=e)
             return
         try:
             submitlocal.run_job()
@@ -546,7 +549,7 @@ class GUIAPP(tk.Tk):
         else:
             if task.results[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
-                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[1]}")
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[2].decode(encoding='utf-8')}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
@@ -556,16 +559,23 @@ class GUIAPP(tk.Tk):
 
         
     def _run_network(self, task):
+
         run_script_path = self.job_sub_page.run_script_path
+        bash_file = pathlib.Path(self.directory) / task.bash_filename 
+        shutil.copy(run_script_path,bash_file)
 
         if not run_script_path:
             messagebox.showerror(title = "Error", message = "Please upload job script")
             return
-        login_dict = self.job_sub_page.get_network_dict()
-        net_inp = dict(run_script = run_script_path,
-                        inp = [task.file_path],
-                        geometry = str(pathlib.Path(self.directory) / "coordinate.xyz"))
 
+        try:
+            task.check_prerequisite(network = True)
+        except FileNotFoundError as e:
+            messagebox.showerror(title = "Error", message = e)
+            return
+
+        login_dict = self.job_sub_page.get_network_dict()
+        
         from litesoph.utilities.job_submit import SubmitNetwork
 
         submit_network = SubmitNetwork(task, 
@@ -574,7 +584,7 @@ class GUIAPP(tk.Tk):
                                         username=login_dict['username'],
                                         password=login_dict['password'],
                                         remote_path=login_dict['remote_path'],
-                                        upload_files=net_inp)
+                                        )
 
         submit_network.run_job()
 
