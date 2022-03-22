@@ -1,0 +1,71 @@
+
+Setups for LITESOPH GUI:
+Run 'python setup.py', this will create default lsconfig.ini file in home. Please set the prefered settings if required. it will ask to append path to bashrc. lsconfig.ini will be read whenever litesoph is initiated. 
+
+OR
+
+# if appending bashrc is not preferred please export the path of litesoph type this
+export PYTHONPATH=<path-to-litesoph-package>:$PYTHONPATH
+export PATH=<path-to-litesoph-package>/litesoph/bin:$PATH
+
+#To run gui
+litesoph gui
+
+#GUI opens 
+
+#Instructions for LITESOPH GUI Calculations:
+
+>> To start LITESOPH Project, click 'Start LITESOPH'.
+
+>> Enter the project path, project name and click the 'Create New Project' button to create a new LITESOPH project.
+
+>> Click 'Create New Project' #the working directory will be created and all the input, output and uploaded geometry files will be saved here.
+
+>> click 'Select' and upload the coordinate file.
+
+>> Click 'View' button to visualise the geometry.
+
+>> From Job Type drop down options, select the job type Preprocessing Jobs, Simulations and Postprocessing Jobs.
+
+
+####### Ground State Calculations
+  
+   >> For Ground State calculation, select the job type as 'Preprocessing Jobs' and sub task as 'Ground State'.
+   >> Click 'Proceed' and enter the input parameters.
+   >> Click 'Save Input'. Input script for Ground State calculation will be generated.(if you wish to view and edit the input script please click 'View Input')
+   >> Click 'Run Job' to run the calculation and back to the main page.
+
+####### Exited State Calculations
+
+   >> For Exited State Calculations, select the job type as 'Simulations'.
+   >> From sub task options, Select your preferred task:(Delta Kick/Gaussian Pulse). #default is Delta Kick 
+   >> Click 'Proceed' and enter the input parameters. 
+      
+      >>>> In 'Delta Kick', enter the input parameter. Please select 'wavefunction' for Kohn Sham Decomposition (TCM in GPAW).
+      >>>> Click 'Save Input'. Input script for Photoabsorbtion Spectrum calculation will be generated.
+      >>>> Click 'Run Job' to run the calculation.
+      >>>> Back to the main page after the calculation.
+           
+           >>>> To plot the spectrum, select 'Postprocessing Jobs' in job type, and 'Spectrum' in sub task. Select the component and 'plot' the spectrum. Save the plots.
+  
+      >>>> In 'Gaussian Pulse', provide the input parameters for. (note the FWHM and frequency from the sprectrum) 
+      >>>> Click 'Laser Design' to design the laser. If laser input is fine and proceed to pulse calculation.
+      >>>> enter the values, save the input and Run Job.
+      >>>> Back to the main page after the calculation.
+       
+           >>>> To plot the dipole moment and laser, select 'Postprocessing Jobs' in job type, and 'Dipole moment and Laser Design'. Select the component and plot the dipole moment. There is an option to plot the laser with dipole moment too. Save the plots.
+
+####### Analysis 
+   
+   >> For the analysis of the calculations, select the job type as 'Postprocessing Jobs'.
+   >> In sub task select the analysis prefered. Spectrum and dipole moment is already calculated.
+   >> If wavefunction is selected at the delta kick simulation, proceed with Kohn Sham Decomposition.           
+    
+      >>>> Enter the frequencies in (eV) seperated with space and press 'Retrieve Freq' option. It retrieves the frequencies.
+      >>>> Select a retrieved frequency for TCM plot. Save the Plot. 
+      >>>> Back to the main page.  
+ 
+>> If LITESOPH Project already exists, Click 'Open to Existing' in main page, choose the LITESOPH project and perform the remaining LITESOPH calculations.
+
+
+
