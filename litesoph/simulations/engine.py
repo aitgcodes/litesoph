@@ -46,7 +46,7 @@ class EngineGpaw(EngineStrategy):
 
     NAME = 'gpaw'
 
-    ground_state = {'inp':'/GS/gs.py',
+    ground_state = {'inp':'GS/gs.py',
             'req' : ['coordinate.xyz'],
             'out': 'GS/gs.out',
             'restart': 'GS/gs.gpw',
@@ -131,17 +131,17 @@ class EngineOctopus(EngineStrategy):
 
     NAME = 'octopus'
 
-    ground_state = {'inp':'inp',
+    ground_state = {'inp':'Octopus/inp',
         'out': '/Octopus/log',
         'req' : ['coordinate.xyz'],
         'check_list':['SCF converged']}
 
-    rt_tddft_delta = {'inp':'inp',
+    rt_tddft_delta = {'inp':'Octopus/inp',
             'out': '/Octopus/log',
              'req' : ['coordinate.xyz'],
              'check_list':['Finished writing information', 'Calculation ended']}    
     
-    rt_tddft_laser = {'inp':'inp',
+    rt_tddft_laser = {'inp':'Octopus/inp',
             'out': '/Octopus/log',
              'req' : ['coordinate.xyz']}
 
