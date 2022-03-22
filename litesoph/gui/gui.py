@@ -349,6 +349,8 @@ class GUIAPP(tk.Tk):
             self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
+            self.job_sub_page.show_output_button('View Output','GroundState')
+            self.job_sub_page.bind('<<OutputGroundState>>', )
             self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
             self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
             #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
@@ -400,7 +402,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
-
+            
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
 
@@ -473,6 +475,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_LASER')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
+            self.job_sub_page.show_output_button('View Output','RT_TDDFT_LASER')
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
         
@@ -514,7 +517,7 @@ class GUIAPP(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'Spectrum')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.plot_button()
+            self.job_sub_page.show_output_button('Plot','SpectrumPlot')
             self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
             self.job_sub_page.bind('<<RunSpectrumLocal>>', lambda _: self._run_local(self.spectra_task))
             self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.spectra_task))

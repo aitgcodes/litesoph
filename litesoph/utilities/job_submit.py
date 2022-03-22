@@ -141,33 +141,60 @@ class SubmitNetwork(JobSubmit):
 
         self.network_sub = NetworkJobSubmission(hostname)
         self.network_sub.ssh_connect(username, password)
-        self.transfer_files()
+        if self.network_sub.check_file(self.remote_path):
+            self.prepare_input(self.remote_path)
+            self.transfer_files()
     
+    def prepare_input(self, path):
+        """this adds in the proper path to the data file required for the job"""
+        filename = self.task.project_dir.parent / self.task.filename
+        path = pathlib.Path(path)
+        try:
+            self.input_data_files = getattr(self.task.engine, self.task.task_name)
+            self.input_data_files = self.input_data_files['req']
+        except AttributeError as e:
+            raise AttributeError(e)
+
+        with open(filename , 'r+') as f:
+            text = f.read()
+            for item in self.input_data_files:
+                item = pathlib.Path(self.task.project_dir.name) / item
+                data_path = path / item
+                
+                print(str(item))
+                text = re.sub(str(item), str(data_path), text)
+                # if data_path.is_file() or data_path.is_dir():
+                #     #item = item.split('/')[-1]
+                #     text = re.sub(str(item), str(data_path), text)
+                # else:
+                #     raise FileNotFoundError(f"The required file for this job {str(data_path)} not found.")
+            f.seek(0)
+            f.write(text)
+            f.truncate() 
 
     def transfer_files(self):
         
-        if self.network_sub.check_file(self.remote_path):
+        upload_files = [self.task.filename, self.task.bash_filename]
+        upload_files.extend(self.task.input_data_files)
 
-            upload_files = [self.task.filename, self.task.bash_filename]
-            upload_files.extend(self.task.input_data_files)
+        for file in upload_files:
 
-            for file in upload_files:
-
-                remote_path = pathlib.Path(self.remote_path) / file
-                file = pathlib.Path(self.task.project_dir.parent) / file
-                    
-                try:
-                    self.network_sub.upload_files(file, remote_path)
-                    print(f"{file} uploaded to remote path {remote_path} of cluster")
-                except Exception as e:
-                    raise(e)
+            remote_path = pathlib.Path(self.remote_path) / file
+            file = pathlib.Path(self.task.project_dir.parent) / file
+                
+            try:
+                self.network_sub.upload_files(file, remote_path)
+                print(f"{file} uploaded to remote path {remote_path} of cluster")
+            except Exception as e:
+                raise(e)
 
 
     def run_job(self):
         "This method creates the job submission command and executes the command on the cluster"
-        bash_filename = pathlib.Path(self.upload_files['run_script']).name
+        bash_filename = pathlib.Path(self.task.bash_filename).name
+        remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.name
         #bash_filename = pathlib.Path(self.remote_path) / bash_filename
-        self.command = f"cd {self.remote_path} \n qsub {bash_filename}"
+        self.command = f"cd {str(remote_path)} \n qsub {bash_filename}"
 
         self.network_sub.execute_command(self.command)
         if self.network_sub.exit_status != 0:
