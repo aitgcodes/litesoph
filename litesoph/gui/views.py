@@ -3179,124 +3179,32 @@ class TextViewerPage(tk.Frame):
     def back_button(self):
         self.event_generate(f'<<View{self.task_name}Page>>')
 
-# class View1(tk.Frame):
+class View_Text(tk.Frame):
+    """ Text_View class with grid options"""
 
-#     def __init__(self, parent, controller, engine, *args, **kwargs):
-#         super().__init__(parent, *args, **kwargs)
-#         self.controller = controller
-#         self.engine = engine
-#         self.job = None
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent,*args, **kwargs)
 
-#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
 
-#         j=font.Font(family ='Courier', size=20,weight='bold')
-#         k=font.Font(family ='Courier', size=40,weight='bold')
-#         l=font.Font(family ='Courier', size=15,weight='bold')
+        text_scroll =tk.Scrollbar(self)
+        text_scroll.grid(row=0, column=1, sticky='nsew' )
+        #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
-#         self.Frame1 = tk.Frame(self)
-#         #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-#         self.Frame1.configure(relief='groove',borderwidth="2",cursor="fleur")
- 
-#         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
-#         # self.Frame1.configure(relief='groove',borderwidth="2",cursor="fleur")
-        
-#         # self.Frame1_label_path = tk.Label(self.Frame1,text="LITESOPH input for Delta Kick",fg='blue')
-#         # self.Frame1_label_path['font'] = myFont
-#         # self.Frame1_label_path.place(x=150,y=10)
-      
-#         # self.label_proj = tk.Label(self.Frame1,text="Laser strength in a.u",bg="gray",fg="black")
-#         # self.label_proj['font'] = myFont
-#         # self.label_proj.place(x=10,y=60)
-        
-#         # inval = ["1e-5","1e-4","1e-3"]
-#         # self.entry_inv = ttk.Combobox(self.Frame1,textvariable= self._var['strength'], value = inval)
-#         # self.entry_inv['font'] = myFont
-#         # self.entry_inv.place(x=280,y=60)
-#         # self.entry_inv['state'] = 'readonly'
-
-#         # self.label_pol_x = tk.Label(self.Frame1, text="Electric Polarisation in x axis", bg= "grey",fg="black")
-#         # self.label_pol_x['font'] = myFont
-#         # self.label_pol_x.place(x=10,y=110)
-        
-#         # pol_list = [0, 1]
-#         # self.entry_pol_x = ttk.Combobox(self.Frame1, textvariable= self._var['ex'] , value = pol_list)
-#         # self.entry_pol_x['font'] = myFont
-#         # self.entry_pol_x.place(x=280,y=110)
-#         # self.entry_pol_x['state'] = 'readonly'
-
-#         # self.label_pol_y = tk.Label(self.Frame1, text="Electric Polarisation in y axis", bg= "grey",fg="black")
-#         # self.label_pol_y['font'] = myFont
-#         # self.label_pol_y.place(x=10,y=160)
+        #self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
+        self.text_view = tk.Text(self, yscrollcommand= text_scroll.set)
+        self.text_view['font'] = myFont
+        self.text_view.grid(row=0, column=0, padx=5, pady=5)
+        text_scroll.config(command=self.text_view.yview)        
     
-#         # self.entry_pol_y = ttk.Combobox(self.Frame1, textvariable= self._var['ey'], value = pol_list)
-#         # self.entry_pol_y['font'] = myFont
-#         # self.entry_pol_y.place(x=280,y=160)
-#         # self.entry_pol_y['state'] = 'readonly'
+    def clear_text(self):
+        self.text_view.delete("1.0", tk.END)
 
-#         # self.label_pol_z = tk.Label(self.Frame1, text="Electric Polarisation in z axis", bg= "grey",fg="black")
-#         # self.label_pol_z['font'] = myFont
-#         # self.label_pol_z.place(x=10,y=210)
- 
-#         # self.entry_pol_z = ttk.Combobox(self.Frame1, textvariable= self._var['ez'] ,value = pol_list)
-#         # self.entry_pol_z['font'] = myFont
-#         # self.entry_pol_z.place(x=280,y=210)
-#         # self.entry_pol_z['state'] = 'readonly'
-
-#         # self.label_proj = tk.Label(self.Frame1,text="Propagation time step (in attosecond)",bg="gray",fg="black")
-#         # self.label_proj['font'] = myFont
-#         # self.label_proj.place(x=10,y=260)
-
-#         # #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['dt'])
-#         # self.entry_dt = Decimalentry(self.Frame1, textvariable= self._var['dt'])
-#         # self.entry_dt['font'] = myFont
-#         # self.entry_dt.place(x=280,y=260)
-
-#         # self.label_proj = tk.Label(self.Frame1,text="Total time steps",bg="gray",fg="black")
-#         # self.label_proj['font'] = myFont
-#         # self.label_proj.place(x=10,y=310)
-
-#         # #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['Nt'])
-#         # self.entry_nt = Onlydigits(self.Frame1, textvariable= self._var['Nt'])
-#         # self.entry_nt['font'] = myFont
-#         # self.entry_nt.place(x=280,y=310)
+    def insert_text(self, text):
+        self.text_view.configure(state='normal')
+        self.clear_text()
         
-#         # Frame1_Button3 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
-#         # Frame1_Button3['font'] = myFont
-#         # Frame1_Button3.place(x=10,y=380)
-        
-#         self.Frame2 = tk.Frame(self)
-#         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.text_view.insert(tk.END, text)
+        self.text_view.configure(state='disabled')
 
-#         self.Frame2.configure(relief='groove')
-#         self.Frame2.configure(borderwidth="2")
-#         self.Frame2.configure(relief="groove")
-#         # self.Frame2.configure(cursor="fleur")
-   
-        # self.Frame2_note = tk.Label(self.Frame2,text="Note: Please select wavefunction for Kohn Sham Decomposition",fg="black")
-        # self.Frame2_note['font'] = myFont
-        # self.Frame2_note.place(x=10,y=70)
-    
-        # values = {"Dipole Moment" :1,"Wavefunction": 2}
-        # # Loop is used to create multiple Radiobuttons
-        # # rather than creating each button separately
-        # for (text, value) in values.items():
-        #     tk.Radiobutton(self.Frame2, text = text, variable = self._var['v'],
-        #         value = value).pack(side = tk.TOP, anchor=tk.NW, ipady = 5)
- 
-        # Frame2_Button1 = tk.Button(self.Frame2, text="View Input",activebackground="#78d6ff",command=lambda:[self.view_button()])
-        # Frame2_Button1['font'] = myFont
-        # Frame2_Button1.place(x=10,y=380)
-
-        # Frame1_Button1 = tk.Button(self.Frame2, text="Save Input",activebackground="#78d6ff",command=lambda:[self.save_button()])
-        # #Frame1_Button1 = tk.Button(self.Frame1, text="Save Input",activebackground="#78d6ff",command=lambda:[get_parameters()])
-        # Frame1_Button1['font'] = myFont
-        # Frame1_Button1.place(x=210,y=380)
-
-        # Frame2_Button2 = tk.Button(self.Frame2, text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
-        # Frame2_Button2['font'] = myFont
-        # Frame2_Button2.place(x=420,y=380)
-
-        # self.label_msg = tk.Label(self.Frame2,text="")
-        # self.label_msg['font'] = myFont
-        # self.label_msg.place(x=220,y=360)
 
