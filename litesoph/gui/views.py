@@ -686,10 +686,13 @@ class GroundStatePage(View_note):
     xc_gp = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
     # xc_nw = ["acm","b3lyp","beckehandh","Hfexch","pbe0","becke88","xpbe96","bhlyp","cam-s12g","cam-s12h","xperdew91","pbeop"]
     xc_nw = ["pbe96","pbe0","b3lyp","pw91", "bp86", "bp91","bhlyp"]
-    xc_oct1 = ["lda_x_1d + lda_e_1d"]
-    xc_oct2 = ["lda_x_2d + lda_c_2d_amgb"]
-    xc_oct3 = ["lda_x + lda_c_pz_mod"]
-    dxc_oct = ["1","2","3"]
+    oct_lda_x = ["lda_x"]
+    oct_lda_c = ["lda_c_pz_mod"]
+    oct_pbe_x = ["gga_x_pbe","gga_x_pbe_r"]
+    oct_pbe_c = ["gga_c_pbe"]
+    expt_option = ["yes", "no"]
+    oct_expt_yes = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_lda","pseudodojo_lda_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_lda", "hscv_pbe"]
+    oct_expt_no = ["standard", "hgh_lda_sc","hgh_lda"]
     fnsmear = ["semiconducting","fermi_dirac","cold_smearing","methfessel_paxton","spline_smearing"]
     eignsolv = ["rmmdiis","plan","cg","cg_new"]
     nwc_theory = ["SCF","DFT"]
@@ -705,7 +708,12 @@ class GroundStatePage(View_note):
             'mode' : ['str', '--choose mode--'],
             'nwxc' : ['str', 'pbe0'],
             'gpxc' : ['str','LDA'],
-            'ocxc' : ['str',''],
+            'var_oct_xc' : ['int', 1],
+            'oct_xc' : ['str',''],
+            'oct_x' : ['str',''],
+            'oct_c' : ['str',''],
+            'pseudo' : ['str', ''],
+            'expt' : ['str', '--choose option--'],
             'basis' : ['str', ''],
             'charge': ['int', 0],
             'maxiter' : ['int', 300],
@@ -1245,41 +1253,83 @@ class GroundStatePage(View_note):
         self.Frame2_note['font'] = myFont
         self.Frame2_note.grid(row=0, column=0, sticky='w', padx=2, pady=4)
          
-        self.lb1 = tk.Label(oct_frame,text="Dimension",bg="gray",fg="black")
+        self.expt_label = tk.Label(oct_frame,text="Experimental Features",bg="gray",fg="black")
+        self.expt_label['font'] = myFont
+        self.expt_label.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+
+        def pick_expt(e):
+            if self.expt_combo.get() == "yes":
+                self.cb1.config(value = self.oct_expt_yes)
+                self.cb1.current(0)
+            if self.expt_combo.get() == "no":
+                self.cb1.config(value = self.oct_expt_no)
+                self.cb1.current(0)
+
+        self.expt_combo = ttk.Combobox(oct_frame,width= 10, textvariable= self._var['expt'], value = self.expt_option)
+        self.expt_combo['font'] = myFont
+        self.expt_combo.bind("<<ComboboxSelected>>", pick_expt)
+        self.expt_combo['state'] = 'readonly'
+        self.expt_combo.grid(row=2, column=1, sticky='we', padx=2, pady=2)
+
+        self.lb1 = tk.Label(oct_frame,text="Pseudo Potential",bg="gray",fg="black")
         self.lb1['font'] = myFont
-        #self.lb1.place(x=10,y=10)
-        self.lb1.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.lb1.grid(row=3, column=0, sticky='w', padx=2, pady=4)
 
         def pick_xc(e):
-            if self.cb1.get() == "1":
-                xc_octopus.config(value = self.xc_oct1)
-                xc_octopus.current(0)
-            if self.cb1.get() == "2":
-                xc_octopus.config(value = self.xc_oct2)
-                xc_octopus.current(0)
-            if self.cb1.get() == "3":
-                xc_octopus.config(value = self.xc_oct3)
-                xc_octopus.current(0)
+            if self._var['expt'].get() == "no":
+                self.x_entry.config(value = self.oct_lda_x)
+                self.x_entry.current(0)
+                self.c_entry.config(value = self.oct_lda_c)
+                self.c_entry.current(0)
+                print("xc =lda")
+            elif self._var['expt'].get() == "yes":
+                pbe_list = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15","hscv_pbe"]
+                lda_list = ["pseudodojo_lda","hscv_lda"]
+                #oct_expt_yes = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_lda","pseudodojo_lda_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_lda", "hscv_pbe"]
+                if self._var['pseudo'].get() in pbe_list:
+                    self.x_entry.config(value = self.oct_pbe_x)
+                    self.x_entry.current(0)
+                    self.c_entry.config(value = self.oct_pbe_c)
+                    self.c_entry.current(0)
+                elif self._var['pseudo'].get() in lda_list:
+                    self.x_entry.config(value = self.oct_lda_x)
+                    self.x_entry.current(0)
+                    self.c_entry.config(value = self.oct_lda_c)
+                    self.c_entry.current(0)
 
-        self.cb1 = ttk.Combobox(oct_frame,width= 10, textvariable= self._var['dxc'], value = self.dxc_oct)
+        self.cb1 = ttk.Combobox(oct_frame,width= 10, textvariable= self._var['pseudo'], value = "-- choose option --")
         self.cb1['font'] = myFont
-        #self.cb1.place(x=110,y=10)
         self.cb1.bind("<<ComboboxSelected>>", pick_xc)
         self.cb1['state'] = 'readonly'
-        self.cb1.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+        self.cb1.grid(row=3, column=1, sticky='we', padx=2, pady=2)
 
+        oct_xc_frame = tk.Frame(oct_frame)
+        oct_xc_frame.grid(row = 5, column=0, columnspan=4)
        
         self.Frame2_note = tk.Label(oct_frame,text="Exchange Correlation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
-        #self.Frame2_note.place(x=10,y=160)
-        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
-    
-        xc_octopus = ttk.Combobox(oct_frame, textvariable= self._var['ocxc'], value = self.xc_oct3)
-        xc_octopus['font'] = myFont
-        #xc_octopus.place(x=280,y=160)
-        xc_octopus['state'] = 'readonly'
-        xc_octopus.current(0)
-        xc_octopus.grid(row=4, column=1, sticky='w', padx=2, pady=2)
+        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=4, pady=4)
+        
+        x_label = tk.Label(oct_xc_frame,text="x",bg="gray",fg="black")
+        x_label['font'] = myFont
+        x_label.grid(row=0, column=1, sticky='we', padx=2, pady=4)
+
+        self.x_entry = ttk.Combobox(oct_xc_frame, textvariable= self._var['oct_x'])
+        self.x_entry['font'] = myFont
+        self.x_entry.grid(row=0, column=2, sticky='we', padx=2, pady=2)
+
+        c_label = tk.Label(oct_xc_frame,text="c",bg="gray",fg="black")
+        c_label['font'] = myFont
+        c_label.grid(row=0, column=3, sticky='we', padx=2, pady=4)
+
+        self.c_entry = ttk.Combobox(oct_xc_frame, textvariable= self._var['oct_c'])
+        self.c_entry['font'] = myFont
+        self.c_entry.grid(row=0, column=4, sticky='we', padx=2, pady=2)  
+
+        def frame_destroy(frame:tk.Frame):
+            for widget in frame.winfo_children():
+                print(widget)
+                widget.destroy()  
 
         self.Frame2_note = tk.Label(oct_frame,text="Spin Polarisation",bg="gray",fg="black")
         self.Frame2_note['font'] = myFont
@@ -1792,7 +1842,9 @@ class GroundStatePage(View_note):
 
         inp_dict_oct = {
             'mode': self._var['mode'].get(),
-            'xc': self._var['ocxc'].get(),
+            'exp' : self._var['expt'].get(),
+            'xc': {'option':1,'x':self._var['oct_x'].get(),'c':self._var['oct_c'].get()},
+            'pseudo' : self._var['pseudo'].get(),
             'energy': self._var['energy'].get(),
             'dimension' : self._var['dxc'].get(),
             'spacing': self._var['h'].get(),
