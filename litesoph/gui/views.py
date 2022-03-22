@@ -1907,6 +1907,11 @@ class GroundStatePage(View_note):
             except IndexError:
                 self._var[key].set('')     
 
+    def read_atoms(self, geom_xyz):
+        from ase.io import read
+        atoms = read(geom_xyz)
+        atom_list = list(atoms.symbols)
+        return atom_list
 
 class View1(tk.Frame):
 
