@@ -10,14 +10,15 @@ class OctGroundState:
     default_param = {
             'work_dir' : ".",         # default 
             'scratch' : 'yes',
+            'exp' : "no",
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
             'name':'H',               # name of species
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
             'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
-            'xc': 'lda_x + lda_c_pz_mod',
-            'pseudo_potential':'set|standard', # else 'file|pseudo potential filename'
+            
+            'pseudo': 'pseudodojo_pbe', # else 'file|pseudo potential filename'
             'mass' : 1.0,             # mass of species in atomic unit
             'box':{'shape':'minimum','radius':4.0,'xlength':0.0, 'sizex':0.0, 'sizey':0.0, 'sizez':0.0},
             'spacing': 0.23,           # spacing between points in the mesh
@@ -31,12 +32,15 @@ class OctGroundState:
             'conv_reldens' : 1e-6,      # SCF calculation
             'smearing_func' :'semiconducting',
             'smearing' : 0.1   ,       # in eV
-            'unit_box' : 'angstrom'
+            'unit_box' : 'angstrom',
+            'atoms': ['C', 'H'],
+            'xc':{'option': 1, 'x':"", 'c':"", 'xc':""}
             } 
 
     gs_min = """
 WorkDir = '{work_dir}'    
-FromScratch = {scratch}                
+FromScratch = {scratch}  
+ExperimentalFeatures = {exp}              
 CalculationMode = gs
 Dimensions = {dimension} 
 TheoryLevel = {theory}
@@ -44,12 +48,9 @@ Unitsoutput = {out_unit}
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius = {box[radius]}
-
-
 Spacing = {spacing}*angstrom
 SpinComponents = {spin_pol}
 ExcessCharge = {charge}
-XCFunctional = {xc}
 Mixing = {mixing}
 MaximumIter = {max_iter}
 Eigensolver = {eigensolver}
@@ -57,13 +58,21 @@ Smearing = {smearing}
 SmearingFunction = {smearing_func}
 ConvRelDens = {conv_reldens}
 ConvEnergy = {e_conv}
+PseudopotentialSet = {pseudo}
     """
     
-    def __init__(self, user_input) -> None:
-        self.temp_dict = self.default_param
-        self.temp_dict.update(user_input)
+    def __init__(self, user_input= None) -> None:
+        self.user_input = user_input
+        self.temp_dict = self.default_param 
+        if self.user_input:
+            self.temp_dict.update(self.user_input)
+        # self.temp_dict = self.default_param
+        # self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape'] 
-        self.check_unit()          
+        self.xc_option = self.temp_dict['xc']['option']
+        # self.atoms_list = self.temp_dict['atoms']
+        self.pseudo = self.temp_dict['pseudo']
+        self.check_unit()           
     
     def check_unit(self):
         if self.temp_dict['unit_box'] == "angstrom":
@@ -78,7 +87,7 @@ ConvEnergy = {e_conv}
                 box_dict['sizey'] = round(box_dict['sizey']*ang_to_au, 2)
                 box_dict['sizez'] = round(box_dict['sizez']*ang_to_au, 2)        
 
-    def format_template(self):
+    def add_boxshape_template(self):
         if self.boxshape not in ['cylinder', 'parallelepiped']: 
             template = self.gs_min.format(**self.temp_dict)
             return template 
@@ -92,15 +101,69 @@ ConvEnergy = {e_conv}
 
         elif self.boxshape == "parallelepiped":
             tlines = self.gs_min.splitlines()
-            self.temp_dict['box']['sizex'] = round(self.temp_dict['box']['sizex']/2, 2)
-            self.temp_dict['box']['sizey'] = round(self.temp_dict['box']['sizey']/2, 2)
-            self.temp_dict['box']['sizez'] = round(self.temp_dict['box']['sizez']/2, 2)
+            lx = round(self.temp_dict['box']['sizex']/2, 2)
+            ly = round(self.temp_dict['box']['sizey']/2, 2)
+            lz = round(self.temp_dict['box']['sizez']/2, 2)
             tlines[9] = "%LSize"
-            tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
+            tlines[10] = "{}|{}|{}".format(lx, ly, lz)
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             template = temp.format(**self.temp_dict)
-            return template    
+            return template 
+
+    def add_xc_template(self):
+        if self.xc_option == 1:
+            xc_line = "XCFunctional = {}+{}".format(self.temp_dict['xc']['x'],self.temp_dict['xc']['c'])
+        elif self.xc_option == 2:
+            xc_line = "XCFunctional = {}".format(self.temp_dict['xc']['xc'])    
+        return(xc_line)
+
+    def add_pseudo_potential_template(self):
+        import numpy
+        x = numpy.array(self.atoms_list)
+        atoms = numpy.unique(x)
+        temp = ""
+        for atom in numpy.nditer(atoms): 
+            temp1 = " '{}' | species_pseudo | set | {}".format(atom, self.pseudo) 
+            temp = '\n'.join([temp,temp1])
+        
+        temp1 = "%Species" 
+        temp2 = "%"
+    
+        template = '\n'.join([temp1,temp,temp2])
+        return(template)        
+
+    def format_template(self):
+        temp1 = self.add_boxshape_template()
+        temp2 = self.add_xc_template()
+        # temp2 = self.add_pseudo_potential_template()
+        template = "\n".join([temp1, temp2])
+        # print(template)
+        return(template)
+
+    # def format_template(self):
+    #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
+    #         template = self.gs_min.format(**self.temp_dict)
+    #         return template 
+
+    #     elif self.boxshape == "cylinder":
+    #         tlines = self.gs_min.splitlines()
+    #         tlines[10] = "Xlength = {box[xlength]}"
+    #         temp = """\n""".join(tlines)
+    #         template = temp.format(**self.temp_dict)
+    #         return template
+
+    #     elif self.boxshape == "parallelepiped":
+    #         tlines = self.gs_min.splitlines()
+    #         lx = round(self.temp_dict['box']['sizex']/2, 2)
+    #         ly = round(self.temp_dict['box']['sizey']/2, 2)
+    #         lz = round(self.temp_dict['box']['sizez']/2, 2)
+    #         tlines[9] = "%LSize"
+    #         tlines[10] = "{}|{}|{}".format(lx, ly, lz)
+    #         tlines[11] = "%"
+    #         temp = """\n""".join(tlines)
+    #         template = temp.format(**self.temp_dict)
+    #         return template    
 
         
 class OctTimedependentState:
@@ -159,6 +222,7 @@ TDTimeStep = {time_step}
 
 TDDeltaStrength = {strength}
 
+
 """         
 
     tlines_pol = """
@@ -216,11 +280,11 @@ TDPolarizationDirection = 1
 
         elif self.boxshape == "parallelepiped":
             tlines = self.td.splitlines()
-            self.temp_dict['box']['sizex'] = round(self.temp_dict['box']['sizex']/2, 2)
-            self.temp_dict['box']['sizey'] = round(self.temp_dict['box']['sizey']/2, 2)
-            self.temp_dict['box']['sizez'] = round(self.temp_dict['box']['sizez']/2, 2)
+            lx = round(self.temp_dict['box']['sizex']/2, 2)
+            ly = round(self.temp_dict['box']['sizey']/2, 2)
+            lz = round(self.temp_dict['box']['sizez']/2, 2)
             tlines[9] = "%LSize"
-            tlines[10] = "{box[sizex]}|{box[sizey]}|{box[sizez]}"
+            tlines[10] = "{}|{}|{}".format(lx, ly, lz)
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
@@ -316,18 +380,44 @@ omega = {frequency}*eV
         template = self.td.format(**self.temp_dict)
         return(template)
 
+# class OctSpectrum:
+
+#     NAME = 'inp'
+
+#     spec = """  
+# UnitsOutput = eV_angstrom
+# """  
+
+#     def __init__(self):
+#         pass
+
+#     def format_template(self):        
+#         #template = self.td.format(**self.temp_dict)
+#         template = self.spec
+#         return(templ
+
 class OctSpectrum:
 
     NAME = 'inp'
 
+    default_param ={
+        'e_min' : 0.0,
+        'e_max'  : 30.0,
+        'del_e'  : 0.05
+    }
+
     spec = """  
 UnitsOutput = eV_angstrom
+PropagationSpectrumMinEnergy  =    {e_min}*eV
+PropagationSpectrumMaxEnergy  =    {e_max}*eV
+PropagationSpectrumEnergyStep =    {del_e}*eV
 """  
 
-    def __init__(self):
-        pass
+    def __init__(self, user_input):
+        self.temp_dict = self.default_param       
+        self.temp_dict.update(user_input)
 
     def format_template(self):        
         #template = self.td.format(**self.temp_dict)
-        template = self.spec
+        template = self.spec.format(**self.temp_dict)
         return(template)

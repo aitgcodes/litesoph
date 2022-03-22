@@ -4,7 +4,6 @@ import pathlib
 import re
 from configparser import ConfigParser
 from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
-from litesoph.utilities.job_submit import JobSubmit
 
 config_file = pathlib.Path.home() / "lsconfig.ini"
 if config_file.is_file is False:
@@ -27,7 +26,9 @@ class Task:
 
     """It takes in the user input dictionary as input."""
 
-    def __init__(self, status, project_dir) -> None:
+    bash_filename = 'job_script.sh'
+
+    def __init__(self, status, project_dir:pathlib.Path) -> None:
         
         self.status = status
         self.engine_name = None
@@ -38,8 +39,8 @@ class Task:
         self.task = None
         self.filename = None
         self.template = None
-        self.input_data_files = None
-        self.output_data_file = None
+        self.input_data_files = []
+        self.output_data_file = []
         self.task_state = None
         self.results = None
 
@@ -47,7 +48,7 @@ class Task:
         self.engine_name = engine
         self.engine = get_engine_obj(engine,self.project_dir, self.status)
 
-    def set_task(self, task, user_input: Dict[str, Any], filename=None):
+    def set_task(self, task, user_input: Dict[str, Any]):
         self.task_name = task
         self.user_input = user_input
         self.user_input['project_dir'] = str(self.project_dir)
@@ -56,11 +57,13 @@ class Task:
         except Exception as e:
             raise Exception(e)
 
-        if filename:
-            self.filename = filename
-        else:
-            self.filename = self.task.NAME
+        inp_data = getattr(self.engine, task)
     
+        self.filename = pathlib.Path(f"{self.project_dir.name}/{inp_data['inp']}")
+        for item in inp_data['req']:
+            item = pathlib.Path(self.project_dir.name) / item
+            self.input_data_files.append(item)
+       
     def load_template(self, filename):
         self.file_path = filename
 
@@ -79,8 +82,33 @@ class Task:
         if not self.template:
             msg = 'Template not given or created'
             raise Exception(msg)
-        self.engine.create_script(self.task_dir, self.template, self.filename)
-        self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
+        self.engine.create_script(self.task_dir, self.template, self.filename.name)
+        #self.file_path = pathlib.Path(self.task_dir) / self.engine.filename
+
+    def check_prerequisite(self, network=False) -> bool:
+        """ checks if the input files and required data files for the present task are present"""
+        
+        inupt_file = self.project_dir.parent / self.filename
+        
+        if not pathlib.Path(inupt_file).exists():
+            check = False
+            msg = f"Input file:{inupt_file} not found."
+            raise FileNotFoundError(msg)
+
+        if network:
+            bash_file = self.project_dir / self.bash_filename
+            if not bash_file.exists():
+                msg = f"job_script:{bash_file} not found."
+                raise FileNotFoundError(msg)
+            self.bash_filename = bash_file.relative_to(self.project_dir.parent)
+        
+        for item in self.input_data_files:
+            item = self.project_dir.parent / item
+            if not pathlib.Path(item).exists():
+                msg = f"Data file:{item} not found."
+                raise FileNotFoundError(msg)
+        
+        
 
     # def prepare_input(self,path, filename):
     #     path = pathlib.Path(path)
