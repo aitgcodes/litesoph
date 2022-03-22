@@ -11,6 +11,8 @@ import pathlib
 import subprocess
 import re
 
+from litesoph.simulations.esmd import Task
+
 
 
 def get_submit_class(network=None, **kwargs):
@@ -42,7 +44,7 @@ def get_mpi_command(engine: EngineStrategy, configs: ConfigParser):
 
 class JobSubmit:
     
-    def __init__(self, task , configs: ConfigParser) -> None:
+    def __init__(self, task :Task , configs: ConfigParser) -> None:
         self.task = task
         self.engine = self.task.engine
         self.configs = configs
@@ -53,7 +55,7 @@ class JobSubmit:
     
 class SubmitLocal(JobSubmit):
 
-    def __init__(self, task , configs: ConfigParser, nprocessors:int) -> None:
+    def __init__(self, task: Task , configs: ConfigParser, nprocessors:int) -> None:
         super().__init__(task, configs)
         self.np = nprocessors
         self.command = None
@@ -69,7 +71,7 @@ class SubmitLocal(JobSubmit):
     
     def prepare_input(self, path):
         """this adds in the proper path to the data file required for the job"""
-        filename = self.task.file_path
+        filename = self.task.project_dir.parent / self.task.filename
         path = pathlib.Path(path)
         try:
             self.input_data_files = getattr(self.task.engine, self.task.task_name)
@@ -126,44 +128,39 @@ class SubmitLocal(JobSubmit):
 
 class SubmitNetwork(JobSubmit):
 
-    def __init__(self,task,
+    def __init__(self,task: Task,
                         configs: ConfigParser, 
                         hostname: str,
                         username: str,
                         password: str,
-                        remote_path: str,
-                        upload_files: list) -> None:
+                        remote_path: str) -> None:
 
-        #super().__init__(task, configs)
+        super().__init__(task, configs)
        
         self.remote_path = remote_path
-        self.upload_files = upload_files
-        self.validate_upload_files()
 
         self.network_sub = NetworkJobSubmission(hostname)
         self.network_sub.ssh_connect(username, password)
         self.transfer_files()
     
 
-    def validate_upload_files(self):
-        self.upfiles = []
-        for key, value in self.upload_files.items():
-            if isinstance(value, list):
-                self.upfiles.extend(value)
-            else:
-                self.upfiles.append(value)
-
-        for item in self.upfiles:
-            if not pathlib.Path(item).is_file():
-                raise FileNotFoundError(f"Unable to find {value} ")
-    
     def transfer_files(self):
-        for file in self.upfiles:
-            try:
-                self.network_sub.upload_files(file, self.remote_path)
-                print(f"{file} uploaded to remote path {self.remote_path} of cluster")
-            except Exception as e:
-                raise(e)
+        
+        if self.network_sub.check_file(self.remote_path):
+
+            upload_files = [self.task.filename, self.task.bash_filename]
+            upload_files.extend(self.task.input_data_files)
+
+            for file in upload_files:
+
+                remote_path = pathlib.Path(self.remote_path) / file
+                file = pathlib.Path(self.task.project_dir.parent) / file
+                    
+                try:
+                    self.network_sub.upload_files(file, remote_path)
+                    print(f"{file} uploaded to remote path {remote_path} of cluster")
+                except Exception as e:
+                    raise(e)
 
 
     def run_job(self):
@@ -235,9 +232,10 @@ class NetworkJobSubmission:
        
         self._check_connection()
         sftp = self._client.open_sftp()
-        
+        sftp.chdir('/')
+
         try:
-            for directory in remote_path.parent.parts:
+            for directory in remote_path.parent.relative_to('/').parts:   
                 if directory not in sftp.listdir():
                     sftp.mkdir(directory)
                 sftp.chdir(directory)
