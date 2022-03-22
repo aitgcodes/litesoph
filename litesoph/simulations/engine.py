@@ -131,15 +131,18 @@ class EngineOctopus(EngineStrategy):
 
     NAME = 'octopus'
 
-    ground_state = {'out': '/Octopus/log',
+    ground_state = {'inp':'inp',
+        'out': '/Octopus/log',
         'req' : ['coordinate.xyz'],
         'check_list':['SCF converged']}
 
-    rt_tddft_delta = {'out': '/Octopus/log',
+    rt_tddft_delta = {'inp':'inp',
+            'out': '/Octopus/log',
              'req' : ['coordinate.xyz'],
              'check_list':['Finished writing information', 'Calculation ended']}    
     
-    rt_tddft_laser = {'out': '/Octopus/log',
+    rt_tddft_laser = {'inp':'inp',
+            'out': '/Octopus/log',
              'req' : ['coordinate.xyz']}
 
     def __init__(self,project_dir, status=None) -> None:
@@ -194,11 +197,11 @@ class EngineNwchem(EngineStrategy):
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/NwchemGroundState/gs.nwi',
+    rt_tddft_delta = {'inp':'/NwchemDeltaKick/gs.nwi',
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_laser = {'inp':'/NwchemGroundState/gs.nwi',
+    rt_tddft_laser = {'inp':'/NwchemGaussianPulse/gs.nwi',
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
