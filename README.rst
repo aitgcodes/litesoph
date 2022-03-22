@@ -6,7 +6,7 @@
 Requirements
 ============
 
-  * Python 3.8 or higher
+  * Python 3.7.6 or higher
   * Tkinter
   * click
   * Numpy
@@ -18,7 +18,7 @@ Installation
 
 .. code-block:: console
 
-  $ git clone https://github.com/13sachin/litesoph.git
+  $ git clone https://github.com/LITESOPH/litesoph.git
   $ pip install litesoph
 
 
