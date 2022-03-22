@@ -239,7 +239,10 @@ class NetworkJobSubmission:
                 if directory not in sftp.listdir():
                     sftp.mkdir(directory)
                 sftp.chdir(directory)
-            sftp.put(local_file_path, remote_path.name)  # for the put function to work file name should be added to the remote path
+            if pathlib.Path(local_file_path).suffix:
+                sftp.put(local_file_path, remote_path.name)  # for the put function to work file name should be added to the remote path
+            else:
+                sftp.mkdir(remote_path.name)
         except Exception as e:
             print(e)
             raise Exception(f"Unable to upload the file to the remote server {remote_path}")
