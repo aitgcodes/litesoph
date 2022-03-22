@@ -702,10 +702,10 @@ class GroundStatePage(View_note):
     xc_gp = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
     # xc_nw = ["acm","b3lyp","beckehandh","Hfexch","pbe0","becke88","xpbe96","bhlyp","cam-s12g","cam-s12h","xperdew91","pbeop"]
     xc_nw = ["pbe96","pbe0","b3lyp","pw91", "bp86", "bp91","bhlyp"]
-    oct_lda_x = ["lda_x"]
-    oct_lda_c = ["lda_c_pz_mod"]
-    oct_pbe_x = ["gga_x_pbe","gga_x_pbe_r"]
-    oct_pbe_c = ["gga_c_pbe"]
+    oct_lda_x = ["lda_x","lda_x_rel","lda_x_erf","lda_x_rae"]
+    oct_lda_c = ["lda_c_pz_mod","lda_c_ob_pz","lda_c_pw","lda_c_ob_pw","lda_c_2d_amgb"]
+    oct_pbe_x = ["gga_x_pbe","gga_x_pbe_r","gga_x_b86","gga_x_herman","gga_x_b86_mgc","gga_x_b88","gga_x_pbe_sol"]
+    oct_pbe_c = ["gga_c_pbe","gga_c_tca","gga_c_lyp","gga_c_p86","gga_c_pbe_sol"]
     expt_option = ["yes", "no"]
     oct_expt_yes = ["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_lda","pseudodojo_lda_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_lda", "hscv_pbe"]
     oct_expt_no = ["standard", "hgh_lda_sc","hgh_lda"]
@@ -728,7 +728,7 @@ class GroundStatePage(View_note):
             'oct_xc' : ['str',''],
             'oct_x' : ['str',''],
             'oct_c' : ['str',''],
-            'pseudo' : ['str', ''],
+            'pseudo' : ['str', '--choose option--'],
             'expt' : ['str', '--choose option--'],
             'basis' : ['str', ''],
             'charge': ['int', 0],
@@ -744,11 +744,11 @@ class GroundStatePage(View_note):
             'density' : ['float', 1e-6],
             'bands' : ['str', 'occupied'],
             'tolerances' : ['str','tight'],
-            'lx' : ['float',0],
-            'ly' : ['float',0],
-            'lz' : ['float',0],
-            'r' : ['float',0],
-            'l' : ['float',0],
+            'lx' : ['float',12],
+            'ly' : ['float',12],
+            'lz' : ['float',12],
+            'r' : ['float',6],
+            'l' : ['float',12],
             'dxc' : ['int', 3],
             'mix' : ['float', 0.3],
             'eigen' : ['str','rmmdiis'],
@@ -756,7 +756,7 @@ class GroundStatePage(View_note):
             'ocsmearfn' : ['str','semiconducting'],
             'gpsmearfn' : ['str','fermi-dirac'],
             'unitconv' : ['str'],
-            'unit_box' : ['str','au'],
+            'unit_box' : ['str','angstrom'],
             'theory' : ['str','DFT'],
             'gradient' : ['float', 1.0e-4],
             'eigenstate': ['float', 4e-8],
@@ -971,7 +971,7 @@ class GroundStatePage(View_note):
         self.boxlabel.grid(row=3, column=0, sticky='w', padx=2, pady=4)
         
         
-        unit = ttk.Combobox(self.oct_simb, width=5, textvariable= self._var['unit_box'], value = ["au","angstrom"])
+        unit = ttk.Combobox(self.oct_simb, width=8, textvariable= self._var['unit_box'], value = ["angstrom","au"])
         unit.current(0)
         unit['font'] = myFont
         unit.grid(row=3, column=1, sticky='w', padx=12, pady=2)
@@ -1277,9 +1277,11 @@ class GroundStatePage(View_note):
             if self.expt_combo.get() == "yes":
                 self.cb1.config(value = self.oct_expt_yes)
                 self.cb1.current(0)
+                self.cb1.set("--choose option")
             if self.expt_combo.get() == "no":
                 self.cb1.config(value = self.oct_expt_no)
                 self.cb1.current(0)
+                self.cb1.set("--choose option")
 
         self.expt_combo = ttk.Combobox(oct_frame,width= 10, textvariable= self._var['expt'], value = self.expt_option)
         self.expt_combo['font'] = myFont
