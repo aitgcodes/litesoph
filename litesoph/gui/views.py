@@ -692,7 +692,7 @@ class View_note(tk.Frame):
 class GroundStatePage(View_note):
   
     Mainmode = ["nao","fd","pw","gaussian"]
-    nao_task = ["sz","dz","szp","dzp","pvalence.dz"]
+    nao_task = ["dzp","sz","dz","szp","pvalence.dz"]
     fd_task = [""]
     pw_task = [""]
     gauss_task = ["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"]
@@ -3005,8 +3005,8 @@ class JobSubPage(tk.Frame):
         back['font'] = myFont
         back.place(x=600,y=10)      
 
-    def plot_button(self):
-        self.plot_button1 = tk.Button(self.Frame1, text="Plot",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowSpectrumPlot>>')])
+    def show_output_button(self, txt, name):
+        self.plot_button1 = tk.Button(self.Frame1, text=txt,activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Output{name}>>')])
         self.plot_button1['font'] = self.myfont
         self.plot_button1.place(x=800, y=50)        
 
