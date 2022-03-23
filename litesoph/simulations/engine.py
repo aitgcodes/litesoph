@@ -197,7 +197,7 @@ class EngineNwchem(EngineStrategy):
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    restart = 'nwchem_restart'
+    restart = 'restart'
 
     task_dirs =[('NwchemOptimisation', 'Opt'),
             ('NwchemGroundState', 'GS'),
