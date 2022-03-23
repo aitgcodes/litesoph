@@ -1,23 +1,13 @@
 import configparser
-from logging import raiseExceptions
 import pathlib
 import os
-from configparser import ConfigParser
+from abc import ABC, abstractclassmethod
 from typing import Any, Dict
+
 from litesoph.lsio.IO import write2file 
 from litesoph.simulations.gpaw import gpaw_template as gp
 from litesoph.simulations.nwchem import nwchem_template as nw
 from litesoph.simulations.octopus import octopus_template as  ot
-from abc import ABC, abstractclassmethod
-
-config_file = pathlib.Path.home() / "lsconfig.ini"
-if config_file.is_file is False:
-    raise FileNotFoundError("lsconfig.ini doesn't exists")
-
-configs = configparser.ConfigParser({'python':'/usr/bin/python',
-                                        'nwchem':'nwchem',
-                                        'octopus':'octopus'}, allow_no_value=False)
-configs.read(config_file)
 
 
 class EngineStrategy(ABC):
@@ -83,9 +73,10 @@ class EngineGpaw(EngineStrategy):
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
     
-    def __init__(self,project_dir, status=None) -> None:
+    def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
+        self.lsconfig = lsconfig
 
     def get_task_class(self, task: str, user_param, *_):
         if task == "ground_state":
@@ -117,17 +108,10 @@ class EngineGpaw(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def get_dir_name(self,task):
-        for t_dir in self.task_dirs:
-            if task in t_dir:
-                dir = t_dir[1]
-                break
-        return dir
-
     def create_command(self, cmd: list):
 
         filename = pathlib.Path(self.directory) / self.filename
-        command = configs.get('programs', 'python')
+        command = self.lsconfig.get('programs', 'python')
         command = command + ' ' + str(filename) 
         if cmd:
             command = cmd + ' ' + command
@@ -152,9 +136,10 @@ class EngineOctopus(EngineStrategy):
             'out': '/Octopus/log',
              'req' : ['coordinate.xyz']}
 
-    def __init__(self,project_dir, status=None) -> None:
+    def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
+        self.lsconfig = lsconfig
 
     def get_task_class(self, task: str, user_param):
         if task == "ground_state":
@@ -188,7 +173,7 @@ class EngineOctopus(EngineStrategy):
     def create_command(self, cmd: list):
 
         ofilename = "log"
-        command = configs.get('engine', 'octopus')
+        command = self.lsconfig.get('engine', 'octopus')
         if not command:
             command = 'octopus'
         command = command + ' ' + '>' + ' ' + str(ofilename)
@@ -267,7 +252,7 @@ class EngineNwchem(EngineStrategy):
 
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
-        command = configs.get('engine', 'nwchem')
+        command = self.lsconfig.get('engine', 'nwchem')
         if not command:
             command = 'nwchem'
         command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)

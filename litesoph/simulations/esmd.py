@@ -1,26 +1,20 @@
+from configparser import ConfigParser
 from typing import Any, Dict
 import os
 import pathlib
 import re
-from configparser import ConfigParser
+
 from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
 
-config_file = pathlib.Path.home() / "lsconfig.ini"
-if config_file.is_file is False:
-    raise FileNotFoundError("lsconfig.ini doesn't exists")
-
-configs = ConfigParser()
-configs.read(config_file)
-
-def get_engine_obj(engine, *args)-> EngineStrategy:
+def get_engine_obj(engine, *args, **kwargs)-> EngineStrategy:
     """ It takes engine name and returns coresponding EngineStrategy class"""
 
     if engine == 'gpaw':
-        return EngineGpaw(*args)
+        return EngineGpaw(*args, **kwargs)
     elif engine == 'octopus':
-        return  EngineOctopus(*args)
+        return  EngineOctopus(*args, **kwargs)
     elif engine == 'nwchem':
-        return EngineNwchem(*args)
+        return EngineNwchem(*args, **kwargs)
 
 class Task:
 
@@ -28,9 +22,10 @@ class Task:
 
     bash_filename = 'job_script.sh'
 
-    def __init__(self, status, project_dir:pathlib.Path) -> None:
+    def __init__(self, status, project_dir:pathlib.Path, lsconfig:ConfigParser) -> None:
         
         self.status = status
+        self.lsconfig = lsconfig
         self.engine_name = None
         self.engine = None
         self.project_dir = project_dir
@@ -46,7 +41,7 @@ class Task:
 
     def set_engine(self, engine):
         self.engine_name = engine
-        self.engine = get_engine_obj(engine,self.project_dir, self.status)
+        self.engine = get_engine_obj(engine, project_dir = self.project_dir, lsconfig = self.lsconfig, status=self.status)
 
     def set_task(self, task, user_input: Dict[str, Any]):
         self.task_name = task
