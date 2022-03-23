@@ -18,7 +18,7 @@ from configparser import ConfigParser
 from matplotlib.pyplot import show
 
 #---LITESOPH modules
-from litesoph.config import check_config
+from litesoph.config import check_config, read_config
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.simulations import models as m
 from litesoph.gui import views as v 
@@ -101,6 +101,10 @@ class GUIAPP(tk.Tk):
             self.status_engine.set('')
         else:
             self.status_engine.set(self.engine)
+
+    def _refresh_config(self,*_):
+        """reads and updates the lsconfig object from lsconfig.ini"""
+        self.lsconfig = read_config()
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -125,6 +129,7 @@ class GUIAPP(tk.Tk):
             '<<OpenExistingProject>>' : self._on_open_project,
             '<<SelectTask>>' : self._on_task_select,
             '<<ClickBackButton>>' : self._on_back_button,
+            '<<RefreshConfig>>': self._refresh_config,
             # '<<SaveGroundStateScript>>' : self._on_gs_save_button,
             # '<<ViewGroundStateScript>>' : self._on_gs_view_button,
             # '<<SubGroundState>>' : self._on_gs_run_job_button,
@@ -290,7 +295,7 @@ class GUIAPP(tk.Tk):
         self.ground_state_view = self._frames[v.GroundStatePage]
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
-        self.ground_state_task = Task(self.status, self.directory)
+        self.ground_state_task = Task(self.status, self.directory, self.lsconfig)
 
         self.bind('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
         self.bind('<<ViewGroundStateScript>>', lambda _ : self._on_gs_view_button())
@@ -361,7 +366,7 @@ class GUIAPP(tk.Tk):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
-        self.rt_tddft_delta_task = Task(self.status, self.directory)
+        self.rt_tddft_delta_task = Task(self.status, self.directory, self.lsconfig)
 
         self.bind('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
         self.bind('<<ViewRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_view_button())
@@ -412,7 +417,7 @@ class GUIAPP(tk.Tk):
         self._show_frame(v.LaserDesignPage, self, self.engine)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
         self.rt_tddft_laser_view.engine = self.engine
-        self.rt_tddft_laser_task = Task(self.status, self.directory)
+        self.rt_tddft_laser_task = Task(self.status, self.directory, self.lsconfig)
 
         self.bind('<<SaveRT_TDDFT_LASERScript>>', self._on_td_laser_save_button)
         self.bind('<<ViewRT_TDDFT_LASERScript>>',  self._on_td_laser_view_button)
@@ -485,7 +490,7 @@ class GUIAPP(tk.Tk):
         self._show_frame(v.PlotSpectraPage, self, self.engine)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
-        self.spectra_task = Task(self.status, self.directory)
+        self.spectra_task = Task(self.status, self.directory, self.lsconfig)
         print('_on_spectra_task')
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
         self.bind('<<SubSpectrum>>', self._on_spectra_run_job_button)
