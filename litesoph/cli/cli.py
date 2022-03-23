@@ -1,12 +1,11 @@
 import os
 import pathlib
-from configparser import ConfigParser
 import subprocess
 import click
-
+from litesoph.config import config_file, read_config
 import litesoph 
 
-config_file = pathlib.Path.home() / "lsconfig.ini"
+
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -20,8 +19,8 @@ def cli():
 def gui():
     """Starts the gui."""
 
-    lsconfig = ConfigParser(allow_no_value=False)
-    lsconfig.read(config_file)
+    lsconfig = read_config()
+    
 
     from litesoph.gui.gui import GUIAPP
     app = GUIAPP(lsconfig)
