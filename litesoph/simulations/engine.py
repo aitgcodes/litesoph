@@ -186,15 +186,15 @@ class EngineNwchem(EngineStrategy):
     NAME = 'nwchem'
 
     ground_state = {'inp':'/GS/gs.nwi',
-            'req' : ['coordinate.xyz', 'nwchem_restart'],
+            'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/TD_Delta/gs.nwi',
-            'req' : ['coordinate.xyz', 'nwchem_restart'],
+    rt_tddft_delta = {'inp':'/TD_Delta/td.nwi',
+            'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_laser = {'inp':'/TD_Laser/gs.nwi',
-            'req' : ['coordinate.xyz', 'nwchem_restart'],
+    rt_tddft_laser = {'inp':'/TD_Laser/tdlaser.nwi',
+            'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'restart'
