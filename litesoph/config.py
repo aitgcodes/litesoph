@@ -87,3 +87,13 @@ def check_config(lsconfig: ConfigParser, name):
         #     print("Please set path to vmd in ~/lsconfig.ini")
         # else:
         #     return vmd
+
+def read_config():
+    from configparser import ConfigParser
+
+    if config_file.is_file is False:
+        raise FileNotFoundError("lsconfig.ini doesn't exists")
+
+    lsconfig = ConfigParser(allow_no_value=False)
+    lsconfig.read(config_file)
+    return lsconfig
