@@ -40,6 +40,13 @@ class EngineStrategy(ABC):
         absdir = os.path.abspath(directory)
         if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
             os.makedirs(directory)
+    
+    def get_dir_name(self, task):
+        for t_dir in self.task_dirs:
+            if task in t_dir:
+                dir = t_dir[1]
+                break
+        return dir
 
 
 class EngineGpaw(EngineStrategy):
@@ -193,23 +200,30 @@ class EngineNwchem(EngineStrategy):
 
     NAME = 'nwchem'
 
-    ground_state = {'inp':'/NwchemGroundState/gs.nwi',
+    ground_state = {'inp':'/GS/gs.nwi',
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/NwchemDeltaKick/gs.nwi',
+    rt_tddft_delta = {'inp':'/TD_Delta/gs.nwi',
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_laser = {'inp':'/NwchemGaussianPulse/gs.nwi',
+    rt_tddft_laser = {'inp':'/TD_Laser/gs.nwi',
             'req' : ['coordinate.xyz', 'nwchem_restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'nwchem_restart'
 
-    def __init__(self,project_dir, status=None) -> None:
+    task_dirs =[('NwchemOptimisation', 'Opt'),
+            ('NwchemGroundState', 'GS'),
+            ('NwchemDeltaKick', 'TD_Delta'),
+            ('NwchemGaussianPulse', 'TD_Laser'),
+            ('GpawCalTCM', 'TCM')]
+
+    def __init__(self, project_dir, lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
+        self.lsconfig = lsconfig
         self.restart = pathlib.Path(self.project_dir.name) / self.restart
 
     def get_task_class(self, task: str, user_param):
@@ -236,8 +250,8 @@ class EngineNwchem(EngineStrategy):
         self.create_directory(self.restart)
 
     def create_dir(self, directory, task):
-        #task_dir = self.get_dir_name(task)
-        directory = pathlib.Path(directory) / task
+        task_dir = self.get_dir_name(task)
+        directory = pathlib.Path(directory) / task_dir
         self.create_directory(directory)
         return directory
 
