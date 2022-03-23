@@ -566,7 +566,7 @@ class GUIAPP(tk.Tk):
     def _run_network(self, task):
 
         run_script_path = self.job_sub_page.run_script_path
-        bash_file = pathlib.Path(self.directory) / task.bash_filename 
+        bash_file = pathlib.Path(self.directory) / task.BASH_filename 
         shutil.copy(run_script_path,bash_file)
 
         if not run_script_path:

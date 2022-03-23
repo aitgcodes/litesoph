@@ -20,7 +20,7 @@ class Task:
 
     """It takes in the user input dictionary as input."""
 
-    bash_filename = 'job_script.sh'
+    BASH_filename = 'job_script.sh'
 
     def __init__(self, status, project_dir:pathlib.Path, lsconfig:ConfigParser) -> None:
         
@@ -91,7 +91,7 @@ class Task:
             raise FileNotFoundError(msg)
 
         if network:
-            bash_file = self.project_dir / self.bash_filename
+            bash_file = self.project_dir / self.BASH_filename
             if not bash_file.exists():
                 msg = f"job_script:{bash_file} not found."
                 raise FileNotFoundError(msg)
