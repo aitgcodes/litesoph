@@ -13,6 +13,7 @@ from litesoph.gui import images
 from litesoph.simulations.filehandler import show_message
 from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
 from litesoph.gui.widgets import LabelInput
+from litesoph.gui.visual_parameter import myfont, myfont1, myfont2
 
 class StartPage(tk.Frame):
 
@@ -665,11 +666,16 @@ class View_note(tk.Frame):
         self.Frame2 = tk.Frame(notebook, borderwidth=2, relief='groove')
         self.Frame3 = tk.Frame(notebook, borderwidth=2, relief='groove')
 
+        self.Frame1.grid(row=0, column=0)
+        self.Frame2.grid(row=0, column=0)
+        self.Frame3.grid(row=0, column=0)
+
         notebook.add(self.Frame1, text='General Info')
         notebook.add(self.Frame2, text='Advanced Info')
         notebook.add(self.Frame3, text='SCF Convergence')
 
         self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button.grid(row=10, column=0,columnspan=10, sticky='nswe')
         # layout all of the main containers
         #self.grid_rowconfigure(0, weight=1)
         #self.grid_rowconfigure(0, weight=1)
@@ -687,7 +693,23 @@ class View_note(tk.Frame):
         # btm_frame.grid(row=3, sticky="ew")
         # btm_frame2.grid(row=4, sticky="ew")
         
-        self.frame_button.grid(row=10, column=0,columnspan=10, sticky='nswe')
+        
+
+    def add_jobsub(self):
+        """ Adds Job Sub buttons to View_note"""
+
+        self.frame_run = tk.Frame(self,borderwidth=2, relief='groove')
+        self.frame_run.grid(row=0, column=1, sticky='nsew')
+
+        self.Frame1_Button2 = tk.Button(self.frame_run, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocalGroundState>>'))
+        self.Frame1_Button2['font'] = myfont()
+        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=3)
+        
+        self.Frame1_Button3 = tk.Button(self.frame_run, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetworkGroundState>>'))
+        self.Frame1_Button3['font'] = myfont()
+        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=3)
+        
+          
 
 class GroundStatePage(View_note):
   
@@ -764,11 +786,21 @@ class GroundStatePage(View_note):
             'abseigen'  : ['float',0.0],
             'rlteigen'   : ['float',0.0]
         }
+        self.add_jobsub()
         self._var = var_define(self._default_var)
         self.frame_collection()
         
         #self.test()
- 
+    
+    # def add_jobsub(self):
+    #     self.frame_run = tk.Frame(self)
+    #     self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2, relief='groove')
+    #     self.Frame1_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky='we')
+    #     self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2, relief='groove')
+    #     self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
+    #     self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2, relief='groove')
+    #     self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
+
     def tab1_button_frame(self):
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -776,7 +808,7 @@ class GroundStatePage(View_note):
         #btframe.grid(row=101, column=0,columnspan=5, sticky='nswe')
         self.Frame1_Button1 = tk.Button(self.frame_button, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.Frame1_Button1['font'] = myFont
-        self.Frame1_Button1.grid(row=0, column=1, padx=3, pady=3)
+        self.Frame1_Button1.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
         # self.frame_button.grid_columnconfigure(2, weight=1)
         # self.frame_button.grid_columnconfigure(4, weight=1)
 
@@ -786,19 +818,24 @@ class GroundStatePage(View_note):
         #btframe.grid(row=101, column=0,columnspan=5, sticky='nswe')
         self.Frame1_Button2 = tk.Button(self.frame_button, text="View Input", activebackground="#78d6ff", command=lambda: self.view_button())
         self.Frame1_Button2['font'] = myFont
-        self.Frame1_Button2.grid(row=0, column=2)
+        self.Frame1_Button2.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
         self.Frame1_Button3 = tk.Button(self.frame_button, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.Frame1_Button3['font'] = myFont
-        self.Frame1_Button3.grid(row=0, column=4, padx=3, pady=3)
+        self.Frame1_Button3.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.frame_button,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3)
+        self.label_msg.grid(row=0, column=3, sticky='nsew')
 
-        self.Frame1_Button3 = tk.Button(self.frame_button, text="Run Job", activebackground="#78d6ff", command=lambda: self.run_job_button())
-        self.Frame1_Button3['font'] = myFont
-        self.Frame1_Button3.grid(row=0, column=6, padx=3, pady=3)
+        # sub_job_option = ttk.Combobox(self.frame_button, textvariable = self._var['mode'], values= self.Mainmode)
+        # sub_job_option['font'] = myFont
+        # sub_job_option.grid(row=0, column= 6, sticky='we', padx=2, pady=2)
+        # # sub_job_option.bind("<<ComboboxSelected>>", pick_job_option)
+        # sub_job_option['state'] = 'readonly'
+        # self.Frame1_Button3 = tk.Button(self.frame_button, text="Run Job", activebackground="#78d6ff", command=lambda: self.run_job_button())
+        # self.Frame1_Button3['font'] = myFont
+        # self.Frame1_Button3.grid(row=0, column=6, padx=3, pady=3)
 
     def mode_frame(self,parent):
 
@@ -1699,11 +1736,11 @@ class GroundStatePage(View_note):
         self.entry_pol_x.grid(row=24, column=1, sticky='w', padx=2, pady=2)
 
     def frame_collection(self):
-        self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2, relief='groove')
+        self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2)
         self.Frame1_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky='we')
-        self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2, relief='groove')
+        self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2)
         self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
-        self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2, relief='groove')
+        self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2)
         self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
         self.mode_frame(self.Frame1_sub)
         self.tab1_button_frame()
@@ -1935,9 +1972,9 @@ class GroundStatePage(View_note):
 
 class View1(tk.Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+        #self.controller = controller
         self.parent = parent
         self.job = None
 
@@ -1957,9 +1994,8 @@ class View1(tk.Frame):
         #self.grid_rowconfigure(2, weight=3)
         #self.grid_columnconfigure(8, weight=1)
 
-        self.Frame1.grid(row=1, rowspan=100, column=0,
-                         columnspan=4, sticky='nsew', ipadx=10, ipady=5)
-        self.Frame2.grid(row=1, column=5, columnspan=2, sticky='nsew')
+        self.Frame1.grid(row=1,column=0, columnspan=4, rowspan=100, sticky='nsew')
+        self.Frame2.grid(row=1, column=5, rowspan=100,columnspan=2, sticky='nsew')
         #self.Frame3.grid(row=1, column=9, sticky='nswe')
         #self.Frame2.grid(row=4,  sticky="nsew")
         # btm_frame.grid(row=3, sticky="ew")
@@ -1967,28 +2003,37 @@ class View1(tk.Frame):
         
         self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
 
-    def add_job_frame(self):    
+    def add_job_frame(self, task_name):  
+        """  Adds submit job buttons to View1"""
+
         self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
         self.Frame3.grid(row=1, column=9, sticky='nswe')
         # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
         # View_Button1['font'] = self.myFont
         # View_Button1.grid(row=2, column=1, sticky='nsew')
 
-        Run_Button1 = tk.Button(self.Frame3, text="Run Job",activebackground="#78d6ff", command=lambda: [self.run_job_button()])
-        Run_Button1['font'] = self.myFont
-        Run_Button1.grid(row=1, column=1, sticky='nsew')
+        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.Frame1_Button2['font'] = myfont()
+        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=3)
+        
+        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.Frame1_Button3['font'] = myfont()
+        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=3)
+
+
 
 class TimeDependentPage(View1):
 
     def __init__(self, parent, controller, engine, *args, **kwargs):
-        super().__init__(parent, controller, *args, **kwargs)
-        self.controller = controller
+        super().__init__(parent,*args, **kwargs)
         self.parent = parent
+        self.controller = controller
+        
         self.engine = engine
         self.job = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.add_job_frame()   
+          
         self._default_var = {
             'strength': ['float', 1e-5],
             'ex': ['int', 0],
@@ -2012,6 +2057,12 @@ class TimeDependentPage(View1):
             'Nt': ['int', 2000]
         }
         self._var = var_define(self._default_var)
+
+        self.grid_columnconfigure(9, weight=3)
+        self.grid_rowconfigure(1, weight=2)
+        self.grid_columnconfigure(5, weight=5)
+
+        # self.add_job_frame() 
 
         self.Frame1_label_path = tk.Label(
             self, text="LITESOPH input for Delta Kick", fg='blue')
