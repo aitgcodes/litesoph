@@ -791,15 +791,6 @@ class GroundStatePage(View_note):
         self.frame_collection()
         
         #self.test()
-    
-    # def add_jobsub(self):
-    #     self.frame_run = tk.Frame(self)
-    #     self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2, relief='groove')
-    #     self.Frame1_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky='we')
-    #     self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2, relief='groove')
-    #     self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
-    #     self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2, relief='groove')
-    #     self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
 
     def tab1_button_frame(self):
 
@@ -827,15 +818,6 @@ class GroundStatePage(View_note):
         self.label_msg = tk.Label(self.frame_button,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
-
-        # sub_job_option = ttk.Combobox(self.frame_button, textvariable = self._var['mode'], values= self.Mainmode)
-        # sub_job_option['font'] = myFont
-        # sub_job_option.grid(row=0, column= 6, sticky='we', padx=2, pady=2)
-        # # sub_job_option.bind("<<ComboboxSelected>>", pick_job_option)
-        # sub_job_option['state'] = 'readonly'
-        # self.Frame1_Button3 = tk.Button(self.frame_button, text="Run Job", activebackground="#78d6ff", command=lambda: self.run_job_button())
-        # self.Frame1_Button3['font'] = myFont
-        # self.Frame1_Button3.grid(row=0, column=6, padx=3, pady=3)
 
     def mode_frame(self,parent):
 
@@ -954,33 +936,6 @@ class GroundStatePage(View_note):
         empty_frame.grid_columnconfigure(0, weight=1)
         empty_frame.grid_rowconfigure(1, weight=1)
 
-             
-    # def gp_simbox(self,parent):
-
-    #     gp_simb = tk.Frame(parent)
-    #     gp_simb.grid(row=1, column=0, sticky='w')
-        
-    #     myFont = font.Font(family='Helvetica', size=10, weight='bold')
- 
-    #     self.subheading = tk.Label(gp_simb,text="Simulation Box",fg='blue')
-    #     self.subheading['font'] = myFont
-    #     self.subheading.grid(row=0, column=0, sticky='w')
-     
-    #     self.label_sp = tk.Label(gp_simb,text="Spacing (in Ang)",bg="gray",fg="black")
-    #     self.label_sp['font'] = myFont
-    #     self.label_sp.grid(row=2, column=0, sticky='w', padx=2, pady=4)
-
-    #     self.entry_sp = Decimalentry(gp_simb,textvariable= self._var['h'])  
-    #     self.entry_sp['font'] = myFont
-    #     self.entry_sp.grid(row=2, column=1, sticky='w', padx=8, pady=2)  
-    
-    #     self.Frame2_note = tk.Label(gp_simb,text="Vacuum size (in Ang)",bg="gray",fg="black")
-    #     self.Frame2_note['font'] = myFont
-    #     self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
-       
-    #     self.entry_vac = Decimalentry(gp_simb,textvariable= self._var['vacuum'])
-    #     self.entry_vac['font'] = myFont
-    #     self.entry_vac.grid(row=4, column=1, sticky='w', padx=8, pady=2)
 
     def oct_simbox(self, parent):
         self.oct_simb = tk.Frame(parent)
@@ -2057,13 +2012,7 @@ class TimeDependentPage(View1):
             'Nt': ['int', 2000]
         }
         self._var = var_define(self._default_var)
-
-        self.grid_columnconfigure(9, weight=3)
-        self.grid_rowconfigure(1, weight=2)
-        self.grid_columnconfigure(5, weight=5)
-
-        # self.add_job_frame() 
-
+        
         self.Frame1_label_path = tk.Label(
             self, text="LITESOPH input for Delta Kick", fg='blue')
         self.Frame1_label_path['font'] = myFont
