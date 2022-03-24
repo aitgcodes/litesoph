@@ -132,7 +132,18 @@ PseudopotentialSet = {pseudo}
     
         template = '\n'.join([temp1,temp,temp2])
         return(template)        
+    
+    
+    gs_job_script = """
+        ##### LITESOPH Appended Comands###########
 
+        mpirun -np 4  <Full Path of Octopus>/octopus > log
+        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
+
+        #############################################
+
+    """
+   
     def format_template(self):
         temp1 = self.add_boxshape_template()
         temp2 = self.add_xc_template()
@@ -289,6 +300,15 @@ TDPolarizationDirection = 1
             temp = """\n""".join(tlines)
             return temp
 
+    td_job_script = """
+        ##### LITESOPH Appended Comands###########
+
+        mpirun -np 4  <Full Path of Octopus>/octopus > log
+        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
+
+        #############################################
+   """
+
     def format_template(self):
         self.td = self.format_box() 
         temp = self.format_pol()
@@ -373,7 +393,18 @@ omega = {frequency}*eV
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
+  
+  
+    tdlaser_job_script = """
+        ##### LITESOPH Appended Comands###########
 
+        mpirun -np 4  <Full Path of Octopus>/octopus > log
+        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
+
+        #############################################
+        """
+  
+  
     def format_template(self):
         self.td = self.format_box() 
         #temp = self.format_pol()
@@ -417,6 +448,18 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
         self.temp_dict = self.default_param       
         self.temp_dict.update(user_input)
 
+
+    spectra_job_script = """
+        ##### LITESOPH Appended Comands###########
+
+        mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
+        
+        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum 
+
+        #############################################
+   """   
+   
+   
     def format_template(self):        
         #template = self.td.format(**self.temp_dict)
         template = self.spec.format(**self.temp_dict)

@@ -156,7 +156,16 @@ dft
 end
     """.format(multip,xc,maxiter,tolerances,energy,density)
         return dft
+    
+    gs_job_script = """
+      ##### LITESOPH Appended Comands###########
 
+      cd GS/
+      mpirun -np 4  nwchem gs.nwi > gs.nwo
+
+      #############################################
+
+    """
 
     def calc_task(self):
         if self.user_input['theory'] == 'scf':
@@ -493,7 +502,16 @@ task dft rt_tddft
             self.user_input['kick'] = self.kickxz() 
         if self.user_input['e_pol'] == [1,1,1]:
             self.user_input['kick'] = self.kickxyz()
+    
+    td_job_script = """
+        ##### LITESOPH Appended Comands###########
 
+        cd TD_Delta/
+
+        mpirun -np 4  nwchem td.nwi > td.nwo
+
+        #############################################
+   """
     def format_template(self):
         self.kick_task()
         template = self.delta_temp.format(**self.user_input)
