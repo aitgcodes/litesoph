@@ -3376,14 +3376,14 @@ class View_Text(tk.Frame):
         myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
 
         text_scroll =tk.Scrollbar(self)
-        text_scroll.grid(row=0, column=1, sticky='nsew' )
+        text_scroll.grid(row=0, column=1, sticky='nsew', columnspan=2)
         #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
         #self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
         self.text_view = tk.Text(self, yscrollcommand= text_scroll.set)
         self.text_view['font'] = myFont
-        self.text_view.grid(row=0, column=0, padx=5, pady=5)
-        text_scroll.config(command=self.text_view.yview)        
+        self.text_view.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        text_scroll.config(command=self.text_view.yview)              
     
     def clear_text(self):
         self.text_view.delete("1.0", tk.END)
@@ -3394,3 +3394,24 @@ class View_Text(tk.Frame):
         
         self.text_view.insert(tk.END, text)
         self.text_view.configure(state='disabled')
+
+
+def add_button_to_textview(parent):
+    """ Adds button to textview frame"""
+
+    text_view_button_frame = tk.Frame(parent)
+    # text_view_button_frame.grid(row=r, column=c)
+
+    # view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+    # view['font'] = myFont
+    # view.place(x=100,y=450)
+
+    save_button = tk.Button(text_view_button_frame, text="Save",activebackground="#78d6ff")
+    save_button['font'] = myfont()
+    save_button.grid(row=0, column=0, padx=5)
+        
+    refresh_button = tk.Button(text_view_button_frame, text="Reload", activebackground="#78d6ff")
+    refresh_button['font'] = myfont()
+    refresh_button.grid(row=0,column=1, padx=5)
+
+    return text_view_button_frame
