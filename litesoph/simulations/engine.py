@@ -73,6 +73,13 @@ class EngineGpaw(EngineStrategy):
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
     
+    engine_job_script = """
+            ##### Please Provide the Excutable Path or environment of GPAW 
+ 
+            eval "$(conda shell.bash hook)"
+            conda activate <environment name>
+            """
+
     def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
@@ -204,6 +211,15 @@ class EngineNwchem(EngineStrategy):
             ('NwchemDeltaKick', 'TD_Delta'),
             ('NwchemGaussianPulse', 'TD_Laser'),
             ('GpawCalTCM', 'TCM')]
+    
+    engine_job_script = """
+            ##### Please Provide the Excutable Path or environment of NWCHEM or load the module
+ 
+            #eval "$(conda shell.bash hook)"
+            #conda activate <environment name>
+
+            #module load nwchem
+            """
 
     def __init__(self, project_dir, lsconfig, status=None) -> None:
         self.project_dir = project_dir
