@@ -13,6 +13,7 @@ from litesoph.gui import images
 from litesoph.simulations.filehandler import show_message
 from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
 from litesoph.gui.widgets import LabelInput
+from litesoph.gui.visual_parameter import myfont, myfont1, myfont2
 
 class StartPage(tk.Frame):
 
@@ -665,11 +666,16 @@ class View_note(tk.Frame):
         self.Frame2 = tk.Frame(notebook, borderwidth=2, relief='groove')
         self.Frame3 = tk.Frame(notebook, borderwidth=2, relief='groove')
 
+        self.Frame1.grid(row=0, column=0)
+        self.Frame2.grid(row=0, column=0)
+        self.Frame3.grid(row=0, column=0)
+
         notebook.add(self.Frame1, text='General Info')
         notebook.add(self.Frame2, text='Advanced Info')
         notebook.add(self.Frame3, text='SCF Convergence')
 
         self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button.grid(row=10, column=0,columnspan=10, sticky='nswe')
         # layout all of the main containers
         #self.grid_rowconfigure(0, weight=1)
         #self.grid_rowconfigure(0, weight=1)
@@ -687,7 +693,23 @@ class View_note(tk.Frame):
         # btm_frame.grid(row=3, sticky="ew")
         # btm_frame2.grid(row=4, sticky="ew")
         
-        self.frame_button.grid(row=10, column=0,columnspan=10, sticky='nswe')
+        
+
+    def add_jobsub(self):
+        """ Adds Job Sub buttons to View_note"""
+
+        self.frame_run = tk.Frame(self,borderwidth=2, relief='groove')
+        self.frame_run.grid(row=0, column=1, sticky='nsew')
+
+        self.Frame1_Button2 = tk.Button(self.frame_run, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocalGroundState>>'))
+        self.Frame1_Button2['font'] = myfont()
+        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=3)
+        
+        self.Frame1_Button3 = tk.Button(self.frame_run, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetworkGroundState>>'))
+        self.Frame1_Button3['font'] = myfont()
+        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=3)
+        
+          
 
 class GroundStatePage(View_note):
   
@@ -764,11 +786,12 @@ class GroundStatePage(View_note):
             'abseigen'  : ['float',0.0],
             'rlteigen'   : ['float',0.0]
         }
+        self.add_jobsub()
         self._var = var_define(self._default_var)
         self.frame_collection()
         
         #self.test()
- 
+
     def tab1_button_frame(self):
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -776,7 +799,7 @@ class GroundStatePage(View_note):
         #btframe.grid(row=101, column=0,columnspan=5, sticky='nswe')
         self.Frame1_Button1 = tk.Button(self.frame_button, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.Frame1_Button1['font'] = myFont
-        self.Frame1_Button1.grid(row=0, column=1, padx=3, pady=3)
+        self.Frame1_Button1.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
         # self.frame_button.grid_columnconfigure(2, weight=1)
         # self.frame_button.grid_columnconfigure(4, weight=1)
 
@@ -786,19 +809,15 @@ class GroundStatePage(View_note):
         #btframe.grid(row=101, column=0,columnspan=5, sticky='nswe')
         self.Frame1_Button2 = tk.Button(self.frame_button, text="View Input", activebackground="#78d6ff", command=lambda: self.view_button())
         self.Frame1_Button2['font'] = myFont
-        self.Frame1_Button2.grid(row=0, column=2)
+        self.Frame1_Button2.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
         self.Frame1_Button3 = tk.Button(self.frame_button, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.Frame1_Button3['font'] = myFont
-        self.Frame1_Button3.grid(row=0, column=4, padx=3, pady=3)
+        self.Frame1_Button3.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.frame_button,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3)
-
-        self.Frame1_Button3 = tk.Button(self.frame_button, text="Run Job", activebackground="#78d6ff", command=lambda: self.run_job_button())
-        self.Frame1_Button3['font'] = myFont
-        self.Frame1_Button3.grid(row=0, column=6, padx=3, pady=3)
+        self.label_msg.grid(row=0, column=3, sticky='nsew')
 
     def mode_frame(self,parent):
 
@@ -917,33 +936,6 @@ class GroundStatePage(View_note):
         empty_frame.grid_columnconfigure(0, weight=1)
         empty_frame.grid_rowconfigure(1, weight=1)
 
-             
-    # def gp_simbox(self,parent):
-
-    #     gp_simb = tk.Frame(parent)
-    #     gp_simb.grid(row=1, column=0, sticky='w')
-        
-    #     myFont = font.Font(family='Helvetica', size=10, weight='bold')
- 
-    #     self.subheading = tk.Label(gp_simb,text="Simulation Box",fg='blue')
-    #     self.subheading['font'] = myFont
-    #     self.subheading.grid(row=0, column=0, sticky='w')
-     
-    #     self.label_sp = tk.Label(gp_simb,text="Spacing (in Ang)",bg="gray",fg="black")
-    #     self.label_sp['font'] = myFont
-    #     self.label_sp.grid(row=2, column=0, sticky='w', padx=2, pady=4)
-
-    #     self.entry_sp = Decimalentry(gp_simb,textvariable= self._var['h'])  
-    #     self.entry_sp['font'] = myFont
-    #     self.entry_sp.grid(row=2, column=1, sticky='w', padx=8, pady=2)  
-    
-    #     self.Frame2_note = tk.Label(gp_simb,text="Vacuum size (in Ang)",bg="gray",fg="black")
-    #     self.Frame2_note['font'] = myFont
-    #     self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
-       
-    #     self.entry_vac = Decimalentry(gp_simb,textvariable= self._var['vacuum'])
-    #     self.entry_vac['font'] = myFont
-    #     self.entry_vac.grid(row=4, column=1, sticky='w', padx=8, pady=2)
 
     def oct_simbox(self, parent):
         self.oct_simb = tk.Frame(parent)
@@ -1699,11 +1691,11 @@ class GroundStatePage(View_note):
         self.entry_pol_x.grid(row=24, column=1, sticky='w', padx=2, pady=2)
 
     def frame_collection(self):
-        self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2, relief='groove')
+        self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2)
         self.Frame1_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky='we')
-        self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2, relief='groove')
+        self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2)
         self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
-        self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2, relief='groove')
+        self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2)
         self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
         self.mode_frame(self.Frame1_sub)
         self.tab1_button_frame()
@@ -1935,9 +1927,9 @@ class GroundStatePage(View_note):
 
 class View1(tk.Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+        #self.controller = controller
         self.parent = parent
         self.job = None
 
@@ -1957,9 +1949,8 @@ class View1(tk.Frame):
         #self.grid_rowconfigure(2, weight=3)
         #self.grid_columnconfigure(8, weight=1)
 
-        self.Frame1.grid(row=1, rowspan=100, column=0,
-                         columnspan=4, sticky='nsew', ipadx=10, ipady=5)
-        self.Frame2.grid(row=1, column=5, columnspan=2, sticky='nsew')
+        self.Frame1.grid(row=1,column=0, columnspan=4, rowspan=100, sticky='nsew')
+        self.Frame2.grid(row=1, column=5, rowspan=100,columnspan=2, sticky='nsew')
         #self.Frame3.grid(row=1, column=9, sticky='nswe')
         #self.Frame2.grid(row=4,  sticky="nsew")
         # btm_frame.grid(row=3, sticky="ew")
@@ -1967,28 +1958,37 @@ class View1(tk.Frame):
         
         self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
 
-    def add_job_frame(self):    
+    def add_job_frame(self, task_name):  
+        """  Adds submit job buttons to View1"""
+
         self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
         self.Frame3.grid(row=1, column=9, sticky='nswe')
         # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
         # View_Button1['font'] = self.myFont
         # View_Button1.grid(row=2, column=1, sticky='nsew')
 
-        Run_Button1 = tk.Button(self.Frame3, text="Run Job",activebackground="#78d6ff", command=lambda: [self.run_job_button()])
-        Run_Button1['font'] = self.myFont
-        Run_Button1.grid(row=1, column=1, sticky='nsew')
+        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.Frame1_Button2['font'] = myfont()
+        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=3)
+        
+        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.Frame1_Button3['font'] = myfont()
+        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=3)
+
+
 
 class TimeDependentPage(View1):
 
     def __init__(self, parent, controller, engine, *args, **kwargs):
-        super().__init__(parent, controller, *args, **kwargs)
-        self.controller = controller
+        super().__init__(parent,*args, **kwargs)
         self.parent = parent
+        self.controller = controller
+        
         self.engine = engine
         self.job = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.add_job_frame()   
+          
         self._default_var = {
             'strength': ['float', 1e-5],
             'ex': ['int', 0],
@@ -2012,7 +2012,7 @@ class TimeDependentPage(View1):
             'Nt': ['int', 2000]
         }
         self._var = var_define(self._default_var)
-
+        
         self.Frame1_label_path = tk.Label(
             self, text="LITESOPH input for Delta Kick", fg='blue')
         self.Frame1_label_path['font'] = myFont
@@ -2876,140 +2876,159 @@ class TcmPage(tk.Frame):
         for i in self.listbox.curselection():
             self.tcm.plot(self.tcm_dict, i)  
 
-class JobSubPage(tk.Frame):
+class JobSubPage(View1):
+    """ Creates widgets for JobSub Page"""
 
-    def __init__(self, parent, task, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, parent, task, job_type, *args, **kwargs):
+        super().__init__(parent,*args, **kwargs)
         
+        #self.controller = controller
+        self.parent = parent
         self.task = task
+        self.job_type = job_type
         self.runlocal_np =  None
         self.run_script_path = None
+        
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         j=font.Font(family ='Courier', size=20,weight='bold')
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
-        self.myfont = myFont
-        self.Frame1 = tk.Frame(self)
+
         self.processors = tk.IntVar()
         self.ip = tk.StringVar()
         self.username = tk.StringVar()
         self.password = tk.StringVar()
         self.rpath = tk.StringVar()
-
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.25, relwidth=0.978)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-
-        sbj_label1 = tk.Label(self.Frame1, text="LITESOPH Local Job Submission", fg='blue')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=350,y=10)
-
-        sbj_label1 = tk.Label(self.Frame1, text="Number of processors", bg='gray', fg='black')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=15,y=50)
-
-        sbj_entry1 = tk.Entry(self.Frame1,textvariable= self.processors, width=20)
-        self.processors.set(1)
-        sbj_entry1['font'] = l
-        sbj_entry1.place(x=200,y=50)
+        self.network_job_type = tk.IntVar()
         
-        #sbj_label1 = Label(self.Frame2, text="To submit job through Network, provide details", bg='gray', fg='black')
-        #sbj_label1['font'] = myFont
-        #sbj_label1.place(x=15,y=110)
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.sbj_button1 = tk.Button(self.Frame1, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
-        self.sbj_button1['font'] = myFont
-        self.sbj_button1.place(x=600, y=50)
+        self.sub_job_frame = tk.Frame(self.Frame1)
+        self.sub_job_frame.grid(row=0, column=0, sticky='nsew')
 
-        self.msg_label1 = tk.Label(self.Frame1, text='', fg='blue')
-        self.msg_label1['font'] = myFont
-        self.msg_label1.place(x=700,y=55)
+        view_option_frame = tk.Frame(self.Frame1, borderwidth=2 ,relief='groove')
+        view_option_frame.grid(row=1,column=0, sticky='nsew', pady=15)
+        self.show_job_frame()
 
-        self.Frame2 = tk.Frame(self)
-        self.Frame2.place(relx=0.01, rely=0.26, relheight=0.60, relwidth=0.978)
+        self.Frame_label = tk.Label(self, text="LITESOPH Job Submission", fg='blue')
+        self.Frame_label['font'] = myfont1()
+        self.Frame_label.grid(row=0, column=3)       
+
+        view_btn = tk.Button(view_option_frame, text="View Output",activebackground="#78d6ff",command=lambda:[self.view_outfile(self.task)])
+        view_btn['font'] = myfont()
+        view_btn.grid(row=10, column=1)
+
+        # back2prev = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ClickBackButton>>'))
+        # back2prev['font'] = myfont()
+        # back2prev.grid(row=0, column=0)
+
+        back = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
+        back['font'] = myfont()
+        back.grid(row=0, column=0, padx=40)
+
+    def add_text_view_frame(self):
+        """ Adds text view frame"""
+
+        self.text_view = View_Text(self.Frame2)
+        self.text_view.grid(row=1, column=0, columnspan=2, sticky='nswe')
+
+    def show_job_frame(self):
+        """ Creates Job Sub input widgets"""
+
+        if self.job_type == 'Local':
+            self.show_run_local()
+            self.add_text_view_frame()
+            self.text_view_button_frame = None
+        elif self.job_type == 'Network':
+            self.show_run_network() 
+            self.add_text_view_frame()
+            # self.text_view_button_frame() 
+            self.text_view_button_frame = add_button_to_textview(self.text_view)
+            self.text_view_button_frame.grid(row=1, column=0)  
+
+    def show_run_local(self): 
+        """ Creates Local JobSub input widgets"""       
         
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
-        self.Frame2.configure(cursor="fleur")
+        self.label_np = tk.Label(self.sub_job_frame, text="Number of processors", bg='gray', fg='black')
+        self.label_np['font'] = myfont()
+        self.label_np.grid(row=0, column=0,sticky='nsew', padx=5, pady=5)
 
-        sbj_label1 = tk.Label(self.Frame2, text="LITESOPH Network Job Submission", fg='blue')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=340,y=10)
-        
-        sbj_label1 = tk.Label(self.Frame2, text= "Host IP address", bg='gray', fg='black')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=15,y=50)
+        entry_np = Onlydigits(self.sub_job_frame, textvariable=self.processors)
+        entry_np['font'] = myfont()
+        entry_np.grid(row=0, column=1, ipadx=2, ipady=2)
+
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
+        self.run_button['font'] = myfont()
+        self.run_button.grid(row=1, column=1)
+
+    def show_run_network(self):
+        """ Creates Network JobSub input widgets""" 
+
+        values = {"Cluster": 0, "Remote": 1}
+        for (text, value) in values.items():
+            tk.Radiobutton(self.sub_job_frame, text=text, variable=self.network_job_type, font=myfont2(),
+             justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')
+
+        host_label = tk.Label(self.sub_job_frame, text= "Host IP address", bg='gray', fg='black')
+        host_label['font'] = myfont()
+        host_label.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
  
-        sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.ip, width=20)
-        sbj_entry1['font'] = l
-        sbj_entry1.place(x=200,y=50)
+        host_entry = tk.Entry(self.sub_job_frame,textvariable= self.ip, width=20)
+        host_entry['font'] =myfont()
+        host_entry.grid(row=2, column=1,sticky='nsew', padx=2, pady=4)
 
-        sbj_label1 = tk.Label(self.Frame2, text= "User Name", bg='gray', fg='black')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=15,y=100)
+        user_name_label = tk.Label(self.sub_job_frame, text= "User Name", bg='gray', fg='black')
+        user_name_label['font'] = myfont()
+        user_name_label.grid(row=3,column=0,sticky='nsew', padx=2, pady=4)
 
-        sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.username, width=20)
-        sbj_entry1['font'] = l
-        sbj_entry1.place(x=200,y=100)
+        user_name_entry = tk.Entry(self.sub_job_frame,textvariable= self.username, width=20)
+        user_name_entry['font'] = myfont()
+        user_name_entry.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
  
-        sbj_label1 = tk.Label(self.Frame2, text= "Password", bg='gray', fg='black')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=15,y=150)
+        password_label = tk.Label(self.sub_job_frame, text= "Password", bg='gray', fg='black')
+        password_label['font'] = myfont()
+        password_label.grid(row=4,column=0,sticky='nsew', padx=2, pady=4)
 
-        sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.password, width=20, show = '*')
-        sbj_entry1['font'] = l
-        sbj_entry1.place(x=200,y=150)
+        password_entry = tk.Entry(self.sub_job_frame,textvariable= self.password, width=20, show = '*')
+        password_entry['font'] = myfont()
+        password_entry.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
 
-        sbj_label1 = tk.Label(self.Frame2, text= "Remote Path", bg='gray', fg='black')
-        sbj_label1['font'] = myFont
-        sbj_label1.place(x=15,y=200)
+        remote_path_label = tk.Label(self.sub_job_frame, text= "Remote Path", bg='gray', fg='black')
+        remote_path_label['font'] = myfont()
+        remote_path_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
 
-        sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.rpath, width=20)
-        sbj_entry1['font'] = l
-        sbj_entry1.place(x=200,y=200)
+        remote_path_entry = tk.Entry(self.sub_job_frame,textvariable= self.rpath, width=20)
+        remote_path_entry['font'] = myfont()
+        remote_path_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
       
         #sbj_button2 = Button(self.Frame2, text="Create Job Script",activebackground="#78d6ff")
         #sbj_button2['font'] = myFont
         #sbj_button2.place(x=600, y=60)
          
         #sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command =lambda:[self.open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
-        sbj_button2 = tk.Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command = self.upload_script)
-        sbj_button2['font'] = myFont
-        sbj_button2.place(x=600, y=150)
+        upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.upload_script)
+        upload_button2['font'] = myfont()
+        upload_button2.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
   
-        self.message_label = tk.Label(self.Frame2, text='', foreground='red')
-        self.message_label['font'] = myFont
-        self.message_label.place(x=800,y=155)
+        # self.message_label = tk.Label(self.Frame2, text='', foreground='red')
+        # self.message_label['font'] = myfont()
+        # self.message_label.place(x=800,y=155)
 
-        sbj_button2 = tk.Button(self.Frame2, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
-        sbj_button2['font'] = myFont
-        sbj_button2.place(x=600, y=200)
- 
-        self.Frame3 = tk.Frame(self)
-        self.Frame3.place(relx=0.01, rely=0.86, relheight=0.12, relwidth=0.978)
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
+        self.run_button['font'] = myfont()
+        self.run_button.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
+       
+    # def show_output_button(self, txt, name):
+    #     self.plot_button1 = tk.Button(self.Frame1, text=txt,activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Output{name}>>')])
+    #     self.plot_button1['font'] = self.myfont
+    #     self.plot_button1.place(x=800, y=50)        
 
-        self.Frame3.configure(relief='groove')
-        self.Frame3.configure(borderwidth="2")
-        self.Frame3.configure(relief="groove")
-        self.Frame3.configure(cursor="fleur")
-
-        back2prev = tk.Button(self.Frame3, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ClickBackButton>>'))
-        back2prev['font'] = myFont
-        back2prev.place(x=15,y=10)
-
-        back = tk.Button(self.Frame3, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
-        back['font'] = myFont
-        back.place(x=600,y=10)      
-
-    def show_output_button(self, txt, name):
-        self.plot_button1 = tk.Button(self.Frame1, text=txt,activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Output{name}>>')])
-        self.plot_button1['font'] = self.myfont
-        self.plot_button1.place(x=800, y=50)        
-
+    def view_outfile(self, task_name ):
+        event = '<<View'+task_name+'Outfile>>'
+        print(event)
+        self.event_generate(event)
+        
     def get_processors(self):
         return self.processors.get()
 
@@ -3018,58 +3037,10 @@ class JobSubPage(tk.Frame):
         self.event_generate(event)
 
     def disable_run_button(self):
-        self.sbj_button1.config(state='disabled')
+        self.run_button.config(state='disabled')
 
     def activate_run_button(self):
-        self.sbj_button1.config(state='active')
-
-    #     if self.controller.check is not True:
-    #         from litesoph.utilities.job_submit import get_submit_class
-    #         self.submit = get_submit_class(engine=self.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
-    #         process = self.task.run(self.submit)
-    #     else:
-    #         from litesoph.gui.job_validation import select_job
-    #         job = self.checkjob()
-    #         select_job(self,job, self.controller.status)     
-        
-
-    # def checkjob(self):
-    #     try:
-    #         if type(self.controller.task).__name__ == 'GroundState':
-    #             return('gs')
-    #         if type(self.controller.task).__name__ == 'RT_LCAO_TDDFT':
-    #             return self.controller.task.keyword  
-    #         if type(self.controller.task).__name__ == 'Spectrum':
-    #             return('spec')
-    #         if type(self.controller.task).__name__ == 'TCM':
-    #             return('tcm')
-    #         if type(self.controller.task).__name__ == 'InducedDensity':
-    #             return('indensity')
-    #     except:
-    #         messagebox.showerror(message="Input not created!. Please create input before submitting the job ")
-
-    # def call_run(self,key, value):
-    #     from litesoph.utilities.job_submit import get_submit_class
-    #     self.submit = get_submit_class(engine=self.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
-    #     process = self.task.run(self.submit)
-    #     f = tk.file_check(self.job_d['check_list'], self.controller.directory) 
-    #     f_check = f.check_list(self.job_d['out']) 
-    #     if f_check is True:
-    #         self.controller.status.update_status(key, value) 
-    #         show_message(self.msg_label1,"Job Done")
-    #     else:
-    #         show_message(self.msg_label1, "Error while generating output") 
-            
-   
-    # def run_job(self, key, value1, value2):
-    #     if self.job_d['cal_check'] is False:
-    #         self.call_run(key, value1)  
-    #     else:
-    #         show_message(self.msg_label1, "")
-    #         check_yn = messagebox.askyesno(title="Job is done",message="Do you want to redo the calculation? ")
-    #         if check_yn is True:
-    #             self.controller.status.update_status(key, value2)
-    #             self.call_run(key, value1)
+        self.run_button.config(state='active')
 
     def upload_script(self):
 
@@ -3142,7 +3113,204 @@ class JobSubPage(tk.Frame):
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
+    
 
+# class JobSubPage(tk.Frame):
+
+#     def __init__(self, parent, task, *args, **kwargs):
+#         super().__init__(parent, *args, **kwargs)
+        
+#         self.task = task
+#         self.runlocal_np =  None
+#         self.run_script_path = None
+
+#         myFont = font.Font(family='Helvetica', size=10, weight='bold')
+#         j=font.Font(family ='Courier', size=20,weight='bold')
+#         k=font.Font(family ='Courier', size=40,weight='bold')
+#         l=font.Font(family ='Courier', size=15,weight='bold')
+#         self.myfont = myFont
+#         self.Frame1 = tk.Frame(self)
+#         self.processors = tk.IntVar()
+#         self.ip = tk.StringVar()
+#         self.username = tk.StringVar()
+#         self.password = tk.StringVar()
+#         self.rpath = tk.StringVar()
+
+#         self.Frame1.place(relx=0.01, rely=0.01, relheight=0.25, relwidth=0.978)
+#         self.Frame1.configure(relief='groove')
+#         self.Frame1.configure(borderwidth="2")
+#         self.Frame1.configure(relief="groove")
+#         self.Frame1.configure(cursor="fleur")
+
+#         sbj_label1 = tk.Label(self.Frame1, text="LITESOPH Local Job Submission", fg='blue')
+#         sbj_label1['font'] = myFont
+#         sbj_label1.place(x=350,y=10)
+
+#         sbj_label1 = tk.Label(self.Frame1, text="Number of processors", bg='gray', fg='black')
+#         sbj_label1['font'] = myFont
+#         sbj_label1.place(x=15,y=50)
+
+#         sbj_entry1 = tk.Entry(self.Frame1,textvariable= self.processors, width=20)
+#         self.processors.set(1)
+#         sbj_entry1['font'] = l
+#         sbj_entry1.place(x=200,y=50)
+        
+#         #sbj_label1 = Label(self.Frame2, text="To submit job through Network, provide details", bg='gray', fg='black')
+#         #sbj_label1['font'] = myFont
+#         #sbj_label1.place(x=15,y=110)
+
+#         self.sbj_button1 = tk.Button(self.Frame1, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
+#         self.sbj_button1['font'] = myFont
+#         self.sbj_button1.place(x=600, y=50)
+
+#         self.msg_label1 = tk.Label(self.Frame1, text='', fg='blue')
+#         self.msg_label1['font'] = myFont
+#         self.msg_label1.place(x=700,y=55)
+
+#         self.Frame2 = tk.Frame(self)
+#         self.Frame2.place(relx=0.01, rely=0.26, relheight=0.60, relwidth=0.978)
+        
+#         self.Frame2.configure(relief='groove')
+#         self.Frame2.configure(borderwidth="2")
+#         self.Frame2.configure(relief="groove")
+#         self.Frame2.configure(cursor="fleur")
+
+#         sbj_label1 = tk.Label(self.Frame2, text="LITESOPH Network Job Submission", fg='blue')
+#         sbj_label1['font'] = myFont
+#         sbj_label1.place(x=340,y=10)
+        
+#         sbj_label1 = tk.Label(self.Frame2, text= "Host IP address", bg='gray', fg='black')
+#         sbj_label1['font'] = myFont
+#         sbj_label1.place(x=15,y=50)
+ 
+#         sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.ip, width=20)
+#         sbj_entry1['font'] = l
+#         sbj_entry1.place(x=200,y=50)
+
+#         sbj_label1 = tk.Label(self.Frame2, text= "User Name", bg='gray', fg='black')
+#         sbj_label1['font'] = myFont
+#         sbj_label1.place(x=15,y=100)
+
+#         sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.username, width=20)
+#         sbj_entry1['font'] = l
+#         sbj_entry1.place(x=200,y=100)
+ 
+#         sbj_label1 = tk.Label(self.Frame2, text= "Password", bg='gray', fg='black')
+#         sbj_label1['font'] = myFont
+#         sbj_label1.place(x=15,y=150)
+
+#         sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.password, width=20, show = '*')
+#         sbj_entry1['font'] = l
+#         sbj_entry1.place(x=200,y=150)
+
+#         sbj_label1 = tk.Label(self.Frame2, text= "Remote Path", bg='gray', fg='black')
+#         sbj_label1['font'] = myFont
+#         sbj_label1.place(x=15,y=200)
+
+#         sbj_entry1 = tk.Entry(self.Frame2,textvariable= self.rpath, width=20)
+#         sbj_entry1['font'] = l
+#         sbj_entry1.place(x=200,y=200)
+      
+#         #sbj_button2 = Button(self.Frame2, text="Create Job Script",activebackground="#78d6ff")
+#         #sbj_button2['font'] = myFont
+#         #sbj_button2.place(x=600, y=60)
+         
+#         #sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command =lambda:[self.open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
+#         sbj_button2 = tk.Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command = self.upload_script)
+#         sbj_button2['font'] = myFont
+#         sbj_button2.place(x=600, y=150)
+  
+#         self.message_label = tk.Label(self.Frame2, text='', foreground='red')
+#         self.message_label['font'] = myFont
+#         self.message_label.place(x=800,y=155)
+
+#         sbj_button2 = tk.Button(self.Frame2, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
+#         sbj_button2['font'] = myFont
+#         sbj_button2.place(x=600, y=200)
+ 
+#         self.Frame3 = tk.Frame(self)
+#         self.Frame3.place(relx=0.01, rely=0.86, relheight=0.12, relwidth=0.978)
+
+#         self.Frame3.configure(relief='groove')
+#         self.Frame3.configure(borderwidth="2")
+#         self.Frame3.configure(relief="groove")
+#         self.Frame3.configure(cursor="fleur")
+
+#         back2prev = tk.Button(self.Frame3, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ClickBackButton>>'))
+#         back2prev['font'] = myFont
+#         back2prev.place(x=15,y=10)
+
+#         back = tk.Button(self.Frame3, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
+#         back['font'] = myFont
+#         back.place(x=600,y=10)      
+
+    # def show_output_button(self, txt, name):
+    #     self.plot_button1 = tk.Button(self.Frame1, text=txt,activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Output{name}>>')])
+    #     self.plot_button1['font'] = self.myfont
+    #     self.plot_button1.place(x=800, y=50)        
+
+    # def get_processors(self):
+    #     return self.processors.get()
+
+    # def submitjob_local(self):
+    #     event = '<<Run'+self.task+'Local>>'
+    #     self.event_generate(event)
+
+    # def disable_run_button(self):
+    #     self.sbj_button1.config(state='disabled')
+
+    # def activate_run_button(self):
+    #     self.sbj_button1.config(state='active')
+
+    #     if self.controller.check is not True:
+    #         from litesoph.utilities.job_submit import get_submit_class
+    #         self.submit = get_submit_class(engine=self.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
+    #         process = self.task.run(self.submit)
+    #     else:
+    #         from litesoph.gui.job_validation import select_job
+    #         job = self.checkjob()
+    #         select_job(self,job, self.controller.status)     
+        
+
+    # def checkjob(self):
+    #     try:
+    #         if type(self.controller.task).__name__ == 'GroundState':
+    #             return('gs')
+    #         if type(self.controller.task).__name__ == 'RT_LCAO_TDDFT':
+    #             return self.controller.task.keyword  
+    #         if type(self.controller.task).__name__ == 'Spectrum':
+    #             return('spec')
+    #         if type(self.controller.task).__name__ == 'TCM':
+    #             return('tcm')
+    #         if type(self.controller.task).__name__ == 'InducedDensity':
+    #             return('indensity')
+    #     except:
+    #         messagebox.showerror(message="Input not created!. Please create input before submitting the job ")
+
+    # def call_run(self,key, value):
+    #     from litesoph.utilities.job_submit import get_submit_class
+    #     self.submit = get_submit_class(engine=self.task.engine, configs=self.controller.lsconfig, nprocessors=self.processors.get())
+    #     process = self.task.run(self.submit)
+    #     f = tk.file_check(self.job_d['check_list'], self.controller.directory) 
+    #     f_check = f.check_list(self.job_d['out']) 
+    #     if f_check is True:
+    #         self.controller.status.update_status(key, value) 
+    #         show_message(self.msg_label1,"Job Done")
+    #     else:
+    #         show_message(self.msg_label1, "Error while generating output") 
+            
+   
+    # def run_job(self, key, value1, value2):
+    #     if self.job_d['cal_check'] is False:
+    #         self.call_run(key, value1)  
+    #     else:
+    #         show_message(self.msg_label1, "")
+    #         check_yn = messagebox.askyesno(title="Job is done",message="Do you want to redo the calculation? ")
+    #         if check_yn is True:
+    #             self.controller.status.update_status(key, value2)
+    #             self.call_run(key, value1)
+
+    
 class TextViewerPage(tk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
@@ -3208,14 +3376,14 @@ class View_Text(tk.Frame):
         myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
 
         text_scroll =tk.Scrollbar(self)
-        text_scroll.grid(row=0, column=1, sticky='nsew' )
+        text_scroll.grid(row=0, column=1, sticky='nsew', columnspan=2)
         #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
         #self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
         self.text_view = tk.Text(self, yscrollcommand= text_scroll.set)
         self.text_view['font'] = myFont
-        self.text_view.grid(row=0, column=0, padx=5, pady=5)
-        text_scroll.config(command=self.text_view.yview)        
+        self.text_view.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
+        text_scroll.config(command=self.text_view.yview)              
     
     def clear_text(self):
         self.text_view.delete("1.0", tk.END)
@@ -3226,3 +3394,24 @@ class View_Text(tk.Frame):
         
         self.text_view.insert(tk.END, text)
         self.text_view.configure(state='disabled')
+
+
+def add_button_to_textview(parent):
+    """ Adds button to textview frame"""
+
+    text_view_button_frame = tk.Frame(parent)
+    # text_view_button_frame.grid(row=r, column=c)
+
+    # view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+    # view['font'] = myFont
+    # view.place(x=100,y=450)
+
+    save_button = tk.Button(text_view_button_frame, text="Save",activebackground="#78d6ff")
+    save_button['font'] = myfont()
+    save_button.grid(row=0, column=0, padx=5)
+        
+    refresh_button = tk.Button(text_view_button_frame, text="Reload", activebackground="#78d6ff")
+    refresh_button['font'] = myfont()
+    refresh_button.grid(row=0,column=1, padx=5)
+
+    return text_view_button_frame

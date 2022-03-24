@@ -299,7 +299,8 @@ class GUIAPP(tk.Tk):
 
         self.bind('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
         self.bind('<<ViewGroundStateScript>>', lambda _ : self._on_gs_view_button())
-        self.bind('<<SubGroundState>>',  self._on_gs_run_job_button)
+        self.bind('<<SubLocalGroundState>>',  self._on_gs_run_local_button)
+        self.bind('<<SubNetworkGroundState>>', self._on_gs_run_network_button)
 
     def _on_gs_save_button(self, *_):
         if self._validate_gs_input():
@@ -343,7 +344,7 @@ class GUIAPP(tk.Tk):
             pass  
         self.check = False
 
-    def _on_gs_run_job_button(self, *_):
+    def _on_gs_run_local_button(self, *_):
         try:
             getattr(self.ground_state_task.engine,'directory')           
         except AttributeError:
@@ -351,26 +352,52 @@ class GUIAPP(tk.Tk):
             return
         else:
             self.ground_state_view.refresh_var()
-            self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
+            self.job_sub_page = v.JobSubPage(self._window, 'GroundState', 'Local')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
-            self.job_sub_page.show_output_button('View Output','GroundState')
-            self.job_sub_page.bind('<<OutputGroundState>>', )
+            #self.job_sub_page.show_output_button('View Output','GroundState')
+            #self.job_sub_page.bind('<<OutputGroundState>>', )
             self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
-            self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
+            self.job_sub_page.bind('<<ViewGroundStateOutfile>>', lambda _: self._on_gs_out_view_button())
             #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
+
+    def _on_gs_run_network_button(self, *_):
+        try:
+            getattr(self.ground_state_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(title = 'Error' ,message="Input not saved. Please save the input before job submission")
+            return
+        else:
+            self.ground_state_view.refresh_var()
+            self.job_sub_page = v.JobSubPage(self._window, 'GroundState', 'Network')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+            self.job_sub_page.activate_run_button()
+            #self.job_sub_page.show_output_button('View Output','GroundState')
+            #self.job_sub_page.bind('<<OutputGroundState>>', )
+            #self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
+            self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
+            self.job_sub_page.bind('<<ViewGroundStateOutfile>>', lambda _: self._on_gs_out_view_button())
+
+    def _on_gs_out_view_button(self, *_):
+        if self.job_sub_page.text_view_button_frame is not None:
+            for widget in self.job_sub_page.text_view_button_frame.winfo_children():
+                widget.destroy()
+        # outfile_view = v.View_Text(self.job_sub_page.Frame2)
+        # outfile_view.grid(row=0, column=1, sticky ="nsew")
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
+        self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
         self.rt_tddft_delta_task = Task(self.status, self.directory, self.lsconfig)
 
         self.bind('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
         self.bind('<<ViewRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_view_button())
-        self.bind('<<SubRT_TDDFT_DELTA>>',  self._on_td_run_job_button)
+        self.bind('<<SubLocalRT_TDDFT_DELTA>>',  self._on_td_run_local_button)
+        self.bind('<<SubNetworkRT_TDDFT_DELTA>>',  self._on_td_run_network_button)
 
     def _on_td_save_button(self, *_):
         self._validate_td_input()
@@ -397,19 +424,42 @@ class GUIAPP(tk.Tk):
         self.rt_tddft_delta_view.set_label_msg('saved')
         self.check = False
 
-    def _on_td_run_job_button(self, *_):
+    def _on_td_run_local_button(self, *_):
         try:
             getattr(self.rt_tddft_delta_task.engine,'directory')           
         except AttributeError:
             messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
             return
         else:
-            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
+            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Local')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.activate_run_button()
             
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<ViewRT_TDDFT_DELTAOutfile>>', lambda _: self._on_rt_tddft_delta_out_view_button())
+            
+
+    def _on_td_run_network_button(self, *_):
+        try:
+            getattr(self.rt_tddft_delta_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
+            return
+        else:
+            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Network')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+            self.job_sub_page.activate_run_button()
+            
+            #self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<ViewRT_TDDFT_DELTAOutfile>>', lambda _: self._on_rt_tddft_delta_out_view_button())
+
+    def _on_rt_tddft_delta_out_view_button(self):
+        if self.job_sub_page.text_view_button_frame is not None:
+            for widget in self.job_sub_page.text_view_button_frame.winfo_children():
+                widget.destroy()
+        # outfile_view = v.View_Text(self.job_sub_page.Frame2)
+        # outfile_view.grid(row=0, column=0, sticky ="nsew")
 
 ##----------------------Time_dependent_task_laser---------------------------------
 
