@@ -85,11 +85,24 @@ calc.write('gs.gpw', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_param
         self.user_input.update(user_input)
-
+   
     def format_template(self):
         template = self.gs_template.format(**self.user_input)
         return template
-     
+    
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd GS/
+mpirun -np 4  python3 gs.py
+
+#############################################
+
+    """
+        return job_script
+
 class GpawRTLCAOTddftDelta:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
@@ -169,6 +182,19 @@ td_calc.write('{td_gpw}', mode='all')
             #return template
         
         return template
+
+    @staticmethod
+    def get_network_job_cmd():
+
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd TD_Delta/
+mpirun -np 4  python3 td.py
+
+#############################################
+   """
+        return job_script
        
 class GpawRTLCAOTddftLaser:
     """This class contains the template  for creating gpaw 
@@ -272,6 +298,19 @@ td_calc.write('{td_gpw}', mode='all')
            template = self.external_field_template.format(**self.user_input)
            return template 
 
+    @staticmethod
+    def get_network_job_cmd():
+
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd TD_Laser/
+mpirun -np 4  python3 tdlaser.py
+
+#############################################
+        """
+        return job_script
+
 
 class GpawSpectrum:
 
@@ -293,7 +332,7 @@ class GpawSpectrum:
 from gpaw.tddft.spectrum import photoabsorption_spectrum
 photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}', width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
 """
-    
+  
     def __init__(self, input_para: dict) -> None:
         self.dict = self.default_input
         self.dict.update(input_para)
@@ -301,6 +340,19 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
     def format_template(self):
         template = self.dm2spec.format(**self.dict)
         return template
+
+    @staticmethod
+    def get_network_job_cmd():
+
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd Spectrum/
+mpirun -np 4  python3 spec.py
+
+#############################################
+   """  
+        return job_script
 
 
 class GpawCalTCM:

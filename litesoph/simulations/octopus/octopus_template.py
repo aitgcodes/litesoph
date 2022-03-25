@@ -132,7 +132,7 @@ PseudopotentialSet = {pseudo}
     
         template = '\n'.join([temp1,temp,temp2])
         return(template)        
-
+   
     def format_template(self):
         temp1 = self.add_boxshape_template()
         temp2 = self.add_xc_template()
@@ -141,6 +141,18 @@ PseudopotentialSet = {pseudo}
         # print(template)
         return(template)
 
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+cd Octopus/
+mpirun -np 4  <Full Path of Octopus>/octopus > log
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
+
+#############################################
+
+    """
+        return job_script
     # def format_template(self):
     #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
     #         template = self.gs_min.format(**self.temp_dict)
@@ -288,6 +300,18 @@ TDPolarizationDirection = 1
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
+    
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+cd Octopus/
+mpirun -np 4  <Full Path of Octopus>/octopus > log
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
+
+#############################################
+   """
+        return job_script
 
     def format_template(self):
         self.td = self.format_box() 
@@ -373,7 +397,20 @@ omega = {frequency}*eV
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
+    
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+cd Octopus/
+mpirun -np 4  <Full Path of Octopus>/octopus > log
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
 
+#############################################
+        """
+        return job_script
+  
+  
     def format_template(self):
         self.td = self.format_box() 
         #temp = self.format_pol()
@@ -417,6 +454,18 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
         self.temp_dict = self.default_param       
         self.temp_dict.update(user_input)
 
+
+    spectra_job_script = """
+        ##### LITESOPH Appended Comands###########
+
+        mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
+        
+        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum 
+
+        #############################################
+   """   
+   
+   
     def format_template(self):        
         #template = self.td.format(**self.temp_dict)
         template = self.spec.format(**self.temp_dict)

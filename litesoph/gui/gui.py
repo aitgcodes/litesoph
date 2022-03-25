@@ -18,7 +18,7 @@ from configparser import ConfigParser
 from matplotlib.pyplot import show
 
 #---LITESOPH modules
-from litesoph.config import check_config
+from litesoph.config import check_config, read_config
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.simulations import models as m
 from litesoph.gui import views as v 
@@ -101,6 +101,10 @@ class GUIAPP(tk.Tk):
             self.status_engine.set('')
         else:
             self.status_engine.set(self.engine)
+
+    def _refresh_config(self,*_):
+        """reads and updates the lsconfig object from lsconfig.ini"""
+        self.lsconfig = read_config()
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -125,6 +129,7 @@ class GUIAPP(tk.Tk):
             '<<OpenExistingProject>>' : self._on_open_project,
             '<<SelectTask>>' : self._on_task_select,
             '<<ClickBackButton>>' : self._on_back_button,
+            '<<RefreshConfig>>': self._refresh_config,
             # '<<SaveGroundStateScript>>' : self._on_gs_save_button,
             # '<<ViewGroundStateScript>>' : self._on_gs_view_button,
             # '<<SubGroundState>>' : self._on_gs_run_job_button,
@@ -283,6 +288,16 @@ class GUIAPP(tk.Tk):
     #     elif sub_task.get() == "Kohn Sham Decomposition":
     #            self.event_generate('<<ShowTcmPage>>')    
 
+
+    @staticmethod
+    def _check_task_run_condition(task, network=False) -> bool:
+        try:
+           task.check_prerequisite(network)           
+        except FileNotFoundError as e:
+            messagebox.showerror(title = 'Error' ,message=f"Input not saved. Please save the input before job submission \n {e}")
+            return False
+        else:
+            return True
 ##----------------------Ground_State_task---------------------------------
 
     def _on_ground_state_task(self, *_):
@@ -290,11 +305,12 @@ class GUIAPP(tk.Tk):
         self.ground_state_view = self._frames[v.GroundStatePage]
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
-        self.ground_state_task = Task(self.status, self.directory)
+        self.ground_state_task = Task(self.status, self.directory, self.lsconfig)
 
         self.bind('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
         self.bind('<<ViewGroundStateScript>>', lambda _ : self._on_gs_view_button())
-        self.bind('<<SubGroundState>>',  self._on_gs_run_job_button)
+        self.bind('<<SubLocalGroundState>>',  self._on_gs_run_local_button)
+        self.bind('<<SubNetworkGroundState>>', self._on_gs_run_network_button)
 
     def _on_gs_save_button(self, *_):
         if self._validate_gs_input():
@@ -338,34 +354,62 @@ class GUIAPP(tk.Tk):
             pass  
         self.check = False
 
-    def _on_gs_run_job_button(self, *_):
-        try:
-            getattr(self.ground_state_task.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(title = 'Error' ,message="Input not saved. Please save the input before job submission")
+    def _on_gs_run_local_button(self, *_):
+        
+        if not self._check_task_run_condition(self.ground_state_task):
             return
-        else:
-            self.ground_state_view.refresh_var()
-            self.job_sub_page = v.JobSubPage(self._window, 'GroundState')
-            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.activate_run_button()
-            self.job_sub_page.show_output_button('View Output','GroundState')
-            self.job_sub_page.bind('<<OutputGroundState>>', )
-            self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
-            self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
-            #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
+
+        self.ground_state_view.refresh_var()
+        self.job_sub_page = v.JobSubPage(self._window, 'GroundState', 'Local')
+        self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+        self.job_sub_page.activate_run_button()
+        self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
+        self.job_sub_page.bind('<<ViewGroundStateOutfile>>', lambda _: self._on_gs_out_view_button())
+        #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
+
+    def _on_gs_run_network_button(self, *_):
+
+        if not self._check_task_run_condition(self.ground_state_task):
+            return
+
+        self.ground_state_view.refresh_var()
+        self.job_sub_page = v.JobSubPage(self._window, 'GroundState', 'Network')
+        self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+        self.job_sub_page.activate_run_button()
+        self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
+        self.job_sub_page.bind('<<ViewGroundStateOutfile>>', lambda _: self._on_gs_out_view_button())
+        self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_gs_save_remote_job_script())
+        self.job_sub_page.bind('<<CreateGroundStateRemoteScript>>', self._on_gs_create_remote_job_script)
+
+    def _on_gs_create_remote_job_script(self, *_):
+        b_file = self.ground_state_task.create_remote_job_script()
+        self.job_sub_page.text_view.set_event_name('GroundStateNetwork')
+        self.job_sub_page.text_view.insert_text(b_file, 'normal')
+       
+    def _on_gs_save_remote_job_script(self, *_):
+        txt = self.job_sub_page.text_view.get_text()
+        self.ground_state_task.write_remote_job_script(txt)
+        
+    def _on_gs_out_view_button(self, *_):
+        if self.job_sub_page.text_view_button_frame is not None:
+            for widget in self.job_sub_page.text_view_button_frame.winfo_children():
+                widget.destroy()
+        # outfile_view = v.View_Text(self.job_sub_page.Frame2)
+        # outfile_view.grid(row=0, column=1, sticky ="nsew")
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
+        self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
-        self.rt_tddft_delta_task = Task(self.status, self.directory)
+        self.rt_tddft_delta_task = Task(self.status, self.directory, self.lsconfig)
 
         self.bind('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
         self.bind('<<ViewRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_view_button())
-        self.bind('<<SubRT_TDDFT_DELTA>>',  self._on_td_run_job_button)
+        self.bind('<<SubLocalRT_TDDFT_DELTA>>',  self._on_td_run_local_button)
+        self.bind('<<SubNetworkRT_TDDFT_DELTA>>',  self._on_td_run_network_button)
 
     def _on_td_save_button(self, *_):
         self._validate_td_input()
@@ -392,19 +436,44 @@ class GUIAPP(tk.Tk):
         self.rt_tddft_delta_view.set_label_msg('saved')
         self.check = False
 
-    def _on_td_run_job_button(self, *_):
-        try:
-            getattr(self.rt_tddft_delta_task.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
+    def _on_td_run_local_button(self, *_):
+
+        if not self._check_task_run_condition(self.rt_tddft_delta_task):
             return
-        else:
-            self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA')
-            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.activate_run_button()
-            
-            self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+        self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Local')
+        self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+        self.job_sub_page.activate_run_button()
+        
+        self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
+        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTAOutfile>>', lambda _: self._on_rt_tddft_delta_out_view_button())
+        
+
+    def _on_td_run_network_button(self, *_):
+        if not self._check_task_run_condition(self.rt_tddft_delta_task):
+            return
+        self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Network')
+        self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+        self.job_sub_page.activate_run_button()
+        self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTAOutfile>>', lambda _: self._on_rt_tddft_delta_out_view_button())
+        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_td_save_remote_job_script())
+        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', self._on_td_create_remote_job_script)
+
+    def _on_td_create_remote_job_script(self, *_):
+        b_file = self.rt_tddft_delta_task.create_remote_job_script()
+        self.job_sub_page.text_view.set_event_name('RT_TDDFT_DELTANetwork')
+        self.job_sub_page.text_view.insert_text(b_file, 'normal')
+       
+    def _on_td_save_remote_job_script(self, *_):
+        txt = self.job_sub_page.text_view.get_text()
+        self.rt_tddft_delta_task.write_remote_job_script(txt)
+
+    def _on_rt_tddft_delta_out_view_button(self):
+        if self.job_sub_page.text_view_button_frame is not None:
+            for widget in self.job_sub_page.text_view_button_frame.winfo_children():
+                widget.destroy()
+        # outfile_view = v.View_Text(self.job_sub_page.Frame2)
+        # outfile_view.grid(row=0, column=0, sticky ="nsew")
 
 ##----------------------Time_dependent_task_laser---------------------------------
 
@@ -412,7 +481,7 @@ class GUIAPP(tk.Tk):
         self._show_frame(v.LaserDesignPage, self, self.engine)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
         self.rt_tddft_laser_view.engine = self.engine
-        self.rt_tddft_laser_task = Task(self.status, self.directory)
+        self.rt_tddft_laser_task = Task(self.status, self.directory, self.lsconfig)
 
         self.bind('<<SaveRT_TDDFT_LASERScript>>', self._on_td_laser_save_button)
         self.bind('<<ViewRT_TDDFT_LASERScript>>',  self._on_td_laser_view_button)
@@ -485,7 +554,7 @@ class GUIAPP(tk.Tk):
         self._show_frame(v.PlotSpectraPage, self, self.engine)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
-        self.spectra_task = Task(self.status, self.directory)
+        self.spectra_task = Task(self.status, self.directory, self.lsconfig)
         print('_on_spectra_task')
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
         self.bind('<<SubSpectrum>>', self._on_spectra_run_job_button)
@@ -535,7 +604,7 @@ class GUIAPP(tk.Tk):
         np = self.job_sub_page.get_processors()
         self.job_sub_page.disable_run_button()
         #task.prepare_input(self.directory, task.file_path)
-        submitlocal = SubmitLocal(task, self.lsconfig, np)
+        submitlocal = SubmitLocal(task, np)
         try:
             submitlocal.prepare_input(self.directory)
         except FileNotFoundError as e:
@@ -560,33 +629,28 @@ class GUIAPP(tk.Tk):
         
     def _run_network(self, task):
 
-        run_script_path = self.job_sub_page.run_script_path
-        bash_file = pathlib.Path(self.directory) / task.bash_filename 
-        shutil.copy(run_script_path,bash_file)
-
-        if not run_script_path:
-            messagebox.showerror(title = "Error", message = "Please upload job script")
-            return
-
         try:
             task.check_prerequisite(network = True)
         except FileNotFoundError as e:
             messagebox.showerror(title = "Error", message = e)
             return
 
+        network_type = self.job_sub_page.network_job_type.get()
+        
         login_dict = self.job_sub_page.get_network_dict()
         
         from litesoph.utilities.job_submit import SubmitNetwork
 
         submit_network = SubmitNetwork(task, 
-                                        self.lsconfig,
                                         hostname=login_dict['ip'],
                                         username=login_dict['username'],
                                         password=login_dict['password'],
                                         remote_path=login_dict['remote_path'],
                                         )
-
-        submit_network.run_job()
+        if network_type== 0:
+            submit_network.run_job('qsub')
+        elif network_type == 1:
+            submit_network.run_job('bash')
 
     def _load_settings(self):
         """Load settings into our self.settings dict"""
