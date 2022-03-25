@@ -132,17 +132,6 @@ PseudopotentialSet = {pseudo}
     
         template = '\n'.join([temp1,temp,temp2])
         return(template)        
-    
-    
-    gs_job_script = """
-        ##### LITESOPH Appended Comands###########
-
-        mpirun -np 4  <Full Path of Octopus>/octopus > log
-        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-        #############################################
-
-    """
    
     def format_template(self):
         temp1 = self.add_boxshape_template()
@@ -152,6 +141,18 @@ PseudopotentialSet = {pseudo}
         # print(template)
         return(template)
 
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+cd Octopus/
+mpirun -np 4  <Full Path of Octopus>/octopus > log
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
+
+#############################################
+
+    """
+        return job_script
     # def format_template(self):
     #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
     #         template = self.gs_min.format(**self.temp_dict)
@@ -299,15 +300,18 @@ TDPolarizationDirection = 1
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
+    
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+cd Octopus/
+mpirun -np 4  <Full Path of Octopus>/octopus > log
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
 
-    td_job_script = """
-        ##### LITESOPH Appended Comands###########
-
-        mpirun -np 4  <Full Path of Octopus>/octopus > log
-        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-        #############################################
+#############################################
    """
+        return job_script
 
     def format_template(self):
         self.td = self.format_box() 
@@ -393,16 +397,18 @@ omega = {frequency}*eV
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
-  
-  
-    tdlaser_job_script = """
-        ##### LITESOPH Appended Comands###########
+    
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+cd Octopus/
+mpirun -np 4  <Full Path of Octopus>/octopus > log
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
 
-        mpirun -np 4  <Full Path of Octopus>/octopus > log
-        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-        #############################################
+#############################################
         """
+        return job_script
   
   
     def format_template(self):
