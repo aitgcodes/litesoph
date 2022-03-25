@@ -85,33 +85,24 @@ calc.write('gs.gpw', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_param
         self.user_input.update(user_input)
-    
-    head_job_script = """
-        #!/bin/bash
-        #PBS -N gs-n-test
-        #PBS -o output.txt
-        #PBS -e error.txt
-        #PBS -l select=1:ncpus=4:mpiprocs=4
-        #PBS -q debug
-        #PBS -l walltime=00:30:00
-        #PBS -V
-        cd $PBS_O_WORKDIR
-   """
-    
-    gs_job_script = """
-        ##### LITESOPH Appended Comands###########
-
-        cd GS/
-        mpirun -np 4  python3 gs.py
-
-        #############################################
-
-    """
    
     def format_template(self):
         template = self.gs_template.format(**self.user_input)
         return template
-     
+    
+    @staticmethod
+    def get_network_job_cmd():
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd GS/
+mpirun -np 4  python3 gs.py
+
+#############################################
+
+    """
+        return job_script
+
 class GpawRTLCAOTddftDelta:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
@@ -158,15 +149,7 @@ td_calc.propagate{propagate}
 # Save the state for restarting later"
 td_calc.write('{td_gpw}', mode='all')
     """
-    
-    td_job_script = """
-        ##### LITESOPH Appended Comands###########
 
-        cd TD_Delta/
-        mpirun -np 4  python3 td.py
-
-        #############################################
-   """
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
@@ -199,6 +182,19 @@ td_calc.write('{td_gpw}', mode='all')
             #return template
         
         return template
+
+    @staticmethod
+    def get_network_job_cmd():
+
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd TD_Delta/
+mpirun -np 4  python3 td.py
+
+#############################################
+   """
+        return job_script
        
 class GpawRTLCAOTddftLaser:
     """This class contains the template  for creating gpaw 
@@ -249,15 +245,6 @@ td_calc.propagate{propagate}
 # Save the state for restarting later"
 td_calc.write('{td_gpw}', mode='all')
     """
-    
-    tdlaser_job_script = """
-        ##### LITESOPH Appended Comands###########
-
-        cd TD_Laser/
-        mpirun -np 4  python3 tdlaser.py
-
-        #############################################
-        """
 
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
@@ -311,6 +298,19 @@ td_calc.write('{td_gpw}', mode='all')
            template = self.external_field_template.format(**self.user_input)
            return template 
 
+    @staticmethod
+    def get_network_job_cmd():
+
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd TD_Laser/
+mpirun -np 4  python3 tdlaser.py
+
+#############################################
+        """
+        return job_script
+
 
 class GpawSpectrum:
 
@@ -332,16 +332,6 @@ class GpawSpectrum:
 from gpaw.tddft.spectrum import photoabsorption_spectrum
 photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}', width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
 """
- 
- 
-    spectra_job_script = """
-        ##### LITESOPH Appended Comands###########
-
-        cd Spectrum/
-        mpirun -np 4  python3 spec.py
-
-        #############################################
-   """   
   
     def __init__(self, input_para: dict) -> None:
         self.dict = self.default_input
@@ -350,6 +340,19 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
     def format_template(self):
         template = self.dm2spec.format(**self.dict)
         return template
+
+    @staticmethod
+    def get_network_job_cmd():
+
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd Spectrum/
+mpirun -np 4  python3 spec.py
+
+#############################################
+   """  
+        return job_script
 
 
 class GpawCalTCM:
