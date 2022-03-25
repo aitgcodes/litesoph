@@ -126,6 +126,12 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('quit'), compound=tk.LEFT
     )
 
+  def _add_refresh_config(self, menu):
+    menu.add_command(
+      label='Refresh Config', command=self._event('<<RefreshConfig>>'),
+      #image=self.icons.get('quit'), compound=tk.LEFT
+    )
+
 
   def _add_about(self, menu):
     menu.add_command(
@@ -158,7 +164,7 @@ class GenericMainMenu(tk.Menu):
 
     # switch from recordlist to recordform
     self._menus['Go'] = tk.Menu(self, tearoff=False, **self.styles)
-    
+    self._add_refresh_config(self._menus['Go'])
 
     # The help menu
     self._menus['Help'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -244,7 +250,7 @@ class LinuxMainMenu(GenericMainMenu):
 
     # switch from recordlist to recordform
     self._menus['Go'] = tk.Menu(self, tearoff=False, **self.styles)
-    
+    self._add_refresh_config(self._menus['Go'])
 
     # The help menu
     self._menus['Help'] = tk.Menu(self, tearoff=False, **self.styles)
