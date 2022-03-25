@@ -156,7 +156,8 @@ dft
 end
     """.format(multip,xc,maxiter,tolerances,energy,density)
         return dft
-
+    
+    
 
     def calc_task(self):
         if self.user_input['theory'] == 'scf':
@@ -169,6 +170,21 @@ end
     def format_template(self):
         template = self.gs_temp.format(**self.user_input)
         return template
+
+    @staticmethod
+    def get_network_job_cmd():
+
+      job_script = """
+##### LITESOPH Appended Comands###########
+
+cd GS/
+mpirun -np 4  nwchem gs.nwi > gs.nwo
+
+#############################################
+
+    """
+      return job_script
+
 
 
 
@@ -493,11 +509,27 @@ task dft rt_tddft
             self.user_input['kick'] = self.kickxz() 
         if self.user_input['e_pol'] == [1,1,1]:
             self.user_input['kick'] = self.kickxyz()
-
+    
     def format_template(self):
         self.kick_task()
         template = self.delta_temp.format(**self.user_input)
         return template
+
+    @staticmethod
+    def get_network_job_cmd():
+
+      job_script = """
+##### LITESOPH Appended Comands###########
+
+cd TD_Delta/
+
+mpirun -np 4  nwchem td.nwi > td.nwo
+
+#############################################
+
+    """
+      return job_script
+
 
 #################################### Starting of Gaussian Pulse default and template ################
 
