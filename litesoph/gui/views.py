@@ -2974,10 +2974,9 @@ class JobSubPage(View1):
         elif self.job_type == 'Network':
             self.show_run_network() 
             self.add_text_view_frame()
-            # self.text_view_button_frame() 
-            self.text_view_button_frame = add_button_to_textview(self.text_view)
-            self.text_view_button_frame.grid(row=1, column=0) 
-            #self.text_view_button_frame.bind('<<print>>', lambda _ :self.event_generate('<<PrintNow>>'))
+            self.text_view.add_button_to_textview() 
+            # self.text_view_button_frame = add_button_to_textview(self.text_view, self.task+self.job_type)
+            # self.text_view_button_frame.grid(row=1, column=0)  
 
     def show_run_local(self): 
         """ Creates Local JobSub input widgets"""       
@@ -2997,7 +2996,7 @@ class JobSubPage(View1):
     def show_run_network(self):
         """ Creates Network JobSub input widgets""" 
 
-        values = {"Cluster": 0, "Remote": 1}
+        values = {"Cluster": 0, "WorkStation": 1}
         for (text, value) in values.items():
             tk.Radiobutton(self.sub_job_frame, text=text, variable=self.network_job_type, font=myfont2(),
              justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')
@@ -3039,7 +3038,7 @@ class JobSubPage(View1):
         #sbj_button2.place(x=600, y=60)
          
         #sbj_button2 = Button(self.Frame2, text="Upload Job Script",activebackground="#78d6ff",command =lambda:[self.open_file(self.controller.directory),show_message(self.message_label,"Uploaded")])
-        upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.upload_script)
+        upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
         upload_button2['font'] = myfont()
         upload_button2.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
   
@@ -3073,6 +3072,10 @@ class JobSubPage(View1):
 
     def activate_run_button(self):
         self.run_button.config(state='active')
+
+    def create_job_script(self):
+        event = '<<Create'+self.task+'RemoteScript>>'
+        self.event_generate(event)
 
     def upload_script(self):
 
@@ -3420,30 +3423,40 @@ class View_Text(tk.Frame):
     def clear_text(self):
         self.text_view.delete("1.0", tk.END)
 
-    def insert_text(self, text):
+    def insert_text(self, text, state):
         self.text_view.configure(state='normal')
         self.clear_text()
         
         self.text_view.insert(tk.END, text)
-        self.text_view.configure(state='disabled')
+        self.text_view.configure(state=state)
+    
+    def get_text(self):
+        txt = self.text_view.get(1.0, tk.END)
+        return txt
 
+    def set_event_name(self, name):
+        self.event_name = name
 
-def add_button_to_textview(parent):
-    """ Adds button to textview frame"""
+    def save(self):
+        event = "<<Save"+ self.event_name + ">>"
+        self.event_generate(event)
+       
 
-    text_view_button_frame = tk.Frame(parent)
-    # text_view_button_frame.grid(row=r, column=c)
+    def add_button_to_textview(self):
+        """ Adds button to textview frame"""
 
-    # view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
-    # view['font'] = myFont
-    # view.place(x=100,y=450)
+        text_view_button_frame = tk.Frame(self)
+        text_view_button_frame.grid(row=1, column=0)
 
-    save_button = tk.Button(text_view_button_frame, text="Save",activebackground="#78d6ff")
-    save_button['font'] = myfont()
-    save_button.grid(row=0, column=0, padx=5)
+        # view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
+        # view['font'] = myFont
+        # view.place(x=100,y=450)
+        save_button = tk.Button(text_view_button_frame, text="Save",activebackground="#78d6ff", command= lambda:self.save())
+        save_button['font'] = myfont()
+        save_button.grid(row=1, column=0, padx=5)
         
-    refresh_button = tk.Button(text_view_button_frame, text="Reload", activebackground="#78d6ff")
-    refresh_button['font'] = myfont()
-    refresh_button.grid(row=0,column=1, padx=5)
+        # refresh_button = tk.Button(text_view_button_frame, text="Reload", activebackground="#78d6ff")
+        # refresh_button['font'] = myfont()
+        # refresh_button.grid(row=0,column=1, padx=5)
 
-    return text_view_button_frame
+        
