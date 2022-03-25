@@ -96,33 +96,29 @@ class Task:
                 msg = f"job_script:{bash_file} not found."
                 raise FileNotFoundError(msg)
             self.bash_filename = bash_file.relative_to(self.project_dir.parent)
-        
+            return
+            
         for item in self.input_data_files:
             item = self.project_dir.parent / item
             if not pathlib.Path(item).exists():
                 msg = f"Data file:{item} not found."
                 raise FileNotFoundError(msg)
-        
-        
-
-    # def prepare_input(self,path, filename):
-    #     path = pathlib.Path(path)
-    #     try:
-    #         self.input_data_files = getattr(self.engine, self.task_name)
-    #         self.input_data_files = self.input_data_files['req']
-    #     except AttributeError as e:
-    #         raise AttributeError(e)
-
-    #     with open(filename , 'r+') as f:
-    #         text = f.read()
-    #         for item in self.input_data_files:
-    #             data_path = path / item
-    #             item = item.split('/')[-1]
-    #             text = re.sub(item, str(data_path), text)
-    #         f.seek(0)
-    #         f.write(text)
-    #         f.truncate()        
     
+    def create_remote_job_script(self) -> str:
+        try:
+            job_script = self.engine.get_engine_network_job_cmd()
+        except AttributeError:
+            job_script = ''
+         
+        job_script += self.task.get_network_job_cmd()
+        return job_script
+
+    def write_remote_job_script(self, job_script):
+        bash_file = self.project_dir / self.BASH_filename
+        print(bash_file)
+        with open(bash_file, 'w+') as f:
+            f.write(job_script)
+
     def create_task_dir(self):
         self.task_dir = self.engine.create_dir(self.project_dir, type(self.task).__name__)
 
@@ -135,6 +131,22 @@ class Task:
             f.seek(0)
             f.write(file)
             f.truncate()
+
+
+def pbs_job_script(name):
+
+    head_job_script = f"""
+#!/bin/bash
+#PBS -N {name}
+#PBS -o output.txt
+#PBS -e error.txt
+#PBS -l select=1:ncpus=4:mpiprocs=4
+#PBS -q debug
+#PBS -l walltime=00:30:00
+#PBS -V
+cd $PBS_O_WORKDIR
+   """
+    return head_job_script
 
 
 

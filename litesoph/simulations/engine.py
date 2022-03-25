@@ -73,12 +73,6 @@ class EngineGpaw(EngineStrategy):
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
     
-    engine_job_script = """
-            ##### Please Provide the Excutable Path or environment of GPAW 
- 
-            eval "$(conda shell.bash hook)"
-            conda activate <environment name>
-            """
 
     def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
@@ -124,6 +118,17 @@ class EngineGpaw(EngineStrategy):
             command = cmd + ' ' + command
             print(command)
         return command
+
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of GPAW 
+
+eval "$(conda shell.bash hook)"
+conda activate <environment name>
+            """
+        return job_script
 
 class EngineOctopus(EngineStrategy):
 
@@ -209,17 +214,7 @@ class EngineNwchem(EngineStrategy):
     task_dirs =[('NwchemOptimisation', 'Opt'),
             ('NwchemGroundState', 'GS'),
             ('NwchemDeltaKick', 'TD_Delta'),
-            ('NwchemGaussianPulse', 'TD_Laser'),
-            ('GpawCalTCM', 'TCM')]
-    
-    engine_job_script = """
-            ##### Please Provide the Excutable Path or environment of NWCHEM or load the module
- 
-            #eval "$(conda shell.bash hook)"
-            #conda activate <environment name>
-
-            #module load nwchem
-            """
+            ('NwchemGaussianPulse', 'TD_Laser')]
 
     def __init__(self, project_dir, lsconfig, status=None) -> None:
         self.project_dir = project_dir
@@ -275,3 +270,16 @@ class EngineNwchem(EngineStrategy):
         if cmd:
             command = cmd + ' ' + command
         return command
+
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of NWCHEM or load the module
+
+#eval "$(conda shell.bash hook)"
+#conda activate <environment name>
+
+#module load nwchem
+            """
+        return job_script
