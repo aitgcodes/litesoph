@@ -19,5 +19,23 @@ def myfont2():
     font5 = font.Font(family='Times New Roman',size=15)
     return myfont2
 
-f1=('Noto sans', 15, 'italic')    
+def myfont15():
+    myFont = font.Font(family='Helvetica', size=10, weight='bold')
+    l= font.Font(family ='Courier', size=15,weight='bold') 
+    font15 = font.Font(family='Helvetica',size=15, weight='bold')
+    return font15
+
+
+f1=('Noto sans', 15, 'italic')
+mygreen = "#d2ffd2"
+myred = "#dd0202"   
+
+label_design={
+    'bg':"navy blue",
+    "fg": "white"
+}
+
+button_design={
+
+}
        
