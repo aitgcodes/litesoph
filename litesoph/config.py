@@ -1,8 +1,6 @@
-
-import os 
 import subprocess
 import pathlib
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 
 import litesoph
 
@@ -89,7 +87,6 @@ def check_config(lsconfig: ConfigParser, name):
         #     return vmd
 
 def read_config():
-    from configparser import ConfigParser
 
     if config_file.is_file is False:
         raise FileNotFoundError("lsconfig.ini doesn't exists")
@@ -97,3 +94,20 @@ def read_config():
     lsconfig = ConfigParser(allow_no_value=False)
     lsconfig.read(config_file)
     return lsconfig
+
+def get_mpi_command(engine_name: str, configs: ConfigParser):
+
+    name = engine_name + '_mpi'
+    
+    if configs.items('mpi'):
+        try:
+            mpi = configs.get('mpi', name)
+            if not mpi:
+                print("Engine specific mpi is not given, first option from mpi section will be used.")
+                mpi = list(configs.items('mpi'))[0][1]
+        except NoOptionError:
+            print("Please set path to mpi in lsconfig.ini")
+        else:
+            return mpi
+    else:
+        print("Please set path to mpi in lsconfig.ini")
