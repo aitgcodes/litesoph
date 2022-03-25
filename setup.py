@@ -11,7 +11,7 @@ python_requires = '>=3.7'
 requirements = [
     'click>=8.0.3',
     'ase', 'matplotlib','numpy',
-    'paramiko'
+    'paramiko', 'scp'
 ]
 
 setup_requirements = []
