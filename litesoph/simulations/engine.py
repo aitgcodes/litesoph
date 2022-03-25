@@ -1,23 +1,13 @@
 import configparser
-from logging import raiseExceptions
 import pathlib
 import os
-from configparser import ConfigParser
+from abc import ABC, abstractclassmethod
 from typing import Any, Dict
+
 from litesoph.lsio.IO import write2file 
 from litesoph.simulations.gpaw import gpaw_template as gp
 from litesoph.simulations.nwchem import nwchem_template as nw
 from litesoph.simulations.octopus import octopus_template as  ot
-from abc import ABC, abstractclassmethod
-
-config_file = pathlib.Path.home() / "lsconfig.ini"
-if config_file.is_file is False:
-    raise FileNotFoundError("lsconfig.ini doesn't exists")
-
-configs = configparser.ConfigParser({'python':'/usr/bin/python',
-                                        'nwchem':'nwchem',
-                                        'octopus':'octopus'}, allow_no_value=False)
-configs.read(config_file)
 
 
 class EngineStrategy(ABC):
@@ -40,6 +30,13 @@ class EngineStrategy(ABC):
         absdir = os.path.abspath(directory)
         if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
             os.makedirs(directory)
+    
+    def get_dir_name(self, task):
+        for t_dir in self.task_dirs:
+            if task in t_dir:
+                dir = t_dir[1]
+                break
+        return dir
 
 
 class EngineGpaw(EngineStrategy):
@@ -76,9 +73,11 @@ class EngineGpaw(EngineStrategy):
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
     
-    def __init__(self,project_dir, status=None) -> None:
+
+    def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
+        self.lsconfig = lsconfig
 
     def get_task_class(self, task: str, user_param, *_):
         if task == "ground_state":
@@ -110,22 +109,26 @@ class EngineGpaw(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def get_dir_name(self,task):
-        for t_dir in self.task_dirs:
-            if task in t_dir:
-                dir = t_dir[1]
-                break
-        return dir
-
     def create_command(self, cmd: list):
 
         filename = pathlib.Path(self.directory) / self.filename
-        command = configs.get('programs', 'python')
+        command = self.lsconfig.get('programs', 'python')
         command = command + ' ' + str(filename) 
         if cmd:
             command = cmd + ' ' + command
             print(command)
         return command
+
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of GPAW 
+
+eval "$(conda shell.bash hook)"
+conda activate <environment name>
+            """
+        return job_script
 
 class EngineOctopus(EngineStrategy):
 
@@ -145,9 +148,10 @@ class EngineOctopus(EngineStrategy):
             'out': '/Octopus/log',
              'req' : ['coordinate.xyz']}
 
-    def __init__(self,project_dir, status=None) -> None:
+    def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
+        self.lsconfig = lsconfig
 
     def get_task_class(self, task: str, user_param):
         if task == "ground_state":
@@ -181,7 +185,7 @@ class EngineOctopus(EngineStrategy):
     def create_command(self, cmd: list):
 
         ofilename = "log"
-        command = configs.get('engine', 'octopus')
+        command = self.lsconfig.get('engine', 'octopus')
         if not command:
             command = 'octopus'
         command = command + ' ' + '>' + ' ' + str(ofilename)
@@ -193,23 +197,29 @@ class EngineNwchem(EngineStrategy):
 
     NAME = 'nwchem'
 
-    ground_state = {'inp':'/NwchemGroundState/gs.nwi',
-            'req' : ['coordinate.xyz', 'nwchem_restart'],
+    ground_state = {'inp':'/GS/gs.nwi',
+            'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/NwchemDeltaKick/gs.nwi',
-            'req' : ['coordinate.xyz', 'nwchem_restart'],
+    rt_tddft_delta = {'inp':'/TD_Delta/td.nwi',
+            'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_laser = {'inp':'/NwchemGaussianPulse/gs.nwi',
-            'req' : ['coordinate.xyz', 'nwchem_restart'],
+    rt_tddft_laser = {'inp':'/TD_Laser/tdlaser.nwi',
+            'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    restart = 'nwchem_restart'
+    restart = 'restart'
 
-    def __init__(self,project_dir, status=None) -> None:
+    task_dirs =[('NwchemOptimisation', 'Opt'),
+            ('NwchemGroundState', 'GS'),
+            ('NwchemDeltaKick', 'TD_Delta'),
+            ('NwchemGaussianPulse', 'TD_Laser')]
+
+    def __init__(self, project_dir, lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
+        self.lsconfig = lsconfig
         self.restart = pathlib.Path(self.project_dir.name) / self.restart
 
     def get_task_class(self, task: str, user_param):
@@ -236,8 +246,8 @@ class EngineNwchem(EngineStrategy):
         self.create_directory(self.restart)
 
     def create_dir(self, directory, task):
-        #task_dir = self.get_dir_name(task)
-        directory = pathlib.Path(directory) / task
+        task_dir = self.get_dir_name(task)
+        directory = pathlib.Path(directory) / task_dir
         self.create_directory(directory)
         return directory
 
@@ -253,10 +263,23 @@ class EngineNwchem(EngineStrategy):
 
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
-        command = configs.get('engine', 'nwchem')
+        command = self.lsconfig.get('engine', 'nwchem')
         if not command:
             command = 'nwchem'
         command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
         return command
+
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of NWCHEM or load the module
+
+#eval "$(conda shell.bash hook)"
+#conda activate <environment name>
+
+#module load nwchem
+            """
+        return job_script
