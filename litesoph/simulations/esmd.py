@@ -37,7 +37,7 @@ class Task:
         self.input_data_files = []
         self.output_data_file = []
         self.task_state = None
-        self.results = None
+       
 
     def set_engine(self, engine):
         self.engine_name = engine
@@ -52,13 +52,15 @@ class Task:
         except Exception as e:
             raise Exception(e)
 
-        inp_data = getattr(self.engine, task)
+        task_data = getattr(self.engine, task)
     
-        self.filename = pathlib.Path(f"{self.project_dir.name}/{inp_data['inp']}")
-        for item in inp_data['req']:
+        self.filename = pathlib.Path(f"{self.project_dir.name}/{task_data['inp']}")
+        for item in task_data['req']:
             item = pathlib.Path(self.project_dir.name) / item
             self.input_data_files.append(item)
-       
+
+        self.output_log_file =   pathlib.Path(f"{self.project_dir.name}/{task_data['out_log']}")
+
     def load_template(self, filename):
         self.file_path = filename
 
