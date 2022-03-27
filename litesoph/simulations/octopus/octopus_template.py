@@ -147,11 +147,7 @@ PseudopotentialSet = {pseudo}
 ##### LITESOPH Appended Comands###########
 cd Octopus/
 mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-#############################################
-
-    """
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
     # def format_template(self):
     #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
@@ -307,10 +303,7 @@ TDPolarizationDirection = 1
 ##### LITESOPH Appended Comands###########
 cd Octopus/
 mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-#############################################
-   """
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
 
     def format_template(self):
@@ -404,10 +397,7 @@ omega = {frequency}*eV
 ##### LITESOPH Appended Comands###########
 cd Octopus/
 mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-#############################################
-        """
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
   
   
@@ -456,14 +446,11 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
 
 
     spectra_job_script = """
-        ##### LITESOPH Appended Comands###########
+##### LITESOPH Appended Comands###########
 
-        mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
-        
-        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum 
+mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
 
-        #############################################
-   """   
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""   
    
    
     def format_template(self):        
