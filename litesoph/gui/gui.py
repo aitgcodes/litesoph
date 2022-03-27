@@ -20,6 +20,7 @@ from matplotlib.pyplot import show
 #---LITESOPH modules
 from litesoph.config import check_config, read_config
 from litesoph.gui.menubar import get_main_menu_for_os
+from litesoph.lsio.IO import read_file
 from litesoph.simulations import models as m
 from litesoph.gui import views as v 
 from litesoph.visualization.spec_plot import plot_spectra, plot_files
@@ -364,7 +365,7 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
-        self.job_sub_page.bind('<<ViewGroundStateOutfile>>', lambda _: self._on_gs_out_view_button())
+        self.job_sub_page.bind('<<ViewGroundStateLocalOutfile>>', lambda _: self._on_out_local_view_button(self.ground_state_task))
         #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
 
     def _on_gs_run_network_button(self, *_):
@@ -377,25 +378,9 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
-        self.job_sub_page.bind('<<ViewGroundStateOutfile>>', lambda _: self._on_gs_out_view_button())
-        self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_gs_save_remote_job_script())
-        self.job_sub_page.bind('<<CreateGroundStateRemoteScript>>', self._on_gs_create_remote_job_script)
-
-    def _on_gs_create_remote_job_script(self, *_):
-        b_file = self.ground_state_task.create_remote_job_script()
-        self.job_sub_page.text_view.set_event_name('GroundStateNetwork')
-        self.job_sub_page.text_view.insert_text(b_file, 'normal')
-       
-    def _on_gs_save_remote_job_script(self, *_):
-        txt = self.job_sub_page.text_view.get_text()
-        self.ground_state_task.write_remote_job_script(txt)
-        
-    def _on_gs_out_view_button(self, *_):
-        if self.job_sub_page.text_view_button_frame is not None:
-            for widget in self.job_sub_page.text_view_button_frame.winfo_children():
-                widget.destroy()
-        # outfile_view = v.View_Text(self.job_sub_page.Frame2)
-        # outfile_view.grid(row=0, column=1, sticky ="nsew")
+        self.job_sub_page.bind('<<ViewGroundStateNetworkOutfile>>', lambda _: self. _on_out_remote_view_button(self.ground_state_task))
+        self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_remote_job_script(self.ground_state_task))
+        self.job_sub_page.bind('<<CreateGroundStateRemoteScript>>', lambda _: self._on_create_remote_job_script(self.ground_state_task,'GroundStateNetwork'))
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
@@ -445,35 +430,19 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.activate_run_button()
         
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTAOutfile>>', lambda _: self._on_rt_tddft_delta_out_view_button())
+        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTALocalOutfile>>', lambda _: self._on_out_local_view_button(self.rt_tddft_delta_task))
         
 
     def _on_td_run_network_button(self, *_):
-        if not self._check_task_run_condition(self.rt_tddft_delta_task):
+        if not self._check_task_run_condition(self.rt_tddft_delta_task, network=True):
             return
         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Network')
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTAOutfile>>', lambda _: self._on_rt_tddft_delta_out_view_button())
-        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_td_save_remote_job_script())
-        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', self._on_td_create_remote_job_script)
-
-    def _on_td_create_remote_job_script(self, *_):
-        b_file = self.rt_tddft_delta_task.create_remote_job_script()
-        self.job_sub_page.text_view.set_event_name('RT_TDDFT_DELTANetwork')
-        self.job_sub_page.text_view.insert_text(b_file, 'normal')
-       
-    def _on_td_save_remote_job_script(self, *_):
-        txt = self.job_sub_page.text_view.get_text()
-        self.rt_tddft_delta_task.write_remote_job_script(txt)
-
-    def _on_rt_tddft_delta_out_view_button(self):
-        if self.job_sub_page.text_view_button_frame is not None:
-            for widget in self.job_sub_page.text_view_button_frame.winfo_children():
-                widget.destroy()
-        # outfile_view = v.View_Text(self.job_sub_page.Frame2)
-        # outfile_view.grid(row=0, column=0, sticky ="nsew")
+        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTANetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
+        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
 ##----------------------Time_dependent_task_laser---------------------------------
 
@@ -616,16 +585,29 @@ class GUIAPP(tk.Tk):
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             return
         else:
-            if task.results[0] != 0:
+            if task.local_cmd_out[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[2].decode(encoding='utf-8')}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
-                messagebox.showinfo(message='Job completed successfully!')
+                messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
 
+    def _on_out_local_view_button(self,task: Task, *_):
 
+        self.job_sub_page.text_view.clear_text()
+        log_file = self.directory.parent / task.output_log_file
+
+        try:
+            exist_status, stdout, stderr = task.local_cmd_out
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="Job not completed.")
+            return
+
+        log_txt = read_file(log_file)
+        self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
+     
         
     def _run_network(self, task):
 
@@ -641,16 +623,61 @@ class GUIAPP(tk.Tk):
         
         from litesoph.utilities.job_submit import SubmitNetwork
 
-        submit_network = SubmitNetwork(task, 
+        try:
+            self.submit_network = SubmitNetwork(task, 
                                         hostname=login_dict['ip'],
                                         username=login_dict['username'],
                                         password=login_dict['password'],
                                         remote_path=login_dict['remote_path'],
                                         )
+        except Exception as e:
+            messagebox.showerror(title = "Error", message = e)
+            return
+    
         if network_type== 0:
-            submit_network.run_job('qsub')
+            self.submit_network.run_job('qsub')
         elif network_type == 1:
-            submit_network.run_job('bash')
+            self.submit_network.run_job('bash')
+
+    def _get_remote_output(self):
+        self.submit_network.download_output_files()
+
+    def _on_create_remote_job_script(self, task: Task, event: str, *_):
+        b_file =  task.create_remote_job_script()
+        self.job_sub_page.text_view.set_event_name( event)
+        self.job_sub_page.text_view.insert_text(b_file, 'normal')
+       
+    def _on_save_remote_job_script(self,task :Task, *_):
+        txt = self.job_sub_page.text_view.get_text()
+        task.write_remote_job_script(txt)
+
+    def _on_out_remote_view_button(self,task, *_):
+        
+        self.job_sub_page.text_view.clear_text()
+        log_file = self.directory.parent / task.output_log_file
+
+        try:
+            exist_status, stdout, stderr = task.net_cmd_out
+        except AttributeError:
+            return
+
+        if exist_status != 0:
+            return
+
+        if not self.submit_network.check_job_status():
+            get = messagebox.askokcancel(title='Info', message="Job not commpleted.", details= "Do you what to download engine log file?")
+
+            if get:
+                self.submit_network.get_output_log()
+                log_txt = read_file(log_file)
+                self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
+            else:
+                return                
+        
+        self._get_remote_output()   
+        log_txt = read_file(log_file)
+        self.job_sub_page.text_view.clear_text()
+        self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
 
     def _load_settings(self):
         """Load settings into our self.settings dict"""
