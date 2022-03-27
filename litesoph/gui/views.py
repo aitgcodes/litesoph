@@ -3020,7 +3020,7 @@ class JobSubPage(View1):
     
 
     def view_outfile(self, task_name ):
-        event = '<<View'+task_name+'Outfile>>'
+        event = '<<View'+task_name+self.job_type+'Outfile>>'
         self.event_generate(event)
         
     def get_processors(self):
@@ -3124,7 +3124,7 @@ class View_Text(tk.Frame):
         #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
         #self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
-        self.text_view = tk.Text(self, yscrollcommand= text_scroll.set)
+        self.text_view = tk.Text(self, height=40, yscrollcommand= text_scroll.set)
         self.text_view['font'] = myFont
         self.text_view.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         text_scroll.config(command=self.text_view.yview)              
