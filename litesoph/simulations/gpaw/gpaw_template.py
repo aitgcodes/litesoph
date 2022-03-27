@@ -1,5 +1,6 @@
 import pathlib
 from typing import Any, Dict
+#from litesoph.simulations.engine import EngineGpaw
 
 
 class GpawGroundState:

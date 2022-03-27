@@ -358,6 +358,7 @@ class GUIAPP(tk.Tk):
     def _on_gs_run_local_button(self, *_):
         
         if not self._check_task_run_condition(self.ground_state_task):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
 
         self.ground_state_view.refresh_var()
@@ -371,6 +372,7 @@ class GUIAPP(tk.Tk):
     def _on_gs_run_network_button(self, *_):
 
         if not self._check_task_run_condition(self.ground_state_task):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
 
         self.ground_state_view.refresh_var()
@@ -424,6 +426,7 @@ class GUIAPP(tk.Tk):
     def _on_td_run_local_button(self, *_):
 
         if not self._check_task_run_condition(self.rt_tddft_delta_task):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Local')
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
@@ -435,6 +438,7 @@ class GUIAPP(tk.Tk):
 
     def _on_td_run_network_button(self, *_):
         if not self._check_task_run_condition(self.rt_tddft_delta_task, network=True):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Network')
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
@@ -607,8 +611,8 @@ class GUIAPP(tk.Tk):
 
         log_txt = read_file(log_file)
         self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
-     
-        
+
+
     def _run_network(self, task):
 
         try:
@@ -633,11 +637,22 @@ class GUIAPP(tk.Tk):
         except Exception as e:
             messagebox.showerror(title = "Error", message = e)
             return
-    
-        if network_type== 0:
-            self.submit_network.run_job('qsub')
-        elif network_type == 1:
-            self.submit_network.run_job('bash')
+        try:
+            if network_type== 0:
+                self.submit_network.run_job('qsub')
+            elif network_type == 1:
+                self.submit_network.run_job('bash')
+        except Exception as e:
+            messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
+            return
+        else:
+            if task.net_cmd_out[0] != 0:
+                self.status.update_status(f'{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
+                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.results[2].decode(encoding='utf-8')}")
+            else:
+                self.status.update_status(f'{task.task_name}.sub_network.returncode', 0)
+                messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
+
 
     def _get_remote_output(self):
         self.submit_network.download_output_files()
