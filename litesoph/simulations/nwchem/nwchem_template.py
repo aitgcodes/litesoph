@@ -178,11 +178,7 @@ end
 ##### LITESOPH Appended Comands###########
 
 cd GS/
-mpirun -np 4  nwchem gs.nwi > gs.nwo
-
-#############################################
-
-    """
+mpirun -np 4  nwchem gs.nwi > gs.nwo\n"""
       return job_script
 
 
@@ -523,11 +519,7 @@ task dft rt_tddft
 
 cd TD_Delta/
 
-mpirun -np 4  nwchem td.nwi > td.nwo
-
-#############################################
-
-    """
+mpirun -np 4  nwchem td.nwi > td.nwo\n"""
       return job_script
 
 
