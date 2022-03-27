@@ -246,7 +246,7 @@ class NetworkJobSubmission:
             raise Exception(f"Unable to upload the file to the remote server {remote_path}")
 
     def progress(self, filename, size, sent):
-        sys.stdout.write(f"{filename}'s progress: {float(sent)/float(size)*100 : .2f}   \n") 
+        sys.stdout.write(f"{filename}'s progress: {float(sent)/float(size)*100 : .2f}   \r") 
 
     def download_files(self, remote_file_path, local_path, recursive=False):
         "This method downloads the file from cluster"
