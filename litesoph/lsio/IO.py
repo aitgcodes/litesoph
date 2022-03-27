@@ -1,23 +1,23 @@
 import pathlib
 import os
 
-class UserInput:
+# class UserInput:
 
-    user_param = {
-        'directory': None,
-        'mode': None,
-        'geometry': None,
-        'xc': None,
-        'spinpol':None,
-        'tolerance':None,
-        'convergence': None,
-        'basis':None,
-        'vacuum':None,
-        'h': None,
-        'box': None,
-        'properties': None,
-        'engine':None,
-    }
+#     user_param = {
+#         'directory': None,
+#         'mode': None,
+#         'geometry': None,
+#         'xc': None,
+#         'spinpol':None,
+#         'tolerance':None,
+#         'convergence': None,
+#         'basis':None,
+#         'vacuum':None,
+#         'h': None,
+#         'box': None,
+#         'properties': None,
+#         'engine':None,
+#     }
 
 def write2file(directory,filename, template) -> None:
     """Write template to a file.
@@ -45,3 +45,10 @@ def write2file(directory,filename, template) -> None:
         f.truncate()
         f.seek(0)
         f.write(template)
+
+def read_file(filename) -> str:
+
+    with open(filename, 'r') as f:
+        txt = f.read()
+
+    return txt
