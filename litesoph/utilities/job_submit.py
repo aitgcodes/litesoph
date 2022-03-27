@@ -63,7 +63,7 @@ class SubmitLocal:
     def run_job(self):
         self.create_command()
         returncode,  result = self.execute(self.task.task_dir)
-        self.task.results = (returncode, result[0], result[1])
+        self.task.local_cmd_out = (returncode, result[0], result[1])
         print(result)
 
     def execute(self, directory):
@@ -98,6 +98,7 @@ class SubmitNetwork:
                         remote_path: str) -> None:
 
         self.task = task
+        self.project_dir = self.task.project_dir
         self.engine = self.task.engine
        
         self.remote_path = remote_path
@@ -106,7 +107,9 @@ class SubmitNetwork:
         self.network_sub.ssh_connect(username, password)
         if self.network_sub.check_file(self.remote_path):
             self.prepare_input(self.remote_path)
-            self.transfer_files()
+            self.upload_files()
+        else:
+            raise FileNotFoundError()
     
     def prepare_input(self, path):
         """this adds in the proper path to the data file required for the job"""
@@ -129,25 +132,33 @@ class SubmitNetwork:
             f.write(text)
             f.truncate() 
 
-    def transfer_files(self):
-        
-        upload_files = [self.task.filename, self.task.bash_filename]
-        upload_files.extend(self.task.input_data_files)
+    def upload_files(self):
+        """uploads entire project directory to remote path"""
+        # upload_files = [self.task.filename, self.task.bash_filename]
+        # upload_files.extend(self.task.input_data_files)
 
-        remote_path = pathlib.Path(self.remote_path) 
+        # remote_path = pathlib.Path(self.remote_path) 
         #file = pathlib.Path(self.task.project_dir.parent) / file
             
-        try:
-            self.network_sub.upload_files(str(self.task.project_dir), str(remote_path), recursive=True)
-            #print(f"{file} uploaded to remote path {remote_path} of cluster")
-        except Exception as e:
-            raise(e)
+        self.network_sub.upload_files(str(self.project_dir), str(self.remote_path), recursive=True)
+     
+
+    def download_output_files(self):
+        """Downloads entire project directory to local project dir."""
+        remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
+        self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
+
+    def get_output_log(self):
+        """Downloads engine log file for that particular task."""
+        remote_path = pathlib.Path(self.remote_path) / self.task.output_log_file
+        local_path = self.project_dir.parent / self.task.output_log_file
+        self.network_sub.download_files(str(remote_path), str(local_path))
+
 
     def run_job(self, cmd):
         "This method creates the job submission command and executes the command on the cluster"
         bash_filename = pathlib.Path(self.task.bash_filename).name
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.name
-        #bash_filename = pathlib.Path(self.remote_path) / bash_filename
         self.command = f"cd {str(remote_path)} && {cmd} {bash_filename}"
         
         
@@ -160,6 +171,14 @@ class SubmitNetwork:
             print("Job submitted successfully!...")
             for line in ssh_output.decode(encoding='utf-8').split('\n'):
                 print(line)
+
+        self.task.net_cmd_out = (exit_status, ssh_output, ssh_error)
+    
+    def check_job_status(self) -> bool:
+        """returns true if the job is completed in remote machine"""
+        remote_path = pathlib.Path(self.remote_path) / self.task.filename.parent / 'Done'
+        print("Checking for job completion..")
+        return self.network_sub.check_file(str(remote_path))
 
 class NetworkJobSubmission:
     """This class contain methods connect to remote cluster through ssh and perform common
