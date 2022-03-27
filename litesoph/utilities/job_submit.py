@@ -207,7 +207,7 @@ class NetworkJobSubmission:
         if self.client:
             self.client.close()
         if self.scp:
-            self.scp.close
+            self.scp.close()
 
     def _check_connection(self):
         "This checks whether ssh connection is active or not."
@@ -219,26 +219,24 @@ class NetworkJobSubmission:
         """This method uploads the file to remote server."""
        
         self._check_connection()
-        scp = SCPClient(self.client.get_transport(), progress= self.progress)
         
         try:
-            scp.put(local_file_path, remote_path=remote_path, recursive=recursive)
+            self.scp.put(local_file_path, remote_path=remote_path, recursive=recursive)
         except Exception as e:
             print(e)
             raise Exception(f"Unable to upload the file to the remote server {remote_path}")
 
     def progress(self, filename, size, sent):
-        sys.stdout.write("%s's progress: %.2f%%   \r" % (filename, float(sent)/float(size)*100) )
+        sys.stdout.write(f"{filename}'s progress: {float(sent)/float(size)*100 : .2f}   \r") 
 
-    def download_file(self, remote_file_path, local_path):
+    def download_files(self, remote_file_path, local_path, recursive=False):
         "This method downloads the file from cluster"
         
         self._check_connection()
-        scp = SCPClient(self.client.get_transport())
         try:
-           scp.get(local_path, remote_file_path)
+           self.scp.get( remote_file_path, local_path, recursive=recursive)
         except Exception as e:
-            raise Exception(f"Unable to download the file to the remote server {remote_file_path}")
+            raise Exception(f"Unable to download the file from the remote server {remote_file_path}")
 
     def check_file(self, remote_file_path):
         "checks if the file exists in the remote path"
