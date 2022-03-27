@@ -45,19 +45,19 @@ class EngineGpaw(EngineStrategy):
 
     ground_state = {'inp':'GS/gs.py',
             'req' : ['coordinate.xyz'],
-            'out': 'GS/gs.out',
+            'out_log': 'GS/gs.out',
             'restart': 'GS/gs.gpw',
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_delta = {'inp':'TD_Delta/td.py',
             'req' : ['GS/gs.gpw'],
-            'out': 'TD_Delta/tdx.out',
+            'out_log': 'TD_Delta/tdx.out',
             'restart': 'TD_Delta/td.gpw',
             'check_list':['Writing','Total:']}
 
     rt_tddft_laser = {'inp':'TD_Laser/tdlaser.py',
             'req' : ['GS/gs.gpw'],
-            'out': 'TD_Laser/tdlaser.out',
+            'out_log': 'TD_Laser/tdlaser.out',
             'restart': 'TD_Laser/tdlaser.gpw',
             'check_list':['Writing','Total:']}
     
@@ -135,17 +135,17 @@ class EngineOctopus(EngineStrategy):
     NAME = 'octopus'
 
     ground_state = {'inp':'Octopus/inp',
-        'out': '/Octopus/log',
+        'out_log': '/Octopus/log',
         'req' : ['coordinate.xyz'],
         'check_list':['SCF converged']}
 
     rt_tddft_delta = {'inp':'Octopus/inp',
-            'out': '/Octopus/log',
+            'out_log': '/Octopus/log',
              'req' : ['coordinate.xyz'],
              'check_list':['Finished writing information', 'Calculation ended']}    
     
     rt_tddft_laser = {'inp':'Octopus/inp',
-            'out': '/Octopus/log',
+            'out_log': '/Octopus/log',
              'req' : ['coordinate.xyz']}
 
     def __init__(self,project_dir,lsconfig, status=None) -> None:
@@ -197,15 +197,18 @@ class EngineNwchem(EngineStrategy):
 
     NAME = 'nwchem'
 
-    ground_state = {'inp':'/GS/gs.nwi',
+    ground_state = {'inp':'GS/gs.nwi',
+            'out_log' : 'GS/gs.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/TD_Delta/td.nwi',
+    rt_tddft_delta = {'inp':'TD_Delta/td.nwi',
+            'out_log' : 'GS/td.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_laser = {'inp':'/TD_Laser/tdlaser.nwi',
+    rt_tddft_laser = {'inp':'TD_Laser/tdlaser.nwi',
+            'out_log' : 'GS/tdlaser.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
