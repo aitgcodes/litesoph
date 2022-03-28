@@ -3046,7 +3046,7 @@ class JobSubPage(View1):
         entry_np['font'] = myfont()
         entry_np.grid(row=0, column=1, ipadx=2, ipady=2)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         self.run_button['font'] = myfont()
         self.run_button.grid(row=1, column=1)
 
@@ -3094,7 +3094,7 @@ class JobSubPage(View1):
         upload_button2['font'] = myfont()
         upload_button2.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
         self.run_button.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
     
