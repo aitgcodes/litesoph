@@ -22,7 +22,8 @@ from litesoph.config import check_config, read_config
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import models as m
-from litesoph.gui import views as v 
+from litesoph.gui import views as v
+from litesoph.simulations.engine import EngineNwchem 
 from litesoph.visualization.spec_plot import plot_spectra, plot_files
 from litesoph.simulations.esmd import Task
 from litesoph.simulations.filehandler import Status, file_check, show_message
@@ -292,10 +293,13 @@ class GUIAPP(tk.Tk):
 
     @staticmethod
     def _check_task_run_condition(task, network=False) -> bool:
+        
+        if not task.task:
+            return False
+
         try:
            task.check_prerequisite(network)           
         except FileNotFoundError as e:
-            messagebox.showerror(title = 'Error' ,message=f"Input not saved. Please save the input before job submission \n {e}")
             return False
         else:
             return True
@@ -564,18 +568,22 @@ class GUIAPP(tk.Tk):
 
         if self.engine == 'nwchem':
             pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
-            if pol == '1':
+            if pol == 0:
                 pol = 'x'
-            elif pol == '2':
+            elif pol == 1:
                 pol = 'y'
-            elif pol == '3':
+            elif pol == 2:
                 pol = 'z'
-
-            nwchem_compute_spec(self.directory, pol)
+            try:
+                nwchem_compute_spec(self.directory, pol)
+            except Exception as e:
+                messagebox.showerror(title = 'Error', message="Error occured.", detail = f"{e}")
+            else:
+                messagebox.showinfo(title= "Info", message=" Job Done! \nSpectrum calculated." )
             return
 
         if not self._check_task_run_condition(self.spectra_task):
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(message="Input not saved.", detail = "Please save the input before job submission")
             return
 
         
@@ -598,25 +606,26 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
     def _on_spectra_plot_button(self, *_):
-        print(self.engine)
-        dir = self.status.get_status('rt_tddft_delta.param.pol_dir')
-        print(dir)
-        spec_file = self.spectra_task.engine.spectrum['spectra_file']
-        file = pathlib.Path(self.directory) / spec_file
-        img = pathlib.Path(self.directory) / "spec.png"
-        self.select_plot_engine(file,self.engine, img)
-
-    def select_plot_engine(self, filename, engine,imgfile): 
         """ Selects engine specific plot function"""
         
-        if engine == "gpaw":
-            dir = self.status.get_status('rt_tddft_delta.param.pol_dir')
-            self.show_plot(filename,imgfile,0, dir, "Energy (in eV)", "Strength(in /eV)")
+        pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+        img = pathlib.Path(self.directory) / f"spec_{str(pol)}.png"
+
+        if self.engine == "gpaw":
+            spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol]
+            file = pathlib.Path(self.directory) / spec_file
+            self.show_plot(file,img,0, pol+1, "Energy (in eV)", "Strength(in /eV)")
             # ax.plot(data_ej[:, 0], data_ej[:, column], 'k')
-        elif engine == "octopus":
-            self.show_plot(filename,imgfile,0, 4, "Energy (in eV)", "Strength(in /eV)")
-        elif engine == "nwchem":
-            self.show_plot(filename,imgfile,0, 2, "Energy","Strength")
+
+        elif self.engine == "octopus":
+            spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol]
+            file = pathlib.Path(self.directory) / spec_file
+            self.show_plot(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+
+        elif self.engine == "nwchem":
+            spec_file = EngineNwchem.spectrum['spectra_file'][pol]
+            file = pathlib.Path(self.directory) / spec_file
+            self.show_plot(file,img,0, 2, "Energy","Strength")
             # ax.plot(data_ej[:, 0], data_ej[:, 2], 'k') 
 
     def show_plot(self, filename,imgfile,row:int, column:int, x:str, y:str):  
