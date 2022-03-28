@@ -2160,10 +2160,10 @@ class TimeDependentPage(View1):
     def read_pol_dir(self):
         pol_list = [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
         if pol_list == [1,0,0]:
-            self.pol_dir = 1
-        elif pol_list == [1,0,0]:
-            self.pol_dir = 2 
-        elif pol_list == [1,0,0]:
+            self.pol_dir = 0
+        elif pol_list == [0,1,0]:
+            self.pol_dir = 1 
+        elif pol_list == [0,0,1]:
             self.pol_dir = 2 
         return self.pol_dir     
 
@@ -2664,7 +2664,7 @@ class PlotSpectraPage(tk.Frame):
         self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
         self.Frame1_Button3.config(state='disabled')
         
-        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLoca'+task_name+'>>'))
+        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.show_plot())
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
 
@@ -2709,7 +2709,10 @@ class PlotSpectraPage(tk.Frame):
             self.Frame1_Button3.config(state='active') 
         elif engine == "nwchem":
             self.Frame1_Button3.config(state='disabled') 
-            pass     
+            pass 
+
+    def show_plot(self):
+        self.event_generate("<<ShowSpectrumPlot>>")
 
     # def show_plot(self):
     #     check = self.controller.status.check_status('spectra', 2)
