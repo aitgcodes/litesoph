@@ -1,4 +1,5 @@
 from pathlib import Path
+import pathlib
 from typing import Any, Dict
 from litesoph.utilities.units import as_to_au, eV_to_au
 
@@ -875,3 +876,67 @@ task dft rt_tddft
         template = self.gp_temp.format(**self.user_input)
         return template
          
+def nwchem_compute_spec(project_dir :Path, pol):
+  import os
+  from subprocess import Popen, PIPE
+
+  dm_file = 'TD_Delta/td.nwo'
+
+  
+
+  dm_file = project_dir / dm_file
+
+  if  not dm_file.exists():
+    raise FileNotFoundError(f' Required file {dm_file} doesnot exists!')
+    
+
+  path = pathlib.Path(__file__)
+
+  nw_rtparse = path.parent /'nw_rtparse.py'
+  rot = path.parent / 'rotate_fft.py'
+  fft = path.parent / 'fft1d.py'
+
+  cwd = project_dir / 'Spectrum'
+  try:
+    os.mkdir(str(cwd))
+  except FileExistsError:
+    pass
+  print('here')
+  x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file}.nwo > x.dat'
+  y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file}.nwo > y.dat'
+  z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file}.nwo > z.dat'
+
+  x_f_cmd = f'python {fft} x.dat xw.dat'
+  y_f_cmd = f'python {fft} y.dat yw.dat'
+  z_f_cmd = f'python {fft} z.dat zw.dat'
+
+  x_r_cmd = f'python {rot} xw.dat x'
+  y_r_cmd = f'python {rot} yw.dat y'
+  z_r_cmd = f'python {rot} zw.dat z'
+
+  if pol == 'x':
+    print("computing spectrum")
+    job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result1 = job1.communicate()
+    job2 = Popen(x_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result2 = job2.communicate()
+    job3 = Popen(x_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result3 = job3.communicate()
+
+  elif pol == 'y':
+    print("computing spectrum")
+    job1 = Popen(y_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result1 = job1.communicate()
+    job2 = Popen(y_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result2 = job2.communicate()
+    job3 = Popen(y_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result3 = job3.communicate()
+
+  elif pol == 'z':
+    print("computing spectrum")
+    job1 = Popen(z_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result1 = job1.communicate()
+    job2 = Popen(z_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result2 = job2.communicate()
+    job3 = Popen(z_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    result3 = job3.communicate()
