@@ -1,6 +1,6 @@
 import subprocess
 import pathlib
-from configparser import ConfigParser, NoOptionError
+from configparser import ConfigParser, NoOptionError, NoSectionError
 
 import litesoph
 
@@ -94,6 +94,24 @@ def read_config():
     lsconfig = ConfigParser(allow_no_value=False)
     lsconfig.read(config_file)
     return lsconfig
+
+def set_config(config: ConfigParser, section, key=None, value=None, list: list=None):
+    try:
+        a =config.items(section)
+    except NoSectionError:
+        config.add_section(section)
+        
+    if list:
+        for item in dict.items():
+            config.set(section, item[0],item[1])
+    else:
+
+        config.set(section, key, value)
+
+    with open(config_file, 'w+') as configfile:
+            config.write(configfile)
+
+
 
 def get_mpi_command(engine_name: str, configs: ConfigParser):
 

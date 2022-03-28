@@ -1,5 +1,6 @@
 import pathlib
 from typing import Any, Dict
+#from litesoph.simulations.engine import EngineGpaw
 
 
 class GpawGroundState:
@@ -96,11 +97,7 @@ calc.write('gs.gpw', mode='all')
 ##### LITESOPH Appended Comands###########
 
 cd GS/
-mpirun -np 4  python3 gs.py
-
-#############################################
-
-    """
+mpirun -np 4  python3 gs.py\n"""
         return job_script
 
 class GpawRTLCAOTddftDelta:
@@ -190,10 +187,7 @@ td_calc.write('{td_gpw}', mode='all')
 ##### LITESOPH Appended Comands###########
 
 cd TD_Delta/
-mpirun -np 4  python3 td.py
-
-#############################################
-   """
+mpirun -np 4  python3 td.py\n"""
         return job_script
        
 class GpawRTLCAOTddftLaser:
@@ -305,10 +299,7 @@ td_calc.write('{td_gpw}', mode='all')
 ##### LITESOPH Appended Comands###########
 
 cd TD_Laser/
-mpirun -np 4  python3 tdlaser.py
-
-#############################################
-        """
+mpirun -np 4  python3 tdlaser.py\n"""
         return job_script
 
 
@@ -348,10 +339,7 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
 ##### LITESOPH Appended Comands###########
 
 cd Spectrum/
-mpirun -np 4  python3 spec.py
-
-#############################################
-   """  
+python3 spec.py\n"""  
         return job_script
 
 
