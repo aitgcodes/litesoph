@@ -530,7 +530,8 @@ class GUIAPP(tk.Tk):
         self.spectra_task = Task(self.status, self.directory, self.lsconfig)
         print('_on_spectra_task')
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
-        self.bind('<<SubSpectrum>>', self._on_spectra_run_job_button)
+        self.bind('<<SubLocalSpectrum>>', lambda _: self._on_spectra_run_local_button())
+        self.bind('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
 
     def _validate_spectra_input(self):
         inp_dict = self.spectra_view.get_parameters()
@@ -551,18 +552,29 @@ class GUIAPP(tk.Tk):
         #self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 
-    def _on_spectra_run_job_button(self, *_):
+    def _on_spectra_run_local_button(self, *_):
+
+        if not self._check_task_run_condition(self.spectra_task):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            return
+        
+        self._run_local(self.spectra_task, name='spec')
+        
+
+    def _on_spectra_run_network_button(self, *_):
         try:
             getattr(self.spectra_task.engine,'directory')           
         except AttributeError:
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
         else:
-            self.job_sub_page = v.JobSubPage(self._window, 'Spectrum')
+            self.job_sub_page = v.JobSubPage(self._window, 'Spectrum', 'Network')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.show_output_button('Plot','SpectrumPlot')
+            #self.job_sub_page.show_output_button('Plot','SpectrumPlot')
             self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
-            self.job_sub_page.bind('<<RunSpectrumLocal>>', lambda _: self._run_local(self.spectra_task))
-            self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.spectra_task))
+            self.job_sub_page.bind('<<RunSpectrumetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
+            self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 ##----------------------plot_laser_spec_task---------------------------------
 
     def _init_text_viewer(self,name, template, *_):
@@ -573,11 +585,15 @@ class GUIAPP(tk.Tk):
         text_view.insert_text(template)
         return text_view
 
-    def _run_local(self, task):
-        np = self.job_sub_page.get_processors()
-        self.job_sub_page.disable_run_button()
-        #task.prepare_input(self.directory, task.file_path)
-        submitlocal = SubmitLocal(task, np)
+    def _run_local(self, task, name=None):
+        if name == 'spec':
+            np=1
+            submitlocal = SubmitLocal(task, np)
+        else:
+            np = self.job_sub_page.get_processors()
+            self.job_sub_page.disable_run_button()
+            #task.prepare_input(self.directory, task.file_path)
+            submitlocal = SubmitLocal(task, np)
         try:
             submitlocal.prepare_input(self.directory)
         except FileNotFoundError as e:
