@@ -63,7 +63,7 @@ class EngineGpaw(EngineStrategy):
     
     spectrum = {'inp':'Spectrum/spec.py',
             'req' : ['TD_Delta/dm.dat'],
-            'out': 'Spectrum/spec.dat',
+            'out_log': 'Spectrum/spec.dat',
             'restart': 'TD_Delta/dm.dat',
             'check_list':['FWHM']}
 
@@ -109,7 +109,7 @@ class EngineGpaw(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def create_command(self, cmd: list):
+    def create_command(self, cmd: list, *_):
 
         filename = pathlib.Path(self.directory) / self.filename
         command = self.lsconfig.get('programs', 'python')
@@ -148,6 +148,10 @@ class EngineOctopus(EngineStrategy):
             'out_log': '/Octopus/log',
              'req' : ['coordinate.xyz']}
 
+    spectrum = {'inp':'Octopus/inp',
+            'out_log': '/Octopus/log',
+             'req' : ['coordinate.xyz']}
+
     def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
@@ -182,16 +186,30 @@ class EngineOctopus(EngineStrategy):
         self.filename = 'inp' 
         write2file(self.directory,self.filename,template)
 
-    def create_command(self, cmd: list):
+    def create_command(self, cmd: list, task):
 
         ofilename = "log"
         command = self.lsconfig.get('engine', 'octopus')
+
+        if isinstance(task, ot.OctSpectrum):
+            c = ot.OctSpectrum.get_local_cmd()
+            if not command:
+                command =  c
+            else:
+                command = pathlib.Path(command).parent / c
+
+            command = str(command) + ' ' + '>' + ' ' + str(ofilename)
+            return command
+
         if not command:
             command = 'octopus'
         command = command + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
         return command
+
+        
+
 
 class EngineNwchem(EngineStrategy):
 
@@ -208,6 +226,11 @@ class EngineNwchem(EngineStrategy):
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_laser = {'inp':'TD_Laser/tdlaser.nwi',
+            'out_log' : 'GS/tdlaser.nwo',
+            'req' : ['coordinate.xyz', 'restart'],
+            'check_list':['Converged', 'Fermi level:','Total:']}
+
+    spectrum = {'inp':'TD_Laser/tdlaser.nwi',
             'out_log' : 'GS/tdlaser.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
@@ -262,7 +285,7 @@ class EngineNwchem(EngineStrategy):
         self.filename = filename 
         write2file(self.directory,self.filename,template)
     
-    def create_command(self, cmd: list):
+    def create_command(self, cmd: list, *_):
 
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
