@@ -3195,7 +3195,7 @@ class View_Text(tk.Frame):
         super().__init__(parent,*args, **kwargs)
 
         myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
-
+        self.save_button = None
         text_scroll =tk.Scrollbar(self)
         text_scroll.grid(row=0, column=1, sticky='nsew', columnspan=2)
         #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -3215,6 +3215,12 @@ class View_Text(tk.Frame):
         
         self.text_view.insert(tk.END, text)
         self.text_view.configure(state=state)
+        if self.save_button:
+            if state=='disabled':
+                self.save_button.config(state='disabled')
+            else:
+                self.save_button.config(state='active')
+
     
     def get_text(self):
         txt = self.text_view.get(1.0, tk.END)
@@ -3237,9 +3243,9 @@ class View_Text(tk.Frame):
         # view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
         # view['font'] = myFont
         # view.place(x=100,y=450)
-        save_button = tk.Button(text_view_button_frame, text="Save",activebackground="#78d6ff", command= lambda:self.save())
-        save_button['font'] = myfont()
-        save_button.grid(row=1, column=0, padx=5)
+        self.save_button = tk.Button(text_view_button_frame, text="Save",activebackground="#78d6ff", command= lambda:self.save())
+        self.save_button['font'] = myfont()
+        self.save_button.grid(row=1, column=0, padx=5)
         
         # refresh_button = tk.Button(text_view_button_frame, text="Reload", activebackground="#78d6ff")
         # refresh_button['font'] = myfont()
