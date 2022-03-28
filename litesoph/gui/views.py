@@ -2157,6 +2157,16 @@ class TimeDependentPage(View1):
         elif self._var['var1'] == 2:
             pass    
 
+    def read_pol_dir(self):
+        pol_list = [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
+        if pol_list == [1,0,0]:
+            self.pol_dir = 1
+        elif pol_list == [1,0,0]:
+            self.pol_dir = 2 
+        elif pol_list == [1,0,0]:
+            self.pol_dir = 2 
+        return self.pol_dir     
+
     def get_parameters(self):
         kick = [float(self._var['strength'].get())*float(self._var['ex'].get()),
                 float(self._var['strength'].get())*float(self._var['ey'].get()),
@@ -2166,7 +2176,8 @@ class TimeDependentPage(View1):
         td_dict_gp = {
             'absorption_kick':kick,
             'analysis_tools':self.analysis_tool(),
-            'propagate': tuple(inp_list)
+            'propagate': tuple(inp_list),
+            'pol_dir': self.read_pol_dir()
         }
 
         td_dict_oct = {
@@ -2174,7 +2185,8 @@ class TimeDependentPage(View1):
             'time_step' : self._var['dt'].get(),
             'td_propagator' : 'aetrs',
             'strength': self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
+            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'pol_dir': self.read_pol_dir()
           }
 
         td_dict_nwchem = {
@@ -2182,7 +2194,8 @@ class TimeDependentPage(View1):
             'tmax': self._var['Nt'].get() * self._var['dt'].get(),
             'dt': self._var['dt'].get(),
             'max':self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
+            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'pol_dir': self.read_pol_dir()
 
             }
 
@@ -2571,68 +2584,128 @@ class PlotSpectraPage(tk.Frame):
         self.axis = tk.StringVar()
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
+        # self.grid_columnconfigure(9, weight=3)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=5)
 
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
+        self.Frame1.grid(row=0,column=0, sticky='nsew')
+
+        self.add_job_frame(self, "Spectrum", r=0, c=1)        
+
+        self.heading = tk.Label(self.Frame1,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
+        self.heading['font'] = myfont()
+        self.heading.grid(row=0, column=0, padx=2, pady=4)
         
-        self.Frame = tk.Frame(self) 
-        
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
-        
-        self.heading = tk.Label(self.Frame,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
-        self.heading['font'] = myFont
-        self.heading.place(x=350,y=10)
-        
-        self.label_pol = tk.Label(self.Frame, text= "Calculation of absorption spectrum:",bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=60)
+        self.label_pol = tk.Label(self.Frame1, text= "Calculation of absorption spectrum:",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_pol['font'] = label_design['font']
+        self.label_pol.grid(row=1, column=0, padx=2, pady=4, sticky='nsew')       
 
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Create input",activebackground="#78d6ff",command=self.create_button)
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=290,y=60)
+        self.label_estep = tk.Label(self.Frame1,text="Energy step (in eV)",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_estep['font'] = label_design['font']
+        self.label_estep.grid(row=2, column=0, padx=2, pady=4, sticky='nsew' )
 
-        self.label_estep = tk.Label(self.Frame,text="Energy step (in eV)",bg="gray",fg="black")
-        self.label_estep['font'] = myFont
-        self.label_estep.place(x=10,y=100)
+        self.entry_estep = tk.Entry(self.Frame1,textvariable =self._var['del_e'])
+        self.entry_estep['font'] = label_design['font']
+        self.entry_estep.grid(row=2, column=1, padx=2, pady=4, sticky='nsew')
 
-        self.entry_estep = tk.Entry(self.Frame,textvariable =self._var['del_e'])
-        self.entry_estep['font'] = myFont
-        self.entry_estep.place(x=300,y=100)
+        self.label_emax = tk.Label(self.Frame1,text="Minimum energy (in eV)",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_emax['font'] = label_design['font']
+        self.label_emax.grid(row=3, column=0, padx=2, pady=4, sticky='nsew')
 
-        self.label_emax = tk.Label(self.Frame,text="Minimum energy in the spectrum (in eV)",bg="gray",fg="black")
-        self.label_emax['font'] = myFont
-        self.label_emax.place(x=10,y=130)
+        self.entry_emax = tk.Entry(self.Frame1,textvariable =self._var['e_min'])
+        self.entry_emax['font'] = label_design['font']
+        self.entry_emax.grid(row=3, column=1, padx=2, pady=4, sticky='nsew')
 
-        self.entry_emax = tk.Entry(self.Frame,textvariable =self._var['e_min'])
-        self.entry_emax['font'] = myFont
-        self.entry_emax.place(x=300,y=130)
+        self.label_emax = tk.Label(self.Frame1,text="Maximum energy (in eV)",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_emax['font'] = label_design['font']
+        self.label_emax.grid(row=4, column=0, padx=2, pady=4, sticky='nsew')
 
-        self.label_emax = tk.Label(self.Frame,text="Maximum energy in the spectrum (in eV)",bg="gray",fg="black")
-        self.label_emax['font'] = myFont
-        self.label_emax.place(x=10,y=160)
+        self.entry_emax = tk.Entry(self.Frame1,textvariable = self._var['e_max'])
+        self.entry_emax['font'] = label_design['font']
+        self.entry_emax.grid(row=4, column=1, padx=2, pady=4, sticky='nsew')
 
-        self.entry_emax = tk.Entry(self.Frame,textvariable = self._var['e_max'])
-        self.entry_emax['font'] = myFont
-        self.entry_emax.place(x=300,y=160)
+        self.Frame2_Button_1 = tk.Button(self.Frame1,text="Create input",activebackground="#78d6ff",command=self.create_button)
+        self.Frame2_Button_1['font'] = label_design['font']
+        self.Frame2_Button_1.grid(row=5, column=1, padx=2, pady=4, sticky='nsew')
 
-        self.label_msg = tk.Label(self.Frame, text= "",fg="black")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=420,y=60)
+        # self.label_msg = tk.Label(self.Frame, text= "",fg="black")
+        # self.label_msg['font'] = myFont
+        # self.label_msg.place(x=420,y=60)
 
-        self.Frame2_Run = tk.Button(self.Frame,text="Run Job",activebackground="#78d6ff",command=lambda:[self.event_generate('<<SubSpectrum>>')])
-        self.Frame2_Run['font'] = myFont
-        self.Frame2_Run.place(x=320,y=380)
+        self.button_frame = tk.Frame(self, borderwidth=2, relief='groove')
+        self.button_frame.grid(row=1, column=0, sticky='nsew')
+
+        # self.Frame2_Run = tk.Button(self.Frame1,text="Run Job",activebackground="#78d6ff",command=lambda:[self.event_generate('<<SubSpectrum>>')])
+        # self.Frame2_Run['font'] = myFont
+        # self.Frame2_Run.grid(row=5, column=0)
     
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
-        Frame_Button1['font'] = myFont
-        Frame_Button1.place(x=10,y=380)
+        Frame_Button1 = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+        Frame_Button1['font'] = myfont()
+        Frame_Button1.grid(row=0, column=0, padx=3, pady=6)
+        
+        #self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
 
-        #self.show_plot()
+    def add_job_frame(self, parent, task_name, r:int, c:int):  
+        """  Adds submit job buttons to View1"""
+
+        self.Frame3 = tk.Frame(parent, borderwidth=2, relief='groove')
+        self.Frame3.grid(row=r, column=c, sticky='nswe')
+        # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
+        # View_Button1['font'] = self.myFont
+        # View_Button1.grid(row=2, column=1, sticky='nsew')
+
+        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.Frame1_Button2['font'] = myfont()
+        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
+        
+        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.Frame1_Button3['font'] = myfont()
+        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
+
+        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.plot_button['font'] = myfont()
+        self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
+
+    def gpaw_specific_spectra(self, parent):
+        gpaw_spec_frame = tk.Frame(parent)  
+        gpaw_spec_frame.grid(row=0, column=0)
+
+        self.label_folding = tk.Label(gpaw_spec_frame,text="Folding (in eV)",bg="gray",fg="black")
+        self.label_folding['font'] = myfont()
+        self.label_folding.grid(row=0, column=0)
+
+        self.entry_folding = tk.Entry(gpaw_spec_frame)
+        self.entry_folding['font'] = myfont()
+        self.entry_folding.grid(row=0, column=1)
+
+        self.label_width = tk.Label(gpaw_spec_frame,text="Width",bg="gray",fg="black")
+        self.label_width['font'] = myfont()
+        self.label_emax.grid(row=1, column=0)
+
+        self.entry_emax = tk.Entry(gpaw_spec_frame)
+        self.entry_emax['font'] = myfont()
+        self.entry_emax.grid(row=1, column=1)
+
+    def oct_specific_spectra(self, parent):
+        oct_spec_frame = tk.Frame(parent)
+        oct_spec_frame.grid(row=0, column=0)
+
+        self.label_1 = tk.Label(oct_spec_frame,text="Propagation Spectrum Damp Mode",bg="gray",fg="black")
+        self.label_1['font'] = myfont()
+        self.label_1.grid(row=0, column=0)
+
+        self.entry_1 = tk.Entry(oct_spec_frame)
+        self.entry_1['font'] = myfont()
+        self.entry_1.grid(row=0, column=1)
+
+    def show_engine_specific_frame(self, engine):
+        if engine=="gpaw":
+            self.gpaw_specific_spectra(self)
+        elif engine== "octopus":
+            self.oct_specific_spectra(self) 
+        elif engine == "nwchem":
+            pass     
 
     # def show_plot(self):
     #     check = self.controller.status.check_status('spectra', 2)
