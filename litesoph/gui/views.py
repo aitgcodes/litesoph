@@ -2157,6 +2157,16 @@ class TimeDependentPage(View1):
         elif self._var['var1'] == 2:
             pass    
 
+    def read_pol_dir(self):
+        pol_list = [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
+        if pol_list == [1,0,0]:
+            self.pol_dir = 1
+        elif pol_list == [1,0,0]:
+            self.pol_dir = 2 
+        elif pol_list == [1,0,0]:
+            self.pol_dir = 2 
+        return self.pol_dir     
+
     def get_parameters(self):
         kick = [float(self._var['strength'].get())*float(self._var['ex'].get()),
                 float(self._var['strength'].get())*float(self._var['ey'].get()),
@@ -2166,7 +2176,8 @@ class TimeDependentPage(View1):
         td_dict_gp = {
             'absorption_kick':kick,
             'analysis_tools':self.analysis_tool(),
-            'propagate': tuple(inp_list)
+            'propagate': tuple(inp_list),
+            'pol_dir': self.read_pol_dir()
         }
 
         td_dict_oct = {
@@ -2174,7 +2185,8 @@ class TimeDependentPage(View1):
             'time_step' : self._var['dt'].get(),
             'td_propagator' : 'aetrs',
             'strength': self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
+            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'pol_dir': self.read_pol_dir()
           }
 
         td_dict_nwchem = {
@@ -2182,7 +2194,8 @@ class TimeDependentPage(View1):
             'tmax': self._var['Nt'].get() * self._var['dt'].get(),
             'dt': self._var['dt'].get(),
             'max':self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
+            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'pol_dir': self.read_pol_dir()
 
             }
 
