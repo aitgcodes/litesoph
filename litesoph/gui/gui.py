@@ -437,6 +437,7 @@ class GUIAPP(tk.Tk):
         
 
     def _on_td_run_network_button(self, *_):
+
         if not self._check_task_run_condition(self.rt_tddft_delta_task, network=True):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
@@ -606,8 +607,8 @@ class GUIAPP(tk.Tk):
             return
         else:
             if task.local_cmd_out[0] != 0:
-                self.status.update_status(f'{task.task_name}.sub_local.returncode', task.results[0])
-                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.results[2].decode(encoding='utf-8')}")
+                self.status.update_status(f'{task.task_name}.sub_local.returncode', task.local_cmd_out[0])
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.local_cmd_out[2].decode(encoding='utf-8')}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
@@ -631,6 +632,8 @@ class GUIAPP(tk.Tk):
 
     def _run_network(self, task):
 
+        self.job_sub_page.disable_run_button()
+
         try:
             task.check_prerequisite(network = True)
         except FileNotFoundError as e:
@@ -652,6 +655,7 @@ class GUIAPP(tk.Tk):
                                         )
         except Exception as e:
             messagebox.showerror(title = "Error", message = e)
+            self.job_sub_page.activate_run_button()
             return
         try:
             if network_type== 0:
@@ -660,6 +664,7 @@ class GUIAPP(tk.Tk):
                 self.submit_network.run_job('bash')
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
+            self.job_sub_page.activate_run_button()
             return
         else:
             if task.net_cmd_out[0] != 0:
@@ -695,8 +700,15 @@ class GUIAPP(tk.Tk):
         if exist_status != 0:
             return
 
-        if not self.submit_network.check_job_status():
-            get = messagebox.askokcancel(title='Info', message="Job not commpleted.", details= "Do you what to download engine log file?")
+        if self.submit_network.check_job_status():
+            messagebox.showinfo(title='Info', message="Job commpleted.", detail= "Syncing remote project dir with local one")
+            self._get_remote_output()   
+            log_txt = read_file(log_file)
+            self.job_sub_page.text_view.clear_text()
+            self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
+
+        else:
+            get = messagebox.askokcancel(title='Info', message="Job not commpleted.", detail= "Do you what to download engine log file?")
 
             if get:
                 self.submit_network.get_output_log()
@@ -705,10 +717,7 @@ class GUIAPP(tk.Tk):
             else:
                 return                
         
-        self._get_remote_output()   
-        log_txt = read_file(log_file)
-        self.job_sub_page.text_view.clear_text()
-        self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
+        
 
     def _load_settings(self):
         """Load settings into our self.settings dict"""
