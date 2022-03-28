@@ -48,6 +48,8 @@ Unitsoutput = {out_unit}
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius = {box[radius]}
+
+
 Spacing = {spacing}*angstrom
 SpinComponents = {spin_pol}
 ExcessCharge = {charge}
@@ -94,7 +96,7 @@ PseudopotentialSet = {pseudo}
 
         elif self.boxshape == "cylinder":
             tlines = self.gs_min.splitlines()
-            tlines[10] = "Xlength = {box[xlength]}"
+            tlines[11] = "Xlength = {box[xlength]}"
             temp = """\n""".join(tlines)
             template = temp.format(**self.temp_dict)
             return template
@@ -104,9 +106,9 @@ PseudopotentialSet = {pseudo}
             lx = round(self.temp_dict['box']['sizex']/2, 2)
             ly = round(self.temp_dict['box']['sizey']/2, 2)
             lz = round(self.temp_dict['box']['sizez']/2, 2)
-            tlines[9] = "%LSize"
-            tlines[10] = "{}|{}|{}".format(lx, ly, lz)
-            tlines[11] = "%"
+            tlines[10] = "%LSize"
+            tlines[11] = "{}|{}|{}".format(lx, ly, lz)
+            tlines[12] = "%"
             temp = """\n""".join(tlines)
             template = temp.format(**self.temp_dict)
             return template 
