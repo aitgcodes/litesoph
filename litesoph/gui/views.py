@@ -2643,7 +2643,7 @@ class PlotSpectraPage(tk.Frame):
         Frame_Button1 = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myfont()
         Frame_Button1.grid(row=0, column=0, padx=3, pady=6)
-        
+        #self.show_engine_specific_frame(self.engine)
         #self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
 
     def add_job_frame(self, parent, task_name, r:int, c:int):  
@@ -2662,8 +2662,9 @@ class PlotSpectraPage(tk.Frame):
         self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
         self.Frame1_Button3['font'] = myfont()
         self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
-
-        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.Frame1_Button3.config(state='disabled')
+        
+        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLoca'+task_name+'>>'))
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
 
@@ -2702,9 +2703,12 @@ class PlotSpectraPage(tk.Frame):
     def show_engine_specific_frame(self, engine):
         if engine=="gpaw":
             self.gpaw_specific_spectra(self)
+            self.Frame1_Button3.config(state='active') 
         elif engine== "octopus":
             self.oct_specific_spectra(self) 
+            self.Frame1_Button3.config(state='active') 
         elif engine == "nwchem":
+            self.Frame1_Button3.config(state='disabled') 
             pass     
 
     # def show_plot(self):
