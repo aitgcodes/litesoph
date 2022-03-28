@@ -339,7 +339,7 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
 ##### LITESOPH Appended Comands###########
 
 cd Spectrum/
-mpirun -np 4  python3 spec.py\n"""  
+python3 spec.py\n"""  
         return job_script
 
 
