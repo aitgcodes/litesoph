@@ -48,6 +48,8 @@ Unitsoutput = {out_unit}
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
 Radius = {box[radius]}
+
+
 Spacing = {spacing}*angstrom
 SpinComponents = {spin_pol}
 ExcessCharge = {charge}
@@ -94,7 +96,7 @@ PseudopotentialSet = {pseudo}
 
         elif self.boxshape == "cylinder":
             tlines = self.gs_min.splitlines()
-            tlines[10] = "Xlength = {box[xlength]}"
+            tlines[11] = "Xlength = {box[xlength]}"
             temp = """\n""".join(tlines)
             template = temp.format(**self.temp_dict)
             return template
@@ -104,9 +106,9 @@ PseudopotentialSet = {pseudo}
             lx = round(self.temp_dict['box']['sizex']/2, 2)
             ly = round(self.temp_dict['box']['sizey']/2, 2)
             lz = round(self.temp_dict['box']['sizez']/2, 2)
-            tlines[9] = "%LSize"
-            tlines[10] = "{}|{}|{}".format(lx, ly, lz)
-            tlines[11] = "%"
+            tlines[10] = "%LSize"
+            tlines[11] = "{}|{}|{}".format(lx, ly, lz)
+            tlines[12] = "%"
             temp = """\n""".join(tlines)
             template = temp.format(**self.temp_dict)
             return template 
@@ -147,11 +149,7 @@ PseudopotentialSet = {pseudo}
 ##### LITESOPH Appended Comands###########
 cd Octopus/
 mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-#############################################
-
-    """
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
     # def format_template(self):
     #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
@@ -307,10 +305,7 @@ TDPolarizationDirection = 1
 ##### LITESOPH Appended Comands###########
 cd Octopus/
 mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-#############################################
-   """
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
 
     def format_template(self):
@@ -404,10 +399,7 @@ omega = {frequency}*eV
 ##### LITESOPH Appended Comands###########
 cd Octopus/
 mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log
-
-#############################################
-        """
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
   
   
@@ -456,16 +448,15 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
 
 
     spectra_job_script = """
-        ##### LITESOPH Appended Comands###########
+##### LITESOPH Appended Comands###########
 
-        mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
-        
-        #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum 
+mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
 
-        #############################################
-   """   
-   
-   
+#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""   
+    @staticmethod
+    def get_local_cmd():
+        return 'oct-propagation_spectrum'
+
     def format_template(self):        
         #template = self.td.format(**self.temp_dict)
         template = self.spec.format(**self.temp_dict)

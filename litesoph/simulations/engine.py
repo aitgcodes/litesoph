@@ -45,27 +45,28 @@ class EngineGpaw(EngineStrategy):
 
     ground_state = {'inp':'GS/gs.py',
             'req' : ['coordinate.xyz'],
-            'out': 'GS/gs.out',
+            'out_log': 'GS/gs.out',
             'restart': 'GS/gs.gpw',
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_delta = {'inp':'TD_Delta/td.py',
             'req' : ['GS/gs.gpw'],
-            'out': 'TD_Delta/tdx.out',
+            'out_log': 'TD_Delta/tdx.out',
             'restart': 'TD_Delta/td.gpw',
             'check_list':['Writing','Total:']}
 
     rt_tddft_laser = {'inp':'TD_Laser/tdlaser.py',
             'req' : ['GS/gs.gpw'],
-            'out': 'TD_Laser/tdlaser.out',
+            'out_log': 'TD_Laser/tdlaser.out',
             'restart': 'TD_Laser/tdlaser.gpw',
             'check_list':['Writing','Total:']}
     
     spectrum = {'inp':'Spectrum/spec.py',
             'req' : ['TD_Delta/dm.dat'],
-            'out': 'Spectrum/spec.dat',
+            'out_log': 'Spectrum/spec.dat',
             'restart': 'TD_Delta/dm.dat',
-            'check_list':['FWHM']}
+            'check_list':['FWHM'],
+            'spectra_file': ['Spectrum/spec_x.dat','Spectrum/spec_y.dat', 'Spectrum/spec_z.dat' ]}
 
     task_dirs =[('GpawGroundState', 'GS'),
             ('GpawRTLCAOTddftDelta', 'TD_Delta'),
@@ -90,6 +91,14 @@ class EngineGpaw(EngineStrategy):
             user_param['gfilename']= str(pathlib.Path(self.project_dir.name)  / self.rt_tddft_laser['req'][0])
             return gp.GpawRTLCAOTddftLaser(user_param)
         if task == "spectrum":
+            pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+            if pol == 0:
+                pol = 'x'
+            elif pol == 1:
+                pol = 'y'
+            elif pol == 2:
+                pol = 'z'
+            user_param['spectrum_file'] = f'spec_{str(pol)}.dat'
             user_param['moment_file']= str(pathlib.Path(self.project_dir.name) / self.spectrum['req'][0])
             return gp.GpawSpectrum(user_param) 
         if task == "tcm":
@@ -109,7 +118,7 @@ class EngineGpaw(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def create_command(self, cmd: list):
+    def create_command(self, cmd: list, *_):
 
         filename = pathlib.Path(self.directory) / self.filename
         command = self.lsconfig.get('programs', 'python')
@@ -135,18 +144,23 @@ class EngineOctopus(EngineStrategy):
     NAME = 'octopus'
 
     ground_state = {'inp':'Octopus/inp',
-        'out': '/Octopus/log',
+        'out_log': '/Octopus/log',
         'req' : ['coordinate.xyz'],
         'check_list':['SCF converged']}
 
     rt_tddft_delta = {'inp':'Octopus/inp',
-            'out': '/Octopus/log',
+            'out_log': '/Octopus/log',
              'req' : ['coordinate.xyz'],
              'check_list':['Finished writing information', 'Calculation ended']}    
     
     rt_tddft_laser = {'inp':'Octopus/inp',
-            'out': '/Octopus/log',
+            'out_log': '/Octopus/log',
              'req' : ['coordinate.xyz']}
+
+    spectrum = {'inp':'Octopus/inp',
+            'out_log': '/Octopus/log',
+             'req' : ['coordinate.xyz'],
+             'spectra_file': ['Octopus/cross_section_vector']}
 
     def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
@@ -182,10 +196,21 @@ class EngineOctopus(EngineStrategy):
         self.filename = 'inp' 
         write2file(self.directory,self.filename,template)
 
-    def create_command(self, cmd: list):
+    def create_command(self, cmd: list, task):
 
         ofilename = "log"
         command = self.lsconfig.get('engine', 'octopus')
+
+        if isinstance(task, ot.OctSpectrum):
+            c = ot.OctSpectrum.get_local_cmd()
+            if not command:
+                command =  c
+            else:
+                command = pathlib.Path(command).parent / c
+
+            command = str(command) + ' ' + '>' + ' ' + str(ofilename)
+            return command
+
         if not command:
             command = 'octopus'
         command = command + ' ' + '>' + ' ' + str(ofilename)
@@ -193,20 +218,32 @@ class EngineOctopus(EngineStrategy):
             command = cmd + ' ' + command
         return command
 
+        
+
+
 class EngineNwchem(EngineStrategy):
 
     NAME = 'nwchem'
 
-    ground_state = {'inp':'/GS/gs.nwi',
+    ground_state = {'inp':'GS/gs.nwi',
+            'out_log' : 'GS/gs.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_delta = {'inp':'/TD_Delta/td.nwi',
+    rt_tddft_delta = {'inp':'TD_Delta/td.nwi',
+            'out_log' : 'TD_Delta/td.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
-    rt_tddft_laser = {'inp':'/TD_Laser/tdlaser.nwi',
+    rt_tddft_laser = {'inp':'TD_Laser/tdlaser.nwi',
+            'out_log' : 'TD_Laser/tdlaser.nwo',
             'req' : ['coordinate.xyz', 'restart'],
+            'check_list':['Converged', 'Fermi level:','Total:']}
+
+    spectrum = {'inp':'TD_Laser/tdlaser.nwi',
+            'out_log' : 'TD_Delta/td.nwo',
+            'req' : ['coordinate.xyz', 'restart','TD_Delta/td.nwo'],
+            'spectra_file': ['Spectrum/spec_x.dat','Spectrum/spec_y.dat', 'Spectrum/spec_z.dat' ],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'restart'
@@ -259,7 +296,7 @@ class EngineNwchem(EngineStrategy):
         self.filename = filename 
         write2file(self.directory,self.filename,template)
     
-    def create_command(self, cmd: list):
+    def create_command(self, cmd: list, *_):
 
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
