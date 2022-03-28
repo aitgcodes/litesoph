@@ -65,7 +65,8 @@ class EngineGpaw(EngineStrategy):
             'req' : ['TD_Delta/dm.dat'],
             'out_log': 'Spectrum/spec.dat',
             'restart': 'TD_Delta/dm.dat',
-            'check_list':['FWHM']}
+            'check_list':['FWHM'],
+            'spectra_file': 'Spectrum/spec.dat'}
 
     task_dirs =[('GpawGroundState', 'GS'),
             ('GpawRTLCAOTddftDelta', 'TD_Delta'),
@@ -150,7 +151,8 @@ class EngineOctopus(EngineStrategy):
 
     spectrum = {'inp':'Octopus/inp',
             'out_log': '/Octopus/log',
-             'req' : ['coordinate.xyz']}
+             'req' : ['coordinate.xyz'],
+             'spectra_file': 'Octopus/cross_section_vector'}
 
     def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
@@ -233,7 +235,8 @@ class EngineNwchem(EngineStrategy):
     spectrum = {'inp':'TD_Laser/tdlaser.nwi',
             'out_log' : 'GS/tdlaser.nwo',
             'req' : ['coordinate.xyz', 'restart'],
-            'check_list':['Converged', 'Fermi level:','Total:']}
+            'check_list':['Converged', 'Fermi level:','Total:'],
+            'spectra_file': ''}
 
     restart = 'restart'
 
