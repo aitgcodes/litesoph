@@ -32,7 +32,7 @@ class SubmitLocal:
                    
     def create_command(self):
         """creates creates the command to run the job"""
-        self.command = self.engine.create_command(self.command)
+        self.command = self.engine.create_command(self.command, self.task.task)
     
     def prepare_input(self, path):
         """this adds in the proper path to the data file required for the job"""
