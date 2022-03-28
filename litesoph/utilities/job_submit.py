@@ -51,11 +51,9 @@ class SubmitLocal:
                 data_path = path.parent / item
                 
                 print(str(item))
-                if data_path.is_file() or data_path.is_dir():
-                    #item = item.split('/')[-1]
+                if not re.search(str(data_path), text):
                     text = re.sub(str(item), str(data_path), text)
-                else:
-                    raise FileNotFoundError(f"The required file for this job {str(data_path)} not found.")
+                
             f.seek(0)
             f.write(text)
             f.truncate() 
@@ -126,8 +124,8 @@ class SubmitNetwork:
             for item in self.input_data_files:
                 item = pathlib.Path(self.task.project_dir.name) / item
                 data_path = path / item
-                
-                text = re.sub(str(item), str(data_path), text)
+                if not re.search(str(data_path), text):
+                    text = re.sub(str(item), str(data_path), text)
             f.seek(0)
             f.write(text)
             f.truncate() 
@@ -280,7 +278,7 @@ class NetworkJobSubmission:
             ssh_error = stderr.read()
             exit_status = stdout.channel.recv_exit_status()
             if ssh_error:
-                raise Exception(f"Problem occurred while running command: {command} The error is {self.ssh_error}")
+                raise Exception(f"Problem occurred while running command: {command} The error is {ssh_error}")
         except socket.timeout as e:
             raise Exception("Command timed out.", command)
         except paramiko.SSHException:

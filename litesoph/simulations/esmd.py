@@ -59,7 +59,10 @@ class Task:
             item = pathlib.Path(self.project_dir.name) / item
             self.input_data_files.append(item)
 
-        self.output_log_file =   pathlib.Path(f"{self.project_dir.name}/{task_data['out_log']}")
+        try:
+            self.output_log_file =   pathlib.Path(f"{self.project_dir.name}/{task_data['out_log']}")
+        except KeyError:
+            pass
 
     def load_template(self, filename):
         self.file_path = filename
