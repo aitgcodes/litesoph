@@ -95,13 +95,18 @@ def read_config():
     lsconfig.read(config_file)
     return lsconfig
 
-def set_config(config: ConfigParser, section, key, value):
+def set_config(config: ConfigParser, section, key=None, value=None, list: list=None):
     try:
-        a =config.get(section)
+        a =config.items(section)
     except NoSectionError:
         config.add_section(section)
-    
-    config.set(section,key, value)
+        
+    if list:
+        for item in dict.items():
+            config.set(section, item[0],item[1])
+    else:
+
+        config.set(section, key, value)
 
     with open(config_file, 'w+') as configfile:
             config.write(configfile)

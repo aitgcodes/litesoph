@@ -13,12 +13,12 @@ import os
 import platform
 import pathlib 
 import shutil
-from configparser import ConfigParser
+from configparser import ConfigParser, NoSectionError
 
 from matplotlib.pyplot import show
 
 #---LITESOPH modules
-from litesoph.config import check_config, read_config
+from litesoph.config import check_config, read_config, set_config
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import models as m
@@ -83,6 +83,7 @@ class GUIAPP(tk.Tk):
         self._show_page_events()
         self._bind_event_callbacks()
         self._show_frame(v.StartPage, self.lsroot)
+        self.after(1000, self.navigation.populate(self.directory))
     
     
     def _status_init(self, path):
@@ -383,6 +384,9 @@ class GUIAPP(tk.Tk):
         self.job_sub_page = v.JobSubPage(self._window, 'GroundState', 'Network')
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
         self.job_sub_page.activate_run_button()
+        remote = self._get_remote_profile()
+        if remote:
+            self.job_sub_page.set_network_profile(remote)
         self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
         self.job_sub_page.bind('<<ViewGroundStateNetworkOutfile>>', lambda _: self. _on_out_remote_view_button(self.ground_state_task))
         self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_remote_job_script(self.ground_state_task))
@@ -447,6 +451,9 @@ class GUIAPP(tk.Tk):
             return
         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Network')
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+        remote = self._get_remote_profile()
+        if remote:
+            self.job_sub_page.set_network_profile(remote)
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<ViewRT_TDDFT_DELTANetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
@@ -664,6 +671,16 @@ class GUIAPP(tk.Tk):
         text_view.insert_text(template)
         return text_view
 
+    def _get_remote_profile(self):
+        try:
+            remote = self.lsconfig.items('remote_profile')
+        except NoSectionError:
+            return
+        
+        return remote
+
+    
+
     def _run_local(self, task, name=None):
         if name == 'spec':
             np=1
@@ -718,9 +735,13 @@ class GUIAPP(tk.Tk):
             messagebox.showerror(title = "Error", message = e)
             return
 
-        network_type = self.job_sub_page.network_job_type.get()
+        self.network_type = self.job_sub_page.network_job_type.get()
         
         login_dict = self.job_sub_page.get_network_dict()
+        set_config(self.lsconfig,'remote_profile','ip',login_dict['ip'])
+        set_config(self.lsconfig,'remote_profile','username',login_dict['username'])
+        set_config(self.lsconfig,'remote_profile','remote_path',login_dict['remote_path'])
+
         
         from litesoph.utilities.job_submit import SubmitNetwork
 
@@ -736,9 +757,9 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.activate_run_button()
             return
         try:
-            if network_type== 0:
+            if self.network_type== 0:
                 self.submit_network.run_job('qsub')
-            elif network_type == 1:
+            elif self.network_type == 1:
                 self.submit_network.run_job('bash')
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
@@ -775,11 +796,14 @@ class GUIAPP(tk.Tk):
         except AttributeError:
             return
 
-        if exist_status != 0:
-            return
+        # if exist_status != 0:
+        #     return
 
         if self.submit_network.check_job_status():
-            messagebox.showinfo(title='Info', message="Job commpleted.", detail= "Syncing remote project dir with local one")
+
+            if self.network_type == 0:
+                messagebox.showinfo(title='Info', message="Job commpleted.")
+
             self._get_remote_output()   
             log_txt = read_file(log_file)
             self.job_sub_page.text_view.clear_text()
