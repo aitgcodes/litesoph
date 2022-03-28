@@ -533,6 +533,8 @@ class GUIAPP(tk.Tk):
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
         self.bind('<<SubLocalSpectrum>>', lambda _: self._on_spectra_run_local_button())
         self.bind('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
+        # self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
+        self.bind('<<ShowSpectrumPlot>>', lambda _:self._on_spectra_plot_button())
 
     def _validate_spectra_input(self):
         inp_dict = self.spectra_view.get_parameters()
@@ -576,6 +578,55 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
             self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+
+    def _on_spectra_plot_button(self, *_):
+        print(self.engine)
+        dir = self.status.get_status('rt_tddft_delta.param.pol_dir')
+        print(dir)
+        spec_file = self.spectra_task.engine.spectrum['spectra_file']
+        file = pathlib.Path(self.directory) / spec_file
+        img = pathlib.Path(self.directory) / "spec.png"
+        self.select_plot_engine(file,self.engine, img)
+
+    def select_plot_engine(self, filename, engine,imgfile): 
+        """ Selects engine specific plot function"""
+        
+        if engine == "gpaw":
+            dir = self.status.get_status('rt_tddft_delta.param.pol_dir')
+            self.show_plot(filename,imgfile,0, dir, "Energy (in eV)", "Strength(in /eV)")
+            # ax.plot(data_ej[:, 0], data_ej[:, column], 'k')
+        elif engine == "octopus":
+            self.show_plot(filename,imgfile,0, 4, "Energy (in eV)", "Strength(in /eV)")
+        elif engine == "nwchem":
+            self.show_plot(filename,imgfile,0, 2, "Energy","Strength")
+            # ax.plot(data_ej[:, 0], data_ej[:, 2], 'k') 
+
+    def show_plot(self, filename,imgfile,row:int, column:int, x:str, y:str):  
+        """ Shows the plot"""
+             
+        import numpy as np
+        import matplotlib.pyplot as plt
+        data_ej = np.loadtxt(filename) 
+        plt.figure(figsize=(8, 6))
+        ax = plt.subplot(1, 1, 1) 
+        ax.plot(data_ej[:, row], data_ej[:, column], 'k')                  
+        # if conversion is not None:
+        #     ax.plot(data_ej[:, 0]*conversion, data_ej[:, axis], 'k')
+        # else:
+        #     ax.plot(data_ej[:, 0], data_ej[:, axis], 'k')          
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plt.xlabel(x)
+        plt.ylabel(y)
+        # plt.xlabel('Energy (eV)')
+        # plt.ylabel('Photoabsorption (eV$^{-1}$)')
+        #plt.xlim(0, 4)
+        #plt.ylim(ymin=0)
+        plt.tight_layout()
+        plt.savefig(imgfile)
+        plt.show()                   
 ##----------------------plot_laser_spec_task---------------------------------
 
     def _init_text_viewer(self,name, template, *_):
