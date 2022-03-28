@@ -26,8 +26,11 @@ class Status():
                         'log' : ''
                     },
                     'sub_network':{
-                        'project_path': '',
-                        'sub_returncode' : None,
+                        'ip': '',
+                        'username': '',
+                        'remote_path': '',
+                        'returncode' : None,
+                        'cmd_out' : '',
                         'n_proc' : None,
                         'restart' : '',
                         'log' : ''

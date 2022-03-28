@@ -451,8 +451,10 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
 mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
 
 #mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""   
-   
-   
+    @staticmethod
+    def get_local_cmd():
+        return 'oct-propagation_spectrum'
+
     def format_template(self):        
         #template = self.td.format(**self.temp_dict)
         template = self.spec.format(**self.temp_dict)

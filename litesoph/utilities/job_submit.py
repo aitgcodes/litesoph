@@ -32,7 +32,7 @@ class SubmitLocal:
                    
     def create_command(self):
         """creates creates the command to run the job"""
-        self.command = self.engine.create_command(self.command)
+        self.command = self.engine.create_command(self.command, self.task.task)
     
     def prepare_input(self, path):
         """this adds in the proper path to the data file required for the job"""
@@ -51,11 +51,9 @@ class SubmitLocal:
                 data_path = path.parent / item
                 
                 print(str(item))
-                if data_path.is_file() or data_path.is_dir():
-                    #item = item.split('/')[-1]
+                if not re.search(str(data_path), text):
                     text = re.sub(str(item), str(data_path), text)
-                else:
-                    raise FileNotFoundError(f"The required file for this job {str(data_path)} not found.")
+                
             f.seek(0)
             f.write(text)
             f.truncate() 
@@ -126,8 +124,8 @@ class SubmitNetwork:
             for item in self.input_data_files:
                 item = pathlib.Path(self.task.project_dir.name) / item
                 data_path = path / item
-                
-                text = re.sub(str(item), str(data_path), text)
+                if not re.search(str(data_path), text):
+                    text = re.sub(str(item), str(data_path), text)
             f.seek(0)
             f.write(text)
             f.truncate() 
@@ -246,7 +244,7 @@ class NetworkJobSubmission:
             raise Exception(f"Unable to upload the file to the remote server {remote_path}")
 
     def progress(self, filename, size, sent):
-        sys.stdout.write(f"{filename}'s progress: {float(sent)/float(size)*100 : .2f}   \n") 
+        sys.stdout.write(f"{filename}'s progress: {float(sent)/float(size)*100 : .2f}   \r") 
 
     def download_files(self, remote_file_path, local_path, recursive=False):
         "This method downloads the file from cluster"
@@ -280,7 +278,7 @@ class NetworkJobSubmission:
             ssh_error = stderr.read()
             exit_status = stdout.channel.recv_exit_status()
             if ssh_error:
-                raise Exception(f"Problem occurred while running command: {command} The error is {self.ssh_error}")
+                raise Exception(f"Problem occurred while running command: {command} The error is {ssh_error}")
         except socket.timeout as e:
             raise Exception("Command timed out.", command)
         except paramiko.SSHException:
