@@ -223,20 +223,19 @@ class EngineNwchem(EngineStrategy):
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_delta = {'inp':'TD_Delta/td.nwi',
-            'out_log' : 'GS/td.nwo',
+            'out_log' : 'TD_Delta/td.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_laser = {'inp':'TD_Laser/tdlaser.nwi',
-            'out_log' : 'GS/tdlaser.nwo',
+            'out_log' : 'TD_Laser/tdlaser.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     spectrum = {'inp':'TD_Laser/tdlaser.nwi',
-            'out_log' : 'GS/tdlaser.nwo',
-            'req' : ['coordinate.xyz', 'restart'],
-            'check_list':['Converged', 'Fermi level:','Total:'],
-            'spectra_file': ''}
+            'out_log' : 'TD_Delta/td.nwo',
+            'req' : ['coordinate.xyz', 'restart','TD_Delta/td.nwo'],
+            'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'restart'
 

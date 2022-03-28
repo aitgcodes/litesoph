@@ -537,6 +537,7 @@ class GUIAPP(tk.Tk):
         self.bind('<<ShowSpectrumPlot>>', lambda _:self._on_spectra_plot_button())
 
     def _validate_spectra_input(self):
+        self.status.get_status('rt_tddft_delta.param.pol_dir')
         inp_dict = self.spectra_view.get_parameters()
         self.spectra_task.set_engine(self.engine)
         self.spectra_task.set_task('spectrum',inp_dict)
@@ -544,6 +545,9 @@ class GUIAPP(tk.Tk):
         return self.spectra_task.template    
 
     def _on_create_spectra_button(self, *_):
+
+        if self.engine == 'nwchem':
+            return
         self._validate_spectra_input()
         self._spectra_create_input()
 
@@ -556,10 +560,24 @@ class GUIAPP(tk.Tk):
         self.check = False
 
     def _on_spectra_run_local_button(self, *_):
+        from litesoph.simulations.nwchem.nwchem_template import nwchem_compute_spec
+
+        if self.engine == 'nwchem':
+            pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+            if pol == '1':
+                pol = 'x'
+            elif pol == '2':
+                pol = 'y'
+            elif pol == '3':
+                pol = 'z'
+
+            nwchem_compute_spec(self.directory, pol)
+            return
 
         if not self._check_task_run_condition(self.spectra_task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
+
         
         self._run_local(self.spectra_task, name='spec')
         
