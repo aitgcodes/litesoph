@@ -65,7 +65,8 @@ class EngineGpaw(EngineStrategy):
             'req' : ['TD_Delta/dm.dat'],
             'out_log': 'Spectrum/spec.dat',
             'restart': 'TD_Delta/dm.dat',
-            'check_list':['FWHM']}
+            'check_list':['FWHM'],
+            'spectra_file': ['Spectrum/spec_x.dat','Spectrum/spec_y.dat', 'Spectrum/spec_z.dat' ]}
 
     task_dirs =[('GpawGroundState', 'GS'),
             ('GpawRTLCAOTddftDelta', 'TD_Delta'),
@@ -150,7 +151,8 @@ class EngineOctopus(EngineStrategy):
 
     spectrum = {'inp':'Octopus/inp',
             'out_log': '/Octopus/log',
-             'req' : ['coordinate.xyz']}
+             'req' : ['coordinate.xyz'],
+             'spectra_file': ['Octopus/cross_section_vector']}
 
     def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
@@ -221,18 +223,19 @@ class EngineNwchem(EngineStrategy):
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_delta = {'inp':'TD_Delta/td.nwi',
-            'out_log' : 'GS/td.nwo',
+            'out_log' : 'TD_Delta/td.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     rt_tddft_laser = {'inp':'TD_Laser/tdlaser.nwi',
-            'out_log' : 'GS/tdlaser.nwo',
+            'out_log' : 'TD_Laser/tdlaser.nwo',
             'req' : ['coordinate.xyz', 'restart'],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     spectrum = {'inp':'TD_Laser/tdlaser.nwi',
-            'out_log' : 'GS/tdlaser.nwo',
-            'req' : ['coordinate.xyz', 'restart'],
+            'out_log' : 'TD_Delta/td.nwo',
+            'req' : ['coordinate.xyz', 'restart','TD_Delta/td.nwo'],
+            'spectra_file': ['Spectrum/spec_x.dat','Spectrum/spec_y.dat', 'Spectrum/spec_z.dat' ],
             'check_list':['Converged', 'Fermi level:','Total:']}
 
     restart = 'restart'
