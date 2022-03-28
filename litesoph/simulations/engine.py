@@ -91,6 +91,14 @@ class EngineGpaw(EngineStrategy):
             user_param['gfilename']= str(pathlib.Path(self.project_dir.name)  / self.rt_tddft_laser['req'][0])
             return gp.GpawRTLCAOTddftLaser(user_param)
         if task == "spectrum":
+            pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+            if pol == 0:
+                pol = 'x'
+            elif pol == 1:
+                pol = 'y'
+            elif pol == 2:
+                pol = 'z'
+            user_param['spectrum_file'] = f'spec_{str(pol)}.dat'
             user_param['moment_file']= str(pathlib.Path(self.project_dir.name) / self.spectrum['req'][0])
             return gp.GpawSpectrum(user_param) 
         if task == "tcm":

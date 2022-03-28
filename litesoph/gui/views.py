@@ -3016,6 +3016,12 @@ class JobSubPage(View1):
         back = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
         back['font'] = myfont()
         back.grid(row=0, column=0, padx=40)
+    
+    def set_network_profile(self, remote_profile):
+        self.ip.set(remote_profile[0][1])
+        self.username.set(remote_profile[1][1])
+        self.rpath.set(remote_profile[2][1])
+
 
     def add_text_view_frame(self):
         """ Adds text view frame"""
