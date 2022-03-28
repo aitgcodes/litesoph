@@ -197,7 +197,7 @@ class NetworkJobSubmission:
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
             if pkey:
-                private_key = paramiko.RSAKey.from_private_key(self.pkey)
+                private_key = paramiko.RSAKey.from_private_key(pkey)
                 self.client.connect(hostname=self.host, port=self.port, username=username, pkey=private_key)
                 print("connected to the server", self.host)
             else:    
@@ -273,14 +273,24 @@ class NetworkJobSubmission:
         self._check_connection()
         try:
             print(f"Executing command --> {command}")
-            stdin, stdout, stderr = self.client.exec_command(command, timeout=10)
+            stdin, stdout, stderr = self.client.exec_command(command)
             ssh_output = stdout.read()
             ssh_error = stderr.read()
             exit_status = stdout.channel.recv_exit_status()
+
+            try:
+                if exit_status:
+                    pass
+            except Exception as e:
+                exit_status = -1
+
             if ssh_error:
-                raise Exception(f"Problem occurred while running command: {command} The error is {ssh_error}")
+                print(ssh_error)
+                #raise Exception(f"Problem occurred while running command: {command} The error is {ssh_error}")
         except socket.timeout as e:
-            raise Exception("Command timed out.", command)
+            exit_status = -1
+            pass
+            #raise Exception("Command timed out.", command)
         except paramiko.SSHException:
             raise Exception("Failed to execute the command!", command)
 

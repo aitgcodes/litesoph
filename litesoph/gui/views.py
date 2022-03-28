@@ -3016,6 +3016,12 @@ class JobSubPage(View1):
         back = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
         back['font'] = myfont()
         back.grid(row=0, column=0, padx=40)
+    
+    def set_network_profile(self, remote_profile):
+        self.ip.set(remote_profile[0][1])
+        self.username.set(remote_profile[1][1])
+        self.rpath.set(remote_profile[2][1])
+
 
     def add_text_view_frame(self):
         """ Adds text view frame"""
@@ -3046,7 +3052,7 @@ class JobSubPage(View1):
         entry_np['font'] = myfont()
         entry_np.grid(row=0, column=1, ipadx=2, ipady=2)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Local",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         self.run_button['font'] = myfont()
         self.run_button.grid(row=1, column=1)
 
@@ -3094,7 +3100,7 @@ class JobSubPage(View1):
         upload_button2['font'] = myfont()
         upload_button2.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job Network",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
         self.run_button.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
     
