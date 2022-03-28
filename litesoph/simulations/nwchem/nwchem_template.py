@@ -892,9 +892,9 @@ def nwchem_compute_spec(project_dir :Path, pol):
 
   path = pathlib.Path(__file__)
 
-  nw_rtparse = path.parent /'nw_rtparse.py'
-  rot = path.parent / 'rotate_fft.py'
-  fft = path.parent / 'fft1d.py'
+  nw_rtparse = str(path.parent /'nw_rtparse.py')
+  rot = str(path.parent / 'rotate_fft.py')
+  fft = str(path.parent / 'fft1d.py')
 
   cwd = project_dir / 'Spectrum'
   try:
@@ -902,9 +902,9 @@ def nwchem_compute_spec(project_dir :Path, pol):
   except FileExistsError:
     pass
   print('here')
-  x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file}.nwo > x.dat'
-  y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file}.nwo > y.dat'
-  z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file}.nwo > z.dat'
+  x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
+  y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
+  z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
 
   x_f_cmd = f'python {fft} x.dat xw.dat'
   y_f_cmd = f'python {fft} y.dat yw.dat'
@@ -913,7 +913,7 @@ def nwchem_compute_spec(project_dir :Path, pol):
   x_r_cmd = f'python {rot} xw.dat x'
   y_r_cmd = f'python {rot} yw.dat y'
   z_r_cmd = f'python {rot} zw.dat z'
-
+  print(pol)
   if pol == 'x':
     print("computing spectrum")
     job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
@@ -940,3 +940,6 @@ def nwchem_compute_spec(project_dir :Path, pol):
     result2 = job2.communicate()
     job3 = Popen(z_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
     result3 = job3.communicate()
+  
+  if job1.returncode == job2.returncode == job3.returncode != 0:
+    raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')

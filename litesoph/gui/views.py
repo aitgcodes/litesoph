@@ -2160,10 +2160,10 @@ class TimeDependentPage(View1):
     def read_pol_dir(self):
         pol_list = [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
         if pol_list == [1,0,0]:
-            self.pol_dir = 1
-        elif pol_list == [1,0,0]:
-            self.pol_dir = 2 
-        elif pol_list == [1,0,0]:
+            self.pol_dir = 0
+        elif pol_list == [0,1,0]:
+            self.pol_dir = 1 
+        elif pol_list == [0,0,1]:
             self.pol_dir = 2 
         return self.pol_dir     
 
