@@ -541,6 +541,8 @@ class GUIAPP(tk.Tk):
         self.spectra_view.engine = self.engine
         self.spectra_task = Task(self.status, self.directory, self.lsconfig)
         print('_on_spectra_task')
+        self.spectra_view.Frame1_Button2.config(state='disabled')
+        self.spectra_view.Frame1_Button3.config(state='disabled')
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
         self.bind('<<SubLocalSpectrum>>', lambda _: self._on_spectra_run_local_button())
         self.bind('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
@@ -568,6 +570,9 @@ class GUIAPP(tk.Tk):
         self.status.update_status(f'{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.spectra_task.task_name}.param',self.spectra_task.user_input)
         #self.rt_tddft_laser_view.set_label_msg('saved')
+        messagebox.showinfo(title='Info', message="Input Saved.")
+        self.spectra_view.Frame1_Button2.config(state='active')
+        self.spectra_view.Frame1_Button3.config(state='active')
         self.check = False
 
     def _on_spectra_run_local_button(self, *_):
