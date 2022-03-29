@@ -129,9 +129,9 @@ class WorkManagerPage(tk.Frame):
             'proj_name' : ['str'],
             'task' : ['str', '--choose job task--'],
             'sub_task' : ['str'],
-            'dynamics': ['str'],
-            'laser': ['str'],
-            'plot':['str']
+            'dynamics': ['str','--dynamics type--'],
+            'laser': ['str','-- laser type--'],
+            'plot':['str', '-- choose option --']
         }
 
         self._var = var_define(self._default_var)
@@ -186,19 +186,19 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
         self.Frame2_label_1['font'] = myfont()
-        self.Frame2_label_1.grid(column=0, row= 0, sticky='w')       
+        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4, pady=4)       
 
         self.Frame2_Button_1 = tk.Button(common_frame,text="Select",activebackground="#78d6ff",command=self._get_geometry_file)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=1, row= 0, padx=10)       
+        self.Frame2_Button_1.grid(column=1, row= 0, padx=10, pady=4)       
 
         self.message_label = tk.Label(common_frame, text='', foreground='red')
         self.message_label['font'] = myfont()
-        self.message_label.grid(column=2, row= 0, padx=10)       
+        self.message_label.grid(column=2, row= 0, padx=10, pady=4)       
         
         self.Frame2_Button_1 = tk.Button(common_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=3, row= 0, padx=10)
+        self.Frame2_Button_1.grid(column=3, row= 0, padx=10, pady=4)
 
         # sub_frame = tk.Frame(self.Frame2)
         # sub_frame.grid(row=1, column=0)
@@ -208,7 +208,7 @@ class WorkManagerPage(tk.Frame):
 
         self.label_proj = tk.Label(common_frame,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.label_proj['font'] = myfont()
-        self.label_proj.grid(column=0, row= 1, sticky='w')       
+        self.label_proj.grid(column=0, row= 1, sticky='w', padx=4)       
             
         self.entry_task = ttk.Combobox(common_frame,width=20, textvariable= self._var['task'], values= self.MainTask)
         self.entry_task['font'] = myfont()
@@ -261,7 +261,7 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame2_label_3 = tk.Label(common_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.Frame2_label_3['font'] = myfont()
-        self.Frame2_label_3.grid(column=0, row= 0, sticky='nswe',  pady=10) 
+        self.Frame2_label_3.grid(column=0, row= 0, sticky='nswe', padx=4, pady=10) 
         
         self.entry_sub_task = ttk.Combobox(common_sub_task_frame, width= 20, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myfont()
@@ -284,7 +284,7 @@ class WorkManagerPage(tk.Frame):
 
         self.sub_task_label = tk.Label(sim_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.sub_task_label['font'] = myfont()
-        self.sub_task_label.grid(column=0, row= 0, sticky='nswe',  pady=10)        
+        self.sub_task_label.grid(column=0, row= 0, sticky='nswe', padx=4, pady=10)        
           
         self.dynamics_type = ttk.Combobox(sim_sub_task_frame, width= 15, textvariable=self._var['dynamics'], value = ['electrons', 'electron+ion','ions'])
         self.dynamics_type['font'] = myfont()
@@ -321,12 +321,11 @@ class WorkManagerPage(tk.Frame):
         elif self._var['task'].get() == "Postprocessing Jobs":
             self.show_sub_task_frame(self.sub_task_frame)
             self.entry_sub_task.config(value = self.Post_task)
-            self.entry_sub_task.current(0)
-                
+            self.entry_sub_task.current(0)                
 
     def pick_sub_task(self,*_):
         if self._var['sub_task'].get() == "Plot":
-            print("here")
+            # print("here")
             self.show_plot_option_frame(self.sub_task_frame)
         else:
             pass    
@@ -339,11 +338,13 @@ class WorkManagerPage(tk.Frame):
     def get_simulation_event(self): 
         var1 = self._var['dynamics'].get()
         var2 = self._var['laser'].get()
-        for item in self.simulation_type:
-            if item[0] == var1 and item[1] == var2:
-                print(item)
-                return item[2]
-       
+        if var1 == '--dynamics type--' or var2 == '-- laser type--':
+            messagebox.showinfo(message="Please select the Sub task options")
+        else:
+            for item in self.simulation_type:
+                if item[0] == var1 and item[1] == var2:
+                    return item[2]
+
     def update_project_entry(self, proj_path):
         proj_path = pathlib.Path(proj_path)
         self._var['proj_path'].set(proj_path.parent)
@@ -370,13 +371,13 @@ class WorkManagerPage(tk.Frame):
 
     def proceed_button(self):
         """ event generate on proceed button"""
-
         if self._var['task'].get() == "Simulations":
             event = self.get_simulation_event()
-            print(event)
-            self.event_generate(event)
+            if event:
+                # print(event)
+                self.event_generate(event)
         else:
-            self.event_generate('<<SelectTask>>')   
+            self.event_generate('<<SelectTask>>')
     
     def get_sub_task(self):
         return self._var['sub_task'].get()
