@@ -109,7 +109,7 @@ class Task:
                 msg = f"Data file:{item} not found."
                 raise FileNotFoundError(msg)
     
-    def create_remote_job_script(self) -> str:
+    def create_remote_job_script(self, np) -> str:
         """Create the bash script to run the job and "touch Done" command to it, to know when the 
         command is completed."""
         try:
@@ -117,7 +117,7 @@ class Task:
         except AttributeError:
             job_script = ''
          
-        job_script += self.task.get_network_job_cmd()
+        job_script += self.task.get_network_job_cmd(np)
         job_script += "touch Done\n"
         job_script += "##############################"
         return job_script
