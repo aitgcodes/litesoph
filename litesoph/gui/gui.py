@@ -245,15 +245,15 @@ class GUIAPP(tk.Tk):
                 self.event_generate('<<ShowGroundStatePage>>')
             else:
                 messagebox.showerror(title = 'Error', message= "Upload geometry file")
-        elif sub_task == "Delta Kick":
-            self.event_generate('<<ShowTimeDependentPage>>')   
-        elif sub_task == "Gaussian Pulse":    
-            self.event_generate('<<ShowLaserDesignPage>>')   
-        elif sub_task == "Spectrum":
+        # elif sub_task == "Delta Kick":
+        #     self.event_generate('<<ShowTimeDependentPage>>')   
+        # elif sub_task == "Gaussian Pulse":    
+        #     self.event_generate('<<ShowLaserDesignPage>>')   
+        elif sub_task == "Compute Spectrum":
             self.event_generate('<<ShowPlotSpectraPage>>')   
         elif sub_task == "Dipole Moment and Laser Pulse":
             self.event_generate('<<ShowDmLdPage>>')
-        elif sub_task.get() == "Kohn Sham Decomposition":
+        elif sub_task == "Kohn Sham Decomposition":
                self.event_generate('<<ShowTcmPage>>')    
 
         self._frames[v.WorkManagerPage].refresh_var()
