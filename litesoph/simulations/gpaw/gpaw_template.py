@@ -353,7 +353,7 @@ class GpawCalTCM:
     default_input = {
                     'gfilename' : 'gs.gpw',
                     'wfilename' : 'wf.ulm',
-                    'frequencies' : [],
+                    'frequency_list' : [],
                     'name' : " "
                     }
 
@@ -455,7 +455,7 @@ def do(w):
     plotter.plot_TCM(weight_p)
     plotter.plot_DOS(fill={{'color': '0.8'}}, line={{'color': 'k'}})
     plotter.plot_TCM_diagonal(freq.freq * au_to_eV, color='k')
-    plotter.set_title(f'Photoabsorption TCM {name} at {{frequency:.2f}} eV')
+    plotter.set_title(f'Photoabsorption TCM at {{frequency:.2f}} eV')
 
     # Check that TCM integrates to correct absorption
     tcm_ou = ksd.get_TCM(weight_p, ksd.get_eig_n()[0],
@@ -466,7 +466,7 @@ def do(w):
     plt.savefig(f'tcm_{{frequency:.2f}}.png')
 
 def run(frequency_list):
-    for i, item enumerate(frequency_list)
+    for i, item in enumerate(frequency_list):
         do(i)
 run(frequency_list)
 
@@ -480,6 +480,15 @@ run(frequency_list)
         template = self.tcm_temp1.format(**self.dict)
         return template
 
+    @staticmethod
+    def get_network_job_cmd():
+
+        job_script = """
+##### LITESOPH Appended Comands###########
+
+cd TCM/
+python3 tcm.py\n"""  
+        return job_script
 
 class GpawLrTddft:
     """This class contains the template  for creating gpaw 

@@ -151,7 +151,7 @@ class GUIAPP(tk.Tk):
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
             '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
-            '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self._window)
+            '<<ShowTcmPage>>' : self._on_tcm_task,
         }
         for event, callback in event_show_page.items():
             self.bind(event, callback)  
@@ -219,12 +219,14 @@ class GUIAPP(tk.Tk):
         try:
             self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
         except Exception as e:
-            print(e)
+            #print(e)
             return
-        #self._frames[v.WorkManagerPage]
-        proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
-        shutil.copy(self.geometry_file, proj_path)
-        
+        else:
+            if self.geometry_file:
+                proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
+                shutil.copy(self.geometry_file, proj_path)
+                self._frames[v.WorkManagerPage].show_upload_label()
+
     def _on_visualize(self, *_):
         """ Calls an user specified visualization tool """
         cmd = check_config(self.lsconfig,"vis") + ' ' + "coordinate.xyz"
@@ -309,6 +311,7 @@ class GUIAPP(tk.Tk):
     def _on_ground_state_task(self, *_):
         self._show_frame(v.GroundStatePage, self)
         self.ground_state_view = self._frames[v.GroundStatePage]
+        self.ground_state_view.set_sub_button_state('disabled')
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
         self.ground_state_task = Task(self.status, self.directory, self.lsconfig)
@@ -321,6 +324,7 @@ class GUIAPP(tk.Tk):
     def _on_gs_save_button(self, *_):
         if self._validate_gs_input():
             self._gs_create_input()
+            self.ground_state_view.set_sub_button_state('active')
 
     def _on_gs_view_button(self, *_):
         template = self._validate_gs_input()
@@ -398,6 +402,7 @@ class GUIAPP(tk.Tk):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
         self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
+        self.rt_tddft_delta_view.set_sub_button_state('disabled')
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
         self.rt_tddft_delta_task = Task(self.status, self.directory, self.lsconfig)
 
@@ -409,6 +414,7 @@ class GUIAPP(tk.Tk):
     def _on_td_save_button(self, *_):
         self._validate_td_input()
         self._td_create_input()
+        self.rt_tddft_delta_view.set_sub_button_state('active')
 
     def _on_td_view_button(self, *_):
         template = self._validate_td_input()
@@ -599,7 +605,7 @@ class GUIAPP(tk.Tk):
             return
 
         
-        self._run_local(self.spectra_task, name='spec')
+        self._run_local(self.spectra_task, np=1)
         
 
     def _on_spectra_run_network_button(self, *_):
@@ -612,7 +618,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             #self.job_sub_page.show_output_button('Plot','SpectrumPlot')
             self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
-            self.job_sub_page.bind('<<RunSpectrumetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
             self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
@@ -621,7 +627,13 @@ class GUIAPP(tk.Tk):
         """ Selects engine specific plot function"""
         
         pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
-        img = pathlib.Path(self.directory) / f"spec_{str(pol)}.png"
+        if pol == 0:
+            p = 'x'
+        elif pol == 1:
+            p = 'y'
+        elif pol == 2:
+            p = 'z'
+        img = pathlib.Path(self.directory) / f"spec_{p}.png"
 
         if self.engine == "gpaw":
             spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol]
@@ -666,7 +678,79 @@ class GUIAPP(tk.Tk):
         plt.tight_layout()
         plt.savefig(imgfile)
         plt.show()                   
-##----------------------plot_laser_spec_task---------------------------------
+##----------------------compute---tcm---------------------------------
+
+    def _on_tcm_task(self, *_):
+
+        if self.engine != 'gpaw':
+            messagebox.showinfo(title='Info', message='Curretly this option is only implemented for Gpaw. ')
+            return
+        self._show_frame(TcmPage, self._window)
+        self.tcm_view = self._frames[TcmPage]
+        
+        self.tcm_task = Task(self.status, self.directory, self.lsconfig)
+        self.bind('<<CreateTCMScript>>', self._on_create_tcm_button)
+        self.bind('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
+        self.bind('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
+        # self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
+        self.bind('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
+
+    def _validate_tcm_input(self):
+        inp_dict = self.tcm_view.get_parameters()
+        self.tcm_task.set_engine(self.engine)
+        self.tcm_task.set_task('tcm',inp_dict)
+        self.tcm_task.create_template()
+        return self.tcm_task.template    
+
+    def _on_create_tcm_button(self, *_):
+
+        self._validate_tcm_input()
+        self._tcm_create_input()
+
+    def _tcm_create_input(self, template=None):     
+        self.tcm_task.write_input(template)
+        self.status.set_new_task(self.tcm_task.task_name)
+        #self.rt_tddft_laser_view.set_label_msg('saved')
+        self.check = False
+
+    def _on_tcm_run_local_button(self, *_):
+        
+        if not self._check_task_run_condition(self.tcm_task):
+            messagebox.showerror(message="Input not saved.", detail = "Please save the input before job submission")
+            return
+
+        
+        self._run_local(self.tcm_task,np=1 )
+        
+
+    def _on_tcm_run_network_button(self, *_):
+        try:
+            getattr(self.spectra_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
+            self.job_sub_page = v.JobSubPage(self._window, 'TCM', 'Network')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+            #self.job_sub_page.show_output_button('Plot','SpectrumPlot')
+            #self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
+            self.job_sub_page.bind('<<RunTCMNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<ViewTCMNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
+            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<CreateTCMRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+
+    def _on_tcm_plot_button(self, *_):
+        """ Selects engine specific plot function"""
+        from PIL import Image
+       
+        for item in self.tcm_task.user_input['frequency_list']:
+            img_file = pathlib.Path(self.directory) / 'TCM' / f'tcm_{item:.2f}.png'
+            
+            image = Image.open(img_file)
+            image.show()
+            # img = mpimg.imread(img_file)
+            # plt.imshow(img)
+            # plt.show()
+
 
     def _init_text_viewer(self,name, template, *_):
         #self._show_frame(v.TextViewerPage, self)
@@ -686,9 +770,8 @@ class GUIAPP(tk.Tk):
 
     
 
-    def _run_local(self, task, name=None):
-        if name == 'spec':
-            np=1
+    def _run_local(self, task, np=None):
+        if np:
             submitlocal = SubmitLocal(task, np)
         else:
             np = self.job_sub_page.get_processors()
@@ -1105,7 +1188,7 @@ class TcmPage(tk.Frame):
         # self.buttonRetrieve.grid(row=3, column=0)        
 
         #self.create_button = Button(self.Frame1, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
-        self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.create_tcm())
+        self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.event_generate('<<CreateTCMScript>>'))
         self.create_button['font'] = myfont()
         self.create_button.grid(row=2, column=1)
 
@@ -1125,15 +1208,23 @@ class TcmPage(tk.Frame):
         # View_Button1.grid(row=2, column=1, sticky='nsew')
 
         self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
-        self.Frame1_Button2['font'] =self.myFont
+        self.Frame1_Button2['font'] =myfont()
         self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
         
         self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
-        self.Frame1_Button3['font'] = self.myFont
+        self.Frame1_Button3['font'] = myfont()
         self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')    
-        
+
+        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate("<<ShowTCMPlot>>"))
+        self.plot_button['font'] = myfont()
+        self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
+
+    def set_sub_button_state(self,state):
+        self.Frame1_Button2.config(state=state)
+        self.Frame1_Button3.config(state=state)
+
     def retrieve_input(self):
-        inputValues = self.TextBox_freqs.get("1.0", "end-1c")
+        inputValues = self.frequency.get()  #TextBox_freqs.get("1.0", "end-1c")
         freqs = inputValues.split()
 
         self.freq_list = []
@@ -1141,16 +1232,14 @@ class TcmPage(tk.Frame):
             self.freq_list.append(float(freq))
         return(self.freq_list)   
     
-    def create_tcm(self):
+    def get_parameters(self):
         self.retrieve_input()
-        gs = pathlib.Path(self.controller.directory) / "GS" / "gs.gpw"
-        wf = pathlib.Path(self.controller.directory) / "TD_Delta" / "wf.ulm"
+        #gs = pathlib.Path(self.controller.directory) / "GS" / "gs.gpw"
+        #f = pathlib.Path(self.controller.directory) / "TD_Delta" / "wf.ulm"
         tcm_dict = {
-                'gfilename' : gs,
-                'wfilename' : wf,
-                'frequencies' : self.freq_list,
-                'name' : "x"
-                 }         
+                'frequency_list' : self.freq_list,
+                 }     
+        return tcm_dict    
         # self.job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
         # self.job.write_input()
         # self.controller.task = self.job 
