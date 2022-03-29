@@ -465,9 +465,10 @@ def do(w):
     # Save the plot
     plt.savefig(f'tcm_{{frequency:.2f}}.png')
 
-def run (frequency_list):
+def run(frequency_list):
     for i, item enumerate(frequency_list)
         do(i)
+run(frequency_list)
 
     """
 
