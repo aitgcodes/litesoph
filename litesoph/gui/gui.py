@@ -31,7 +31,7 @@ from litesoph.gui.navigation import ProjectList
 from litesoph.simulations.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
 from litesoph.utilities.job_submit import SubmitLocal
-
+from litesoph.gui.visual_parameter import myfont,label_design
 
 home = pathlib.Path.home()
 
@@ -151,7 +151,7 @@ class GUIAPP(tk.Tk):
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
             '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
-            '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self)
+            '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self._window)
         }
         for event, callback in event_show_page.items():
             self.bind(event, callback)  
@@ -1029,46 +1029,50 @@ def spectrum_show(directory,filename, suffix, axis, x, y):
         img =Image.open(path)
         img.show()         
 
-class TcmPage(Frame):
+class TcmPage(tk.Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+        #self.controller = controller
+        self.parent = parent
+        self.job = None
+
+        self.min = tk.DoubleVar()
+        self.max = tk.DoubleVar()
+        self.step = tk.DoubleVar()
+        self.freq = tk.DoubleVar()
+        self.frequency = tk.StringVar()
+
+        self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button.grid(row=2, column=0, sticky='nsew')
+        self.Frame1.grid(row=1,column=0, sticky='nsew')
+
+        self.grid_rowconfigure(1, weight=5)
+        self.grid_rowconfigure(2, weight=1)
+
+        self.heading = tk.Label(self,text="LITESOPH Kohn Sham Decomposition", fg='blue')
+        self.heading['font'] = myfont()
+        self.heading.grid(row=0, column=0)
         
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        self.FrameTcm2_label_path = tk.Label(self.Frame1,text="Frequency space density matrix",fg="blue")
+        self.FrameTcm2_label_path['font'] = myfont()
+        self.FrameTcm2_label_path.grid(row=0, column=0)
 
-        self.min = DoubleVar()
-        self.max = DoubleVar()
-        self.step = DoubleVar()
-        self.freq = DoubleVar()
-
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-
-        self.Frame = tk.Frame(self)
+        self.Label_freqs = tk.Label(self.Frame1,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
+        self.Label_freqs['font'] = myfont()
+        self.Label_freqs.grid(row=1, column=0)        
         
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
-        
-        self.heading = Label(self.Frame,text="LITESOPH Kohn Sham Decomposition", fg='blue')
-        self.heading['font'] = myFont
-        self.heading.place(x=350,y=10)
+        self.entry_freq = tk.Entry(self.Frame1, textvariable= self.frequency, width=30)
+        self.entry_freq['font'] = myfont()
+        # self.tin.set(0)
+        self.entry_freq.grid(row=2, column=0, columnspan=3)
 
-        self.FrameTcm2_label_path = Label(self.Frame,text="Frequency space density matrix",fg="blue")
-        self.FrameTcm2_label_path['font'] = myFont
-        self.FrameTcm2_label_path.place(x=10,y=50)
-
-        self.Label_freqs = Label(self.Frame,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
-        self.Label_freqs['font'] = myFont
-        self.Label_freqs.place(x=10,y=80)
-        
-        self.TextBox_freqs = Text(self.Frame, height=4, width=60)
-        self.TextBox_freqs['font'] = myFont
-        self.TextBox_freqs.place(x=10,y=150)
+        # self.TextBox_freqs = tk.Entry(self.Frame1)
+        # self.TextBox_freqs['font'] = myfont()
+        # self.TextBox_freqs.grid(row=2, column=0, columnspan=3)
 
         #self.Label_freqs = Label(self.Frame,text="Or provide a range as <min value>-<max value>-<step size> respectively",fg="black")
         #self.Label_freqs['font'] = myFont
@@ -1086,18 +1090,42 @@ class TcmPage(Frame):
         #self.Tcm_entry_ns['font'] = myFont
         #self.Tcm_entry_ns.place(x=390,y=280)
 
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
-        Frame_Button1['font'] = myFont
-        Frame_Button1.place(x=10,y=380)
+        Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+        Frame_Button1['font'] = myfont()
+        Frame_Button1.grid(row=0, column=0)
 
-        #self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
-        self.buttonRetrieve = Button(self.Frame, text="Create input",activebackground="#78d6ff",command=lambda:self.create_tcm())
-        self.buttonRetrieve['font'] = myFont
-        self.buttonRetrieve.place(x=200,y=380)
+        # self.buttonRetrieve = Button(self.Frame1, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
+        # #self.buttonRetrieve = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.create_tcm())
+        # self.buttonRetrieve['font'] = myfont()
+        # self.buttonRetrieve.grid(row=3, column=0)        
 
-        self.Frame_run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff", command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
-        self.Frame_run['font'] = myFont
-        self.Frame_run.place(x=360,y=380)
+        #self.create_button = Button(self.Frame1, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
+        self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.create_tcm())
+        self.create_button['font'] = myfont()
+        self.create_button.grid(row=2, column=1)
+
+        # self.Frame_run = tk.Button(self.Frame1,text="Run Job", state= 'disabled',activebackground="#78d6ff", command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
+        # self.Frame_run['font'] = myfont()
+        # self.Frame_run.grid(row=3, column=2)
+
+        self.add_job_frame("TCM")
+
+    def add_job_frame(self, task_name):  
+        """  Adds submit job buttons"""
+
+        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3.grid(row=1, column=1, sticky='nswe')
+        # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
+        # View_Button1['font'] = self.myFont
+        # View_Button1.grid(row=2, column=1, sticky='nsew')
+
+        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.Frame1_Button2['font'] =self.myFont
+        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
+        
+        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.Frame1_Button3['font'] = self.myFont
+        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')    
         
     def retrieve_input(self):
         inputValues = self.TextBox_freqs.get("1.0", "end-1c")
@@ -1141,8 +1169,6 @@ class TcmPage(Frame):
     def freq_plot(self):
         for i in self.listbox.curselection():
             self.tcm.plot(self.tcm_dict, i)        
-
-
 #--------------------------------------------------------------------------------        
 
 
