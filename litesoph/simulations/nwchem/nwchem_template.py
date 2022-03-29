@@ -173,13 +173,13 @@ end
         return template
 
     @staticmethod
-    def get_network_job_cmd():
+    def get_network_job_cmd(np):
 
-      job_script = """
+      job_script = f"""
 ##### LITESOPH Appended Comands###########
 
 cd GS/
-mpirun -np 4  nwchem gs.nwi > gs.nwo\n"""
+mpirun -np {np:d}  nwchem gs.nwi > gs.nwo\n"""
       return job_script
 
 
@@ -513,14 +513,14 @@ task dft rt_tddft
         return template
 
     @staticmethod
-    def get_network_job_cmd():
+    def get_network_job_cmd(np):
 
-      job_script = """
+      job_script = f"""
 ##### LITESOPH Appended Comands###########
 
 cd TD_Delta/
 
-mpirun -np 4  nwchem td.nwi > td.nwo\n"""
+mpirun -np {np:d} nwchem td.nwi > td.nwo\n"""
       return job_script
 
 
