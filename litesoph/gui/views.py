@@ -103,7 +103,7 @@ class WorkManagerPage(tk.Frame):
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
     Pre_task = ["Ground State","Geometry Optimisation"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
-    Post_task = ["Compute Spectrum","Dipole Moment and Laser Pulse","Kohn Sham Decomposition","Induced Density","Generalised Plasmonicity Index", "Plot"]
+    Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
 
 
     simulation_type = [('electrons', 'None', '<<event>>'),
