@@ -31,7 +31,7 @@ from litesoph.gui.navigation import ProjectList
 from litesoph.simulations.filehandler import Status
 from litesoph.simulations.choose_engine import choose_engine
 from litesoph.utilities.job_submit import SubmitLocal
-
+from litesoph.gui.visual_parameter import myfont,label_design
 
 home = pathlib.Path.home()
 
@@ -151,7 +151,7 @@ class GUIAPP(tk.Tk):
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
             '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(DmLdPage, self),
-            '<<ShowTcmPage>>' : lambda _: self._show_frame(TcmPage, self)
+            '<<ShowTcmPage>>' : self._on_tcm_task,
         }
         for event, callback in event_show_page.items():
             self.bind(event, callback)  
@@ -219,12 +219,14 @@ class GUIAPP(tk.Tk):
         try:
             self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
         except Exception as e:
-            print(e)
+            #print(e)
             return
-        #self._frames[v.WorkManagerPage]
-        proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
-        shutil.copy(self.geometry_file, proj_path)
-        
+        else:
+            if self.geometry_file:
+                proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
+                shutil.copy(self.geometry_file, proj_path)
+                self._frames[v.WorkManagerPage].show_upload_label()
+
     def _on_visualize(self, *_):
         """ Calls an user specified visualization tool """
         cmd = check_config(self.lsconfig,"vis") + ' ' + "coordinate.xyz"
@@ -245,15 +247,15 @@ class GUIAPP(tk.Tk):
                 self.event_generate('<<ShowGroundStatePage>>')
             else:
                 messagebox.showerror(title = 'Error', message= "Upload geometry file")
-        elif sub_task == "Delta Kick":
-            self.event_generate('<<ShowTimeDependentPage>>')   
-        elif sub_task == "Gaussian Pulse":    
-            self.event_generate('<<ShowLaserDesignPage>>')   
-        elif sub_task == "Spectrum":
+        # elif sub_task == "Delta Kick":
+        #     self.event_generate('<<ShowTimeDependentPage>>')   
+        # elif sub_task == "Gaussian Pulse":    
+        #     self.event_generate('<<ShowLaserDesignPage>>')   
+        elif sub_task == "Compute Spectrum":
             self.event_generate('<<ShowPlotSpectraPage>>')   
         elif sub_task == "Dipole Moment and Laser Pulse":
             self.event_generate('<<ShowDmLdPage>>')
-        elif sub_task.get() == "Kohn Sham Decomposition":
+        elif sub_task == "Kohn Sham Decomposition":
                self.event_generate('<<ShowTcmPage>>')    
 
         self._frames[v.WorkManagerPage].refresh_var()
@@ -309,6 +311,7 @@ class GUIAPP(tk.Tk):
     def _on_ground_state_task(self, *_):
         self._show_frame(v.GroundStatePage, self)
         self.ground_state_view = self._frames[v.GroundStatePage]
+        self.ground_state_view.set_sub_button_state('disabled')
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
         self.ground_state_task = Task(self.status, self.directory, self.lsconfig)
@@ -321,6 +324,7 @@ class GUIAPP(tk.Tk):
     def _on_gs_save_button(self, *_):
         if self._validate_gs_input():
             self._gs_create_input()
+            self.ground_state_view.set_sub_button_state('active')
 
     def _on_gs_view_button(self, *_):
         template = self._validate_gs_input()
@@ -398,6 +402,7 @@ class GUIAPP(tk.Tk):
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
         self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
+        self.rt_tddft_delta_view.set_sub_button_state('disabled')
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
         self.rt_tddft_delta_task = Task(self.status, self.directory, self.lsconfig)
 
@@ -409,6 +414,7 @@ class GUIAPP(tk.Tk):
     def _on_td_save_button(self, *_):
         self._validate_td_input()
         self._td_create_input()
+        self.rt_tddft_delta_view.set_sub_button_state('active')
 
     def _on_td_view_button(self, *_):
         template = self._validate_td_input()
@@ -541,6 +547,8 @@ class GUIAPP(tk.Tk):
         self.spectra_view.engine = self.engine
         self.spectra_task = Task(self.status, self.directory, self.lsconfig)
         print('_on_spectra_task')
+        self.spectra_view.Frame1_Button2.config(state='disabled')
+        self.spectra_view.Frame1_Button3.config(state='disabled')
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
         self.bind('<<SubLocalSpectrum>>', lambda _: self._on_spectra_run_local_button())
         self.bind('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
@@ -568,6 +576,9 @@ class GUIAPP(tk.Tk):
         self.status.update_status(f'{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.spectra_task.task_name}.param',self.spectra_task.user_input)
         #self.rt_tddft_laser_view.set_label_msg('saved')
+        messagebox.showinfo(title='Info', message="Input Saved.")
+        self.spectra_view.Frame1_Button2.config(state='active')
+        self.spectra_view.Frame1_Button3.config(state='active')
         self.check = False
 
     def _on_spectra_run_local_button(self, *_):
@@ -594,7 +605,7 @@ class GUIAPP(tk.Tk):
             return
 
         
-        self._run_local(self.spectra_task, name='spec')
+        self._run_local(self.spectra_task, np=1)
         
 
     def _on_spectra_run_network_button(self, *_):
@@ -607,7 +618,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             #self.job_sub_page.show_output_button('Plot','SpectrumPlot')
             self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
-            self.job_sub_page.bind('<<RunSpectrumetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
             self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
@@ -616,7 +627,13 @@ class GUIAPP(tk.Tk):
         """ Selects engine specific plot function"""
         
         pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
-        img = pathlib.Path(self.directory) / f"spec_{str(pol)}.png"
+        if pol == 0:
+            p = 'x'
+        elif pol == 1:
+            p = 'y'
+        elif pol == 2:
+            p = 'z'
+        img = pathlib.Path(self.directory) / f"spec_{p}.png"
 
         if self.engine == "gpaw":
             spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol]
@@ -661,7 +678,79 @@ class GUIAPP(tk.Tk):
         plt.tight_layout()
         plt.savefig(imgfile)
         plt.show()                   
-##----------------------plot_laser_spec_task---------------------------------
+##----------------------compute---tcm---------------------------------
+
+    def _on_tcm_task(self, *_):
+
+        if self.engine != 'gpaw':
+            messagebox.showinfo(title='Info', message='Curretly this option is only implemented for Gpaw. ')
+            return
+        self._show_frame(TcmPage, self._window)
+        self.tcm_view = self._frames[TcmPage]
+        
+        self.tcm_task = Task(self.status, self.directory, self.lsconfig)
+        self.bind('<<CreateTCMScript>>', self._on_create_tcm_button)
+        self.bind('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
+        self.bind('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
+        # self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
+        self.bind('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
+
+    def _validate_tcm_input(self):
+        inp_dict = self.tcm_view.get_parameters()
+        self.tcm_task.set_engine(self.engine)
+        self.tcm_task.set_task('tcm',inp_dict)
+        self.tcm_task.create_template()
+        return self.tcm_task.template    
+
+    def _on_create_tcm_button(self, *_):
+
+        self._validate_tcm_input()
+        self._tcm_create_input()
+
+    def _tcm_create_input(self, template=None):     
+        self.tcm_task.write_input(template)
+        self.status.set_new_task(self.tcm_task.task_name)
+        #self.rt_tddft_laser_view.set_label_msg('saved')
+        self.check = False
+
+    def _on_tcm_run_local_button(self, *_):
+        
+        if not self._check_task_run_condition(self.tcm_task):
+            messagebox.showerror(message="Input not saved.", detail = "Please save the input before job submission")
+            return
+
+        
+        self._run_local(self.tcm_task,np=1 )
+        
+
+    def _on_tcm_run_network_button(self, *_):
+        try:
+            getattr(self.spectra_task.engine,'directory')           
+        except AttributeError:
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+        else:
+            self.job_sub_page = v.JobSubPage(self._window, 'TCM', 'Network')
+            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
+            #self.job_sub_page.show_output_button('Plot','SpectrumPlot')
+            #self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
+            self.job_sub_page.bind('<<RunTCMNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<ViewTCMNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
+            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+            self.job_sub_page.bind('<<CreateTCMRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+
+    def _on_tcm_plot_button(self, *_):
+        """ Selects engine specific plot function"""
+        from PIL import Image
+       
+        for item in self.tcm_task.user_input['frequency_list']:
+            img_file = pathlib.Path(self.directory) / 'TCM' / f'tcm_{item:.2f}.png'
+            
+            image = Image.open(img_file)
+            image.show()
+            # img = mpimg.imread(img_file)
+            # plt.imshow(img)
+            # plt.show()
+
 
     def _init_text_viewer(self,name, template, *_):
         #self._show_frame(v.TextViewerPage, self)
@@ -681,9 +770,8 @@ class GUIAPP(tk.Tk):
 
     
 
-    def _run_local(self, task, name=None):
-        if name == 'spec':
-            np=1
+    def _run_local(self, task, np=None):
+        if np:
             submitlocal = SubmitLocal(task, np)
         else:
             np = self.job_sub_page.get_processors()
@@ -768,7 +856,7 @@ class GUIAPP(tk.Tk):
         else:
             if task.net_cmd_out[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
-                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.results[2].decode(encoding='utf-8')}")
+                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.net_cmd_out[2].decode(encoding='utf-8')}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_network.returncode', 0)
                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
@@ -1029,46 +1117,50 @@ def spectrum_show(directory,filename, suffix, axis, x, y):
         img =Image.open(path)
         img.show()         
 
-class TcmPage(Frame):
+class TcmPage(tk.Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+        #self.controller = controller
+        self.parent = parent
+        self.job = None
+
+        self.min = tk.DoubleVar()
+        self.max = tk.DoubleVar()
+        self.step = tk.DoubleVar()
+        self.freq = tk.DoubleVar()
+        self.frequency = tk.StringVar()
+
+        self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button.grid(row=2, column=0, sticky='nsew')
+        self.Frame1.grid(row=1,column=0, sticky='nsew')
+
+        self.grid_rowconfigure(1, weight=5)
+        self.grid_rowconfigure(2, weight=1)
+
+        self.heading = tk.Label(self,text="LITESOPH Kohn Sham Decomposition", fg='blue')
+        self.heading['font'] = myfont()
+        self.heading.grid(row=0, column=0)
         
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        self.FrameTcm2_label_path = tk.Label(self.Frame1,text="Frequency space density matrix",fg="blue")
+        self.FrameTcm2_label_path['font'] = myfont()
+        self.FrameTcm2_label_path.grid(row=0, column=0)
 
-        self.min = DoubleVar()
-        self.max = DoubleVar()
-        self.step = DoubleVar()
-        self.freq = DoubleVar()
-
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-
-        self.Frame = tk.Frame(self)
+        self.Label_freqs = tk.Label(self.Frame1,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
+        self.Label_freqs['font'] = myfont()
+        self.Label_freqs.grid(row=1, column=0)        
         
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
-        
-        self.heading = Label(self.Frame,text="LITESOPH Kohn Sham Decomposition", fg='blue')
-        self.heading['font'] = myFont
-        self.heading.place(x=350,y=10)
+        self.entry_freq = tk.Entry(self.Frame1, textvariable= self.frequency, width=30)
+        self.entry_freq['font'] = myfont()
+        # self.tin.set(0)
+        self.entry_freq.grid(row=2, column=0, columnspan=3)
 
-        self.FrameTcm2_label_path = Label(self.Frame,text="Frequency space density matrix",fg="blue")
-        self.FrameTcm2_label_path['font'] = myFont
-        self.FrameTcm2_label_path.place(x=10,y=50)
-
-        self.Label_freqs = Label(self.Frame,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
-        self.Label_freqs['font'] = myFont
-        self.Label_freqs.place(x=10,y=80)
-        
-        self.TextBox_freqs = Text(self.Frame, height=4, width=60)
-        self.TextBox_freqs['font'] = myFont
-        self.TextBox_freqs.place(x=10,y=150)
+        # self.TextBox_freqs = tk.Entry(self.Frame1)
+        # self.TextBox_freqs['font'] = myfont()
+        # self.TextBox_freqs.grid(row=2, column=0, columnspan=3)
 
         #self.Label_freqs = Label(self.Frame,text="Or provide a range as <min value>-<max value>-<step size> respectively",fg="black")
         #self.Label_freqs['font'] = myFont
@@ -1086,21 +1178,53 @@ class TcmPage(Frame):
         #self.Tcm_entry_ns['font'] = myFont
         #self.Tcm_entry_ns.place(x=390,y=280)
 
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
-        Frame_Button1['font'] = myFont
-        Frame_Button1.place(x=10,y=380)
+        Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+        Frame_Button1['font'] = myfont()
+        Frame_Button1.grid(row=0, column=0)
 
-        #self.buttonRetrieve = Button(self.Frame, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
-        self.buttonRetrieve = Button(self.Frame, text="Create input",activebackground="#78d6ff",command=lambda:self.create_tcm())
-        self.buttonRetrieve['font'] = myFont
-        self.buttonRetrieve.place(x=200,y=380)
+        # self.buttonRetrieve = Button(self.Frame1, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
+        # #self.buttonRetrieve = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.create_tcm())
+        # self.buttonRetrieve['font'] = myfont()
+        # self.buttonRetrieve.grid(row=3, column=0)        
 
-        self.Frame_run = tk.Button(self.Frame,text="Run Job", state= 'disabled',activebackground="#78d6ff", command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
-        self.Frame_run['font'] = myFont
-        self.Frame_run.place(x=360,y=380)
+        #self.create_button = Button(self.Frame1, text="Retrieve Freq",activebackground="#78d6ff",command=lambda:[self.retrieve_input(),self.freq_listbox(), self.tcm_button()])
+        self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.event_generate('<<CreateTCMScript>>'))
+        self.create_button['font'] = myfont()
+        self.create_button.grid(row=2, column=1)
+
+        # self.Frame_run = tk.Button(self.Frame1,text="Run Job", state= 'disabled',activebackground="#78d6ff", command=lambda:[self.event_generate('<<ShowJobSubmissionPage>>')])
+        # self.Frame_run['font'] = myfont()
+        # self.Frame_run.grid(row=3, column=2)
+
+        self.add_job_frame("TCM")
+
+    def add_job_frame(self, task_name):  
+        """  Adds submit job buttons"""
+
+        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3.grid(row=1, column=1, sticky='nswe')
+        # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
+        # View_Button1['font'] = self.myFont
+        # View_Button1.grid(row=2, column=1, sticky='nsew')
+
+        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.Frame1_Button2['font'] =myfont()
+        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
         
+        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.Frame1_Button3['font'] = myfont()
+        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')    
+
+        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate("<<ShowTCMPlot>>"))
+        self.plot_button['font'] = myfont()
+        self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
+
+    def set_sub_button_state(self,state):
+        self.Frame1_Button2.config(state=state)
+        self.Frame1_Button3.config(state=state)
+
     def retrieve_input(self):
-        inputValues = self.TextBox_freqs.get("1.0", "end-1c")
+        inputValues = self.frequency.get()  #TextBox_freqs.get("1.0", "end-1c")
         freqs = inputValues.split()
 
         self.freq_list = []
@@ -1108,16 +1232,14 @@ class TcmPage(Frame):
             self.freq_list.append(float(freq))
         return(self.freq_list)   
     
-    def create_tcm(self):
+    def get_parameters(self):
         self.retrieve_input()
-        gs = pathlib.Path(self.controller.directory) / "GS" / "gs.gpw"
-        wf = pathlib.Path(self.controller.directory) / "TD_Delta" / "wf.ulm"
+        #gs = pathlib.Path(self.controller.directory) / "GS" / "gs.gpw"
+        #f = pathlib.Path(self.controller.directory) / "TD_Delta" / "wf.ulm"
         tcm_dict = {
-                'gfilename' : gs,
-                'wfilename' : wf,
-                'frequencies' : self.freq_list,
-                'name' : "x"
-                 }         
+                'frequency_list' : self.freq_list,
+                 }     
+        return tcm_dict    
         # self.job = TCM(tcm_dict, engine.EngineGpaw(), self.controller.directory,  'tcm')
         # self.job.write_input()
         # self.controller.task = self.job 
@@ -1141,8 +1263,6 @@ class TcmPage(Frame):
     def freq_plot(self):
         for i in self.listbox.curselection():
             self.tcm.plot(self.tcm_dict, i)        
-
-
 #--------------------------------------------------------------------------------        
 
 
