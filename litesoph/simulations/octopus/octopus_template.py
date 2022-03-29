@@ -144,12 +144,12 @@ PseudopotentialSet = {pseudo}
         return(template)
 
     @staticmethod
-    def get_network_job_cmd():
-        job_script = """
+    def get_network_job_cmd(np):
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 cd Octopus/
-mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
+mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
+#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
     # def format_template(self):
     #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
@@ -300,12 +300,12 @@ TDPolarizationDirection = 1
             return temp
     
     @staticmethod
-    def get_network_job_cmd():
-        job_script = """
+    def get_network_job_cmd(np):
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 cd Octopus/
-mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
+mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
+#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
 
     def format_template(self):
@@ -394,12 +394,12 @@ omega = {frequency}*eV
             return temp
     
     @staticmethod
-    def get_network_job_cmd():
-        job_script = """
+    def get_network_job_cmd(np):
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 cd Octopus/
-mpirun -np 4  <Full Path of Octopus>/octopus > log
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
+mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
+#mpirun -np {np:d} /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
   
   

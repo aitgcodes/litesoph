@@ -67,6 +67,12 @@ class EngineGpaw(EngineStrategy):
             'restart': 'TD_Delta/dm.dat',
             'check_list':['FWHM'],
             'spectra_file': ['Spectrum/spec_x.dat','Spectrum/spec_y.dat', 'Spectrum/spec_z.dat' ]}
+    
+    tcm = {'inp':'TCM/tcm.py',
+            'req' : ['GS/gs.gpw','TD_Delta/wf.ulm'],
+            'out_log': 'TCM/unocc.out',
+            'restart': '',
+            'check_list':['Writing','Total:']}
 
     task_dirs =[('GpawGroundState', 'GS'),
             ('GpawRTLCAOTddftDelta', 'TD_Delta'),
@@ -102,6 +108,8 @@ class EngineGpaw(EngineStrategy):
             user_param['moment_file']= str(pathlib.Path(self.project_dir.name) / self.spectrum['req'][0])
             return gp.GpawSpectrum(user_param) 
         if task == "tcm":
+            user_param['gfilename']= str(pathlib.Path(self.project_dir.name)  / self.tcm['req'][0])
+            user_param['wfilename']= str(pathlib.Path(self.project_dir.name)  / self.tcm['req'][1])
             return gp.GpawCalTCM(user_param)       
     
     def create_script(self,directory,template: str,filename) -> None:
