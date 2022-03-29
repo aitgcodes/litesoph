@@ -768,7 +768,7 @@ class GUIAPP(tk.Tk):
         else:
             if task.net_cmd_out[0] != 0:
                 self.status.update_status(f'{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
-                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.results[2].decode(encoding='utf-8')}")
+                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.net_cmd_out[2].decode(encoding='utf-8')}")
             else:
                 self.status.update_status(f'{task.task_name}.sub_network.returncode', 0)
                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
