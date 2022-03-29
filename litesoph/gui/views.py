@@ -3110,6 +3110,10 @@ class JobSubPage(View1):
         view_btn['font'] = myfont()
         view_btn.grid(row=10, column=1)
 
+        self.Frame_label = tk.Label(self, text="LITESOPH Job Submission", fg='blue')
+        self.Frame_label['font'] = myfont1()
+        self.Frame_label.grid(row=0, column=3)         
+
         back = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
         back['font'] = myfont()
         back.grid(row=0, column=0, padx=40)
@@ -3151,7 +3155,7 @@ class JobSubPage(View1):
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=1, column=1)
+        self.run_button.grid(row=1, column=1)        
 
     def show_run_network(self):
         """ Creates Network JobSub input widgets""" 
@@ -3192,15 +3196,22 @@ class JobSubPage(View1):
         remote_path_entry = tk.Entry(self.sub_job_frame,textvariable= self.rpath, width=20)
         remote_path_entry['font'] = myfont()
         remote_path_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
+
+        num_processor_label = tk.Label(self.sub_job_frame, text= "Number of Processors", bg='gray', fg='black')
+        num_processor_label['font'] = myfont()
+        num_processor_label.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
+
+        num_processor_entry = Onlydigits(self.sub_job_frame,textvariable= self.processors, width=20)
+        num_processor_entry['font'] = myfont()
+        num_processor_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
       
         upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
         upload_button2['font'] = myfont()
-        upload_button2.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
+        upload_button2.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
-    
+        self.run_button.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)    
 
     def view_outfile(self, task_name ):
         event = '<<View'+task_name+self.job_type+'Outfile>>'
