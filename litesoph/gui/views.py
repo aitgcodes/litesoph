@@ -137,6 +137,7 @@ class WorkManagerPage(tk.Frame):
         self._var = var_define(self._default_var)
         label_design.update({"font":myfont()})
         
+        self.plot_option = None
         # myFont = font.Font(family='Helvetica', size=10, weight='bold')
         # j= font.Font(family ='Courier', size=20,weight='bold')
         # k= font.Font(family ='Courier', size=40,weight='bold')
@@ -212,7 +213,7 @@ class WorkManagerPage(tk.Frame):
             
         self.entry_task = ttk.Combobox(common_frame,width=20, textvariable= self._var['task'], values= self.MainTask)
         self.entry_task['font'] = myfont()
-        self.entry_task.grid(column=1, row= 1, padx=4, pady=4)
+        self.entry_task.grid(column=1, row= 1,columnspan=2, padx=4, pady=4)
        
         self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
         self.entry_task['state'] = 'readonly'
@@ -248,6 +249,7 @@ class WorkManagerPage(tk.Frame):
         Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=lambda:self.proceed_button())
         Frame3_Button1['font'] = myfont()
         Frame3_Button1.grid(column=1, row= 0, sticky="we", padx=(600,0))
+        self.show_sub_task_frame(self.sub_task_frame)
 
     def show_sub_task_frame(self,parent):
 
@@ -328,7 +330,8 @@ class WorkManagerPage(tk.Frame):
             # print("here")
             self.show_plot_option_frame(self.sub_task_frame)
         else:
-            pass    
+            if self.plot_option:
+                self.plot_option.destroy()    
     # def show_plot_option(self):
     #     if self._var['sub_task'].get() == "Plot":
     #         print("here")
@@ -364,7 +367,7 @@ class WorkManagerPage(tk.Frame):
 
     def _get_geometry_file(self):
         self.event_generate('<<GetMolecule>>')
-        show_message(self.message_label,"Uploaded")
+        
     
     def _geom_visual(self):
         self.event_generate('<<VisualizeMolecule>>')
@@ -377,8 +380,11 @@ class WorkManagerPage(tk.Frame):
                 # print(event)
                 self.event_generate(event)
         else:
-            self.event_generate('<<SelectTask>>')
-    
+            self.event_generate('<<SelectTask>>')   
+
+    def show_upload_label(self):
+        show_message(self.message_label,"Uploaded")
+
     def get_sub_task(self):
         return self._var['sub_task'].get()
         
@@ -815,15 +821,18 @@ class View_note(tk.Frame):
         self.frame_run = tk.Frame(self,borderwidth=2, relief='groove')
         self.frame_run.grid(row=0, column=1, sticky='nsew')
 
-        self.Frame1_Button2 = tk.Button(self.frame_run, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocalGroundState>>'))
-        self.Frame1_Button2['font'] = myfont()
-        self.Frame1_Button2.grid(row=1, column=2,padx=2, pady=6, sticky='nsew')
+        self.sublocal_Button2 = tk.Button(self.frame_run, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocalGroundState>>'))
+        self.sublocal_Button2['font'] = myfont()
+        self.sublocal_Button2.grid(row=1, column=2,padx=2, pady=6, sticky='nsew')
         
-        self.Frame1_Button3 = tk.Button(self.frame_run, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetworkGroundState>>'))
-        self.Frame1_Button3['font'] = myfont()
-        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
+        self.subnet_Button3 = tk.Button(self.frame_run, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetworkGroundState>>'))
+        self.subnet_Button3['font'] = myfont()
+        self.subnet_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
         
-          
+    def set_sub_button_state(self,state):
+        self.sublocal_Button2.config(state=state)
+        self.subnet_Button3.config(state=state)
+
 
 class GroundStatePage(View_note):
   
@@ -915,13 +924,13 @@ class GroundStatePage(View_note):
 
     def tab2_button_frame(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.Frame1_Button2 = tk.Button(self.frame_button, text="View Input", activebackground="#78d6ff", command=lambda: self.view_button())
-        self.Frame1_Button2['font'] = myFont
-        self.Frame1_Button2.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.view_Button2 = tk.Button(self.frame_button, text="View Input", activebackground="#78d6ff", command=lambda: self.view_button())
+        self.view_Button2['font'] = myFont
+        self.view_Button2.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
-        self.Frame1_Button3 = tk.Button(self.frame_button, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
-        self.Frame1_Button3['font'] = myFont
-        self.Frame1_Button3.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.save_Button3 = tk.Button(self.frame_button, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
+        self.save_Button3['font'] = myFont
+        self.save_Button3.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.frame_button,text="")
         self.label_msg['font'] = myFont
@@ -2092,15 +2101,17 @@ class View1(tk.Frame):
         # View_Button1['font'] = self.myFont
         # View_Button1.grid(row=2, column=1, sticky='nsew')
 
-        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
-        self.Frame1_Button2['font'] = myfont()
-        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
+        self.sublocal_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.sublocal_Button2['font'] = myfont()
+        self.sublocal_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
         
-        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
-        self.Frame1_Button3['font'] = myfont()
-        self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
+        self.subnet_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.subnet_Button3['font'] = myfont()
+        self.subnet_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
 
-
+    def set_sub_button_state(self,state):
+        self.sublocal_Button2.config(state=state)
+        self.subnet_Button3.config(state=state)
 
 class TimeDependentPage(View1):
 
@@ -2183,7 +2194,7 @@ class TimeDependentPage(View1):
         self.label_select['font'] = myFont
         self.label_select.grid(row=5, column=0, sticky='w', padx=2, pady=4)
 
-        values = {"Averaged spectrum": 1, "Specific polarization direction": 2}
+        values = {"Specific polarization direction": 2}
         for (text, value) in values.items():
             tk.Radiobutton(self.Frame1, text=text, variable=self._var['var1'], font=myFont, justify='left',
                            value=value).grid(row=value+5, column=0, ipady=5, sticky='w')
