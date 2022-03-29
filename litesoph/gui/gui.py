@@ -452,7 +452,7 @@ class GUIAPP(tk.Tk):
 
     def _on_td_run_network_button(self, *_):
 
-        if not self._check_task_run_condition(self.rt_tddft_delta_task, network=True):
+        if not self._check_task_run_condition(self.rt_tddft_delta_task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Network')
@@ -866,7 +866,8 @@ class GUIAPP(tk.Tk):
         self.submit_network.download_output_files()
 
     def _on_create_remote_job_script(self, task: Task, event: str, *_):
-        b_file =  task.create_remote_job_script()
+        np = self.job_sub_page.processors.get()
+        b_file =  task.create_remote_job_script(np)
         self.job_sub_page.text_view.set_event_name( event)
         self.job_sub_page.text_view.insert_text(b_file, 'normal')
        

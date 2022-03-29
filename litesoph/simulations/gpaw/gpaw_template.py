@@ -92,12 +92,12 @@ calc.write('gs.gpw', mode='all')
         return template
     
     @staticmethod
-    def get_network_job_cmd():
-        job_script = """
+    def get_network_job_cmd(np):
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 
 cd GS/
-mpirun -np 4  python3 gs.py\n"""
+mpirun -np {np:d}  python3 gs.py\n"""
         return job_script
 
 class GpawRTLCAOTddftDelta:
@@ -181,13 +181,13 @@ td_calc.write('{td_gpw}', mode='all')
         return template
 
     @staticmethod
-    def get_network_job_cmd():
+    def get_network_job_cmd(np):
 
-        job_script = """
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 
 cd TD_Delta/
-mpirun -np 4  python3 td.py\n"""
+mpirun -np {np:d}  python3 td.py\n"""
         return job_script
        
 class GpawRTLCAOTddftLaser:
@@ -293,13 +293,13 @@ td_calc.write('{td_gpw}', mode='all')
            return template 
 
     @staticmethod
-    def get_network_job_cmd():
+    def get_network_job_cmd(np):
 
-        job_script = """
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 
 cd TD_Laser/
-mpirun -np 4  python3 tdlaser.py\n"""
+mpirun -np {np:d}  python3 tdlaser.py\n"""
         return job_script
 
 
@@ -333,7 +333,7 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
         return template
 
     @staticmethod
-    def get_network_job_cmd():
+    def get_network_job_cmd(np):
 
         job_script = """
 ##### LITESOPH Appended Comands###########
@@ -481,7 +481,7 @@ run(frequency_list)
         return template
 
     @staticmethod
-    def get_network_job_cmd():
+    def get_network_job_cmd(np):
 
         job_script = """
 ##### LITESOPH Appended Comands###########
