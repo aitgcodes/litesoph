@@ -626,27 +626,21 @@ class GUIAPP(tk.Tk):
         """ Selects engine specific plot function"""
         
         pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
-        if pol == 0:
-            p = 'x'
-        elif pol == 1:
-            p = 'y'
-        elif pol == 2:
-            p = 'z'
-        img = pathlib.Path(self.directory) / f"spec_{p}.png"
+        img = pathlib.Path(self.directory) / f"spec_{pol[1]}.png"
 
         if self.engine == "gpaw":
-            spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol]
+            spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol[0]]
             file = pathlib.Path(self.directory) / spec_file
-            self.show_plot(file,img,0, pol+1, "Energy (in eV)", "Strength(in /eV)")
+            self.show_plot(file,img,0, pol[0]+1, "Energy (in eV)", "Strength(in /eV)")
             # ax.plot(data_ej[:, 0], data_ej[:, column], 'k')
 
         elif self.engine == "octopus":
-            spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol]
+            spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol[0]]
             file = pathlib.Path(self.directory) / spec_file
             self.show_plot(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
 
         elif self.engine == "nwchem":
-            spec_file = EngineNwchem.spectrum['spectra_file'][pol]
+            spec_file = EngineNwchem.spectrum['spectra_file'][pol[0]]
             file = pathlib.Path(self.directory) / spec_file
             self.show_plot(file,img,0, 2, "Energy","Strength")
             # ax.plot(data_ej[:, 0], data_ej[:, 2], 'k') 
