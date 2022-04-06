@@ -132,22 +132,6 @@ class GroundStateModel:
     def __init__(self) -> None:
         pass
     
-    @staticmethod
-    def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
-    
-        list_engine = [EngineGpaw(),
-                        EngineOctopus(),
-                        EngineNwchem()]
-        
-        
-        if user_input['engine'] == 'gpaw':
-            return list_engine[0]
-        if user_input['engine'] == 'octopus':
-            return list_engine[1]
-        elif user_input['engine'] == 'nwchem':
-            return list_engine[2]
-        else:
-            raise ValueError('engine not implemented')
 
 class LaserDesignModel:
 

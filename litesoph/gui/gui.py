@@ -29,9 +29,8 @@ from litesoph.simulations.esmd import Task
 from litesoph.simulations.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import ProjectList
 from litesoph.simulations.filehandler import Status
-from litesoph.simulations.choose_engine import choose_engine
 from litesoph.utilities.job_submit import SubmitLocal
-from litesoph.gui.visual_parameter import myfont,label_design
+from litesoph.gui.visual_parameter import myfont, label_design
 
 home = pathlib.Path.home()
 
