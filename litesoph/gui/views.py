@@ -2273,11 +2273,11 @@ class TimeDependentPage(View1):
     def read_pol_dir(self):
         pol_list = [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
         if pol_list == [1,0,0]:
-            self.pol_dir = 0
+            self.pol_dir = (0,'x')
         elif pol_list == [0,1,0]:
-            self.pol_dir = 1 
+            self.pol_dir = (1,'y') 
         elif pol_list == [0,0,1]:
-            self.pol_dir = 2 
+            self.pol_dir = (2,'z') 
         return self.pol_dir     
 
     def get_parameters(self):
