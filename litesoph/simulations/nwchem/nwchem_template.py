@@ -880,9 +880,9 @@ def nwchem_compute_spec(project_dir :Path, pol):
   import os
   from subprocess import Popen, PIPE
 
-  dm_file = 'TD_Delta/td.nwo'
+  dm_file = 'nwchem/TD_Delta/td.nwo'
 
-  
+  cwd = project_dir / 'nwchem' / 'Spectrum'
 
   dm_file = project_dir / dm_file
 
@@ -896,11 +896,12 @@ def nwchem_compute_spec(project_dir :Path, pol):
   rot = str(path.parent / 'rotate_fft.py')
   fft = str(path.parent / 'fft1d.py')
 
-  cwd = project_dir / 'Spectrum'
+  
   try:
     os.mkdir(str(cwd))
   except FileExistsError:
     pass
+
   print('here')
   x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
   y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
@@ -913,18 +914,22 @@ def nwchem_compute_spec(project_dir :Path, pol):
   x_r_cmd = f'python {rot} xw.dat x'
   y_r_cmd = f'python {rot} yw.dat y'
   z_r_cmd = f'python {rot} zw.dat z'
+
   print(pol)
+  print("computing spectrum...")
+  
   if pol == 'x':
-    print("computing spectrum")
+    
     job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
     result1 = job1.communicate()
     job2 = Popen(x_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
     result2 = job2.communicate()
     job3 = Popen(x_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
     result3 = job3.communicate()
+    
 
   elif pol == 'y':
-    print("computing spectrum")
+    
     job1 = Popen(y_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
     result1 = job1.communicate()
     job2 = Popen(y_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
@@ -933,7 +938,7 @@ def nwchem_compute_spec(project_dir :Path, pol):
     result3 = job3.communicate()
 
   elif pol == 'z':
-    print("computing spectrum")
+   
     job1 = Popen(z_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
     result1 = job1.communicate()
     job2 = Popen(z_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
@@ -943,3 +948,5 @@ def nwchem_compute_spec(project_dir :Path, pol):
   
   if job1.returncode == job2.returncode == job3.returncode != 0:
     raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')
+
+  print("Done.")
