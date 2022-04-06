@@ -23,7 +23,8 @@ from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import models as m
 from litesoph.gui import views as v
-from litesoph.simulations.engine import EngineNwchem 
+from litesoph.simulations.engine import EngineNwchem
+from litesoph.utilities.plot_spectrum import plot_spectrum 
 from litesoph.visualization.spec_plot import plot_spectra, plot_files
 from litesoph.simulations.esmd import Task
 from litesoph.simulations.filehandler import Status, file_check, show_message
@@ -545,7 +546,6 @@ class GUIAPP(tk.Tk):
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
         self.spectra_task = Task(self.status, self.directory, self.lsconfig)
-        print('_on_spectra_task')
         self.spectra_view.Frame1_Button2.config(state='disabled')
         self.spectra_view.Frame1_Button3.config(state='disabled')
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
@@ -616,7 +616,6 @@ class GUIAPP(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'Spectrum', 'Network')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            #self.job_sub_page.show_output_button('Plot','SpectrumPlot')
             self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
             self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
@@ -627,51 +626,27 @@ class GUIAPP(tk.Tk):
         """ Selects engine specific plot function"""
         
         pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
-        img = pathlib.Path(self.directory) / f"spec_{pol[1]}.png"
+        
 
         if self.engine == "gpaw":
             spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol[0]]
             file = pathlib.Path(self.directory) / spec_file
-            self.show_plot(file,img,0, pol[0]+1, "Energy (in eV)", "Strength(in /eV)")
-            # ax.plot(data_ej[:, 0], data_ej[:, column], 'k')
+            img = file.parent / f"spec_{pol[1]}.png"
+            plot_spectrum(file,img,0, pol[0]+1, "Energy (in eV)", "Strength(in /eV)")
 
         elif self.engine == "octopus":
             spec_file = self.spectra_task.engine.spectrum['spectra_file'][pol[0]]
             file = pathlib.Path(self.directory) / spec_file
-            self.show_plot(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+            img = file.parent / f"spec_{pol[1]}.png"
+            plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
 
         elif self.engine == "nwchem":
             spec_file = EngineNwchem.spectrum['spectra_file'][pol[0]]
             file = pathlib.Path(self.directory) / spec_file
-            self.show_plot(file,img,0, 2, "Energy","Strength")
-            # ax.plot(data_ej[:, 0], data_ej[:, 2], 'k') 
-
-    def show_plot(self, filename,imgfile,row:int, column:int, x:str, y:str):  
-        """ Shows the plot"""
-             
-        import numpy as np
-        import matplotlib.pyplot as plt
-        data_ej = np.loadtxt(filename) 
-        plt.figure(figsize=(8, 6))
-        ax = plt.subplot(1, 1, 1) 
-        ax.plot(data_ej[:, row], data_ej[:, column], 'k')                  
-        # if conversion is not None:
-        #     ax.plot(data_ej[:, 0]*conversion, data_ej[:, axis], 'k')
-        # else:
-        #     ax.plot(data_ej[:, 0], data_ej[:, axis], 'k')          
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.yaxis.set_ticks_position('left')
-        ax.xaxis.set_ticks_position('bottom')
-        plt.xlabel(x)
-        plt.ylabel(y)
-        # plt.xlabel('Energy (eV)')
-        # plt.ylabel('Photoabsorption (eV$^{-1}$)')
-        #plt.xlim(0, 4)
-        #plt.ylim(ymin=0)
-        plt.tight_layout()
-        plt.savefig(imgfile)
-        plt.show()                   
+            img = file.parent / f"spec_{pol[1]}.png"
+            plot_spectrum(file,img,0, 2, "Energy","Strength")
+    
+        
 ##----------------------compute---tcm---------------------------------
 
     def _on_tcm_task(self, *_):
