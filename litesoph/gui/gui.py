@@ -565,6 +565,7 @@ class GUIAPP(tk.Tk):
     def _on_create_spectra_button(self, *_):
 
         if self.engine == 'nwchem':
+            self.spectra_view.Frame1_Button2.config(state='active')
             return
         self._validate_spectra_input()
         self._spectra_create_input()
