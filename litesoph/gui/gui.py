@@ -349,10 +349,6 @@ class GUIAPP(tk.Tk):
         confirm_engine = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(self.ground_state_task.engine_name))
         if confirm_engine is True:
             self.engine = self.ground_state_task.engine_name
-            try:
-                self.ground_state_task.engine.create_restart_dir()
-            except AttributeError:
-                pass
             self.ground_state_task.write_input(template)
             self.status.update_status('engine', self.engine)
             self.status.set_new_task(self.ground_state_task.task_name)
