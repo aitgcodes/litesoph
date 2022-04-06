@@ -363,7 +363,7 @@ class GUIAPP(tk.Tk):
     def _on_gs_run_local_button(self, *_):
         
         if not self._check_task_run_condition(self.ground_state_task):
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
             return
 
         self.ground_state_view.refresh_var()
@@ -582,14 +582,8 @@ class GUIAPP(tk.Tk):
 
         if self.engine == 'nwchem':
             pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
-            if pol == 0:
-                pol = 'x'
-            elif pol == 1:
-                pol = 'y'
-            elif pol == 2:
-                pol = 'z'
             try:
-                nwchem_compute_spec(self.directory, pol)
+                nwchem_compute_spec(self.directory, pol[1])
             except Exception as e:
                 messagebox.showerror(title = 'Error', message="Error occured.", detail = f"{e}")
             else:
@@ -683,7 +677,6 @@ class GUIAPP(tk.Tk):
             messagebox.showerror(message="Input not saved.", detail = "Please save the input before job submission")
             return
 
-        
         self._run_local(self.tcm_task,np=1 )
         
 
@@ -707,7 +700,7 @@ class GUIAPP(tk.Tk):
         from PIL import Image
        
         for item in self.tcm_task.user_input['frequency_list']:
-            img_file = pathlib.Path(self.directory) / 'TCM' / f'tcm_{item:.2f}.png'
+            img_file = pathlib.Path(self.directory) / 'gpaw' / 'TCM' / f'tcm_{item:.2f}.png'
             
             image = Image.open(img_file)
             image.show()
