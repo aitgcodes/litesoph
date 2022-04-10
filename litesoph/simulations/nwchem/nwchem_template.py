@@ -86,16 +86,16 @@ class NwchemGroundState:
             'charge': 0,
             'basis': '6-31g',
             'multip': 1,
-            'xc': 'PBE0',
+            'xc': None,
             'maxiter': 300,
-            'tolerances': 'tight',
             'energy': 1.0e-7,
             'density': 1.0e-5, 
             'theory':'dft',
 
             } 
 
-    gs_temp = """echo
+    gs_temp = """
+echo
 start {name}
 
 permanent_dir {permanent_dir}
@@ -114,9 +114,8 @@ end
 dft
  direct
  mult {multip}
- xc {xc}
+ {xc}
  iterations {maxiter}
- tolerances {tolerances}
  convergence energy {energy}
  convergence density {density}
 end
@@ -124,11 +123,60 @@ end
 task {theory} energy 
                """
 
+    # xc = [
+    #            ('B3LYP','xc b3lyp'),
+    #            ('PBE0','xc pbe0'),
+    #            ('PBE96','xc xperdew91 perdew91'),
+    #            ('BHLYP','xc bhlyp'),
+    #            ('BP86','xc becke88 perdew86'),
+    #            ('BP91','xc becke88 perdew91'),
+    #            ('BLYP','xc becke88 lyp'),
+    #            ('M05','xc m05'),
+    #            ('M05-2X','xc m05-2x'), 
+    #            ('M06-2X','xc m06-2x'),
+    #            ('M06-HF','xc m06-hf'),
+    #            ('M08-HX','xc m08-hx'),
+    #            ('M11','xc m11'),
+    #            ('CAM-B3LYP', 'xc xcamb88 1.00 lyp 0.81 vwn_5 0.19 hfexch 1.00 \n   cam 0.33 cam_alpha 0.19 cam_beta 0.46'),
+    #            ('LC-BLYP','xc xcamb88 1.00 lyp 1.0 hfexch 1.00 \n   cam 0.33 cam_alpha 0.0 cam_beta 1.0'),
+    #            ('LC-PBE','xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n   cam 0.30 cam_alpha 0.0 cam_beta 1.0'),
+    #            ('CAM-PBE0','xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n   cam 0.30 cam_alpha 0.25 cam_beta 0.75'),
+    #           ('rCAM-B3LYP','xc xcamb88 1.00 lyp 1.0 vwn_5 0. hfexch 1.00 becke88 nonlocal 0.13590 \n   cam 0.33 cam_alpha 0.18352 cam_beta 0.94979'),
+    #            ]
+    xc = {
+               'B3LYP'     :'xc b3lyp',
+               'PBE0'      :'xc pbe0',
+               'PBE96'     :'xc xpbe96 cpbe96',
+               'BHLYP'     :'xc bhlyp',
+               'PW91'      :'xc xperdew91 perdew91',
+               'BP86'      :'xc becke88 perdew86',
+               'BP91'      :'xc becke88 perdew91',
+               'BLYP'      :'xc becke88 lyp',
+               'M05'       :'xc m05',
+               'M05-2X'    :'xc m05-2x',
+               'M06'       :'xc m06',
+               'M06-HF'    :'xc m06-hf',
+               'M08-SO'    :'xc m08-so',
+               'M11'       :'xc m11',
+               'CAM-B3LYP' :'xc xcamb88 1.00 lyp 0.81 vwn_5 0.19 hfexch 1.00 \n cam 0.33 cam_alpha 0.19 cam_beta 0.46',
+               'LC-BLYP'   :'xc xcamb88 1.00 lyp 1.0 hfexch 1.00 \n cam 0.33 cam_alpha 0.0 cam_beta 1.0',
+               'LC-PBE'    :'xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n cam 0.30 cam_alpha 0.0 cam_beta 1.0',
+               'LC-wPBE'   :'xc xwpbe 1.00 cpbe96 1.0 hfexch 1.00 \n cam 0.4 cam_alpha 0.00 cam_beta 1.00',
+               'CAM-PBE0'  :'xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n cam 0.30 cam_alpha 0.25 cam_beta 0.75',
+               'rCAM-B3LYP':'xc xcamb88 1.00 lyp 1.0 vwn_5 0. hfexch 1.00 becke88 nonlocal 0.13590 \n cam 0.33 cam_alpha 0.18352 cam_beta 0.94979',
+               'HSE03'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.33 cam_alpha 0.0 cam_beta 1.0',
+               'HSE06'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.11 cam_alpha 0.0 cam_beta 1.0',
+         }
+
     def __init__(self, user_input) -> None:
         self.user_input = self.default_gs_param
         self.user_input.update(user_input)
-
-
+        #print(user_input)
+        # Replace xc with the corresponding nwchem command
+        xc_str = self.xc[user_input['xc']]
+        self.user_input['xc'] = xc_str
+        #self.xc = self.user_input['xc']
+ 
     def calcscf(self):
         maxiter = self.user_input['maxiter']
         scf = """
@@ -170,6 +218,12 @@ end
      
     def format_template(self):
         template = self.gs_temp.format(**self.user_input)
+        #if self.xc and 'xc' in self.xc:
+            #print(xc[1])
+            #tlines = template.splitlines()
+            #tlines[20] = 
+            #template = """\n""".join(tlines)
+
         return template
 
     @staticmethod
