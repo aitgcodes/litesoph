@@ -846,7 +846,7 @@ class GroundStatePage(View_note):
     gp_box = ["parallelepiped"]
     xc_gp = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
     # xc_nw = ["acm","b3lyp","beckehandh","Hfexch","pbe0","becke88","xpbe96","bhlyp","cam-s12g","cam-s12h","xperdew91","pbeop"]
-    xc_nw = ["pbe96","pbe0","b3lyp","pw91", "bp86", "bp91","bhlyp"]
+    xc_nw = ["PBE96","PBE0","B3LYP","PW91", "BP86", "BP91","BHLYP","M05","M05-2X","M06-HF","M08-SO","M011","CAM-B3LYP","LC-BLYP","LC-PBE","LC-wPBE","HSE03","HSE06"]
     oct_lda_x = ["lda_x","lda_x_rel","lda_x_erf","lda_x_rae"]
     oct_lda_c = ["lda_c_pz_mod","lda_c_ob_pz","lda_c_pw","lda_c_ob_pw","lda_c_2d_amgb"]
     oct_pbe_x = ["gga_x_pbe","gga_x_pbe_r","gga_x_b86","gga_x_herman","gga_x_b86_mgc","gga_x_b88","gga_x_pbe_sol"]
@@ -867,7 +867,7 @@ class GroundStatePage(View_note):
 
         self._default_var = {
             'mode' : ['str', '--choose mode--'],
-            'nwxc' : ['str', 'pbe0'],
+            'nwxc' : ['str', 'PBE0'],
             'gpxc' : ['str','LDA'],
             'var_oct_xc' : ['int', 1],
             'oct_xc' : ['str',''],
@@ -1423,7 +1423,7 @@ class GroundStatePage(View_note):
         self.nwxc.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_pol_x = ttk.Combobox(nw_frame, textvariable= self._var['nwxc'], value = self.xc_nw)
-        self.entry_pol_x.current(4)
+        #self.entry_pol_x.current(2)
         self.entry_pol_x['font'] = label_design['font']
         self.entry_pol_x['state'] = 'readonly'
         self.entry_pol_x.grid(row=2, column=1, sticky='w', padx=2, pady=2)
@@ -1974,7 +1974,7 @@ class GroundStatePage(View_note):
         inp_dict_nw = {
             'mode': self._var['mode'].get(),
             'xc': self._var['nwxc'].get(),
-            'tolerances': self._var['tolerances'].get(),
+            #'tolerances': self._var['tolerances'].get(),
             'basis': self._var['basis'].get(),
             'energy': self._var['energy'].get(),
             'density' : self._var['density'].get(),
@@ -2132,8 +2132,12 @@ class TimeDependentPage(View1):
             'ez': ['int', 0],
             'dt': ['float'],
             'Nt': ['int'],
-            'var1': ['int', 1],
-            'var2': ['int',0]
+            'var1': ['int',1],
+            'dpl': ['int',1],
+            'wfn': ['int',0],
+            'moc': ['int',0],
+            'prop': ['int',0],
+            'elec': ['int',0]
         }
         self.gpaw_td_default = {
             'dt': ['float', 10],
@@ -2254,15 +2258,33 @@ class TimeDependentPage(View1):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=4)
 
-        self.Frame2_note = tk.Label(self.Frame2, text="Note: Please select wavefunction \n for Kohn Sham Decomposition", fg="black")
+        self.Frame2_note = tk.Label(self.Frame2, text="Note: Please select  options for Post Processing", fg="black")
         self.Frame2_note['font'] = myFont
         self.Frame2_note.grid(row=2, column=6)
 
-        values = {"Wavefunction": 2}
+        #self.Frame2_note = tk.Label(self.Frame2, text="Note: select for Population Coorelation", fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.grid(row=value+7, column=7, sticky='e')
+
+        #self.Frame2_note = tk.Label(self.Frame2, text="Note: Charge calculated from density matrixs", fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.grid(row=value+11, column=7, sticky='e')
+
+        #values = {"Wavefunction": 2}
         # Loop is used to create multiple Radiobuttons
         # rather than creating each button separately
-        for (text, value) in values.items():
-            tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+        #for (text, value) in values.items():
+            #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+
+        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Dipole Moment", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+       
+        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Wavefunction", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0).grid(row=value+5, column=6, ipady=5, sticky='w')
+                  
+        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Molecular Orbital Occupation", variable=self._var['moc'], font=myFont, onvalue=1, offvalue=0).grid(row=value+7, column=6, ipady=5, sticky='w')
+ 
+        self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
+
+        self.checkbox5 = tk.Checkbutton(self.Frame2, text="Electronic Charge", variable=self._var['elec'], font=myFont, onvalue=1, offvalue=0).grid(row=value+11, column=6, ipady=5, sticky='w')
 
     def pol_option(self):
         if self._var['var1'] == 1:
@@ -2320,7 +2342,7 @@ class TimeDependentPage(View1):
             return td_dict_oct
 
     def analysis_tool(self):
-        if self._var['var2'].get() == 1:
+        if self._var['wfn'].get() == 1:
             return("wavefunction")
 
     def set_label_msg(self,msg):
