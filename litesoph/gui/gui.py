@@ -234,7 +234,7 @@ class GUIAPP(tk.Tk):
            subprocess.run(cmd.split(),capture_output=True, cwd=self.directory)
         except:
             msg = "Cannot visualize molecule."
-            detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/lsconfig.ini".format(cmd.split()[0])
+            detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/.litesoph/lsconfig.ini".format(cmd.split()[0])
             messagebox.showerror(title='Error', message=msg, detail=detail) 
 
     def _on_task_select(self, *_):
