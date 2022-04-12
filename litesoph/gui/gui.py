@@ -3,10 +3,8 @@ from tkinter import ttk                  # importing ttk which is used for styli
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
 
-import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
 import subprocess
 from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
-from  PIL import Image,ImageTk
 import tkinter as tk
 
 import os
@@ -15,23 +13,19 @@ import pathlib
 import shutil
 from configparser import ConfigParser, NoSectionError
 
-from matplotlib.pyplot import show
-
 #---LITESOPH modules
 from litesoph.config import check_config, read_config, set_config
 from litesoph.gui.menubar import get_main_menu_for_os
+from litesoph.gui.user_data import read_proj_list, update_proj_list
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import models as m
 from litesoph.gui import views as v
 from litesoph.simulations.engine import EngineNwchem
 from litesoph.utilities.plot_spectrum import plot_spectrum 
-from litesoph.visualization.spec_plot import plot_spectra, plot_files
 from litesoph.simulations.esmd import Task
-from litesoph.simulations.filehandler import Status, file_check, show_message
 from litesoph.gui.navigation import ProjectList
 from litesoph.simulations.filehandler import Status
 from litesoph.utilities.job_submit import SubmitLocal
-from litesoph.gui.visual_parameter import myfont, label_design
 
 home = pathlib.Path.home()
 
@@ -45,7 +39,6 @@ class GUIAPP(tk.Tk):
         self.settings_model = m.SettingsModel
         self._load_settings()
         self.lsconfig = lsconfig
-        self.lsroot = check_config(self.lsconfig, "lsroot")
         self.directory = pathlib.Path(self.lsconfig.get("project_path", "lsproject", fallback=str(home)))
     
 
@@ -82,7 +75,7 @@ class GUIAPP(tk.Tk):
         
         self._show_page_events()
         self._bind_event_callbacks()
-        self._show_frame(v.StartPage, self.lsroot)
+        self._show_frame(v.StartPage)
         self.after(1000, self.navigation.populate(self.directory))
     
     
@@ -144,8 +137,8 @@ class GUIAPP(tk.Tk):
     def _show_page_events(self):
         
         event_show_page= {
-            '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage, self.lsroot),
-            '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.lsroot, self.directory),
+            '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage),
+            '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.directory),
             '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
             '<<ShowTimeDependentPage>>' : self._on_rt_tddft_delta_task,
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
@@ -177,7 +170,7 @@ class GUIAPP(tk.Tk):
         self._get_engine()
 
     def _on_open_project(self, *_):
-        """creates dialog to get porject path and opens existing project"""
+        """creates dialog to get project path and opens existing project"""
         
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
         if not project_path:
@@ -547,7 +540,6 @@ class GUIAPP(tk.Tk):
         self.bind('<<CreateSpectraScript>>', self._on_create_spectra_button)
         self.bind('<<SubLocalSpectrum>>', lambda _: self._on_spectra_run_local_button())
         self.bind('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
-        # self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
         self.bind('<<ShowSpectrumPlot>>', lambda _:self._on_spectra_plot_button())
 
     def _validate_spectra_input(self):
@@ -606,7 +598,6 @@ class GUIAPP(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'Spectrum', 'Network')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
             self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
             self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
@@ -688,8 +679,6 @@ class GUIAPP(tk.Tk):
         else:
             self.job_sub_page = v.JobSubPage(self._window, 'TCM', 'Network')
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            #self.job_sub_page.show_output_button('Plot','SpectrumPlot')
-            #self.job_sub_page.bind('<<ShowSpectrumPlot>>', lambda _:plot_spectra(1,str(self.directory)+'/Spectrum/spec.dat',str(self.directory)+'/Spectrum/spec.png','Energy (eV)','Photoabsorption (eV$^{-1}$)', None))
             self.job_sub_page.bind('<<RunTCMNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewTCMNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
             self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))

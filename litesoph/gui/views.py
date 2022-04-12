@@ -17,10 +17,10 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 
 class StartPage(tk.Frame):
 
-    def __init__(self, parent, lsroot, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         
-        self.lsroot = lsroot
+       
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
 
@@ -118,10 +118,9 @@ class WorkManagerPage(tk.Frame):
                         ]
                         
 
-    def __init__(self, parent, lsroot, directory, *args, **kwargs):
+    def __init__(self, parent, directory, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
         
-        self.lsroot = lsroot
         self.directory = directory
        
         self._default_var = {
