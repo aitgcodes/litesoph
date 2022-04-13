@@ -168,6 +168,7 @@ class GUIAPP(tk.Tk):
         self._change_directory(path)
         self.navigation.populate(self.directory)
         self._get_engine()
+        update_proj_list(path)
 
     def _on_open_project(self, *_):
         """creates dialog to get project path and opens existing project"""
@@ -204,7 +205,6 @@ class GUIAPP(tk.Tk):
         else:
             #self._frames[v.WorkManagerPage].update_project_entry(project_path)
             self._init_project(project_path)
-            update_proj_list(project_path)
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
             
         
