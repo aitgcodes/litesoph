@@ -198,12 +198,13 @@ class GUIAPP(tk.Tk):
         try:
             m.WorkManagerModel.create_dir(project_path)
         except PermissionError as e:
-            messagebox.showerror(e)
+            messagebox.showerror(title='Error', message = 'Premission denied', detail = e)
         except FileExistsError as e:
-            messagebox.showerror(e)
+            messagebox.showerror(title='Error', message = 'Project already exists', detail =e)
         else:
             #self._frames[v.WorkManagerPage].update_project_entry(project_path)
             self._init_project(project_path)
+            update_proj_list(project_path)
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
             
         
