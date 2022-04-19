@@ -123,26 +123,6 @@ end
 task {theory} energy 
                """
 
-    # xc = [
-    #            ('B3LYP','xc b3lyp'),
-    #            ('PBE0','xc pbe0'),
-    #            ('PBE96','xc xperdew91 perdew91'),
-    #            ('BHLYP','xc bhlyp'),
-    #            ('BP86','xc becke88 perdew86'),
-    #            ('BP91','xc becke88 perdew91'),
-    #            ('BLYP','xc becke88 lyp'),
-    #            ('M05','xc m05'),
-    #            ('M05-2X','xc m05-2x'), 
-    #            ('M06-2X','xc m06-2x'),
-    #            ('M06-HF','xc m06-hf'),
-    #            ('M08-HX','xc m08-hx'),
-    #            ('M11','xc m11'),
-    #            ('CAM-B3LYP', 'xc xcamb88 1.00 lyp 0.81 vwn_5 0.19 hfexch 1.00 \n   cam 0.33 cam_alpha 0.19 cam_beta 0.46'),
-    #            ('LC-BLYP','xc xcamb88 1.00 lyp 1.0 hfexch 1.00 \n   cam 0.33 cam_alpha 0.0 cam_beta 1.0'),
-    #            ('LC-PBE','xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n   cam 0.30 cam_alpha 0.0 cam_beta 1.0'),
-    #            ('CAM-PBE0','xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n   cam 0.30 cam_alpha 0.25 cam_beta 0.75'),
-    #           ('rCAM-B3LYP','xc xcamb88 1.00 lyp 1.0 vwn_5 0. hfexch 1.00 becke88 nonlocal 0.13590 \n   cam 0.33 cam_alpha 0.18352 cam_beta 0.94979'),
-    #            ]
     xc = {
                'B3LYP'     :'xc b3lyp',
                'PBE0'      :'xc pbe0',
@@ -166,7 +146,7 @@ task {theory} energy
                'rCAM-B3LYP':'xc xcamb88 1.00 lyp 1.0 vwn_5 0. hfexch 1.00 becke88 nonlocal 0.13590 \n cam 0.33 cam_alpha 0.18352 cam_beta 0.94979',
                'HSE03'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.33 cam_alpha 0.0 cam_beta 1.0',
                'HSE06'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.11 cam_alpha 0.0 cam_beta 1.0',
-         }
+    }
 
     def __init__(self, user_input) -> None:
         self.user_input = self.default_gs_param
@@ -254,9 +234,13 @@ class NwchemDeltaKick:
             'dt': 0.2,
             'max':0.0001,
             'e_pol':[1,0,0],
+            'extra_prop':None,
+            'nrestart':0,
+            'pol_dir':None,
             }
      
-    delta_temp = """echo
+    delta_temp = """
+echo
 restart {name}
 
 permanent_dir {permanent_dir}
@@ -269,14 +253,15 @@ end
 set geometry "system"
 
 {kick}
-
               """ 
 
     def __init__(self, user_input) -> None:
         self.user_input = self.default_delta_param
         self.user_input.update(user_input)
         self.convert_unit()
-  
+        self.prop = self.user_input['extra_prop']
+        #print(user_input)
+ 
     def convert_unit(self):
         self.user_input['dt'] = round(self.user_input['dt']*as_to_au, 2)
         self.user_input['tmax'] = round(self.user_input['tmax']*as_to_au, 2)
@@ -300,6 +285,7 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
+   
 end
 task dft rt_tddft
     """.format(tmax, dt, max)
@@ -324,6 +310,7 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
+
 end
 task dft rt_tddft
     """.format(tmax, dt, max)
@@ -348,6 +335,7 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
+
 end
 task dft rt_tddft
     """.format(tmax, dt, max)
@@ -358,7 +346,6 @@ task dft rt_tddft
         dt = self.user_input['dt']
         max = self.user_input['max']
         xy_kick = """
-
 rt_tddft
   tmax {}
   dt {}
@@ -372,10 +359,9 @@ rt_tddft
   end
 
   excite "system" with "kick"
-
   print dipole
-end
 
+end
 task dft rt_tddft
 
 rt_tddft
@@ -392,8 +378,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
     """.format(tmax, dt, max, tmax, dt, max)
         return xy_kick
@@ -417,8 +403,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
 
 rt_tddft
@@ -435,8 +421,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
     """.format(tmax, dt, max, tmax, dt, max)
         return yz_kick
@@ -460,8 +446,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
 
 rt_tddft
@@ -478,8 +464,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
     """.format(tmax, dt, max, tmax, dt, max)
         return xz_kick
@@ -503,8 +489,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
 
 rt_tddft
@@ -521,8 +507,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
 
 rt_tddft
@@ -539,8 +525,8 @@ rt_tddft
 
   excite "system" with "kick"
   print dipole
-end
 
+end
 task dft rt_tddft
     """.format(tmax, dt, max, tmax, dt, max, tmax, dt, max)
         return xyz_kick
@@ -548,22 +534,84 @@ task dft rt_tddft
     def kick_task(self):
         if self.user_input['e_pol'] == [1,0,0]:
             self.user_input['kick'] = self.kickx()
+            self.pol_index = 1
         if self.user_input['e_pol'] == [0,1,0]:
             self.user_input['kick'] = self.kicky()
+            self.pol_index = 2 
         if self.user_input['e_pol'] == [0,0,1]:
             self.user_input['kick'] = self.kickz()
+            self.pol_index = 3
         if self.user_input['e_pol'] == [1,1,0]:
             self.user_input['kick'] = self.kickxy()
+            self.pol_index = 4
         if self.user_input['e_pol'] == [0,1,1]:
             self.user_input['kick'] = self.kickyz()
+            self.pol_index = 5
         if self.user_input['e_pol'] == [1,0,1]:
             self.user_input['kick'] = self.kickxz() 
+            self.pol_index = 6
         if self.user_input['e_pol'] == [1,1,1]:
             self.user_input['kick'] = self.kickxyz()
+            self.pol_index = 7
+
     
+ 
     def format_template(self):
         self.kick_task()
         template = self.delta_temp.format(**self.user_input)
+        nrestart = self.user_input['nrestart']
+        if self.user_input['nrestart'] != 0:
+            tlines = template.splitlines()
+            tlines[18] = "  nrestarts {}".format(nrestart)
+            template = """\n""".join(tlines)
+        if self.pol_index == 1 or 2 or 3:
+            if self.prop and "moocc" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole moocc"
+                template = """\n""".join(tlines)
+            if self.prop and "charge" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole field energy s2 charge"
+                template = """\n""".join(tlines)
+            if self.prop and "mooc&charge" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole moocc field energy s2 charge"
+                template = """\n""".join(tlines)
+        if self.pol_index == 4 or 5 or 6:
+            if self.prop and "moocc" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole moocc"
+                tlines[45] = "  print dipole moocc"
+                template = """\n""".join(tlines)
+            if self.prop and "charge" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole field energy s2 charge"
+                tlines[45] = "  print dipole field energy s2 charge"
+                template = """\n""".join(tlines)
+            if self.prop and "mooc&charge" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole moocc field energy s2 charge"
+                tlines[45] = "  print dipole moocc field energy s2 charge"
+                template = """\n""".join(tlines)    
+        if self.pol_index == 7:
+            if self.prop and "moocc" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole moocc"
+                tlines[45] = "  print dipole moocc"
+                tlines[63] = "  print dipole moocc"
+                template = """\n""".join(tlines)
+            if self.prop and "charge" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole field energy s2 charge"
+                tlines[45] = "  print dipole field energy s2 charge"
+                tlines[63] = "  print dipole field energy s2 charge"
+                template = """\n""".join(tlines)
+            if self.prop and "mooc&charge" in self.prop:
+                tlines = template.splitlines()
+                tlines[27] = "  print dipole moocc field energy s2 charge"
+                tlines[45] = "  print dipole moocc field energy s2 charge"
+                tlines[63] = "  print dipole moocc field energy s2 charge"
+                template = """\n""".join(tlines)
         return template
 
     @staticmethod
@@ -1004,3 +1052,25 @@ def nwchem_compute_spec(project_dir :Path, pol):
     raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')
 
   print("Done.")
+
+
+def nwchem_compute_moocc(project_dir :Path, pol):
+  import os
+  from subprocess import Popen, PIPE
+
+  moocc_file = 'nwchem/TD_Delta/td.nwo'
+
+  cwd = project_dir / 'nwchem' / 'Population'
+
+  moocc_file = project_dir / moocc_file
+
+  if  not moocc_file.exists():
+    raise FileNotFoundError(f' Required file {moocc_file} doesnot exists!')
+
+
+  path = pathlib.Path(__file__)
+
+  extract_mo = str(path.parent /'extract.sh')
+  homo_to_lumo = str(path.parent / 'homo_to_lumo.py')
+  population = str(path.parent / 'population_correlation.py')
+   
