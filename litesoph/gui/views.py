@@ -2071,7 +2071,7 @@ class View1(tk.Frame):
 
         self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
         self.Frame2 = tk.Frame(self, borderwidth=2, relief='groove')
-        #self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
         self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
         # layout all of the main containers
         #self.grid_rowconfigure(0, weight=1)
@@ -2085,7 +2085,7 @@ class View1(tk.Frame):
 
         self.Frame1.grid(row=1,column=0, columnspan=4, rowspan=100, sticky='nsew')
         self.Frame2.grid(row=1, column=5, rowspan=100,columnspan=2, sticky='nsew')
-        #self.Frame3.grid(row=1, column=9, sticky='nswe')
+        self.Frame3.grid(row=0, column=5,columnspan=5, sticky='nswe')
         #self.Frame2.grid(row=4,  sticky="nsew")
         # btm_frame.grid(row=3, sticky="ew")
         # btm_frame2.grid(row=4, sticky="ew")
@@ -2135,9 +2135,10 @@ class TimeDependentPage(View1):
             'var1': ['int',1],
             'dpl': ['int',1],
             'wfn': ['int',0],
-            'moc': ['int',0],
+            'mooc': ['int',0],
             'prop': ['int',0],
-            'elec': ['int',0]
+            'elec': ['int',0],
+            'chp':['int'],
         }
         self.gpaw_td_default = {
             'dt': ['float', 10],
@@ -2258,9 +2259,9 @@ class TimeDependentPage(View1):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=4)
 
-        self.Frame2_note = tk.Label(self.Frame2, text="Note: Please select  options for Post Processing", fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=2, column=6)
+        self.Frame3_note = tk.Label(self.Frame3, text="Note: Please choose properties to be extracted in post-processing", fg="black")
+        self.Frame3_note['font'] = myFont
+        self.Frame3_note.grid(row=2, column=6)
 
         #self.Frame2_note = tk.Label(self.Frame2, text="Note: select for Population Coorelation", fg="black")
         #self.Frame2_note['font'] = myFont
@@ -2276,15 +2277,27 @@ class TimeDependentPage(View1):
         #for (text, value) in values.items():
             #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
 
-        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Dipole Moment", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
        
-        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Wavefunction", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0).grid(row=value+5, column=6, ipady=5, sticky='w')
+        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0).grid(row=value+5, column=6, ipady=5, sticky='w')
                   
-        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Molecular Orbital Occupation", variable=self._var['moc'], font=myFont, onvalue=1, offvalue=0).grid(row=value+7, column=6, ipady=5, sticky='w')
+        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0).grid(row=value+7, column=6, ipady=5, sticky='w')
  
-        self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
+        #self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
 
-        self.checkbox5 = tk.Checkbutton(self.Frame2, text="Electronic Charge", variable=self._var['elec'], font=myFont, onvalue=1, offvalue=0).grid(row=value+11, column=6, ipady=5, sticky='w')
+        self.checkbox5 = tk.Checkbutton(self.Frame2, text="Electron Charge Dynamics", variable=self._var['elec'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')
+ 
+        #self.Frame2_lab = tk.Label(self.Frame2, text="         ", fg="black")
+        #self.Frame2_lab['font'] = myFont
+        #self.Frame2_lab.grid(row=value+5, column=7, ipady=5,)
+
+        self.Frame2_lab = tk.Label(self.Frame2, text="Frequency of data collection", fg="black")
+        self.Frame2_lab['font'] = myFont
+        self.Frame2_lab.grid(row=value+11, column=6, ipady=5,)
+
+        self.entry_chp = Onlydigits(self.Frame2, textvariable=self._var['chp'], width=5)
+        self.entry_chp['font'] = myFont
+        self.entry_chp.grid(row=value+11, column=8, ipady=5,)
 
     def pol_option(self):
         if self._var['var1'] == 1:
@@ -2299,7 +2312,9 @@ class TimeDependentPage(View1):
         elif pol_list == [0,1,0]:
             self.pol_dir = (1,'y') 
         elif pol_list == [0,0,1]:
-            self.pol_dir = (2,'z') 
+            self.pol_dir = (2,'z')
+        elif pol_list == [1,1,0]:
+            self.pol_dir = (3,'xy') 
         return self.pol_dir     
 
     def get_parameters(self):
@@ -2330,8 +2345,9 @@ class TimeDependentPage(View1):
             'dt': self._var['dt'].get(),
             'max':self._var['strength'].get(),
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
-            'pol_dir': self.read_pol_dir()
-
+            'pol_dir': self.read_pol_dir(),
+            'extra_prop':self.extra_prop(),
+            'nrestart':self._var['chp'].get()
             }
 
         if self.engine == 'gpaw':
@@ -2344,6 +2360,14 @@ class TimeDependentPage(View1):
     def analysis_tool(self):
         if self._var['wfn'].get() == 1:
             return("wavefunction")
+        
+    def extra_prop(self):
+        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 1:
+            return("mooc&charge")
+        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
+            return("moocc")
+        if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
+            return("charge")
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
