@@ -37,7 +37,7 @@ def read_input(lines):
         nskp = 1
         nbeg = 1
         nproj = nocc+nunocc
-        tpop = True
+        tpop = False
         tdmat = True
         tdos = True
         axis = [0, 0, 1]
@@ -61,7 +61,8 @@ def read_input(lines):
                 tnbeg = re.search("nbeg",line,re.I)
                 tnproj = re.search("nproj",line,re.I)
                 tiproj = re.search("iproj",line,re.I)
-                tpop = re.search("pop",line,re.I)
+                if re.search("pop",line,re.I):
+                   tpop = True
                 tdmat = re.search("dmat",line,re.I)
                 tdos = re.search("dos",line,re.I)
                 tni = re.search("ni",line,re.I)
