@@ -37,9 +37,10 @@ def read_input(lines):
         nskp = 1
         nbeg = 1
         nproj = nocc+nunocc
-        tpop = True
-        tdmat = True
-        tdos = True
+        tpop = False
+        #tdmat = True
+        #tdos = True
+        tehr = False
         axis = [0, 0, 1]
         evfile = "info"
         ni = 5
@@ -61,7 +62,8 @@ def read_input(lines):
                 tnbeg = re.search("nbeg",line,re.I)
                 tnproj = re.search("nproj",line,re.I)
                 tiproj = re.search("iproj",line,re.I)
-                tpop = re.search("pop",line,re.I)
+                if re.search("pop",line,re.I):
+                   tpop = True
                 tdmat = re.search("dmat",line,re.I)
                 tdos = re.search("dos",line,re.I)
                 tni = re.search("ni",line,re.I)
@@ -149,8 +151,9 @@ def read_input(lines):
 
                 if tehrange:
                         arr = line[tehrange.end():].strip().split()
-                        hlmin = arr[0]
-                        elmax = arr[1]
+                        hlmin = float(arr[0]) #Lowest hole energy to consider
+                        elmax = float(arr[1]) #Highest electron energy to consider
+                        tehr = True
 
         fn = open(evfile,"r")
         recs = fn.readlines()
@@ -168,12 +171,12 @@ def read_input(lines):
                 evals.append(float(line.strip().split()[2]))
                 ist += 1
 
-        if tehrange:
+        if tehr:
                 ni = 0
                 na = 0
                 ehomo = evals[nocc-1]
                 for en in evals:
-                        ediff = en-ehomo
+                        #ediff = en-ehomo
                         if en <= ehomo and en >= hlmin:
                                 ni += 1
                         elif en > homo and en <= elmin:
