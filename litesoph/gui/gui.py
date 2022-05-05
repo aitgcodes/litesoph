@@ -16,7 +16,7 @@ from configparser import ConfigParser, NoSectionError
 #---LITESOPH modules
 from litesoph.config import check_config, read_config, set_config
 from litesoph.gui.menubar import get_main_menu_for_os
-from litesoph.gui.user_data import read_proj_list, update_proj_list
+from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import models as m
 from litesoph.gui import views as v
@@ -378,7 +378,7 @@ class GUIAPP(tk.Tk):
         self.job_sub_page = v.JobSubPage(self._window, 'GroundState', 'Network')
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
         self.job_sub_page.activate_run_button()
-        remote = self._get_remote_profile()
+        remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
         self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
@@ -447,7 +447,7 @@ class GUIAPP(tk.Tk):
             return
         self.job_sub_page = v.JobSubPage(self._window, 'RT_TDDFT_DELTA', 'Network')
         self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-        remote = self._get_remote_profile()
+        remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
         self.job_sub_page.activate_run_button()
@@ -706,18 +706,10 @@ class GUIAPP(tk.Tk):
         text_view.set_task_name(name)
         text_view.insert_text(template)
         return text_view
-
-    def _get_remote_profile(self):
-        try:
-            remote = self.lsconfig.items('remote_profile')
-        except NoSectionError:
-            return
-        
-        return remote
-
     
 
     def _run_local(self, task, np=None):
+
         if np:
             submitlocal = SubmitLocal(task, np)
         else:
@@ -773,9 +765,11 @@ class GUIAPP(tk.Tk):
         self.network_type = self.job_sub_page.network_job_type.get()
         
         login_dict = self.job_sub_page.get_network_dict()
-        set_config(self.lsconfig,'remote_profile','ip',login_dict['ip'])
-        set_config(self.lsconfig,'remote_profile','username',login_dict['username'])
-        set_config(self.lsconfig,'remote_profile','remote_path',login_dict['remote_path'])
+        update_remote_profile_list(login_dict)
+
+        # set_config(self.lsconfig,'remote_profile','ip',login_dict['ip'])
+        # set_config(self.lsconfig,'remote_profile','username',login_dict['username'])
+        # set_config(self.lsconfig,'remote_profile','remote_path',login_dict['remote_path'])
 
         
         from litesoph.utilities.job_submit import SubmitNetwork
