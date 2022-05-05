@@ -35,7 +35,6 @@ def gui():
     from litesoph.gui.gui import GUIAPP
     app = GUIAPP(lsconfig)
     app.title('LITESOPH')
-    app.resizable(True, True)
     app.mainloop()
 
 
