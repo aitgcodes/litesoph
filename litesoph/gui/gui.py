@@ -77,8 +77,13 @@ class GUIAPP(tk.Tk):
         self._bind_event_callbacks()
         self._show_frame(v.StartPage)
         self.after(1000, self.navigation.populate(self.directory))
-    
-    
+        self.main_window_size()
+
+
+    def main_window_size(self):
+        self.resizable(True, True)
+        self.minsize(700,600)
+
     def _status_init(self, path):
         """Initializes the status object."""
         try:
