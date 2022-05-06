@@ -14,13 +14,13 @@ import shutil
 from configparser import ConfigParser, NoSectionError
 
 #---LITESOPH modules
-from litesoph.config import check_config, read_config, set_config
+from litesoph.config import check_config, read_config
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import models as m
 from litesoph.gui import views as v
-from litesoph.simulations.engine import EngineNwchem
+
 from litesoph.utilities.plot_spectrum import plot_spectrum 
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList
@@ -628,6 +628,7 @@ class GUIAPP(tk.Tk):
             plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
 
         elif self.engine == "nwchem":
+            from litesoph.simulations.engine import EngineNwchem
             spec_file = EngineNwchem.spectrum['spectra_file'][pol[0]]
             file = pathlib.Path(self.directory) / spec_file
             img = file.parent / f"spec_{pol[1]}.png"
@@ -771,11 +772,6 @@ class GUIAPP(tk.Tk):
         
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
-
-        # set_config(self.lsconfig,'remote_profile','ip',login_dict['ip'])
-        # set_config(self.lsconfig,'remote_profile','username',login_dict['username'])
-        # set_config(self.lsconfig,'remote_profile','remote_path',login_dict['remote_path'])
-
         
         from litesoph.utilities.job_submit import SubmitNetwork
 
