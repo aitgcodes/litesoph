@@ -3,7 +3,6 @@ import os
 import json
 import numpy as np
 from typing import Any, Dict
-from litesoph.simulations.engine import EngineStrategy, EngineGpaw,EngineNwchem,EngineOctopus
 from litesoph.lsio.data_types import DataTypes as  DT
 from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
 
