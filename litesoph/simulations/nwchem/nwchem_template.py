@@ -3,11 +3,16 @@ import pathlib
 from typing import Any, Dict
 from litesoph.utilities.units import as_to_au, eV_to_au
 
+from litesoph.simulations.nwchem import nwchem_data
+
 #################################### Starting of Optimisastion default and template ################
 
 class NwchemOptimisation:
 
-    NAME = 'optimize.nwi'
+    NAME = Path(nwchem_data.ground_state['inp']).name
+
+    path = str(Path(nwchem_data.ground_state['inp']).parent)
+
     default_opt_param= {
             'mode':'gaussian',
             'name':'gs',
@@ -76,7 +81,9 @@ task {theory} optimize
 
 class NwchemGroundState:
 
-    NAME = 'gs.nwi'
+    NAME = Path(nwchem_data.ground_state['inp']).name
+
+    path = str(Path(nwchem_data.ground_state['inp']).parent)
 
     default_gs_param = {
             'mode':'gaussian',
@@ -206,14 +213,14 @@ end
 
         return template
 
-    @staticmethod
-    def get_network_job_cmd(np):
+    
+    def get_network_job_cmd(self,np):
 
       job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-cd GS/
-mpirun -np {np:d}  nwchem gs.nwi > gs.nwo\n"""
+cd {self.path}
+mpirun -np {np:d}  nwchem {self.NAME} > gs.nwo\n"""
       return job_script
 
 
@@ -224,7 +231,9 @@ mpirun -np {np:d}  nwchem gs.nwi > gs.nwo\n"""
 
 class NwchemDeltaKick: 
 
-    NAME = 'td.nwi'
+    NAME = Path(nwchem_data.rt_tddft_delta['inp']).name
+
+    path = str(Path(nwchem_data.rt_tddft_delta['inp']).parent)
 
     default_delta_param= {
             'name':'gs',
@@ -614,15 +623,15 @@ task dft rt_tddft
                 template = """\n""".join(tlines)
         return template
 
-    @staticmethod
-    def get_network_job_cmd(np):
+  
+    def get_network_job_cmd(self,np):
 
       job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-cd TD_Delta/
+cd {self.path}
 
-mpirun -np {np:d} nwchem td.nwi > td.nwo\n"""
+mpirun -np {np:d} nwchem {self.NAME} > td.nwo\n"""
       return job_script
 
 
@@ -630,7 +639,9 @@ mpirun -np {np:d} nwchem td.nwi > td.nwo\n"""
 
 class NwchemGaussianPulse:
    
-    NAME = 'tdlaser.nwi'
+    NAME = Path(nwchem_data.rt_tddft_laser['inp']).name
+
+    path = str(Path(nwchem_data.rt_tddft_laser['inp']).parent)
     
     default_gp_param= {
             'name':'gs',
@@ -978,99 +989,100 @@ task dft rt_tddft
         template = self.gp_temp.format(**self.user_input)
         return template
          
-def nwchem_compute_spec(project_dir :Path, pol):
-  import os
-  from subprocess import Popen, PIPE
+def nwchem_compute_spec(project_dir :pathlib.Path, pol):
 
-  dm_file = 'nwchem/TD_Delta/td.nwo'
+    import os
+    from subprocess import Popen, PIPE
 
-  cwd = project_dir / 'nwchem' / 'Spectrum'
+    dm_file = nwchem_data.spectrum['out_log']
 
-  dm_file = project_dir / dm_file
+    cwd = project_dir / nwchem_data.spectrum['spec_dir_path']
 
-  if  not dm_file.exists():
-    raise FileNotFoundError(f' Required file {dm_file} doesnot exists!')
+    dm_file = project_dir / dm_file
+
+    if  not dm_file.exists():
+        raise FileNotFoundError(f' Required file {dm_file} doesnot exists!')
+        
+
+    path = pathlib.Path(__file__)
+
+    nw_rtparse = str(path.parent /'nw_rtparse.py')
+    rot = str(path.parent / 'rotate_fft.py')
+    fft = str(path.parent / 'fft1d.py')
+
     
+    try:
+        os.mkdir(str(cwd))
+    except FileExistsError:
+        pass
 
-  path = pathlib.Path(__file__)
+    print('here')
+    x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
+    y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
+    z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
 
-  nw_rtparse = str(path.parent /'nw_rtparse.py')
-  rot = str(path.parent / 'rotate_fft.py')
-  fft = str(path.parent / 'fft1d.py')
+    x_f_cmd = f'python {fft} x.dat xw.dat'
+    y_f_cmd = f'python {fft} y.dat yw.dat'
+    z_f_cmd = f'python {fft} z.dat zw.dat'
 
-  
-  try:
-    os.mkdir(str(cwd))
-  except FileExistsError:
-    pass
+    x_r_cmd = f'python {rot} xw.dat x'
+    y_r_cmd = f'python {rot} yw.dat y'
+    z_r_cmd = f'python {rot} zw.dat z'
 
-  print('here')
-  x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
-  y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
-  z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
-
-  x_f_cmd = f'python {fft} x.dat xw.dat'
-  y_f_cmd = f'python {fft} y.dat yw.dat'
-  z_f_cmd = f'python {fft} z.dat zw.dat'
-
-  x_r_cmd = f'python {rot} xw.dat x'
-  y_r_cmd = f'python {rot} yw.dat y'
-  z_r_cmd = f'python {rot} zw.dat z'
-
-  print(pol)
-  print("computing spectrum...")
-  
-  if pol == 'x':
+    print(pol)
+    print("computing spectrum...")
     
-    job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result1 = job1.communicate()
-    job2 = Popen(x_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result2 = job2.communicate()
-    job3 = Popen(x_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result3 = job3.communicate()
+    if pol == 'x':
+            
+        job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result1 = job1.communicate()
+        job2 = Popen(x_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result2 = job2.communicate()
+        job3 = Popen(x_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result3 = job3.communicate()
+        
+
+    elif pol == 'y':
+        
+        job1 = Popen(y_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result1 = job1.communicate()
+        job2 = Popen(y_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result2 = job2.communicate()
+        job3 = Popen(y_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result3 = job3.communicate()
+
+    elif pol == 'z':
     
-
-  elif pol == 'y':
+        job1 = Popen(z_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result1 = job1.communicate()
+        job2 = Popen(z_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result2 = job2.communicate()
+        job3 = Popen(z_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+        result3 = job3.communicate()
     
-    job1 = Popen(y_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result1 = job1.communicate()
-    job2 = Popen(y_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result2 = job2.communicate()
-    job3 = Popen(y_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result3 = job3.communicate()
+    if job1.returncode == job2.returncode == job3.returncode != 0:
+        raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')
 
-  elif pol == 'z':
-   
-    job1 = Popen(z_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result1 = job1.communicate()
-    job2 = Popen(z_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result2 = job2.communicate()
-    job3 = Popen(z_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    result3 = job3.communicate()
-  
-  if job1.returncode == job2.returncode == job3.returncode != 0:
-    raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')
-
-  print("Done.")
+    print("Done.")
 
 
-def nwchem_compute_moocc(project_dir :Path, pol):
-  import os
-  from subprocess import Popen, PIPE
+def nwchem_compute_moocc(project_dir :pathlib.Path, pol):
+    import os
+    from subprocess import Popen, PIPE
 
-  moocc_file = 'nwchem/TD_Delta/td.nwo'
+    moocc_file = 'nwchem/TD_Delta/td.nwo'
 
-  cwd = project_dir / 'nwchem' / 'Population'
+    cwd = project_dir / 'nwchem' / 'Population'
 
-  moocc_file = project_dir / moocc_file
+    moocc_file = project_dir / moocc_file
 
-  if  not moocc_file.exists():
-    raise FileNotFoundError(f' Required file {moocc_file} doesnot exists!')
+    if not moocc_file.exists():
+        raise FileNotFoundError(f' Required file {moocc_file} doesnot exists!')
 
 
-  path = pathlib.Path(__file__)
+    path = pathlib.Path(__file__)
 
-  extract_mo = str(path.parent /'extract.sh')
-  homo_to_lumo = str(path.parent / 'homo_to_lumo.py')
-  population = str(path.parent / 'population_correlation.py')
+    extract_mo = str(path.parent /'extract.sh')
+    homo_to_lumo = str(path.parent / 'homo_to_lumo.py')
+    population = str(path.parent / 'population_correlation.py')
    

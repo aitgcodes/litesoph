@@ -1,14 +1,14 @@
-import pathlib
-from typing import Any, Dict
-#from litesoph.simulations.engine import EngineGpaw
 
+from litesoph.simulations.gpaw import gpaw_data
+from pathlib import Path
 
 class GpawGroundState:
     """This class contains the default parameters and the template for creating gpaw 
     scripts for ground state calculations."""
-    NAME = 'gs.py'
+    
+    NAME = Path(gpaw_data.ground_state['inp']).name
 
-    input_data_files = [('geometry', 'coordinate.xyz')]
+    path = str(Path(gpaw_data.ground_state['inp']).parent)
 
     default_param =  {
         'geometry' : 'coordinate.xyz',
@@ -91,22 +91,22 @@ calc.write('gs.gpw', mode='all')
         template = self.gs_template.format(**self.user_input)
         return template
     
-    @staticmethod
-    def get_network_job_cmd(np):
+    
+    def get_network_job_cmd(self, np):
         job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-cd GS/
-mpirun -np {np:d}  python3 gs.py\n"""
+cd {self.path}
+mpirun -np {np:d}  python3 {self.NAME}\n"""
         return job_script
 
 class GpawRTLCAOTddftDelta:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
     
-    NAME = 'td.py'
+    NAME = Path(gpaw_data.rt_tddft_delta['inp']).name
 
-    input_data_files = [('gfilename', 'gs.gpw')]
+    path = str(Path(gpaw_data.rt_tddft_delta['inp']).parent)
 
     default_input = {'absorption_kick': [1e-5, 0.0, 0.0],
                 'propagate': (20, 150),
@@ -150,20 +150,8 @@ td_calc.write('{td_gpw}', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
-        # grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
-        # # if not grestart.exists():
-        # #     raise FileNotFoundError('restart file not found')
-        # self.user_input['gfilename'] = str(grestart)
         self.tools = self.user_input['analysis_tools']
 
-    def check():
-        pass
-
-    def get_analysis_tool():
-        pass
-    
-    def set_path_to_restart_file(self):
-        pass
 
     def format_template(self):
 
@@ -180,23 +168,23 @@ td_calc.write('{td_gpw}', mode='all')
         
         return template
 
-    @staticmethod
-    def get_network_job_cmd(np):
 
+    def get_network_job_cmd(self, np):
         job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-cd TD_Delta/
-mpirun -np {np:d}  python3 td.py\n"""
+cd {self.path}
+mpirun -np {np:d}  python3 {self.NAME}\n"""
         return job_script
        
 class GpawRTLCAOTddftLaser:
     """This class contains the template  for creating gpaw 
     scripts for  real time lcao tddft calculations."""
+    
+    NAME = Path(gpaw_data.rt_tddft_laser['inp']).name
 
-    NAME = 'tdlaser.py'
+    path = str(Path(gpaw_data.rt_tddft_laser['inp']).parent)
 
-    input_data_files = [('gfilename', 'gs.gpw')]
 
     default_input = {
                 'propagate': (20, 150),
@@ -243,16 +231,10 @@ td_calc.write('{td_gpw}', mode='all')
     def __init__(self, user_input) -> None:
         self.user_input = self.default_input
         self.user_input.update(user_input)
-        # grestart = pathlib.Path(self.user_input['project_dir']) / self.user_input['gfilename']
-        # # if not grestart.exists():
-        # #     raise FileNotFoundError('restart file not found')
-        # self.user_input['gfilename'] = str(grestart)
         self.laser = self.user_input['laser']
         self.tools = self.user_input['analysis_tools']
         self.td_potential = self.user_input['td_potential']
 
-    def check():
-        pass
     
     def pulse(pulse_para: dict)-> str:
         para = {
@@ -268,11 +250,6 @@ td_calc.write('{td_gpw}', mode='all')
         pulse = "pulse = GaussianPulse({strength},{time0},{frequency},{sigma},{sincos},{stoptime})".format(**para)
         return pulse
 
-    def get_analysis_tool():
-        pass
-
-    def mask():
-        pass
     
     def format_template(self):
 
@@ -292,22 +269,22 @@ td_calc.write('{td_gpw}', mode='all')
            template = self.external_field_template.format(**self.user_input)
            return template 
 
-    @staticmethod
-    def get_network_job_cmd(np):
+    
+    def get_network_job_cmd(self, np):
 
         job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-cd TD_Laser/
-mpirun -np {np:d}  python3 tdlaser.py\n"""
+cd {self.path}
+mpirun -np {np:d}  python3 {self.NAME}\n"""
         return job_script
 
 
 class GpawSpectrum:
+    
+    NAME = Path(gpaw_data.spectrum['inp']).name
 
-    NAME = 'spec.py'
-
-    input_data_files = [('moment_file', 'dm.dat')]
+    path = str(Path(gpaw_data.spectrum['inp']).parent)
 
     default_input = {
                    'moment_file': 'dm.dat',
@@ -332,23 +309,21 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
         template = self.dm2spec.format(**self.dict)
         return template
 
-    @staticmethod
-    def get_network_job_cmd(np):
+    def get_network_job_cmd(self, np):
 
-        job_script = """
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-cd Spectrum/
-python3 spec.py\n"""  
+cd {self.path}
+python3 {self.NAME}\n"""  
         return job_script
 
 
 class GpawCalTCM:
 
-    NAME = 'tcm.py'
-    
-    input_data_file = [('gfilename', 'gs.gpw'),
-                        ('wfilename', 'wf.ulm')]
+    NAME = Path(gpaw_data.tcm['inp']).name
+
+    path = str(Path(gpaw_data.tcm['inp']).parent)
 
     default_input = {
                     'gfilename' : 'gs.gpw',
@@ -480,14 +455,14 @@ run(frequency_list)
         template = self.tcm_temp1.format(**self.dict)
         return template
 
-    @staticmethod
-    def get_network_job_cmd(np):
+    
+    def get_network_job_cmd(self,np):
 
-        job_script = """
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-cd TCM/
-python3 tcm.py\n"""  
+cd {self.path}
+python3 {self.NAME}\n"""  
         return job_script
 
 class GpawLrTddft:
@@ -495,8 +470,6 @@ class GpawLrTddft:
     scripts for  linear response tddft calculations."""
 
     user_input = {}
-
-
 
 
 class GpawInducedDensity:
