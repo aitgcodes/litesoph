@@ -21,22 +21,22 @@ spectrum = {'inp':'octopus/inp',
             'spectra_file': ['octopus/cross_section_vector']}
 
 
-def get_task_class( task: str, user_param, project_name, status):
+# def get_task_class( task: str, user_param, project_name, status):
 
-    from litesoph.simulations.octopus import octopus_template as ot
+#     from litesoph.simulations.octopus import octopus_template as ot
     
-    if task == "ground_state":
-        user_param['geometry']= str(pathlib.Path(project_name) / ground_state['req'][0])
-        return ot.OctGroundState(user_param) 
-    if task == "rt_tddft_delta":
-        if status:
-            gs_inp = status.get_status('ground_state.param')
-            user_param.update(gs_inp)
-        return ot.OctTimedependentState(user_param)
-    if task == "rt_tddft_laser":
-        if status:
-            gs_inp = status.get_status('ground_state.param')
-            user_param.update(gs_inp)
-        return ot.OctTimedependentLaser(user_param)    
-    if task == "spectrum":
-        return ot.OctSpectrum(user_param)
+#     if task == "ground_state":
+#         user_param['geometry']= str(pathlib.Path(project_name) / ground_state['req'][0])
+#         return ot.OctGroundState(user_param) 
+#     if task == "rt_tddft_delta":
+#         if status:
+#             gs_inp = status.get_status('ground_state.param')
+#             user_param.update(gs_inp)
+#         return ot.OctTimedependentState(user_param)
+#     if task == "rt_tddft_laser":
+#         if status:
+#             gs_inp = status.get_status('ground_state.param')
+#             user_param.update(gs_inp)
+#         return ot.OctTimedependentLaser(user_param)    
+#     if task == "spectrum":
+#         return ot.OctSpectrum(user_param)

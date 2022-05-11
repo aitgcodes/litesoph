@@ -1,6 +1,4 @@
 
-import pathlib
-
 ground_state = {'inp':'gpaw/GS/gs.py',
             'req' : ['coordinate.xyz'],
             'out_log': 'gpaw/GS/gs.out',
@@ -37,27 +35,3 @@ task_dirs =[('GpawGroundState', 'GS'),
             ('GpawRTLCAOTddftLaser', 'TD_Laser'),
             ('GpawSpectrum', 'Spectrum'),
             ('GpawCalTCM', 'TCM')]
-
-
-def get_task_class(task: str, user_param, project_name,status, *_):
-
-    from litesoph.simulations.gpaw import gpaw_template as gp
-
-    if task == "ground_state":
-        user_param['geometry']= str(pathlib.Path(project_name) / ground_state['req'][0])
-        return gp.GpawGroundState(user_param) 
-    if task == "rt_tddft_delta":
-        user_param['gfilename']= str(pathlib.Path(project_name)  / rt_tddft_delta['req'][0])
-        return gp.GpawRTLCAOTddftDelta(user_param)
-    if task == "rt_tddft_laser":
-        user_param['gfilename']= str(pathlib.Path(project_name)  / rt_tddft_laser['req'][0])
-        return gp.GpawRTLCAOTddftLaser(user_param)
-    if task == "spectrum":
-        pol =  status.get_status('rt_tddft_delta.param.pol_dir')
-        user_param['spectrum_file'] = f'spec_{str(pol[1])}.dat'
-        user_param['moment_file']= str(pathlib.Path(project_name) / spectrum['req'][0])
-        return gp.GpawSpectrum(user_param) 
-    if task == "tcm":
-        user_param['gfilename']= str(pathlib.Path(project_name)  / tcm['req'][0])
-        user_param['wfilename']= str(pathlib.Path(project_name)  / tcm['req'][1])
-        return gp.GpawCalTCM(user_param)   
