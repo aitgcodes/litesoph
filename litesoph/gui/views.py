@@ -2783,9 +2783,6 @@ class PlotSpectraPage(tk.Frame):
         self.entry_emax['font'] = label_design['font']
         self.entry_emax.grid(row=4, column=1, padx=2, pady=4, sticky='nsew')
 
-        self.Frame2_Button_1 = tk.Button(self.Frame1,text="Create input",activebackground="#78d6ff",command=self.create_button)
-        self.Frame2_Button_1['font'] = label_design['font']
-        self.Frame2_Button_1.grid(row=5, column=1, padx=2, pady=4, sticky='nsew')
 
         # self.label_msg = tk.Label(self.Frame, text= "",fg="black")
         # self.label_msg['font'] = myFont
@@ -2887,6 +2884,9 @@ class PlotSpectraPage(tk.Frame):
           }
 
         td_dict_nwchem = {
+            'del_e':self._var['del_e'].get(),
+            'e_max':self._var['e_max'].get(),
+            'e_min': self._var['e_min'].get()
             }
         
         if self.engine == 'gpaw':
@@ -2896,8 +2896,6 @@ class PlotSpectraPage(tk.Frame):
         elif self.engine == 'octopus':
             return td_dict_oct            
     
-    def create_button(self):
-        self.event_generate('<<CreateSpectraScript>>')
   
 
 class DmLdPage(tk.Frame):
