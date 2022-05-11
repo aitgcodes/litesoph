@@ -3,7 +3,6 @@ import os
 import json
 import numpy as np
 from typing import Any, Dict
-from litesoph.simulations.engine import EngineStrategy, EngineGpaw,EngineNwchem,EngineOctopus
 from litesoph.lsio.data_types import DataTypes as  DT
 from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
 
@@ -132,22 +131,6 @@ class GroundStateModel:
     def __init__(self) -> None:
         pass
     
-    @staticmethod
-    def choose_engine(user_input: Dict[str, Any]) -> EngineStrategy:
-    
-        list_engine = [EngineGpaw(),
-                        EngineOctopus(),
-                        EngineNwchem()]
-        
-        
-        if user_input['engine'] == 'gpaw':
-            return list_engine[0]
-        if user_input['engine'] == 'octopus':
-            return list_engine[1]
-        elif user_input['engine'] == 'nwchem':
-            return list_engine[2]
-        else:
-            raise ValueError('engine not implemented')
 
 class LaserDesignModel:
 
