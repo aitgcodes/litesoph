@@ -4,16 +4,19 @@ from typing import Any, Dict
 from litesoph.utilities.units import as_to_au, eV_to_au
 
 from litesoph.simulations.nwchem import nwchem_data
+from litesoph.simulations.esmd import Task
 
 #################################### Starting of Optimisastion default and template ################
 
-class NwchemOptimisation:
+class NwchemOptimisation(Task):
 
-    NAME = Path(nwchem_data.ground_state['inp']).name
+    task_data = nwchem_data.ground_state
 
-    path = str(Path(nwchem_data.ground_state['inp']).parent)
+    NAME = Path(task_data['inp']).name
 
-    default_opt_param= {
+    path = str(Path(task_data['inp']).parent)
+
+    default_param= {
             'mode':'gaussian',
             'name':'gs',
             'permanent_dir':'',
@@ -61,12 +64,13 @@ task {theory} optimize
                
                 """
 
-    def __init__(self, user_input) -> None:
-        self.user_input = self.default_opt_param
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__(status, project_dir, lsconfig)
+        self.user_input = self.default_param
         self.user_input.update(user_input)
 
 
-    def format_template(self):
+    def create_template(self):
         if self.default_opt_param['properties'] == 'optimize':
            template = self.opt_temp.format(**self.user_input)
            return template
@@ -79,13 +83,15 @@ task {theory} optimize
 
 ###################### Starting of Ground State default and template #############################
 
-class NwchemGroundState:
+class NwchemGroundState(Task):
 
-    NAME = Path(nwchem_data.ground_state['inp']).name
+    task_data = nwchem_data.ground_state
+    task_name = 'ground_state'
+    NAME = Path(task_data['inp']).name
 
-    path = str(Path(nwchem_data.ground_state['inp']).parent)
+    path = str(Path(task_data['inp']).parent)
 
-    default_gs_param = {
+    default_param = {
             'mode':'gaussian',
             'name':'gs',
             'permanent_dir':'',
@@ -155,11 +161,12 @@ task {theory} energy
                'HSE06'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.11 cam_alpha 0.0 cam_beta 1.0',
     }
 
-    def __init__(self, user_input) -> None:
-        self.user_input = self.default_gs_param
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__('nwchem',status, project_dir, lsconfig)
+        self.user_input = self.default_param
         self.user_input.update(user_input)
-        #print(user_input)
-        # Replace xc with the corresponding nwchem command
+        self.user_input['geometry']= str(pathlib.Path(project_dir.name) / self.task_data['req'][0])
+        self.user_input['permanent_dir'] = str(pathlib.Path(project_dir.name) /nwchem_data.restart)
         xc_str = self.xc[user_input['xc']]
         self.user_input['xc'] = xc_str
         #self.xc = self.user_input['xc']
@@ -203,15 +210,16 @@ end
 
 
      
-    def format_template(self):
-        template = self.gs_temp.format(**self.user_input)
+    def create_template(self):
+        self.template = self.gs_temp.format(**self.user_input)
         #if self.xc and 'xc' in self.xc:
             #print(xc[1])
             #tlines = template.splitlines()
             #tlines[20] = 
             #template = """\n""".join(tlines)
 
-        return template
+    def create_local_cmd(self, *args):
+        return self.engine.create_command(*args)
 
     
     def get_network_job_cmd(self,np):
@@ -229,13 +237,15 @@ mpirun -np {np:d}  nwchem {self.NAME} > gs.nwo\n"""
 
 #################################### Starting of Delta Kick default and template ################
 
-class NwchemDeltaKick: 
+class NwchemDeltaKick(Task): 
 
-    NAME = Path(nwchem_data.rt_tddft_delta['inp']).name
+    task_data = nwchem_data.rt_tddft_delta
+    task_name = 'rt_tddft_delta'
+    NAME = Path(task_data['inp']).name
 
-    path = str(Path(nwchem_data.rt_tddft_delta['inp']).parent)
+    path = str(Path(task_data['inp']).parent)
 
-    default_delta_param= {
+    default_param= {
             'name':'gs',
             'permanent_dir':'',
             'geometry':'coordinate.xyz',
@@ -264,9 +274,12 @@ set geometry "system"
 {kick}
               """ 
 
-    def __init__(self, user_input) -> None:
-        self.user_input = self.default_delta_param
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__('nwchem',status, project_dir, lsconfig)
+        self.user_input = self.default_param
         self.user_input.update(user_input)
+        gs_inp = status.get_status('ground_state.param')
+        self.user_input.update(gs_inp)
         self.convert_unit()
         self.prop = self.user_input['extra_prop']
         #print(user_input)
@@ -565,7 +578,7 @@ task dft rt_tddft
 
     
  
-    def format_template(self):
+    def create_template(self):
         self.kick_task()
         template = self.delta_temp.format(**self.user_input)
         nrestart = self.user_input['nrestart']
@@ -621,9 +634,11 @@ task dft rt_tddft
                 tlines[45] = "  print dipole moocc field energy s2 charge"
                 tlines[63] = "  print dipole moocc field energy s2 charge"
                 template = """\n""".join(tlines)
-        return template
+        self.template = template
 
-  
+    def create_local_cmd(self, *args):
+        return self.engine.create_command(*args)
+
     def get_network_job_cmd(self,np):
 
       job_script = f"""
@@ -637,13 +652,15 @@ mpirun -np {np:d} nwchem {self.NAME} > td.nwo\n"""
 
 #################################### Starting of Gaussian Pulse default and template ################
 
-class NwchemGaussianPulse:
+class NwchemGaussianPulse(Task):
    
-    NAME = Path(nwchem_data.rt_tddft_laser['inp']).name
+    task_data = nwchem_data.rt_tddft_laser
+    task_name = 'rt_tddft_laser'
+    NAME = Path(task_data['inp']).name
 
-    path = str(Path(nwchem_data.rt_tddft_laser['inp']).parent)
+    path = str(Path(task_data['inp']).parent)
     
-    default_gp_param= {
+    default_param= {
             'name':'gs',
             'permanent_dir':'',
             'geometry':'coordinate.xyz',
@@ -672,9 +689,12 @@ set geometry "system"
 
               """
 
-    def __init__(self, user_input) -> None:
-        self.user_input = self.default_gp_param
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__('nwchem',status, project_dir, lsconfig)
+        self.user_input = self.default_param
         self.user_input.update(user_input)
+        gs_inp = status.get_status('ground_state.param')
+        self.user_input.update(gs_inp)
         self.convert_unit()
         print(self.user_input)
    
@@ -984,86 +1004,152 @@ task dft rt_tddft
         if self.user_input['e_pol'] == [1,1,1]:
             self.user_input['pulse'] = self.pulsexyz()
 
-    def format_template(self):
+    def create_template(self):
         self.pulse_task()
-        template = self.gp_temp.format(**self.user_input)
-        return template
-         
-def nwchem_compute_spec(project_dir :pathlib.Path, pol):
-
-    import os
-    from subprocess import Popen, PIPE
-
-    dm_file = nwchem_data.spectrum['out_log']
-
-    cwd = project_dir / nwchem_data.spectrum['spec_dir_path']
-
-    dm_file = project_dir / dm_file
-
-    if  not dm_file.exists():
-        raise FileNotFoundError(f' Required file {dm_file} doesnot exists!')
-        
-
-    path = pathlib.Path(__file__)
-
-    nw_rtparse = str(path.parent /'nw_rtparse.py')
-    rot = str(path.parent / 'rotate_fft.py')
-    fft = str(path.parent / 'fft1d.py')
-
+        self.template = self.gp_temp.format(**self.user_input)
     
-    try:
-        os.mkdir(str(cwd))
-    except FileExistsError:
-        pass
+    def create_local_cmd(self, *args):
+        return self.engine.create_command(*args)
 
-    print('here')
-    x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
-    y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
-    z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
+class NwchemSpectrum(Task):
 
-    x_f_cmd = f'python {fft} x.dat xw.dat'
-    y_f_cmd = f'python {fft} y.dat yw.dat'
-    z_f_cmd = f'python {fft} z.dat zw.dat'
+    task_data = nwchem_data.spectrum
+    task_name = 'spectrum'
 
-    x_r_cmd = f'python {rot} xw.dat x'
-    y_r_cmd = f'python {rot} yw.dat y'
-    z_r_cmd = f'python {rot} zw.dat z'
-
-    print(pol)
-    print("computing spectrum...")
+    def __init__(self, status, project_dir: pathlib.Path, lsconfig, user_input) -> None:
+        super().__init__('nwchem', status, project_dir, lsconfig)
+        self.user_input = user_input
+        self.pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
     
-    if pol == 'x':
+    def prepare_input(self):
+
+        self.task_dir = self.project_dir / self.task_data['spec_dir_path']
+        self.engine.create_directory(self.task_dir)
+
+    def run_job_local(self):        
+        #self.sumbit_local.prepare_input()
+        self.sumbit_local.run_job()
+    # def compute_spec(self):
+
+    #     import os
+    #     from subprocess import Popen, PIPE
+
+    #     dm_file = nwchem_data.spectrum['out_log']
+
+    #     cwd = self.project_dir / nwchem_data.spectrum['spec_dir_path']
+
+    #     dm_file = self.project_dir / dm_file
+
+    #     if  not dm_file.exists():
+    #         raise FileNotFoundError(f' Required file {dm_file} doesnot exists!')
             
-        job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result1 = job1.communicate()
-        job2 = Popen(x_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result2 = job2.communicate()
-        job3 = Popen(x_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result3 = job3.communicate()
+
+    #     path = pathlib.Path(__file__)
+
+    #     nw_rtparse = str(path.parent /'nw_rtparse.py')
+    #     rot = str(path.parent / 'rotate_fft.py')
+    #     fft = str(path.parent / 'fft1d.py')
+
         
+    #     try:
+    #         os.mkdir(str(cwd))
+    #     except FileExistsError:
+    #         pass
 
-    elif pol == 'y':
         
-        job1 = Popen(y_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result1 = job1.communicate()
-        job2 = Popen(y_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result2 = job2.communicate()
-        job3 = Popen(y_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result3 = job3.communicate()
+    #     x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
+    #     y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
+    #     z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
 
-    elif pol == 'z':
-    
-        job1 = Popen(z_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result1 = job1.communicate()
-        job2 = Popen(z_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result2 = job2.communicate()
-        job3 = Popen(z_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-        result3 = job3.communicate()
-    
-    if job1.returncode == job2.returncode == job3.returncode != 0:
-        raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')
+    #     x_f_cmd = f'python {fft} x.dat xw.dat'
+    #     y_f_cmd = f'python {fft} y.dat yw.dat'
+    #     z_f_cmd = f'python {fft} z.dat zw.dat'
 
-    print("Done.")
+    #     x_r_cmd = f'python {rot} xw.dat x'
+    #     y_r_cmd = f'python {rot} yw.dat y'
+    #     z_r_cmd = f'python {rot} zw.dat z'
+
+        
+    #     print("computing spectrum...")
+        
+    #     if self.pol[1] == 'x':
+
+    #         job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result1 = job1.communicate()
+    #         job2 = Popen(x_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result2 = job2.communicate()
+    #         job3 = Popen(x_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result3 = job3.communicate()
+            
+
+    #     elif self.pol[1] == 'y':
+            
+    #         job1 = Popen(y_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result1 = job1.communicate()
+    #         job2 = Popen(y_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result2 = job2.communicate()
+    #         job3 = Popen(y_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result3 = job3.communicate()
+
+    #     elif self.pol[1] == 'z':
+        
+    #         job1 = Popen(z_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result1 = job1.communicate()
+    #         job2 = Popen(z_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result2 = job2.communicate()
+    #         job3 = Popen(z_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
+    #         result3 = job3.communicate()
+        
+    #     if job1.returncode == job2.returncode == job3.returncode != 0:
+    #         raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')
+
+    #     print("Done.")
+
+    def create_local_cmd(self, *_):
+
+        dm_file = self.task_data['out_log']
+
+        dm_file = self.project_dir / dm_file
+
+        if  not dm_file.exists():
+            raise FileNotFoundError(f' Required file {dm_file} doesnot exists!')
+            
+        path = pathlib.Path(__file__)
+
+        nw_rtparse = str(path.parent /'nw_rtparse.py')
+        rot = str(path.parent / 'rotate_fft.py')
+        fft = str(path.parent / 'fft1d.py')
+        
+        x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
+        y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
+        z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
+
+        x_f_cmd = f'python {fft} x.dat xw.dat'
+        y_f_cmd = f'python {fft} y.dat yw.dat'
+        z_f_cmd = f'python {fft} z.dat zw.dat'
+
+        x_r_cmd = f'python {rot} xw.dat x'
+        y_r_cmd = f'python {rot} yw.dat y'
+        z_r_cmd = f'python {rot} zw.dat z'
+        
+        if self.pol[1] == 'x':
+            return [x_get_dm_cmd, x_f_cmd, x_r_cmd]
+
+        elif self.pol[1] == 'y':
+            return [y_get_dm_cmd, y_f_cmd, y_r_cmd]
+
+        elif self.pol[1] == 'z':
+            return [z_get_dm_cmd, z_f_cmd, z_r_cmd]
+
+
+    def plot_spectrum(self):
+        from litesoph.utilities.plot_spectrum import plot_spectrum
+
+        pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+        spec_file = self.task_data['spectra_file'][pol[0]]
+        file = pathlib.Path(self.project_dir) / spec_file
+        img = file.parent / f"spec_{pol[1]}.png"
+        plot_spectrum(file,img,0, 2, "Energy","Strength")
 
 
 def nwchem_compute_moocc(project_dir :pathlib.Path, pol):
