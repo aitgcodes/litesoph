@@ -73,8 +73,6 @@ PseudopotentialSet = {pseudo}
         self.temp_dict = self.default_param 
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
         self.temp_dict.update(self.user_input)
-        # self.temp_dict = self.default_param
-        # self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape'] 
         self.xc_option = self.temp_dict['xc']['option']
         # self.atoms_list = self.temp_dict['atoms']
@@ -426,25 +424,8 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
 
     def create_template(self):
         self.td = self.format_box() 
-        #temp = self.format_pol()
         self.template = self.td.format(**self.temp_dict)
         
-
-# class OctSpectrum:
-
-#     NAME = 'inp'
-
-#     spec = """  
-# UnitsOutput = eV_angstrom
-# """  
-
-#     def __init__(self):
-#         pass
-
-#     def format_template(self):        
-#         #template = self.td.format(**self.temp_dict)
-#         template = self.spec
-#         return(templ
 
 class OctSpectrum(Task):
 
@@ -492,14 +473,10 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
             command = Path(command).parent / cmd
 
         command = str(command) + ' ' + '>' + ' ' + str(file)
-        return command
+        return [command]
 
-    # @staticmethod
-    # def get_local_cmd():
-    #     return 'oct-propagation_spectrum'
 
     def create_template(self):        
-        #template = self.td.format(**self.temp_dict)
         self.template = self.spec.format(**self.temp_dict)
     
     def prepare_input(self):
