@@ -282,7 +282,6 @@ set geometry "system"
         self.user_input.update(gs_inp)
         self.convert_unit()
         self.prop = self.user_input['extra_prop']
-        #print(user_input)
  
     def convert_unit(self):
         self.user_input['dt'] = round(self.user_input['dt']*as_to_au, 2)
@@ -1027,83 +1026,7 @@ class NwchemSpectrum(Task):
         self.engine.create_directory(self.task_dir)
 
     def run_job_local(self):        
-        #self.sumbit_local.prepare_input()
         self.sumbit_local.run_job()
-    # def compute_spec(self):
-
-    #     import os
-    #     from subprocess import Popen, PIPE
-
-    #     dm_file = nwchem_data.spectrum['out_log']
-
-    #     cwd = self.project_dir / nwchem_data.spectrum['spec_dir_path']
-
-    #     dm_file = self.project_dir / dm_file
-
-    #     if  not dm_file.exists():
-    #         raise FileNotFoundError(f' Required file {dm_file} doesnot exists!')
-            
-
-    #     path = pathlib.Path(__file__)
-
-    #     nw_rtparse = str(path.parent /'nw_rtparse.py')
-    #     rot = str(path.parent / 'rotate_fft.py')
-    #     fft = str(path.parent / 'fft1d.py')
-
-        
-    #     try:
-    #         os.mkdir(str(cwd))
-    #     except FileExistsError:
-    #         pass
-
-        
-    #     x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
-    #     y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
-    #     z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
-
-    #     x_f_cmd = f'python {fft} x.dat xw.dat'
-    #     y_f_cmd = f'python {fft} y.dat yw.dat'
-    #     z_f_cmd = f'python {fft} z.dat zw.dat'
-
-    #     x_r_cmd = f'python {rot} xw.dat x'
-    #     y_r_cmd = f'python {rot} yw.dat y'
-    #     z_r_cmd = f'python {rot} zw.dat z'
-
-        
-    #     print("computing spectrum...")
-        
-    #     if self.pol[1] == 'x':
-
-    #         job1 = Popen(x_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result1 = job1.communicate()
-    #         job2 = Popen(x_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result2 = job2.communicate()
-    #         job3 = Popen(x_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result3 = job3.communicate()
-            
-
-    #     elif self.pol[1] == 'y':
-            
-    #         job1 = Popen(y_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result1 = job1.communicate()
-    #         job2 = Popen(y_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result2 = job2.communicate()
-    #         job3 = Popen(y_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result3 = job3.communicate()
-
-    #     elif self.pol[1] == 'z':
-        
-    #         job1 = Popen(z_get_dm_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result1 = job1.communicate()
-    #         job2 = Popen(z_f_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result2 = job2.communicate()
-    #         job3 = Popen(z_r_cmd, stdout=PIPE, stderr=PIPE, cwd= cwd, shell=True)
-    #         result3 = job3.communicate()
-        
-    #     if job1.returncode == job2.returncode == job3.returncode != 0:
-    #         raise Exception(f'{result1[1]}, {result2[1]}, {result3[1]}')
-
-    #     print("Done.")
 
     def create_local_cmd(self, *_):
 
