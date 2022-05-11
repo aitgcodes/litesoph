@@ -7,16 +7,11 @@ from typing import Any, Dict
 from litesoph.lsio.IO import write2file 
 from litesoph.simulations.gpaw import gpaw_data
 from litesoph.simulations.nwchem import nwchem_data
-from litesoph.simulations.octopus import octopus_data, octopus_template as  ot
+from litesoph.simulations.octopus import octopus_data 
 
 
 class EngineStrategy(ABC):
     """Abstract base class for the different engine."""
-
-    
-    @abstractmethod
-    def get_task_class(self, task: str, user_param):
-        pass
 
     @abstractmethod
     def create_script(self, template: str) -> None:
@@ -58,9 +53,6 @@ class EngineGpaw(EngineStrategy):
         self.project_dir = project_dir
         self.status = status
         self.lsconfig = lsconfig
-
-    def get_task_class(self, task: str, user_param, *_):
-        return gpaw_data.get_task_class(task, user_param, self.project_dir.name, self.status)
     
     def create_script(self,directory,template: str,filename) -> None:
         """creates the input scripts for gpaw"""
@@ -76,15 +68,15 @@ class EngineGpaw(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def create_command(self, cmd: list, *_):
-
+    def create_command(self, cmd , *_):
+        
         filename = pathlib.Path(self.directory) / self.filename
         command = self.lsconfig.get('programs', 'python')
         command = command + ' ' + str(filename) 
         if cmd:
             command = cmd + ' ' + command
             print(command)
-        return command
+        return [command]
 
     @staticmethod
     def get_engine_network_job_cmd():
@@ -114,11 +106,7 @@ class EngineOctopus(EngineStrategy):
         self.status = status
         self.lsconfig = lsconfig
 
-    def get_task_class(self, task: str, user_param):
-        return octopus_data.get_task_class(task, user_param, self.project_dir.name, self.status)
-
     def create_dir(self, directory, *_):
-        #task_dir = self.get_dir_name(task)
         directory = pathlib.Path(directory) / self.NAME
         self.create_directory(directory)
         return directory
@@ -129,27 +117,17 @@ class EngineOctopus(EngineStrategy):
         self.filename = 'inp' 
         write2file(self.directory,self.filename,template)
 
-    def create_command(self, cmd: list, task):
+    def create_command(self, cmd: list ):
 
         ofilename = "log"
         command = self.lsconfig.get('engine', 'octopus')
-
-        if isinstance(task, ot.OctSpectrum):
-            c = ot.OctSpectrum.get_local_cmd()
-            if not command:
-                command =  c
-            else:
-                command = pathlib.Path(command).parent / c
-
-            command = str(command) + ' ' + '>' + ' ' + str(ofilename)
-            return command
 
         if not command:
             command = 'octopus'
         command = command + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
-        return command
+        return [command]
 
         
 class EngineNwchem(EngineStrategy):
@@ -174,9 +152,6 @@ class EngineNwchem(EngineStrategy):
         self.status = status
         self.lsconfig = lsconfig
         self.restart = pathlib.Path(self.project_dir.name) / self.restart
-
-    def get_task_class(self, task: str, user_param):
-        return nwchem_data.get_task_class(task, user_param, self.project_dir.name, self.status)
 
     def create_dir(self, directory, task):
 
@@ -206,7 +181,7 @@ class EngineNwchem(EngineStrategy):
         command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
         if cmd:
             command = cmd + ' ' + command
-        return command
+        return [command]
 
     @staticmethod
     def get_engine_network_job_cmd():
