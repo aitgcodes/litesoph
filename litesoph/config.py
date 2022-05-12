@@ -1,11 +1,13 @@
+import os
 import subprocess
 import pathlib
 from configparser import ConfigParser, NoOptionError, NoSectionError
 
 import litesoph
 
+user_data_dir = pathlib.Path.home() / ".litesoph"
 
-config_file = pathlib.Path.home() / "lsconfig.ini"
+config_file = user_data_dir / "lsconfig.ini"
 
 lsroot = pathlib.Path(litesoph.__file__).parent.parent
 
@@ -40,6 +42,15 @@ def create_default_config(config: ConfigParser, sections: dict):
                 config.set(key, option , '')
 
 def write_config():
+    """ makes a ~/.litesoph directory to store app data.
+        and writes lsconfig.ini with guess values. """
+
+    if not user_data_dir.is_dir():
+        try:
+            os.mkdir(user_data_dir)
+        except FileExistsError as e:
+            pass
+
     config = ConfigParser(allow_no_value=True)
     config.add_section('path')
     config.set('path','lsproject', str(pathlib.Path.home()))
@@ -51,7 +62,7 @@ def write_config():
     config.set('mpi', 'octopus_mpi', '')
     config.set('mpi', 'nwchem_mpi', '')
 
-    print('Creating ~/lsconfig.ini ...')
+    print(f'Creating {str(config_file)} ...')
     try:
         with open(config_file, 'w+') as configfile:
             config.write(configfile)
@@ -66,7 +77,7 @@ def check_config(lsconfig: ConfigParser, name):
         try:
             lsroot = pathlib.Path(lsconfig.get("path", "lsroot" ))
         except:
-            print("Please set lsroot in ~/lsconfig.ini")
+            print(f"Please set lsroot in {str(config_file)}")
             exit()
         else:
             return lsroot
@@ -74,28 +85,23 @@ def check_config(lsconfig: ConfigParser, name):
         try:
            vis_tool = list(lsconfig.items("visualization_tools"))[0][1]
         except:
-            print("Please set path to vmd or vesta in ~/lsconfig.ini and first one will be used")
+            print(f"Please set path to vmd or vesta in {str(config_file)} and first one will be used")
         else:
             return vis_tool
-        # try:
-        #     vmd = lsconfig.get("visualization_tools", "vmd" )
-        # try:
-        #     vmd = lsconfig.get("visualization_tools", "vesta" )
-        # except:
-        #     print("Please set path to vmd in ~/lsconfig.ini")
-        # else:
-        #     return vmd
 
 def read_config():
+    """Reads the lsconfig.ini file and retrun configparser."""
 
-    if config_file.is_file is False:
-        raise FileNotFoundError("lsconfig.ini doesn't exists")
+    if not config_file.is_file():
+        raise FileNotFoundError(f"{str(config_file)} doesn't exists")
 
     lsconfig = ConfigParser(allow_no_value=False)
     lsconfig.read(config_file)
     return lsconfig
 
 def set_config(config: ConfigParser, section, key=None, value=None, list: list=None):
+    """ updates lsconfig object and writes it to lsconfig.ini file"""
+
     try:
         a =config.items(section)
     except NoSectionError:
@@ -114,6 +120,7 @@ def set_config(config: ConfigParser, section, key=None, value=None, list: list=N
 
 
 def get_mpi_command(engine_name: str, configs: ConfigParser):
+    """returns mpi command from lsconfig."""
 
     name = engine_name + '_mpi'
     
@@ -124,8 +131,8 @@ def get_mpi_command(engine_name: str, configs: ConfigParser):
                 print("Engine specific mpi is not given, first option from mpi section will be used.")
                 mpi = list(configs.items('mpi'))[0][1]
         except NoOptionError:
-            print("Please set path to mpi in lsconfig.ini")
+            print(f"Please set path to mpi in{str(config_file)}")
         else:
             return mpi
     else:
-        print("Please set path to mpi in lsconfig.ini")
+        print(f"Please set path to mpi in {str(config_file)}")
