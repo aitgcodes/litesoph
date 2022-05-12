@@ -23,6 +23,7 @@ class SubmitLocal:
     def __init__(self, task: Task , nprocessors:int) -> None:
         self.task = task
         self.engine = self.task.engine
+        self.project_dir = self.task.project_dir
         self.np = nprocessors
         self.command = None
         if self.np > 1:
@@ -31,61 +32,61 @@ class SubmitLocal:
             self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
                    
     def create_command(self):
-        """creates creates the command to run the job"""
-        self.command = self.engine.create_command(self.command, self.task.task)
-    
-    def prepare_input(self, path):
+        """creates  the command to run the job"""
+        self.command = self.task.create_local_cmd(self.command)
+        
+
+    def prepare_input(self):
         """this adds in the proper path to the data file required for the job"""
-        filename = self.task.project_dir.parent / self.task.filename
-        path = pathlib.Path(path)
-        try:
-            self.input_data_files = getattr(self.task.engine, self.task.task_name)
-            self.input_data_files = self.input_data_files['req']
-        except AttributeError as e:
-            raise AttributeError(e)
+        print('preparing')
+        filename = self.project_dir.parent / self.task.filename
 
         with open(filename , 'r+') as f:
             text = f.read()
-            for item in self.input_data_files:
-                item = pathlib.Path(path.name) / item
-                data_path = path.parent / item
-                
-                print(str(item))
+            for item in self.task.input_data_files:
+                data_path = self.project_dir.parent / item                
                 if not re.search(str(data_path), text):
                     text = re.sub(str(item), str(data_path), text)
                 
             f.seek(0)
             f.write(text)
             f.truncate() 
+        print('done preparing')
 
-    def run_job(self):
+    def run_job(self):    
         self.create_command()
-        returncode,  result = self.execute(self.task.task_dir)
-        self.task.local_cmd_out = (returncode, result[0], result[1])
+        result = self.execute(self.command, self.task.task_dir)
+        self.task.local_cmd_out = (result[self.command[0]]['returncode'], result[self.command[0]]['output'], result[self.command[0]]['error'])
         print(result)
-
-    def execute(self, directory):
         
-        print("Job started with command:", self.command)
-        try:
-            job = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
-            result = job.communicate()
-        except Exception as e:
-            raise Exception(e)
-        else:
-            print("returncode =", job.returncode)
-       
-            if job.returncode != 0:
-                print("Error...")
-                for line in result[1].decode(encoding='utf-8').split('\n'):
-                    print(line)
+    def execute(self, command: list, directory):
+        
+        result = {}
+        for cmd in command:
+            out_dict = result[cmd] = {}
+            print("Job started with command:", cmd)
+            try:
+                job = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
+                output = job.communicate()
+            except Exception as e:
+                raise Exception(e)
             else:
-                print("job done..")
-                if result[0]:
-                    print("Output...")
-                    for line in result[0].decode(encoding='utf-8').split('\n'):
+                print("returncode =", job.returncode)
+        
+                if job.returncode != 0:
+                    print("Error...")
+                    for line in output[1].decode(encoding='utf-8').split('\n'):
                         print(line)
-            return job.returncode, result
+                else:
+                    print("job done..")
+                    if output[0]:
+                        print("Output...")
+                        for line in output[0].decode(encoding='utf-8').split('\n'):
+                            print(line)
+                out_dict['returncode'] = job.returncode
+                out_dict['output'] = output[0]
+                out_dict['error'] = output[1]
+        return result
 
 class SubmitNetwork:
 
@@ -113,16 +114,16 @@ class SubmitNetwork:
         """this adds in the proper path to the data file required for the job"""
         filename = self.task.project_dir.parent / self.task.filename
         path = pathlib.Path(path)
-        try:
-            self.input_data_files = getattr(self.task.engine, self.task.task_name)
-            self.input_data_files = self.input_data_files['req']
-        except AttributeError as e:
-            raise AttributeError(e)
+        # try:
+        #     self.input_data_files = getattr(self.task.engine, self.task.task_name)
+        #     self.input_data_files = self.input_data_files['req']
+        # except AttributeError as e:
+        #     raise AttributeError(e)
 
         with open(filename , 'r+') as f:
             text = f.read()
-            for item in self.input_data_files:
-                item = pathlib.Path(self.task.project_dir.name) / item
+            for item in self.task.input_data_files:
+                #item = pathlib.Path(self.task.project_dir.name) / item
                 data_path = path / item
                 if not re.search(str(data_path), text):
                     text = re.sub(str(item), str(data_path), text)
