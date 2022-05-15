@@ -60,9 +60,13 @@ class SubmitLocal:
         self.task.local_cmd_out = (result[self.command[0]]['returncode'], result[self.command[0]]['output'], result[self.command[0]]['error'])
         print(result)
         
-    def execute(self, command: list, directory):
+    def execute(self, command, directory):
         
         result = {}
+        
+        if type(command).__name__ == 'str':
+            command = [command]
+
         for cmd in command:
             out_dict = result[cmd] = {}
             print("Job started with command:", cmd)
@@ -115,16 +119,10 @@ class SubmitNetwork:
         """this adds in the proper path to the data file required for the job"""
         filename = self.task.project_dir.parent / self.task.filename
         path = pathlib.Path(path)
-        # try:
-        #     self.input_data_files = getattr(self.task.engine, self.task.task_name)
-        #     self.input_data_files = self.input_data_files['req']
-        # except AttributeError as e:
-        #     raise AttributeError(e)
 
         with open(filename , 'r+') as f:
             text = f.read()
             for item in self.task.input_data_files:
-                #item = pathlib.Path(self.task.project_dir.name) / item
                 data_path = path / item
                 if not re.search(str(data_path), text):
                     text = re.sub(str(item), str(data_path), text)
