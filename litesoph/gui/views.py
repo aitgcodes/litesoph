@@ -3082,7 +3082,11 @@ class JobSubPage(View1):
         self.username = tk.StringVar()
         self.password = tk.StringVar()
         self.rpath = tk.StringVar()
+        self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
+
+        self.processors.set(1)
+        self.port.set(22)
 
         self.sub_job_frame = tk.Frame(self.Frame1)
         self.sub_job_frame.grid(row=0, column=0, sticky='nsew')
@@ -3162,45 +3166,53 @@ class JobSubPage(View1):
         host_entry['font'] =myfont()
         host_entry.grid(row=2, column=1,sticky='nsew', padx=2, pady=4)
 
+        port_label = tk.Label(self.sub_job_frame, text= "Port", bg='gray', fg='black')
+        port_label['font'] = myfont()
+        port_label.grid(row=3,column=0,sticky='nsew', padx=2, pady=4)
+
+        port_entry = tk.Entry(self.sub_job_frame,textvariable= self.port, width=20)
+        port_entry['font'] = myfont()
+        port_entry.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
+
         user_name_label = tk.Label(self.sub_job_frame, text= "User Name", bg='gray', fg='black')
         user_name_label['font'] = myfont()
-        user_name_label.grid(row=3,column=0,sticky='nsew', padx=2, pady=4)
+        user_name_label.grid(row=4,column=0,sticky='nsew', padx=2, pady=4)
 
         user_name_entry = tk.Entry(self.sub_job_frame,textvariable= self.username, width=20)
         user_name_entry['font'] = myfont()
-        user_name_entry.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
+        user_name_entry.grid(row=4, column=1,sticky='nsew', padx=2, pady=4)
  
         password_label = tk.Label(self.sub_job_frame, text= "Password", bg='gray', fg='black')
         password_label['font'] = myfont()
-        password_label.grid(row=4,column=0,sticky='nsew', padx=2, pady=4)
+        password_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
 
         password_entry = tk.Entry(self.sub_job_frame,textvariable= self.password, width=20, show = '*')
         password_entry['font'] = myfont()
-        password_entry.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
+        password_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
 
         remote_path_label = tk.Label(self.sub_job_frame, text= "Remote Path", bg='gray', fg='black')
         remote_path_label['font'] = myfont()
-        remote_path_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
+        remote_path_label.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
 
         remote_path_entry = tk.Entry(self.sub_job_frame,textvariable= self.rpath, width=20)
         remote_path_entry['font'] = myfont()
-        remote_path_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
+        remote_path_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
 
         num_processor_label = tk.Label(self.sub_job_frame, text= "Number of Processors", bg='gray', fg='black')
         num_processor_label['font'] = myfont()
-        num_processor_label.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
+        num_processor_label.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
 
         num_processor_entry = Onlydigits(self.sub_job_frame,textvariable= self.processors, width=20)
         num_processor_entry['font'] = myfont()
-        num_processor_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
+        num_processor_entry.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)
       
         upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
         upload_button2['font'] = myfont()
-        upload_button2.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
+        upload_button2.grid(row=8,column=0,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=8,column=1,sticky='nsew', padx=2, pady=4)    
 
     def view_outfile(self, task_name ):
         event = '<<View'+task_name+self.job_type+'Outfile>>'
@@ -3233,6 +3245,7 @@ class JobSubPage(View1):
           'ip':self.ip.get(),
           'username':self.username.get(),
           'password':self.password.get(),
+          'port' : self.port.get(),
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
