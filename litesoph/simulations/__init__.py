@@ -1,3 +1,4 @@
+from litesoph.simulations.esmd import Task
 from litesoph.simulations.gpaw import gpaw_template as gp
 from litesoph.simulations.nwchem import nwchem_template as nw
 from litesoph.simulations.octopus import octopus_template as ot
@@ -30,7 +31,7 @@ task_dict = {
     }
 }
 
-def get_engine_task(engine: str, task: str, status, directory, lsconfig, user_input):
+def get_engine_task(engine: str, task: str, status, directory, lsconfig, user_input) -> Task:
 
     try:
         task  = task_dict[engine][task](status, directory, lsconfig, user_input)
