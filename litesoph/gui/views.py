@@ -3114,6 +3114,7 @@ class JobSubPage(View1):
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
         self.ip.set(remote_profile['ip'])
+        self.port.set(remote_profile['port'])
         self.rpath.set(remote_profile['remote_path'])
 
 
