@@ -716,6 +716,7 @@ class GUIAPP(tk.Tk):
                                         hostname=login_dict['ip'],
                                         username=login_dict['username'],
                                         password=login_dict['password'],
+                                        port=login_dict['port'],
                                         remote_path=login_dict['remote_path'],
                                         )
         except Exception as e:

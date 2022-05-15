@@ -99,15 +99,20 @@ class SubmitNetwork:
                         hostname: str,
                         username: str,
                         password: str,
+                        port: int,
                         remote_path: str) -> None:
 
         self.task = task
         self.project_dir = self.task.project_dir
         self.engine = self.task.engine
-       
-        self.remote_path = remote_path
 
-        self.network_sub = NetworkJobSubmission(hostname)
+        self.username = username
+        self.hostname = hostname
+        self.password = password
+        self.port = port
+        self.remote_path = remote_path
+        
+        self.network_sub = NetworkJobSubmission(hostname, self.port)
         self.network_sub.ssh_connect(username, password)
         if self.network_sub.check_file(self.remote_path):
             self.prepare_input(self.remote_path)
@@ -185,7 +190,7 @@ class NetworkJobSubmission:
     uploadig and downloading of files and also to execute command on the remote cluster."""
     def __init__(self,
                 host,
-                port=22):
+                port):
         
         self.client = None
         self.host = host
