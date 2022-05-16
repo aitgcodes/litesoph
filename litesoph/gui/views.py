@@ -2284,15 +2284,16 @@ class TimeDependentPage(View1):
         #for (text, value) in values.items():
             #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
 
-        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox1.grid(row=value+3, column=6, ipady=5, sticky='w')
        
-        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0).grid(row=value+5, column=6, ipady=5, sticky='w')
+        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox2.grid(row=value+5, column=6, ipady=5, sticky='w')
                   
-        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0).grid(row=value+7, column=6, ipady=5, sticky='w')
+        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox3.grid(row=value+7, column=6, ipady=5, sticky='w')
  
         #self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
-
-        self.checkbox5 = tk.Checkbutton(self.Frame2, text="Electron Charge Dynamics", variable=self._var['elec'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')
  
         #self.Frame2_lab = tk.Label(self.Frame2, text="         ", fg="black")
         #self.Frame2_lab['font'] = myFont
@@ -2405,10 +2406,17 @@ class TimeDependentPage(View1):
         self.engine = engn
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
+            self.checkbox3.config(state = 'disabled')
+
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
-        elif engn == 'nwchem':
+            self.checkbox2.config(state = 'disabled')
+            self.checkbox3.config(state = 'disabled')
+
+        elif engn == 'nwchem':            
             self.update_var(self.nwchem_td_default)
+            self.checkbox2.config(state='disabled')
+            self.checkbox3.config(state = 'disabled')            
 
 
 class LaserDesignPage(tk.Frame):
