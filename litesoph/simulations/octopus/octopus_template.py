@@ -20,7 +20,7 @@ class OctGroundState(Task):
             'name':'H',               # name of species
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
-            'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
+            'theory':'kohn_sham' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
             
             'pseudo': 'pseudodojo_pbe', # else 'file|pseudo potential filename'
             'mass' : 1.0,             # mass of species in atomic unit
