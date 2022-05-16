@@ -173,7 +173,7 @@ class GUIAPP(tk.Tk):
             return
         self._change_directory(path)
         self.navigation.populate(self.directory)
-        self._get_engine()
+        #self._get_engine()
         update_proj_list(path)
 
     def _on_open_project(self, *_):
@@ -183,6 +183,7 @@ class GUIAPP(tk.Tk):
         if not project_path:
             return
         self._init_project(project_path)
+        self._get_engine()
         self._frames[v.WorkManagerPage].set_value('engine', self.engine)
         
        
@@ -211,6 +212,7 @@ class GUIAPP(tk.Tk):
             messagebox.showerror(title='Error', message = 'Project already exists', detail =e)
         else:
             self._init_project(project_path)
+            self.engine = None
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
             
         
@@ -341,6 +343,7 @@ class GUIAPP(tk.Tk):
             self.status.set_new_task(self.engine, self.ground_state_task.task_name)
             self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.script', 1)
             self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
+            self.status_engine.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
 
     def _on_gs_run_local_button(self, *_):
