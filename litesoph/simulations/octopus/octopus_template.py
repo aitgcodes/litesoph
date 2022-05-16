@@ -216,8 +216,21 @@ class OctTimedependentState(Task):
             'time_step' : 0.002,      
             'td_propagator' : 'aetrs',
             'strength': {},
-            'e_pol': [1,0,0]             
+            'e_pol': [1,0,0],
+
+            'property': ['default', 'ksd']            
             }
+
+    property_dict = {
+                    "default": ["energy", "multipoles"],
+                    "ksd": ["td_occup"],
+                    "population_correlation": []
+                    }
+
+    td_output = [("energy", "no"),
+                ("multipoles", "no"),
+                ("td_occup", "yes")
+                ]                
 
     td = """
 WorkDir = '.'    
