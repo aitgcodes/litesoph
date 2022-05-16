@@ -47,7 +47,7 @@ FromScratch = {scratch}
 ExperimentalFeatures = {exp}              
 CalculationMode = gs
 Dimensions = {dimension} 
-TheoryLevel = {theory}
+
 Unitsoutput = {out_unit}       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
