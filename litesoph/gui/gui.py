@@ -141,8 +141,8 @@ class GUIAPP(tk.Tk):
             '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage),
             '<<ShowWorkManagerPage>>' : self._show_workmanager_page,
             '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
-            '<<ShowTimeDependentPage>>' : self._on_rt_tddft_delta_task,
-            '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
+            '<<ShowRT_TDDFT_DELTAPage>>' : self._on_rt_tddft_delta_task,
+            '<<ShowRT_TDDFT_LASERPage>>' : self._on_rt_tddft_laser_task,
             '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(v.DmLdPage, self),
             '<<ShowTcmPage>>' : self._on_tcm_task,
@@ -239,8 +239,8 @@ class GUIAPP(tk.Tk):
     def _on_proceed(self, *_):
 
         simulation_type = [('electrons', 'None', '<<event>>'),
-                        ('electrons', 'Delta Pulse', '<<ShowTimeDependentPage>>'),
-                        ('electrons', 'Gaussian Pulse', '<<ShowLaserDesignPage>>'),
+                        ('electrons', 'Delta Pulse', '<<ShowRT_TDDFT_DELTAPage>>'),
+                        ('electrons', 'Gaussian Pulse', '<<ShowRT_TDDFT_LASERPage>>'),
                         ('electrons', 'Customised Pulse', '<<event>>'),
                         ('electron+ion', 'None', '<<event>>'),
                         ('electron+ion', 'Delta Pulse', '<<event>>'),
