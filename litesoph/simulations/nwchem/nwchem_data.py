@@ -28,26 +28,3 @@ task_dirs =[('NwchemOptimisation', 'Opt'),
         ('NwchemGroundState', 'GS'),
         ('NwchemDeltaKick', 'TD_Delta'),
         ('NwchemGaussianPulse', 'TD_Laser')]
-
-
-# def get_task_class( task: str, user_param, project_name, status):
-    
-#     from litesoph.simulations.nwchem import nwchem_template as nw
-
-#     if task == "optimization":
-#         user_param['permanent_dir']= str(restart)
-#         return nw.NwchemOptimisation(user_param) 
-#     if task == "ground_state":
-#         user_param['geometry']= str(pathlib.Path(project_name) / ground_state['req'][0])
-#         user_param['permanent_dir']= str(restart)
-#         return nw.NwchemGroundState(user_param) 
-#     if task == "rt_tddft_delta":
-#         if status:
-#             gs_inp = status.get_status('ground_state.param')
-#             user_param.update(gs_inp)
-#         return nw.NwchemDeltaKick(user_param)
-#     if task == "rt_tddft_laser":
-#         if status:
-#             gs_inp = status.get_status('ground_state.param')
-#             user_param.update(gs_inp)
-#         return nw.NwchemGaussianPulse(user_param)
