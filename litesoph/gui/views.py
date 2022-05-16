@@ -301,7 +301,7 @@ class WorkManagerPage(tk.Frame):
         self.dynamics_type.grid(column=1, row= 0, sticky='nsew',  pady=10, padx=65)       
         self.dynamics_type['state'] = 'readonly'  
 
-        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Gaussian Pulse'])
+        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Gaussian Pulse', 'Customised Pulse'])
         self.laser_type['font'] = myfont()
         self.laser_type.set('-- laser type--')
         self.laser_type.grid(column=2, row= 0, sticky='nsew',  pady=10, padx=6)       
@@ -2148,15 +2148,17 @@ class TimeDependentPage(View1):
             'mooc': ['int',0],
             'prop': ['int',0],
             'elec': ['int',0],
-            'chp':['int'],
+            'output_freq': ['int']
         }
         self.gpaw_td_default = {
             'dt': ['float', 10],
-            'Nt': ['int', 2000]
+            'Nt': ['int', 2000],
+            'output_freq': ['int', 1]
         }
         self.oct_td_default = {
             'dt': ['float', 2.4],
-            'Nt': ['int', 1500]
+            'Nt': ['int', 1500],
+            'output_freq': ['int', 50]
         }
         self.nwchem_td_default = {
             'dt': ['float', 2.4],
@@ -2287,15 +2289,16 @@ class TimeDependentPage(View1):
         #for (text, value) in values.items():
             #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
 
-        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox1.grid(row=value+3, column=6, ipady=5, sticky='w')
        
-        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0).grid(row=value+5, column=6, ipady=5, sticky='w')
+        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox2.grid(row=value+5, column=6, ipady=5, sticky='w')
                   
-        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0).grid(row=value+7, column=6, ipady=5, sticky='w')
+        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox3.grid(row=value+7, column=6, ipady=5, sticky='w')
  
         #self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
-
-        self.checkbox5 = tk.Checkbutton(self.Frame2, text="Electron Charge Dynamics", variable=self._var['elec'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')
  
         #self.Frame2_lab = tk.Label(self.Frame2, text="         ", fg="black")
         #self.Frame2_lab['font'] = myFont
@@ -2305,9 +2308,9 @@ class TimeDependentPage(View1):
         self.Frame2_lab['font'] = myFont
         self.Frame2_lab.grid(row=value+11, column=6, ipady=5,)
 
-        self.entry_chp = Onlydigits(self.Frame2, textvariable=self._var['chp'], width=5)
-        self.entry_chp['font'] = myFont
-        self.entry_chp.grid(row=value+11, column=8, ipady=5,)
+        self.entry_out_frq = Onlydigits(self.Frame2, textvariable=self._var['output_freq'], width=5)
+        self.entry_out_frq['font'] = myFont
+        self.entry_out_frq.grid(row=value+11, column=8, ipady=5,)
 
     def pol_option(self):
         if self._var['var1'] == 1:
@@ -2337,7 +2340,8 @@ class TimeDependentPage(View1):
             'absorption_kick':kick,
             'analysis_tools':self.analysis_tool(),
             'propagate': tuple(inp_list),
-            'pol_dir': self.read_pol_dir()
+            'pol_dir': self.read_pol_dir(),
+            'output_freq': self._var['output_freq'].get()
         }
 
         td_dict_oct = {
@@ -2346,7 +2350,9 @@ class TimeDependentPage(View1):
             'td_propagator' : 'aetrs',
             'strength': self._var['strength'].get(),
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
-            'pol_dir': self.read_pol_dir()
+            'pol_dir': self.read_pol_dir(),
+            'output_freq': self._var['output_freq'].get(),
+            'property': self.get_property_list()
           }
 
         td_dict_nwchem = {
@@ -2357,7 +2363,7 @@ class TimeDependentPage(View1):
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
             'pol_dir': self.read_pol_dir(),
             'extra_prop':self.extra_prop(),
-            'nrestart':self._var['chp'].get()
+            'output_freq': self._var['output_freq'].get()
             }
 
         if self.engine == 'gpaw':
@@ -2370,14 +2376,25 @@ class TimeDependentPage(View1):
     def analysis_tool(self):
         if self._var['wfn'].get() == 1:
             return("wavefunction")
+
+    def get_property_list(self):
+        prop_list = []
+        if self._var['wfn'].get() == 1:
+            prop_list.append("ksd")
+        if self._var['mooc'].get() == 1:
+            prop_list.append("population_correlation")    
+        return prop_list       
         
     def extra_prop(self):
-        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 1:
-            return("mooc&charge")
-        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
-            return("moocc")
-        if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
-            return("charge")
+        # if self._var['mooc'].get() == 1:
+        #     messagebox.showinfo(message="Population Correlation is not implemented yet.")
+        #     self.checkbox3.config(state = 'disabled')            
+            return("mooc")
+
+        # if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
+        #     return("moocc")
+        # if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
+        #     return("charge")
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
@@ -2405,10 +2422,17 @@ class TimeDependentPage(View1):
         self.engine = engn
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
+            self.checkbox3.config(state = 'disabled')
+
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
-        elif engn == 'nwchem':
+            self.checkbox2.config(state = 'disabled')
+            self.checkbox3.config(state = 'disabled')
+
+        elif engn == 'nwchem':            
             self.update_var(self.nwchem_td_default)
+            self.checkbox2.config(state='disabled')
+            self.checkbox3.config(state = 'disabled')            
 
 
 class LaserDesignPage(tk.Frame):
