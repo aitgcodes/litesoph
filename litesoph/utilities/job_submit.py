@@ -9,6 +9,7 @@ import re
 from scp import SCPClient
 from litesoph.simulations.esmd import Task
 from litesoph.config import get_mpi_command
+import pexpect
 
 
 def get_submit_class(network=None, **kwargs):
@@ -59,9 +60,13 @@ class SubmitLocal:
         self.task.local_cmd_out = (result[self.command[0]]['returncode'], result[self.command[0]]['output'], result[self.command[0]]['error'])
         print(result)
         
-    def execute(self, command: list, directory):
+    def execute(self, command, directory):
         
         result = {}
+        
+        if type(command).__name__ == 'str':
+            command = [command]
+
         for cmd in command:
             out_dict = result[cmd] = {}
             print("Job started with command:", cmd)
@@ -94,15 +99,20 @@ class SubmitNetwork:
                         hostname: str,
                         username: str,
                         password: str,
+                        port: int,
                         remote_path: str) -> None:
 
         self.task = task
         self.project_dir = self.task.project_dir
         self.engine = self.task.engine
-       
-        self.remote_path = remote_path
 
-        self.network_sub = NetworkJobSubmission(hostname)
+        self.username = username
+        self.hostname = hostname
+        self.password = password
+        self.port = port
+        self.remote_path = remote_path
+        
+        self.network_sub = NetworkJobSubmission(hostname, self.port)
         self.network_sub.ssh_connect(username, password)
         if self.network_sub.check_file(self.remote_path):
             self.prepare_input(self.remote_path)
@@ -114,16 +124,10 @@ class SubmitNetwork:
         """this adds in the proper path to the data file required for the job"""
         filename = self.task.project_dir.parent / self.task.filename
         path = pathlib.Path(path)
-        # try:
-        #     self.input_data_files = getattr(self.task.engine, self.task.task_name)
-        #     self.input_data_files = self.input_data_files['req']
-        # except AttributeError as e:
-        #     raise AttributeError(e)
 
         with open(filename , 'r+') as f:
             text = f.read()
             for item in self.task.input_data_files:
-                #item = pathlib.Path(self.task.project_dir.name) / item
                 data_path = path / item
                 if not re.search(str(data_path), text):
                     text = re.sub(str(item), str(data_path), text)
@@ -133,19 +137,21 @@ class SubmitNetwork:
 
     def upload_files(self):
         """uploads entire project directory to remote path"""
-        # upload_files = [self.task.filename, self.task.bash_filename]
-        # upload_files.extend(self.task.input_data_files)
 
-        # remote_path = pathlib.Path(self.remote_path) 
-        #file = pathlib.Path(self.task.project_dir.parent) / file
-            
-        self.network_sub.upload_files(str(self.project_dir), str(self.remote_path), recursive=True)
-     
+        (error, message) = rsync_upload_files(ruser=self.username, rhost=self.hostname, password=self.password,
+                                                source_dir=str(self.project_dir), dst_dir=str(self.remote_path))
+        #self.network_sub.upload_files(str(self.project_dir), str(self.remote_path), recursive=True)
+        if error != 0:
+            raise Exception(message)
 
     def download_output_files(self):
         """Downloads entire project directory to local project dir."""
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
-        self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
+        #self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
+        (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname, password=self.password,
+                                                source_dir=str(remote_path), dst_dir=str(self.project_dir))
+        if error != 0:
+            raise Exception(message)
 
     def get_output_log(self):
         """Downloads engine log file for that particular task."""
@@ -184,7 +190,7 @@ class NetworkJobSubmission:
     uploadig and downloading of files and also to execute command on the remote cluster."""
     def __init__(self,
                 host,
-                port=22):
+                port):
         
         self.client = None
         self.host = host
@@ -297,6 +303,44 @@ class NetworkJobSubmission:
 
         return exit_status, ssh_output, ssh_error
 
+def rsync_upload_files(ruser, rhost, password, source_dir, dst_dir):
+    
+    cmd = f"rsync -av {source_dir} {ruser}@{rhost}:{dst_dir}"
 
+    (error, message) = execute_rsync(cmd, passwd=password)
+    return (error, message)
 
-   
+def rsync_download_files(ruser, rhost, password, source_dir, dst_dir):
+    
+    cmd = f"rsync -av {ruser}@{rhost}:{source_dir} {dst_dir}"
+
+    (error, message) = execute_rsync(cmd, passwd=password)
+    return (error, message)
+
+def execute_rsync(cmd,passwd, timeout=3600):
+    intitial_response = ['Are you sure', 'password:', pexpect.EOF]
+    
+    ssh = pexpect.spawn(cmd,timeout=timeout)
+    i = ssh.expect(intitial_response, timeout=10)
+    if i == 0 :
+        T = ssh.read(100)
+        ssh.sendline('yes')
+        ssh.expect('password:', Timeout=10)
+        ssh.sendline(passwd)
+    elif i == 1:
+        ssh.sendline(passwd)
+    else:
+        str1 = str(ssh.before)
+        return (-3, 'Error: Unknown:'+ str1)
+
+    possible_response = ['password:', pexpect.EOF]
+    i = ssh.expect(possible_response, timeout=5)
+
+    if i == 0:
+        return (-4, "Error: Incorrect password.")
+    else:
+        output = str(ssh.before)
+        return (0, output)
+    
+        
+       

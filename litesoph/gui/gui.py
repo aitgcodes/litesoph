@@ -94,14 +94,14 @@ class GUIAPP(tk.Tk):
         else:
             return True
 
-    def _get_engine(self):
-        try:
-            self.engine = self.status.get_status('engine')
-        except KeyError:
-            self.engine = None
-            self.status_engine.set('')
-        else:
-            self.status_engine.set(self.engine)
+    # def _get_engine(self):
+    #     try:
+    #         self.engine = self.status.get_status('engine')
+    #     except KeyError:
+    #         self.engine = None
+    #         self.status_engine.set('')
+    #     else:
+    #         self.status_engine.set(self.engine)
 
     def _refresh_config(self,*_):
         """reads and updates the lsconfig object from lsconfig.ini"""
@@ -143,7 +143,7 @@ class GUIAPP(tk.Tk):
         
         event_show_page= {
             '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage),
-            '<<ShowWorkManagerPage>>' : lambda _: self._show_frame(v.WorkManagerPage, self.directory),
+            '<<ShowWorkManagerPage>>' : self._show_workmanager_page,
             '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
             '<<ShowTimeDependentPage>>' : self._on_rt_tddft_delta_task,
             '<<ShowLaserDesignPage>>' : self._on_rt_tddft_laser_task,
@@ -164,6 +164,12 @@ class GUIAPP(tk.Tk):
         self.directory = pathlib.Path(path)
         os.chdir(self.directory) 
 
+    def _show_workmanager_page(self, *_):
+
+        self._show_frame(v.WorkManagerPage)
+        if self.engine:
+            self._frames[v.WorkManagerPage].set_value('engine', self.engine)
+
     def _init_project(self, path):
         
         self.engine = None
@@ -172,7 +178,7 @@ class GUIAPP(tk.Tk):
             return
         self._change_directory(path)
         self.navigation.populate(self.directory)
-        self._get_engine()
+        #self._get_engine()
         update_proj_list(path)
 
     def _on_open_project(self, *_):
@@ -188,7 +194,7 @@ class GUIAPP(tk.Tk):
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
        
-        project_name = self._frames[v.WorkManagerPage].get_project_name()
+        project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
         
         if not project_name:
             messagebox.showerror(title='Error', message='Please set the project name.')
@@ -238,7 +244,7 @@ class GUIAPP(tk.Tk):
 
     def _on_task_select(self, *_):
         
-        sub_task = self._frames[v.WorkManagerPage].get_sub_task()
+        sub_task = self._frames[v.WorkManagerPage].get_value('sub_task')
 
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
@@ -332,29 +338,29 @@ class GUIAPP(tk.Tk):
 
     def _validate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
-        engine = inp_dict['engine']
-        if self.engine:
-            if self.engine != engine:
-                messagebox.showerror(message = f'This {self.directory.name} project was started with {self.engine} engine. \n If you want to use different engine. Please create new project with that engine')
-                return
-        self.ground_state_task = get_engine_task(engine, 'ground_state', self.status, self.directory, self.lsconfig, inp_dict)
+        self.engine = inp_dict.pop('engine')
+        # if self.engine:
+        #     if self.engine != engine:
+        #         messagebox.showerror(message = f'This {self.directory.name} project was started with {self.engine} engine. \n If you want to use different engine. Please create new project with that engine')
+        #         return
+        self.ground_state_task = get_engine_task(self.engine, 'ground_state', self.status, self.directory, self.lsconfig, inp_dict)
         self.ground_state_task.create_template()
         return self.ground_state_task.template
 
     def _gs_create_input(self, template=None):     
-        confirm_engine = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(self.ground_state_task.engine_name))
-        if confirm_engine is True:
-            self.engine = self.ground_state_task.engine_name
+        #confirm_engine = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(self.ground_state_task.engine_name))
+        #if confirm_engine is True:
+            #self.engine = self.ground_state_task.engine_name
             self.ground_state_task.write_input(template)
-            self.status.update_status('engine', self.engine)
-            self.status.set_new_task(self.ground_state_task.task_name)
-            self.status.update_status(f'{self.ground_state_task.task_name}.script', 1)
-            self.status.update_status(f'{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
+            #self.status.update_status('engine', self.engine)
+            self.status.set_new_task(self.engine, self.ground_state_task.task_name)
+            self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.script', 1)
+            self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
             self.status_engine.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
-        else:
-            pass  
-        self.check = False
+        #else:
+        #    pass  
+        #self.check = False
 
     def _on_gs_run_local_button(self, *_):
         
@@ -421,9 +427,9 @@ class GUIAPP(tk.Tk):
 
     def _td_create_input(self, template=None):     
         self.rt_tddft_delta_task.write_input(template)
-        self.status.set_new_task(self.rt_tddft_delta_task.task_name)
-        self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.script', 1)
-        self.status.update_status(f'{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
+        self.status.set_new_task(self.engine, self.rt_tddft_delta_task.task_name)
+        self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
         self.rt_tddft_delta_view.set_label_msg('saved')
         self.check = False
 
@@ -507,9 +513,9 @@ class GUIAPP(tk.Tk):
 
     def _td_laser_create_input(self, template=None):     
         self.rt_tddft_laser_task.write_input(template)
-        self.status.set_new_task(self.rt_tddft_laser_task.task_name)
-        self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.script', 1)
-        self.status.update_status(f'{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
+        self.status.set_new_task(self.engine, self.rt_tddft_laser_task.task_name)
+        self.status.update_status(f'{self.engine}.{self.rt_tddft_laser_task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
         self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 
@@ -544,9 +550,9 @@ class GUIAPP(tk.Tk):
         self.spectra_task = get_engine_task(self.engine, 'spectrum', self.status, self.directory, self.lsconfig, inp_dict)
 
     def _spectra_create_input(self, template=None):     
-        self.status.set_new_task(self.spectra_task.task_name)
-        self.status.update_status(f'{self.spectra_task.task_name}.script', 1)
-        self.status.update_status(f'{self.spectra_task.task_name}.param',self.spectra_task.user_input)
+        self.status.set_new_task(self.engine, self.spectra_task.task_name)
+        self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
 
     def _on_spectra_run_local_button(self, *_):
         
@@ -671,11 +677,12 @@ class GUIAPP(tk.Tk):
             return
         else:
             if task.local_cmd_out[0] != 0:
-                self.status.update_status(f'{task.task_name}.sub_local.returncode', task.local_cmd_out[0])
+                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', task.local_cmd_out[0])
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.local_cmd_out[2].decode(encoding='utf-8')}")
             else:
-                self.status.update_status(f'{task.task_name}.sub_local.returncode', 0)
-                self.status.update_status(f'{task.task_name}.sub_local.n_proc', np)
+                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', 0)
+                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.n_proc', np)
+                self.status.update_status(f'{self.engine}.{task.task_name}.done', True)
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
 
@@ -716,6 +723,7 @@ class GUIAPP(tk.Tk):
                                         hostname=login_dict['ip'],
                                         username=login_dict['username'],
                                         password=login_dict['password'],
+                                        port=login_dict['port'],
                                         remote_path=login_dict['remote_path'],
                                         )
         except Exception as e:
@@ -733,15 +741,16 @@ class GUIAPP(tk.Tk):
             return
         else:
             if task.net_cmd_out[0] != 0:
-                self.status.update_status(f'{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
+                self.status.update_status(f'{self.engine}.{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.net_cmd_out[2].decode(encoding='utf-8')}")
             else:
-                self.status.update_status(f'{task.task_name}.sub_network.returncode', 0)
+                self.status.update_status(f'{self.engine}.{task.task_name}.sub_network.returncode', 0)
                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
 
 
     def _get_remote_output(self):
         self.submit_network.download_output_files()
+        self.status.update_status(f'{self.engine}.{self.submit_network.task.task_name}.done', True)
 
     def _on_create_remote_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
@@ -768,8 +777,8 @@ class GUIAPP(tk.Tk):
 
         if self.submit_network.check_job_status():
 
-            if self.network_type == 0:
-                messagebox.showinfo(title='Info', message="Job commpleted.")
+            # if self.network_type == 0:
+            #     messagebox.showinfo(title='Info', message="Job commpleted.")
 
             self._get_remote_output()   
             log_txt = read_file(log_file)
@@ -777,7 +786,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
 
         else:
-            get = messagebox.askokcancel(title='Info', message="Job not commpleted.", detail= "Do you what to download engine log file?")
+            get = messagebox.askyesno(title='Info', message="Job not commpleted.", detail= "Do you what to download engine log file?")
 
             if get:
                 self.submit_network.get_output_log()
