@@ -17,10 +17,10 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 
 class StartPage(tk.Frame):
 
-    def __init__(self, parent, lsroot, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         
-        self.lsroot = lsroot
+       
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
 
@@ -104,7 +104,7 @@ class WorkManagerPage(tk.Frame):
     Pre_task = ["Ground State","Geometry Optimisation"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
     Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
-
+    engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
     simulation_type = [('electrons', 'None', '<<event>>'),
                         ('electrons', 'Delta Pulse', '<<ShowTimeDependentPage>>'),
@@ -118,12 +118,9 @@ class WorkManagerPage(tk.Frame):
                         ]
                         
 
-    def __init__(self, parent, lsroot, directory, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
-        
-        self.lsroot = lsroot
-        self.directory = directory
-       
+               
         self._default_var = {
             'proj_path' : ['str'],
             'proj_name' : ['str'],
@@ -131,7 +128,8 @@ class WorkManagerPage(tk.Frame):
             'sub_task' : ['str'],
             'dynamics': ['str','--dynamics type--'],
             'laser': ['str','-- laser type--'],
-            'plot':['str', '-- choose option --']
+            'plot':['str', '-- choose option --'],
+            'engine' : ['str','auto-mode'],
         }
 
         self._var = var_define(self._default_var)
@@ -187,19 +185,19 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
         self.Frame2_label_1['font'] = myfont()
-        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4, pady=4)       
+        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4,  pady=10)       
 
         self.Frame2_Button_1 = tk.Button(common_frame,text="Select",activebackground="#78d6ff",command=self._get_geometry_file)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=1, row= 0, padx=10, pady=4)       
+        self.Frame2_Button_1.grid(column=1, row= 0, padx=10,  pady=10)       
 
         self.message_label = tk.Label(common_frame, text='', foreground='red')
         self.message_label['font'] = myfont()
-        self.message_label.grid(column=2, row= 0, padx=10, pady=4)       
+        self.message_label.grid(column=2, row= 0, padx=10,  pady=10)       
         
         self.Frame2_Button_1 = tk.Button(common_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=3, row= 0, padx=10, pady=4)
+        self.Frame2_Button_1.grid(column=3, row= 0, padx=10,  pady=10)
 
         # sub_frame = tk.Frame(self.Frame2)
         # sub_frame.grid(row=1, column=0)
@@ -207,13 +205,22 @@ class WorkManagerPage(tk.Frame):
         # job_frame = tk.Frame(self.Frame2)
         # job_frame.grid(row=1, column=0)
 
+        self.engine_source_label = tk.Label(common_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
+        self.engine_source_label['font'] = myfont()
+        self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
+            
+        self.engine_source = ttk.Combobox(common_frame,width=20, textvariable= self._var['engine'], values= self.engine_list)
+        self.engine_source['font'] = myfont()
+        self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
+        self.engine_source['state'] = 'readonly'
+
         self.label_proj = tk.Label(common_frame,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.label_proj['font'] = myfont()
-        self.label_proj.grid(column=0, row= 1, sticky='w', padx=4)       
+        self.label_proj.grid(row= 2, column=0,  sticky='w', padx=4, pady=10)       
             
         self.entry_task = ttk.Combobox(common_frame,width=20, textvariable= self._var['task'], values= self.MainTask)
         self.entry_task['font'] = myfont()
-        self.entry_task.grid(column=1, row= 1,columnspan=2, padx=4, pady=4)
+        self.entry_task.grid(row= 2, column=1, columnspan=2, padx=4, pady=10)
        
         self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
         self.entry_task['state'] = 'readonly'
@@ -223,7 +230,7 @@ class WorkManagerPage(tk.Frame):
         # self.Frame2_label_3.grid(column=0, row= 2, sticky='we',  pady=10, padx=10)   
 
         self.sub_task_frame = tk.Frame(self.Frame2)
-        self.sub_task_frame.grid(row=2, column=0, sticky='w')
+        self.sub_task_frame.grid(row=1, column=0, sticky='w')
         # self.sub_task_frame.grid_columnconfigure(0, weight=1)
         # self.sub_task_frame.grid_columnconfigure(1, weight=1)
         # self.sub_task_frame.grid_columnconfigure(3, weight=1)
@@ -263,12 +270,12 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame2_label_3 = tk.Label(common_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.Frame2_label_3['font'] = myfont()
-        self.Frame2_label_3.grid(column=0, row= 0, sticky='nswe', padx=4, pady=10) 
+        self.Frame2_label_3.grid( row= 0,column=0, sticky='nswe', padx=4, pady=10) 
         
         self.entry_sub_task = ttk.Combobox(common_sub_task_frame, width= 20, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myfont()
         self.entry_sub_task.current(0)
-        self.entry_sub_task.grid(column=1, row= 0, sticky='nswe',  pady=10, padx=65)       
+        self.entry_sub_task.grid(row= 0, column=1, sticky='nswe',  pady=10, padx=68)       
         self.entry_sub_task['state'] = 'readonly'  
 
         self.entry_sub_task.bind("<<ComboboxSelected>>", self.pick_sub_task)
@@ -358,17 +365,12 @@ class WorkManagerPage(tk.Frame):
     def _open_project(self):
         self.event_generate('<<OpenExistingProject>>')
 
-    def get_project_name(self):
-        project_name = self.entry_proj.get()
-        return project_name
-
     def _create_project(self):
         self.event_generate('<<CreateNewProject>>')
 
     def _get_geometry_file(self):
         self.event_generate('<<GetMolecule>>')
         
-    
     def _geom_visual(self):
         self.event_generate('<<VisualizeMolecule>>')
 
@@ -385,8 +387,11 @@ class WorkManagerPage(tk.Frame):
     def show_upload_label(self):
         show_message(self.message_label,"Uploaded")
 
-    def get_sub_task(self):
-        return self._var['sub_task'].get()
+    def get_value(self, key):
+        return self._var[key].get()
+
+    def set_value(self,key,value):
+        self._var[key].set(value)
         
     def refresh_var(self):
         for key, value in self._default_var.items():
@@ -846,7 +851,7 @@ class GroundStatePage(View_note):
     gp_box = ["parallelepiped"]
     xc_gp = ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"]
     # xc_nw = ["acm","b3lyp","beckehandh","Hfexch","pbe0","becke88","xpbe96","bhlyp","cam-s12g","cam-s12h","xperdew91","pbeop"]
-    xc_nw = ["pbe96","pbe0","b3lyp","pw91", "bp86", "bp91","bhlyp"]
+    xc_nw = ["PBE96","PBE0","B3LYP","PW91", "BP86", "BP91","BHLYP","M05","M05-2X","M06-HF","M08-SO","M011","CAM-B3LYP","LC-BLYP","LC-PBE","LC-wPBE","HSE03","HSE06"]
     oct_lda_x = ["lda_x","lda_x_rel","lda_x_erf","lda_x_rae"]
     oct_lda_c = ["lda_c_pz_mod","lda_c_ob_pz","lda_c_pw","lda_c_ob_pw","lda_c_2d_amgb"]
     oct_pbe_x = ["gga_x_pbe","gga_x_pbe_r","gga_x_b86","gga_x_herman","gga_x_b86_mgc","gga_x_b88","gga_x_pbe_sol"]
@@ -867,7 +872,7 @@ class GroundStatePage(View_note):
 
         self._default_var = {
             'mode' : ['str', '--choose mode--'],
-            'nwxc' : ['str', 'pbe0'],
+            'nwxc' : ['str', 'PBE0'],
             'gpxc' : ['str','LDA'],
             'var_oct_xc' : ['int', 1],
             'oct_xc' : ['str',''],
@@ -1423,7 +1428,7 @@ class GroundStatePage(View_note):
         self.nwxc.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
         self.entry_pol_x = ttk.Combobox(nw_frame, textvariable= self._var['nwxc'], value = self.xc_nw)
-        self.entry_pol_x.current(4)
+        #self.entry_pol_x.current(2)
         self.entry_pol_x['font'] = label_design['font']
         self.entry_pol_x['state'] = 'readonly'
         self.entry_pol_x.grid(row=2, column=1, sticky='w', padx=2, pady=2)
@@ -1974,7 +1979,7 @@ class GroundStatePage(View_note):
         inp_dict_nw = {
             'mode': self._var['mode'].get(),
             'xc': self._var['nwxc'].get(),
-            'tolerances': self._var['tolerances'].get(),
+            #'tolerances': self._var['tolerances'].get(),
             'basis': self._var['basis'].get(),
             'energy': self._var['energy'].get(),
             'density' : self._var['density'].get(),
@@ -2071,7 +2076,7 @@ class View1(tk.Frame):
 
         self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
         self.Frame2 = tk.Frame(self, borderwidth=2, relief='groove')
-        #self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
         self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
         # layout all of the main containers
         #self.grid_rowconfigure(0, weight=1)
@@ -2085,7 +2090,7 @@ class View1(tk.Frame):
 
         self.Frame1.grid(row=1,column=0, columnspan=4, rowspan=100, sticky='nsew')
         self.Frame2.grid(row=1, column=5, rowspan=100,columnspan=2, sticky='nsew')
-        #self.Frame3.grid(row=1, column=9, sticky='nswe')
+        self.Frame3.grid(row=0, column=5,columnspan=5, sticky='nswe')
         #self.Frame2.grid(row=4,  sticky="nsew")
         # btm_frame.grid(row=3, sticky="ew")
         # btm_frame2.grid(row=4, sticky="ew")
@@ -2132,8 +2137,13 @@ class TimeDependentPage(View1):
             'ez': ['int', 0],
             'dt': ['float'],
             'Nt': ['int'],
-            'var1': ['int', 1],
-            'var2': ['int',0]
+            'var1': ['int',1],
+            'dpl': ['int',1],
+            'wfn': ['int',0],
+            'mooc': ['int',0],
+            'prop': ['int',0],
+            'elec': ['int',0],
+            'chp':['int'],
         }
         self.gpaw_td_default = {
             'dt': ['float', 10],
@@ -2254,15 +2264,45 @@ class TimeDependentPage(View1):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=4)
 
-        self.Frame2_note = tk.Label(self.Frame2, text="Note: Please select wavefunction \n for Kohn Sham Decomposition", fg="black")
-        self.Frame2_note['font'] = myFont
-        self.Frame2_note.grid(row=2, column=6)
+        self.Frame3_note = tk.Label(self.Frame3, text="Note: Please choose properties to be extracted in post-processing", fg="black")
+        self.Frame3_note['font'] = myFont
+        self.Frame3_note.grid(row=2, column=6)
 
-        values = {"Wavefunction": 2}
+        #self.Frame2_note = tk.Label(self.Frame2, text="Note: select for Population Coorelation", fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.grid(row=value+7, column=7, sticky='e')
+
+        #self.Frame2_note = tk.Label(self.Frame2, text="Note: Charge calculated from density matrixs", fg="black")
+        #self.Frame2_note['font'] = myFont
+        #self.Frame2_note.grid(row=value+11, column=7, sticky='e')
+
+        #values = {"Wavefunction": 2}
         # Loop is used to create multiple Radiobuttons
         # rather than creating each button separately
-        for (text, value) in values.items():
-            tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+        #for (text, value) in values.items():
+            #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+
+        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+       
+        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0).grid(row=value+5, column=6, ipady=5, sticky='w')
+                  
+        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0).grid(row=value+7, column=6, ipady=5, sticky='w')
+ 
+        #self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
+
+        self.checkbox5 = tk.Checkbutton(self.Frame2, text="Electron Charge Dynamics", variable=self._var['elec'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')
+ 
+        #self.Frame2_lab = tk.Label(self.Frame2, text="         ", fg="black")
+        #self.Frame2_lab['font'] = myFont
+        #self.Frame2_lab.grid(row=value+5, column=7, ipady=5,)
+
+        self.Frame2_lab = tk.Label(self.Frame2, text="Frequency of data collection", fg="black")
+        self.Frame2_lab['font'] = myFont
+        self.Frame2_lab.grid(row=value+11, column=6, ipady=5,)
+
+        self.entry_chp = Onlydigits(self.Frame2, textvariable=self._var['chp'], width=5)
+        self.entry_chp['font'] = myFont
+        self.entry_chp.grid(row=value+11, column=8, ipady=5,)
 
     def pol_option(self):
         if self._var['var1'] == 1:
@@ -2277,7 +2317,9 @@ class TimeDependentPage(View1):
         elif pol_list == [0,1,0]:
             self.pol_dir = (1,'y') 
         elif pol_list == [0,0,1]:
-            self.pol_dir = (2,'z') 
+            self.pol_dir = (2,'z')
+        elif pol_list == [1,1,0]:
+            self.pol_dir = (3,'xy') 
         return self.pol_dir     
 
     def get_parameters(self):
@@ -2308,8 +2350,9 @@ class TimeDependentPage(View1):
             'dt': self._var['dt'].get(),
             'max':self._var['strength'].get(),
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
-            'pol_dir': self.read_pol_dir()
-
+            'pol_dir': self.read_pol_dir(),
+            'extra_prop':self.extra_prop(),
+            'nrestart':self._var['chp'].get()
             }
 
         if self.engine == 'gpaw':
@@ -2320,8 +2363,16 @@ class TimeDependentPage(View1):
             return td_dict_oct
 
     def analysis_tool(self):
-        if self._var['var2'].get() == 1:
+        if self._var['wfn'].get() == 1:
             return("wavefunction")
+        
+    def extra_prop(self):
+        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 1:
+            return("mooc&charge")
+        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
+            return("moocc")
+        if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
+            return("charge")
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
@@ -2738,9 +2789,6 @@ class PlotSpectraPage(tk.Frame):
         self.entry_emax['font'] = label_design['font']
         self.entry_emax.grid(row=4, column=1, padx=2, pady=4, sticky='nsew')
 
-        self.Frame2_Button_1 = tk.Button(self.Frame1,text="Create input",activebackground="#78d6ff",command=self.create_button)
-        self.Frame2_Button_1['font'] = label_design['font']
-        self.Frame2_Button_1.grid(row=5, column=1, padx=2, pady=4, sticky='nsew')
 
         # self.label_msg = tk.Label(self.Frame, text= "",fg="black")
         # self.label_msg['font'] = myFont
@@ -2842,6 +2890,9 @@ class PlotSpectraPage(tk.Frame):
           }
 
         td_dict_nwchem = {
+            'del_e':self._var['del_e'].get(),
+            'e_max':self._var['e_max'].get(),
+            'e_min': self._var['e_min'].get()
             }
         
         if self.engine == 'gpaw':
@@ -2851,8 +2902,6 @@ class PlotSpectraPage(tk.Frame):
         elif self.engine == 'octopus':
             return td_dict_oct            
     
-    def create_button(self):
-        self.event_generate('<<CreateSpectraScript>>')
   
 
 class DmLdPage(tk.Frame):
@@ -3039,7 +3088,11 @@ class JobSubPage(View1):
         self.username = tk.StringVar()
         self.password = tk.StringVar()
         self.rpath = tk.StringVar()
+        self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
+
+        self.processors.set(1)
+        self.port.set(22)
 
         self.sub_job_frame = tk.Frame(self.Frame1)
         self.sub_job_frame.grid(row=0, column=0, sticky='nsew')
@@ -3064,10 +3117,11 @@ class JobSubPage(View1):
         back['font'] = myfont()
         back.grid(row=0, column=0, padx=40)
     
-    def set_network_profile(self, remote_profile):
-        self.ip.set(remote_profile[0][1])
-        self.username.set(remote_profile[1][1])
-        self.rpath.set(remote_profile[2][1])
+    def set_network_profile(self, remote_profile: dict):
+        self.username.set(remote_profile['username'])
+        self.ip.set(remote_profile['ip'])
+        self.port.set(remote_profile['port'])
+        self.rpath.set(remote_profile['remote_path'])
 
 
     def add_text_view_frame(self):
@@ -3119,45 +3173,53 @@ class JobSubPage(View1):
         host_entry['font'] =myfont()
         host_entry.grid(row=2, column=1,sticky='nsew', padx=2, pady=4)
 
+        port_label = tk.Label(self.sub_job_frame, text= "Port", bg='gray', fg='black')
+        port_label['font'] = myfont()
+        port_label.grid(row=3,column=0,sticky='nsew', padx=2, pady=4)
+
+        port_entry = tk.Entry(self.sub_job_frame,textvariable= self.port, width=20)
+        port_entry['font'] = myfont()
+        port_entry.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
+
         user_name_label = tk.Label(self.sub_job_frame, text= "User Name", bg='gray', fg='black')
         user_name_label['font'] = myfont()
-        user_name_label.grid(row=3,column=0,sticky='nsew', padx=2, pady=4)
+        user_name_label.grid(row=4,column=0,sticky='nsew', padx=2, pady=4)
 
         user_name_entry = tk.Entry(self.sub_job_frame,textvariable= self.username, width=20)
         user_name_entry['font'] = myfont()
-        user_name_entry.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
+        user_name_entry.grid(row=4, column=1,sticky='nsew', padx=2, pady=4)
  
         password_label = tk.Label(self.sub_job_frame, text= "Password", bg='gray', fg='black')
         password_label['font'] = myfont()
-        password_label.grid(row=4,column=0,sticky='nsew', padx=2, pady=4)
+        password_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
 
         password_entry = tk.Entry(self.sub_job_frame,textvariable= self.password, width=20, show = '*')
         password_entry['font'] = myfont()
-        password_entry.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
+        password_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
 
         remote_path_label = tk.Label(self.sub_job_frame, text= "Remote Path", bg='gray', fg='black')
         remote_path_label['font'] = myfont()
-        remote_path_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
+        remote_path_label.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
 
         remote_path_entry = tk.Entry(self.sub_job_frame,textvariable= self.rpath, width=20)
         remote_path_entry['font'] = myfont()
-        remote_path_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
+        remote_path_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
 
         num_processor_label = tk.Label(self.sub_job_frame, text= "Number of Processors", bg='gray', fg='black')
         num_processor_label['font'] = myfont()
-        num_processor_label.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
+        num_processor_label.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
 
         num_processor_entry = Onlydigits(self.sub_job_frame,textvariable= self.processors, width=20)
         num_processor_entry['font'] = myfont()
-        num_processor_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
+        num_processor_entry.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)
       
         upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
         upload_button2['font'] = myfont()
-        upload_button2.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
+        upload_button2.grid(row=8,column=0,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=8,column=1,sticky='nsew', padx=2, pady=4)    
 
     def view_outfile(self, task_name ):
         event = '<<View'+task_name+self.job_type+'Outfile>>'
@@ -3190,6 +3252,7 @@ class JobSubPage(View1):
           'ip':self.ip.get(),
           'username':self.username.get(),
           'password':self.password.get(),
+          'port' : self.port.get(),
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
