@@ -2086,7 +2086,8 @@ class TimeDependentPage(View1):
         }
         self.nwchem_td_default = {
             'dt': ['float', 2.4],
-            'Nt': ['int', 2000]
+            'Nt': ['int', 2000],
+            'output_freq': ['int', 50]
         }
         self._var = var_define(self._default_var)
         
