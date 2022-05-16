@@ -104,7 +104,7 @@ class WorkManagerPage(tk.Frame):
     Pre_task = ["Ground State","Geometry Optimisation"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
     Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
-
+    engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
     simulation_type = [('electrons', 'None', '<<event>>'),
                         ('electrons', 'Delta Pulse', '<<ShowTimeDependentPage>>'),
@@ -118,11 +118,9 @@ class WorkManagerPage(tk.Frame):
                         ]
                         
 
-    def __init__(self, parent, directory, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
-        
-        self.directory = directory
-       
+               
         self._default_var = {
             'proj_path' : ['str'],
             'proj_name' : ['str'],
@@ -130,7 +128,8 @@ class WorkManagerPage(tk.Frame):
             'sub_task' : ['str'],
             'dynamics': ['str','--dynamics type--'],
             'laser': ['str','-- laser type--'],
-            'plot':['str', '-- choose option --']
+            'plot':['str', '-- choose option --'],
+            'engine' : ['str','auto-mode'],
         }
 
         self._var = var_define(self._default_var)
@@ -186,19 +185,19 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
         self.Frame2_label_1['font'] = myfont()
-        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4, pady=4)       
+        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4,  pady=10)       
 
         self.Frame2_Button_1 = tk.Button(common_frame,text="Select",activebackground="#78d6ff",command=self._get_geometry_file)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=1, row= 0, padx=10, pady=4)       
+        self.Frame2_Button_1.grid(column=1, row= 0, padx=10,  pady=10)       
 
         self.message_label = tk.Label(common_frame, text='', foreground='red')
         self.message_label['font'] = myfont()
-        self.message_label.grid(column=2, row= 0, padx=10, pady=4)       
+        self.message_label.grid(column=2, row= 0, padx=10,  pady=10)       
         
         self.Frame2_Button_1 = tk.Button(common_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=3, row= 0, padx=10, pady=4)
+        self.Frame2_Button_1.grid(column=3, row= 0, padx=10,  pady=10)
 
         # sub_frame = tk.Frame(self.Frame2)
         # sub_frame.grid(row=1, column=0)
@@ -206,13 +205,22 @@ class WorkManagerPage(tk.Frame):
         # job_frame = tk.Frame(self.Frame2)
         # job_frame.grid(row=1, column=0)
 
+        self.engine_source_label = tk.Label(common_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
+        self.engine_source_label['font'] = myfont()
+        self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
+            
+        self.engine_source = ttk.Combobox(common_frame,width=20, textvariable= self._var['engine'], values= self.engine_list)
+        self.engine_source['font'] = myfont()
+        self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
+        self.engine_source['state'] = 'readonly'
+
         self.label_proj = tk.Label(common_frame,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.label_proj['font'] = myfont()
-        self.label_proj.grid(column=0, row= 1, sticky='w', padx=4)       
+        self.label_proj.grid(row= 2, column=0,  sticky='w', padx=4, pady=10)       
             
         self.entry_task = ttk.Combobox(common_frame,width=20, textvariable= self._var['task'], values= self.MainTask)
         self.entry_task['font'] = myfont()
-        self.entry_task.grid(column=1, row= 1,columnspan=2, padx=4, pady=4)
+        self.entry_task.grid(row= 2, column=1, columnspan=2, padx=4, pady=10)
        
         self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
         self.entry_task['state'] = 'readonly'
@@ -222,7 +230,7 @@ class WorkManagerPage(tk.Frame):
         # self.Frame2_label_3.grid(column=0, row= 2, sticky='we',  pady=10, padx=10)   
 
         self.sub_task_frame = tk.Frame(self.Frame2)
-        self.sub_task_frame.grid(row=2, column=0, sticky='w')
+        self.sub_task_frame.grid(row=1, column=0, sticky='w')
         # self.sub_task_frame.grid_columnconfigure(0, weight=1)
         # self.sub_task_frame.grid_columnconfigure(1, weight=1)
         # self.sub_task_frame.grid_columnconfigure(3, weight=1)
@@ -262,12 +270,12 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame2_label_3 = tk.Label(common_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.Frame2_label_3['font'] = myfont()
-        self.Frame2_label_3.grid(column=0, row= 0, sticky='nswe', padx=4, pady=10) 
+        self.Frame2_label_3.grid( row= 0,column=0, sticky='nswe', padx=4, pady=10) 
         
         self.entry_sub_task = ttk.Combobox(common_sub_task_frame, width= 20, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myfont()
         self.entry_sub_task.current(0)
-        self.entry_sub_task.grid(column=1, row= 0, sticky='nswe',  pady=10, padx=65)       
+        self.entry_sub_task.grid(row= 0, column=1, sticky='nswe',  pady=10, padx=68)       
         self.entry_sub_task['state'] = 'readonly'  
 
         self.entry_sub_task.bind("<<ComboboxSelected>>", self.pick_sub_task)
@@ -357,17 +365,12 @@ class WorkManagerPage(tk.Frame):
     def _open_project(self):
         self.event_generate('<<OpenExistingProject>>')
 
-    def get_project_name(self):
-        project_name = self.entry_proj.get()
-        return project_name
-
     def _create_project(self):
         self.event_generate('<<CreateNewProject>>')
 
     def _get_geometry_file(self):
         self.event_generate('<<GetMolecule>>')
         
-    
     def _geom_visual(self):
         self.event_generate('<<VisualizeMolecule>>')
 
@@ -384,8 +387,11 @@ class WorkManagerPage(tk.Frame):
     def show_upload_label(self):
         show_message(self.message_label,"Uploaded")
 
-    def get_sub_task(self):
-        return self._var['sub_task'].get()
+    def get_value(self, key):
+        return self._var[key].get()
+
+    def set_value(self,key,value):
+        self._var[key].set(value)
         
     def refresh_var(self):
         for key, value in self._default_var.items():
@@ -3114,6 +3120,7 @@ class JobSubPage(View1):
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
         self.ip.set(remote_profile['ip'])
+        self.port.set(remote_profile['port'])
         self.rpath.set(remote_profile['remote_path'])
 
 
