@@ -2050,11 +2050,10 @@ class View1(tk.Frame):
 
 class TimeDependentPage(View1):
 
-    def __init__(self, parent, controller, engine, *args, **kwargs):
+    def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
+
         self.parent = parent
-        self.controller = controller
-        
         self.engine = engine
         self.job = None
 
@@ -2363,9 +2362,9 @@ class TimeDependentPage(View1):
 
 class LaserDesignPage(tk.Frame):
 
-    def __init__(self, parent, controller, engine, *args, **kwargs):
+    def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+
         self.engine = engine
         
         self.job = None
@@ -2673,9 +2672,8 @@ class LaserDesignPage(tk.Frame):
 
 class PlotSpectraPage(tk.Frame):
 
-    def __init__(self, parent, controller, engine, *args, **kwargs):
+    def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
         self.engine = engine
         
         self._default_var = {
