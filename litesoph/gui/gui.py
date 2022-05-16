@@ -398,7 +398,7 @@ class GUIAPP(tk.Tk):
             messagebox.showinfo(title= "Info", message=check[1])
             return
         self._frames[v.WorkManagerPage].refresh_var()
-        self._show_frame(v.TimeDependentPage, self, self.engine)
+        self._show_frame(v.TimeDependentPage, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
         self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
         self.rt_tddft_delta_view.set_sub_button_state('disabled')
@@ -476,7 +476,7 @@ class GUIAPP(tk.Tk):
             messagebox.showinfo(title= "Info", message=check[1])
             return
         self._frames[v.WorkManagerPage].refresh_var()
-        self._show_frame(v.LaserDesignPage, self, self.engine)
+        self._show_frame(v.LaserDesignPage, self.engine)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
         self.rt_tddft_laser_view.engine = self.engine
 
@@ -557,7 +557,7 @@ class GUIAPP(tk.Tk):
             messagebox.showinfo(title= "Info", message=check[1])
             return
         self._frames[v.WorkManagerPage].refresh_var()
-        self._show_frame(v.PlotSpectraPage, self, self.engine)
+        self._show_frame(v.PlotSpectraPage, self.engine)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
         self.spectra_view.Frame1_Button2.config(state='active')
