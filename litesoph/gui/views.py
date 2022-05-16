@@ -2143,15 +2143,17 @@ class TimeDependentPage(View1):
             'mooc': ['int',0],
             'prop': ['int',0],
             'elec': ['int',0],
-            'chp':['int'],
+            'output_freq': ['int']
         }
         self.gpaw_td_default = {
             'dt': ['float', 10],
-            'Nt': ['int', 2000]
+            'Nt': ['int', 2000],
+            'output_freq': ['int', 1]
         }
         self.oct_td_default = {
             'dt': ['float', 2.4],
-            'Nt': ['int', 1500]
+            'Nt': ['int', 1500],
+            'output_freq': ['int', 50]
         }
         self.nwchem_td_default = {
             'dt': ['float', 2.4],
@@ -2300,9 +2302,9 @@ class TimeDependentPage(View1):
         self.Frame2_lab['font'] = myFont
         self.Frame2_lab.grid(row=value+11, column=6, ipady=5,)
 
-        self.entry_chp = Onlydigits(self.Frame2, textvariable=self._var['chp'], width=5)
-        self.entry_chp['font'] = myFont
-        self.entry_chp.grid(row=value+11, column=8, ipady=5,)
+        self.entry_out_frq = Onlydigits(self.Frame2, textvariable=self._var['output_freq'], width=5)
+        self.entry_out_frq['font'] = myFont
+        self.entry_out_frq.grid(row=value+11, column=8, ipady=5,)
 
     def pol_option(self):
         if self._var['var1'] == 1:
@@ -2332,7 +2334,8 @@ class TimeDependentPage(View1):
             'absorption_kick':kick,
             'analysis_tools':self.analysis_tool(),
             'propagate': tuple(inp_list),
-            'pol_dir': self.read_pol_dir()
+            'pol_dir': self.read_pol_dir(),
+            'output_freq': self._var['output_freq'].get()
         }
 
         td_dict_oct = {
@@ -2341,7 +2344,9 @@ class TimeDependentPage(View1):
             'td_propagator' : 'aetrs',
             'strength': self._var['strength'].get(),
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
-            'pol_dir': self.read_pol_dir()
+            'pol_dir': self.read_pol_dir(),
+            'output_freq': self._var['output_freq'].get(),
+            'property': self.get_property_list()
           }
 
         td_dict_nwchem = {
@@ -2352,7 +2357,7 @@ class TimeDependentPage(View1):
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
             'pol_dir': self.read_pol_dir(),
             'extra_prop':self.extra_prop(),
-            'nrestart':self._var['chp'].get()
+            'output_freq': self._var['output_freq'].get()
             }
 
         if self.engine == 'gpaw':
