@@ -3068,9 +3068,13 @@ class JobSubPage(View1):
         self.Frame_label['font'] = myfont1()
         self.Frame_label.grid(row=0, column=3)         
 
-        back = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
+        back = tk.Button(self.frame_button, text="Back ",activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Show{self.task}Page>>')])
         back['font'] = myfont()
-        back.grid(row=0, column=0, padx=40)
+        back.pack(side= tk.LEFT)
+
+        back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
+        back2main['font'] = myfont()
+        back2main.pack(side= tk.RIGHT)
     
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
