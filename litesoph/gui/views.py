@@ -124,12 +124,7 @@ class WorkManagerPage(tk.Frame):
         label_design.update({"font":myfont()})
         
         self.plot_option = None
-        # myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        # j= font.Font(family ='Courier', size=20,weight='bold')
-        # k= font.Font(family ='Courier', size=40,weight='bold')
-        # l= font.Font(family ='Courier', size=15,weight='bold')
 
-        # self.Frame1 =tk.Frame(self, background='light yellow')
         self.Frame1 =tk.Frame(self)
         self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S), pady=10)
        
@@ -139,9 +134,6 @@ class WorkManagerPage(tk.Frame):
         self.Frame1.configure(cursor="fleur")
 
         self.grid_columnconfigure(0, weight=1)
-        # self.grid_rowconfigure(0, weight=1)
-        # self.grid_rowconfigure(1, weight=1)
-        # self.grid_rowconfigure(2, weight=1)
         self.label_proj = tk.Label(self.Frame1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)        
@@ -159,7 +151,6 @@ class WorkManagerPage(tk.Frame):
         self.button_project['font'] = myfont()
         self.button_project.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10)
 
-        # self.Frame2 = tk.LabelFrame(self, background='light yellow')
         self.Frame2 = tk.Frame(self)
         self.Frame2.grid(column=0, row=1, sticky=(tk.N, tk.W, tk.E, tk.S))
         self.grid_columnconfigure(1, weight=1)
@@ -187,12 +178,6 @@ class WorkManagerPage(tk.Frame):
         self.Frame2_Button_1['font'] = myfont()
         self.Frame2_Button_1.grid(column=3, row= 0, padx=10,  pady=10)
 
-        # sub_frame = tk.Frame(self.Frame2)
-        # sub_frame.grid(row=1, column=0)
-
-        # job_frame = tk.Frame(self.Frame2)
-        # job_frame.grid(row=1, column=0)
-
         self.engine_source_label = tk.Label(common_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.engine_source_label['font'] = myfont()
         self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
@@ -213,25 +198,13 @@ class WorkManagerPage(tk.Frame):
         self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
         self.entry_task['state'] = 'readonly'
 
-        # self.Frame2_label_3 = tk.Label(common_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'], justify='left')
-        # self.Frame2_label_3['font'] = myfont()
-        # self.Frame2_label_3.grid(column=0, row= 2, sticky='we',  pady=10, padx=10)   
-
         self.sub_task_frame = tk.Frame(self.Frame2)
         self.sub_task_frame.grid(row=1, column=0, sticky='w')
-        # self.sub_task_frame.grid_columnconfigure(0, weight=1)
-        # self.sub_task_frame.grid_columnconfigure(1, weight=1)
-        # self.sub_task_frame.grid_columnconfigure(3, weight=1)
-
-        # self.Frame2_label_3 = tk.Label(self.Frame2, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
-        # self.Frame2_label_3['font'] = myfont()
-        # self.Frame2_label_3.grid(column=0, row= 1) 
 
         self.show_sub_task_frame(self.sub_task_frame)
        
         self.Frame3 = tk.Frame(self )
         self.Frame3.grid(column=0, row=2,  sticky=(tk.N, tk.W, tk.E, tk.S)) 
-        # self.Frame3.pack(side=tk.BOTTOM)       
 
         self.Frame3.configure(relief='groove')
         self.Frame3.configure(borderwidth="2")
@@ -247,8 +220,6 @@ class WorkManagerPage(tk.Frame):
         self.show_sub_task_frame(self.sub_task_frame)
 
     def show_sub_task_frame(self,parent):
-
-        # parent.grid_remove()
 
         for widget in parent.winfo_children():
             widget.destroy()
@@ -271,7 +242,6 @@ class WorkManagerPage(tk.Frame):
            
 
     def show_sim_task_frame(self, parent):
-        # parent.grid_remove()
 
         for widget in parent.winfo_children():
             widget.destroy()
@@ -297,9 +267,6 @@ class WorkManagerPage(tk.Frame):
 
     def show_plot_option_frame(self, parent):
         
-        # plot_option_frame = tk.Frame(parent)
-        # plot_option_frame.grid(row=0, column=1)
-
         self.plot_option = ttk.Combobox(parent, width= 15, textvariable=self._var['plot'], value = ['Spectrum', 'Dipole Moment', 'Laser'])
         self.plot_option['font'] = myfont()
         self.plot_option.set('--choose option--')
