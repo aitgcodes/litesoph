@@ -2371,14 +2371,25 @@ class TimeDependentPage(View1):
     def analysis_tool(self):
         if self._var['wfn'].get() == 1:
             return("wavefunction")
+
+    def get_property_list(self):
+        prop_list = []
+        if self._var['wfn'].get() == 1:
+            prop_list.append("ksd")
+        if self._var['mooc'].get() == 1:
+            prop_list.append("population_correlation")    
+        return prop_list       
         
     def extra_prop(self):
-        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 1:
-            return("mooc&charge")
-        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
-            return("moocc")
-        if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
-            return("charge")
+        # if self._var['mooc'].get() == 1:
+        #     messagebox.showinfo(message="Population Correlation is not implemented yet.")
+        #     self.checkbox3.config(state = 'disabled')            
+            return("mooc")
+
+        # if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
+        #     return("moocc")
+        # if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
+        #     return("charge")
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
