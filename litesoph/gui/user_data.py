@@ -41,7 +41,7 @@ def update_proj_list(project: Path) -> None:
 def update_remote_profile_list(profile: dict) -> None:
     """It adds new profile to the list. If the profile is already present it's moved to the top. """
 
-    line  = profile['username'] + '\t' + profile['ip'] + '\t'+ profile['remote_path'] + '\n'
+    line  = profile['username'] + '\t' + profile['ip'] + '\t'+ profile['port'] + '\t' + profile['remote_path'] + '\n'
     profile_list = []
 
     try:
@@ -72,6 +72,7 @@ def get_remote_profile() -> dict:
         profile = {
             'username' : profile_list[0],
             'ip' : profile_list[1],
-            'remote_path' : profile_list[2]
+            'port': profile_list[2],
+            'remote_path' : profile_list[3]
         } 
         return profile
