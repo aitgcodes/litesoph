@@ -124,7 +124,7 @@ class GUIAPP(tk.Tk):
             '<<VisualizeMolecule>>': self._on_visualize,
             '<<CreateNewProject>>' : self._on_create_project,
             '<<OpenExistingProject>>' : self._on_open_project,
-            '<<SelectTask>>' : self._on_task_select,
+            '<<SelectProceed>>' : self._on_proceed,
             '<<ClickBackButton>>' : self._on_back_button,
             '<<RefreshConfig>>': self._refresh_config,
             # '<<SaveGroundStateScript>>' : self._on_gs_save_button,
@@ -235,16 +235,34 @@ class GUIAPP(tk.Tk):
             msg = "Cannot visualize molecule."
             detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/.litesoph/lsconfig.ini".format(cmd.split()[0])
             messagebox.showerror(title='Error', message=msg, detail=detail) 
+    
+    def _on_proceed(self, *_):
 
-    def _on_task_select(self, *_):
-        
-        sub_task = self._frames[v.WorkManagerPage].get_value('sub_task')
+        simulation_type = [('electrons', 'None', '<<event>>'),
+                        ('electrons', 'Delta Pulse', '<<ShowTimeDependentPage>>'),
+                        ('electrons', 'Gaussian Pulse', '<<ShowLaserDesignPage>>'),
+                        ('electrons', 'Customised Pulse', '<<event>>'),
+                        ('electron+ion', 'None', '<<event>>'),
+                        ('electron+ion', 'Delta Pulse', '<<event>>'),
+                        ('electron+ion', 'Gaussian Pulse', '<<event>>'),
+                        ('electron+ion', 'Customised Pulse', '<<event>>'),
+                        ('ions', 'None', '<<event>>'),
+                        ('ions', 'Delta Pulse', '<<event>>'),
+                        ('ions', 'Gaussian Pulse', '<<event>>'),
+                        ('ions', 'Customised Pulse', '<<event>>')]
 
-        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
+        w = self._frames[v.WorkManagerPage]
+        sub_task = w.get_value('sub_task')
+        task = w.get_value('task')
+        self.engine = w.get_value('engine')
         
+        if task == '--choose job task--':
+            messagebox.showerror(title='Error', message="Please choose job type")
+            return
+
         if self.engine == 'auto-mode' and sub_task != "Ground State":
-            messagebox.showerror(title= "Error", message="Please choose diffrent source option" )
-            
+            messagebox.showerror(title= "Error", message="Please choose different source option" )
+            return
 
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
@@ -252,10 +270,22 @@ class GUIAPP(tk.Tk):
                 self.event_generate('<<ShowGroundStatePage>>')
             else:
                 messagebox.showerror(title = 'Error', message= "Upload geometry file")
-        # elif sub_task == "Delta Kick":
-        #     self.event_generate('<<ShowTimeDependentPage>>')   
-        # elif sub_task == "Gaussian Pulse":    
-        #     self.event_generate('<<ShowLaserDesignPage>>')   
+                return
+
+        if task == "Simulations":
+
+            if w.get_value('dynamics') == '--dynamics type--' or w.get_value('laser') == '-- laser type--':
+                messagebox.showerror(title= 'Error',message="Please select the Sub task options")
+                return
+
+            for dynamics, laser, event in simulation_type:
+                if dynamics == w.get_value('dynamics') and laser == w.get_value('laser'):
+                    if event == "<<event>>":
+                        messagebox.showinfo(title="Info", message="Option not Implemented")
+                        return
+                    else:
+                        self.event_generate(event)
+
         elif sub_task == "Compute Spectrum":
             self.event_generate('<<ShowPlotSpectraPage>>')   
         elif sub_task == "Dipole Moment and Laser Pulse":

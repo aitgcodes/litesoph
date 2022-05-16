@@ -101,22 +101,10 @@ class StartPage(tk.Frame):
 class WorkManagerPage(tk.Frame):
 
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
-    Pre_task = ["Ground State","Geometry Optimisation"]
+    Pre_task = ["Ground State"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
     Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
-
-    simulation_type = [('electrons', 'None', '<<event>>'),
-                        ('electrons', 'Delta Pulse', '<<ShowTimeDependentPage>>'),
-                        ('electrons', 'Gaussian Pulse', '<<ShowLaserDesignPage>>'),
-                        ('electron+ion', 'None', '<<event>>'),
-                        ('electron+ion', 'Delta Pulse', '<<event>>'),
-                        ('electron+ion', 'Gaussian Pulse', '<<event>>'),
-                        ('ions', 'None', '<<event>>'),
-                        ('ions', 'Delta Pulse', '<<event>>'),
-                        ('ions', 'Gaussian Pulse', '<<event>>')
-                        ]
-                        
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
@@ -334,27 +322,11 @@ class WorkManagerPage(tk.Frame):
 
     def pick_sub_task(self,*_):
         if self._var['sub_task'].get() == "Plot":
-            # print("here")
             self.show_plot_option_frame(self.sub_task_frame)
         else:
             if self.plot_option:
                 self.plot_option.destroy()    
-    # def show_plot_option(self):
-    #     if self._var['sub_task'].get() == "Plot":
-    #         print("here")
-    #         self.show_plot_option_frame(self.sub_task_frame)
             
-
-    def get_simulation_event(self): 
-        var1 = self._var['dynamics'].get()
-        var2 = self._var['laser'].get()
-        if var1 == '--dynamics type--' or var2 == '-- laser type--':
-            messagebox.showinfo(message="Please select the Sub task options")
-        else:
-            for item in self.simulation_type:
-                if item[0] == var1 and item[1] == var2:
-                    return item[2]
-
     def update_project_entry(self, proj_path):
         proj_path = pathlib.Path(proj_path)
         self._var['proj_path'].set(proj_path.parent)
@@ -377,21 +349,7 @@ class WorkManagerPage(tk.Frame):
     def proceed_button(self):
         """ event generate on proceed button"""
 
-        if self._var['task'].get() == '--choose job task--':
-            messagebox.showerror(title='Error', message="Please choose job type")
-            return
-
-        if self._var['engine'].get() == 'auto-mode' and self._var['sub_task'].get() != "Ground State":
-            messagebox.showerror(title= "Error", message="Please choose different source option" )
-            return
-
-        if self._var['task'].get() == "Simulations":
-            event = self.get_simulation_event()
-            if event:
-                print(event)
-                self.event_generate(event)
-        else:
-            self.event_generate('<<SelectTask>>')   
+        self.event_generate('<<SelectProceed>>')   
 
     def show_upload_label(self):
         show_message(self.message_label,"Uploaded")
