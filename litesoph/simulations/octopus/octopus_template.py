@@ -338,6 +338,68 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
         self.td = self.format_box() 
         temp = self.format_pol()
         self.template = temp.format(**self.temp_dict)
+    
+    def check_property_dependency(self, property_list:list):
+        """ Checks property dependency w/ ExptFeatures option"""
+
+        for property in property_list:
+            expt = self.get_dependent_features(property)   
+            if expt == 'yes':
+                value = expt
+                break
+            else:
+                value = 'no'
+                
+        return value     
+
+    def get_dependent_features(self, property_name):
+        """Returns the dependent features corresponding to the property"""
+        
+        for item in self.td_output:
+            if item[0] == property_name:
+                return item[1] 
+
+    def get_td_output(self):
+        """Selects and returns the td_output & expt_features to be added as a list"""
+
+        added_property = self.temp_dict["property"]   # added_property as list
+        td_output_list = []
+
+        for item in added_property:
+            if item in self.property_dict.keys():            
+                property_list = self.property_dict[item]
+
+                for property in property_list:
+                    td_output_list.append(property)
+
+        return td_output_list
+
+    def format_td_output_lines(property_list:list):
+        """ Adds TDOutput keywords and returns the template"""
+
+        line1 = "%TDOutput"
+        property_temp = ""
+
+        for prop in property_list:
+            property_temp = "\n ".join([property_temp,prop])
+            line2 = "%"
+            td_block = "\n".join([line1, property_temp, line2]) 
+
+        return td_block    
+
+    # def format_td_output_lines(self, template:str):
+    #     """ Adds TDOutput keywords and returns the template"""
+
+    #     (expt, td_out) = self.get_td_output()
+    #     expt_value = self.check_property_dependency()
+    #     expt_line = "ExperimentalFeatures = {}".format(expt_value)        
+    #     output_string = "+".join(td_out)
+    #     td_line = " ".join(["TDOutput",output_string])
+    #     tlines = template.splitlines()
+    #     tlines[5] = expt_line
+    #     temp = """\n""".join(tlines)
+    #     format_td_temp = "\n".join([temp,td_line])
+    #     return format_td_temp                       
         
 
 class OctTimedependentLaser(Task):
