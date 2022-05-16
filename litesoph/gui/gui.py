@@ -18,14 +18,12 @@ from litesoph.config import check_config, read_config
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.lsio.IO import read_file
-from litesoph.simulations import get_engine_task, models as m
+from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
 from litesoph.gui import views as v
 
-from litesoph.utilities.plot_spectrum import plot_spectrum 
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList
 from litesoph.simulations.filehandler import Status
-from litesoph.utilities.job_submit import SubmitLocal
 
 home = pathlib.Path.home()
 
@@ -94,14 +92,12 @@ class GUIAPP(tk.Tk):
         else:
             return True
 
-    # def _get_engine(self):
-    #     try:
-    #         self.engine = self.status.get_status('engine')
-    #     except KeyError:
-    #         self.engine = None
-    #         self.status_engine.set('')
-    #     else:
-    #         self.status_engine.set(self.engine)
+    def _get_engine(self):
+
+        engine_list = list(self.status.status_dict.keys())
+        if engine_list:
+            self.engine = engine_list[0]
+            self.status_engine.set(self.engine)
 
     def _refresh_config(self,*_):
         """reads and updates the lsconfig object from lsconfig.ini"""
@@ -172,13 +168,12 @@ class GUIAPP(tk.Tk):
 
     def _init_project(self, path):
         
-        self.engine = None
         path = pathlib.Path(path)
         if not self._status_init(path):       
             return
         self._change_directory(path)
         self.navigation.populate(self.directory)
-        #self._get_engine()
+        self._get_engine()
         update_proj_list(path)
 
     def _on_open_project(self, *_):
@@ -187,8 +182,9 @@ class GUIAPP(tk.Tk):
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
         if not project_path:
             return
-        #self._frames[v.WorkManagerPage].update_project_entry(project_path)
         self._init_project(project_path)
+        self._frames[v.WorkManagerPage].set_value('engine', self.engine)
+        
        
         
     def _on_create_project(self, *_):
@@ -214,7 +210,6 @@ class GUIAPP(tk.Tk):
         except FileExistsError as e:
             messagebox.showerror(title='Error', message = 'Project already exists', detail =e)
         else:
-            #self._frames[v.WorkManagerPage].update_project_entry(project_path)
             self._init_project(project_path)
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
             
@@ -224,7 +219,6 @@ class GUIAPP(tk.Tk):
         try:
             self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
         except Exception as e:
-            #print(e)
             return
         else:
             if self.geometry_file:
@@ -246,6 +240,12 @@ class GUIAPP(tk.Tk):
         
         sub_task = self._frames[v.WorkManagerPage].get_value('sub_task')
 
+        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
+        
+        if self.engine == 'auto-mode' and sub_task != "Ground State":
+            messagebox.showerror(title= "Error", message="Please choose diffrent source option" )
+            
+
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
             if path.exists() is True:
@@ -263,46 +263,10 @@ class GUIAPP(tk.Tk):
         elif sub_task == "Kohn Sham Decomposition":
                self.event_generate('<<ShowTcmPage>>')    
 
-        self._frames[v.WorkManagerPage].refresh_var()
-    # def _on_task_select(self, *_):
-        
-    #     sub_task = self._frames[v.WorkManagerPage].sub_task.get()
-
-    #     if sub_task  == "Ground State":
-    #         path = pathlib.Path(self.directory) / "coordinate.xyz"
-    #         if path.exists() is True:
-    #             self.event_generate('<<ShowGroundStatePage>>')
-    #         else:
-    #             messagebox.showerror(message= "Upload geometry file")
-    #     elif sub_task == "Delta Kick":
-    #         if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
-    #             self.event_generate('<<ShowTimeDependentPage>>')
-    #         else:
-    #             messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")       
-    #     elif sub_task == "Gaussian Pulse":
-    #         if self.status.check_status('gs_inp', 1) is True and self.status.check_status('gs_cal',1) is True:
-    #             self.event_generate('<<ShowLaserDesignPage>')
-    #         else:
-    #             messagebox.showerror(message=" Ground State Calculations not done. Please select Ground State under Preprocessing first.")
-    #     elif sub_task == "Spectrum":
-    #         if self.status.check_status('gs_cal', 1) is True:
-    #             if self.status.check_status('td_cal',1) is True or self.status.check_status('td_cal',2) is True:
-    #                 self.event_generate('<<ShowPlotSpectraPage>>')
-    #         else:
-    #             messagebox.showerror(message=" Please complete Ground State and Delta kick calculation.")
-    #     elif sub_task == "Dipole Moment and Laser Pulse":
-    #         if self.status.check_status('gs_cal', 1) is True and self.status.check_status('td_cal',2) is True:
-    #             self.event_generate('<<ShowDmLdPage>>')
-    #         else:
-    #             messagebox.showerror(message=" Please complete Ground State and Gaussian Pulse calculation.")
-    #     elif sub_task.get() == "Kohn Sham Decomposition":
-    #            self.event_generate('<<ShowTcmPage>>')    
-
 
     @staticmethod
     def _check_task_run_condition(task, network=False) -> bool:
         
-
         try:
            task.check_prerequisite(network)           
         except FileNotFoundError as e:
@@ -312,13 +276,12 @@ class GUIAPP(tk.Tk):
 ##----------------------Ground_State_task---------------------------------
 
     def _on_ground_state_task(self, *_):
-        self._show_frame(v.GroundStatePage, self)
+        self._frames[v.WorkManagerPage].refresh_var()
+        self._show_frame(v.GroundStatePage, self.engine)
         self.ground_state_view = self._frames[v.GroundStatePage]
         self.ground_state_view.set_sub_button_state('disabled')
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
-        #self.ground_state_task = Task(self.status, self.directory, self.lsconfig)
-
         self.bind('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
         self.bind('<<ViewGroundStateScript>>', lambda _ : self._on_gs_view_button())
         self.bind('<<SubLocalGroundState>>',  self._on_gs_run_local_button)
@@ -339,28 +302,16 @@ class GUIAPP(tk.Tk):
     def _validate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
         self.engine = inp_dict.pop('engine')
-        # if self.engine:
-        #     if self.engine != engine:
-        #         messagebox.showerror(message = f'This {self.directory.name} project was started with {self.engine} engine. \n If you want to use different engine. Please create new project with that engine')
-        #         return
         self.ground_state_task = get_engine_task(self.engine, 'ground_state', self.status, self.directory, self.lsconfig, inp_dict)
         self.ground_state_task.create_template()
         return self.ground_state_task.template
 
     def _gs_create_input(self, template=None):     
-        #confirm_engine = messagebox.askokcancel(message= "You have chosen {} engine. Rest of the calculations will use this engine.".format(self.ground_state_task.engine_name))
-        #if confirm_engine is True:
-            #self.engine = self.ground_state_task.engine_name
             self.ground_state_task.write_input(template)
-            #self.status.update_status('engine', self.engine)
             self.status.set_new_task(self.engine, self.ground_state_task.task_name)
             self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.script', 1)
             self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
-            self.status_engine.set(self.engine)
             self.ground_state_view.set_label_msg('saved')
-        #else:
-        #    pass  
-        #self.check = False
 
     def _on_gs_run_local_button(self, *_):
         
@@ -397,6 +348,16 @@ class GUIAPP(tk.Tk):
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
+        
+        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
+        check = check_task_pre_conditon(self.engine, 'rt_tddft_delta', self.status)
+        
+        if check[0]:
+            self.status_engine.set(self.engine)    
+        else:
+            messagebox.showinfo(title= "Info", message=check[1])
+            return
+        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.TimeDependentPage, self, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
         self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
@@ -465,6 +426,16 @@ class GUIAPP(tk.Tk):
 ##----------------------Time_dependent_task_laser---------------------------------
 
     def _on_rt_tddft_laser_task(self, *_):
+
+        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
+        check = check_task_pre_conditon(self.engine, 'rt_tddft_laser', self.status)
+        
+        if check[0]:
+            self.status_engine.set(self.engine)    
+        else:
+            messagebox.showinfo(title= "Info", message=check[1])
+            return
+        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.LaserDesignPage, self, self.engine)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
         self.rt_tddft_laser_view.engine = self.engine
@@ -536,6 +507,16 @@ class GUIAPP(tk.Tk):
 ##----------------------plot_delta_spec_task---------------------------------
     
     def _on_spectra_task(self, *_):
+
+        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
+        check = check_task_pre_conditon(self.engine, 'spectrum', self.status)
+        
+        if check[0]:
+            self.status_engine.set(self.engine)    
+        else:
+            messagebox.showinfo(title= "Info", message=check[1])
+            return
+        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.PlotSpectraPage, self, self.engine)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
@@ -556,12 +537,9 @@ class GUIAPP(tk.Tk):
 
     def _on_spectra_run_local_button(self, *_):
         
-       
         self._validate_spectra_input()
         self._spectra_create_input()
         self.spectra_task.prepare_input()
-
-        
         self._run_local(self.spectra_task, np=1)
         
 
@@ -587,9 +565,15 @@ class GUIAPP(tk.Tk):
 
     def _on_tcm_task(self, *_):
 
-        if self.engine != 'gpaw':
-            messagebox.showinfo(title='Info', message='Curretly this option is only implemented for Gpaw. ')
+        check = check_task_pre_conditon(self.engine, 'tcm', self.status)
+        
+        if check[0]:
+            self.status_engine.set(self.engine)    
+        else:
+            messagebox.showinfo(title= "Info", message=check[1])
             return
+
+        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.TcmPage, self._window)
         self.tcm_view = self._frames[v.TcmPage]
         

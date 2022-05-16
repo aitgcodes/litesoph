@@ -376,10 +376,19 @@ class WorkManagerPage(tk.Frame):
 
     def proceed_button(self):
         """ event generate on proceed button"""
+
+        if self._var['task'].get() == '--choose job task--':
+            messagebox.showerror(title='Error', message="Please choose job type")
+            return
+
+        if self._var['engine'].get() == 'auto-mode' and self._var['sub_task'].get() != "Ground State":
+            messagebox.showerror(title= "Error", message="Please choose different source option" )
+            return
+
         if self._var['task'].get() == "Simulations":
             event = self.get_simulation_event()
             if event:
-                # print(event)
+                print(event)
                 self.event_generate(event)
         else:
             self.event_generate('<<SelectTask>>')   
@@ -768,9 +777,8 @@ class GeomOptPage(tk.Frame):
 
 class View_note(tk.Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
         self.parent = parent
         self.job = None
 
@@ -864,10 +872,10 @@ class GroundStatePage(View_note):
     nwc_theory = ["SCF","DFT"]
     gpfnsmear = ["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"] 
     
-    def __init__(self, parent, controller, *args, **kwargs):
-        super().__init__(parent,controller, *args, **kwargs)
-        self.controller = controller
+    def __init__(self, parent, engine, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         
+        self.engine = engine
         self.job = None
 
         self._default_var = {
@@ -1973,7 +1981,6 @@ class GroundStatePage(View_note):
             'box': self._var['shape'].get(),
             'properties': 'get_potential_energy()',
             'engine':'gpaw',
-            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }   
 
         inp_dict_nw = {
@@ -1988,7 +1995,6 @@ class GroundStatePage(View_note):
             'multip' : self._var['multip'].get(),
             'maxiter' : self._var['maxiter'].get(),
             'engine':'nwchem',
-            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }
 
         inp_dict_oct = {
@@ -2010,7 +2016,6 @@ class GroundStatePage(View_note):
             'box':{'shape':self._var['shape'].get()},
             'unit_box' : self._var['unit_box'].get(),
             'engine':'octopus',
-            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }      
 
         if self.engine == "nwchem":
