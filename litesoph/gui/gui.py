@@ -37,8 +37,7 @@ class GUIAPP(tk.Tk):
         self.settings_model = m.SettingsModel
         self._load_settings()
         self.lsconfig = lsconfig
-        self.directory = pathlib.Path(self.lsconfig.get("project_path", "lsproject", fallback=str(home)))
-    
+        self.directory = None 
 
         menu_class = get_main_menu_for_os('Linux')
         menu = menu_class(self, self.settings)
@@ -74,13 +73,17 @@ class GUIAPP(tk.Tk):
         self._show_page_events()
         self._bind_event_callbacks()
         self._show_frame(v.StartPage)
-        self.after(1000, self.navigation.populate(self.directory))
+        self.after(1000, self.update_project_dir_tree())
         self.main_window_size()
 
+    def update_project_dir_tree(self):
+        if self.directory:
+            self.navigation.populate(self.directory)
 
     def main_window_size(self):
         self.resizable(True, True)
         self.minsize(700,600)
+        self.maxsize(1200, 750)
 
     def _status_init(self, path):
         """Initializes the status object."""
@@ -257,7 +260,11 @@ class GUIAPP(tk.Tk):
         sub_task = w.get_value('sub_task')
         task = w.get_value('task')
         self.engine = w.get_value('engine')
-        
+
+        if not self.directory:
+            messagebox.showerror(title='Error', message='Please create project directory')
+            return
+            
         if task == '--choose job task--':
             messagebox.showerror(title='Error', message="Please choose job type")
             return
