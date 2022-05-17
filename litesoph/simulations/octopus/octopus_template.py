@@ -378,44 +378,40 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
     def get_td_output(self):
         """Selects and returns the td_output & expt_features to be added as a list"""
 
-        added_property = self.temp_dict["property"]   # added_property as list
         td_output_list = []
 
-        for item in added_property:
+        for item in self.property_list:
             if item in self.property_dict.keys():            
-                property_list = self.property_dict[item]
+                _list = self.property_dict[item]
 
-                for property in property_list:
+                for property in _list:
                     td_output_list.append(property)
 
         return td_output_list
 
-    def format_td_output_lines(property_list:list):
+    def format_td_output_lines(self):
         """ Adds TDOutput keywords and returns the template"""
 
         line1 = "%TDOutput"
         property_temp = ""
-
-        for prop in property_list:
+        for prop in self.td_out_list:
             property_temp = "\n ".join([property_temp,prop])
             line2 = "%"
             td_block = "\n".join([line1, property_temp, line2]) 
 
-        return td_block    
+        td_line = f"""
+TDOutputComputeInterval = {self.temp_dict['output_freq']}
+ParStates = {self.temp_dict['par_states']}"""
+        td_out_temp = "\n".join([td_block, td_line])
 
-    # def format_td_output_lines(self, template:str):
-    #     """ Adds TDOutput keywords and returns the template"""
+        return td_out_temp
 
-    #     (expt, td_out) = self.get_td_output()
-    #     expt_value = self.check_property_dependency()
-    #     expt_line = "ExperimentalFeatures = {}".format(expt_value)        
-    #     output_string = "+".join(td_out)
-    #     td_line = " ".join(["TDOutput",output_string])
-    #     tlines = template.splitlines()
-    #     tlines[5] = expt_line
-    #     temp = """\n""".join(tlines)
-    #     format_td_temp = "\n".join([temp,td_line])
-    #     return format_td_temp                       
+    # def create_template(self):
+    #     self.td = self.format_box() 
+    #     temp = self.format_pol()
+    #     self.template = temp.format(**self.temp_dict)    
+
+    def create_template(self):
         
 
 class OctTimedependentLaser(Task):
