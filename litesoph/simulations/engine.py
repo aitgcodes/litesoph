@@ -84,8 +84,7 @@ class EngineGpaw(EngineStrategy):
 ##### Please Provide the Excutable Path or environment of GPAW 
 
 eval "$(conda shell.bash hook)"
-conda activate <environment name>
-            """
+conda activate <environment name>\n"""
         return job_script
 
 class EngineOctopus(EngineStrategy):
@@ -191,6 +190,5 @@ class EngineNwchem(EngineStrategy):
 #eval "$(conda shell.bash hook)"
 #conda activate <environment name>
 
-#module load nwchem
-            """
+#module load nwchem\n"""
         return job_script
