@@ -3251,7 +3251,7 @@ class TextViewerPage(tk.Frame):
 
         text_scroll.config(command= self.text_view.yview)
 
-        save = tk.Button(self, text="Save",activebackground="#78d6ff",command=self.save)
+        save = tk.Button(self, text="Save",activebackground="#78d6ff",command=self._on_save_button)
         save['font'] = myFont
         save.place(x=320, y=380)
 
@@ -3265,7 +3265,7 @@ class TextViewerPage(tk.Frame):
     def insert_text(self, text):
         self.text_view.insert(tk.END, text)
  
-    def save(self):
+    def _on_save_button(self):
         self.save_txt = self.text_view.get(1.0, tk.END)
         self.event_generate(f'<<Save{self.task_name}>>')
     
