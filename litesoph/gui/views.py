@@ -1,7 +1,5 @@
-from re import I
 import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
 from  PIL import Image,ImageTk
 from tkinter import font
@@ -11,8 +9,7 @@ import pathlib
 
 from litesoph.gui import images
 from litesoph.simulations.filehandler import show_message
-from litesoph.gui.input_validation import Onlydigits, Onechar, Decimalentry, Validatedconv, Fourchar
-from litesoph.gui.widgets import LabelInput
+from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 
 class StartPage(tk.Frame):
