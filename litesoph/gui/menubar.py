@@ -69,9 +69,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from tkinter import font
 
-from . import images
 
 class GenericMainMenu(tk.Menu):
   """The Application's main menu"""
