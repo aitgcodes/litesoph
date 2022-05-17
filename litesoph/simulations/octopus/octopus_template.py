@@ -192,6 +192,7 @@ class OctTimedependentState(Task):
             'scratch' : 'yes',
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
+            'expt_feature': 'no',
             'name':'H',               # name of species
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
@@ -218,7 +219,9 @@ class OctTimedependentState(Task):
             'strength': {},
             'e_pol': [1,0,0],
 
-            'property': ['default', 'ksd']            
+            'property': ['default'],
+            'output_freq': 50 ,
+            'par_states' : 'auto'          
             }
 
     property_dict = {
@@ -237,7 +240,7 @@ WorkDir = '.'
 FromScratch = yes               
 CalculationMode = td
 Dimensions = {dimension} 
-
+ExperimentalFeatures = {expt_feature}    
 Unitsoutput = ev_angstrom       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
@@ -270,12 +273,22 @@ TDPolarizationDirection = 1
         self.user_input = user_input
         self.temp_dict = self.default_param 
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
-        self.temp_dict.update(status.get_status('ground_state.param'))
+        self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
+        self.initialise_input()
+
+    def initialise_input(self):
+        
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
-        self.check_pol()
+        added_property = self.temp_dict['property']
         self.convert_unit()
+        self.check_pol()
+        self.property_list = ['default']
+        for prop in added_property:            
+            self.property_list.append(prop)
+        self.td_out_list = self.get_td_output()  
+        self.check_property_dependency(self.td_out_list)   
 
     def convert_unit(self):
         self.temp_dict['time_step'] = round(self.temp_dict['time_step']*as_to_au, 2)  
@@ -321,6 +334,75 @@ TDPolarizationDirection = 1
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
+
+    def check_property_dependency(self, property_list:list):
+        """ Checks property dependency w/ ExptFeatures option"""
+
+        for property in property_list:
+            expt = self.get_dependent_features(property)   
+            if expt == 'yes':
+                value = expt
+                break
+            else:
+                value = 'no'
+        self.temp_dict['expt_feature'] = value
+
+        for property in property_list:
+            if property == 'td_occup':
+                self.temp_dict['par_states'] = 'no'      
+                
+    def get_dependent_features(self, property_name):
+        """Returns the dependent features corresponding to the property"""
+        
+        for item in self.td_output:
+            if item[0] == property_name:
+                return item[1] 
+
+    def get_td_output(self):
+        """Selects and returns the td_output & expt_features to be added as a list"""
+
+        td_output_list = []
+
+        for item in self.property_list:
+            if item in self.property_dict.keys():            
+                _list = self.property_dict[item]
+
+                for property in _list:
+                    td_output_list.append(property)
+
+        return td_output_list
+
+    def format_td_output_lines(self):
+        """ Adds TDOutput keywords and returns the template"""
+
+        line1 = "%TDOutput"
+        property_temp = ""
+        for prop in self.td_out_list:
+            property_temp = "\n ".join([property_temp,prop])
+            line2 = "%"
+            td_block = "\n".join([line1, property_temp, line2]) 
+
+        td_line = f"""
+TDOutputComputeInterval = {self.temp_dict['output_freq']}
+ParStates = {self.temp_dict['par_states']}"""
+        td_out_temp = "\n".join([td_block, td_line])
+
+        return td_out_temp
+
+    # def create_template(self):
+    #     self.td = self.format_box() 
+    #     temp = self.format_pol()
+    #     self.template = temp.format(**self.temp_dict)    
+
+    def create_template(self):
+        
+        self.td = self.format_box() 
+        _temp = self.format_pol()
+        td_temp = self.format_td_output_lines()
+        temp = "\n".join([_temp, td_temp])
+
+        self.template = temp.format(**self.temp_dict)
+               
     
     @staticmethod
     def get_network_job_cmd(np):
@@ -333,74 +415,7 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
 
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
-
-    def create_template(self):
-        self.td = self.format_box() 
-        temp = self.format_pol()
-        self.template = temp.format(**self.temp_dict)
     
-    def check_property_dependency(self, property_list:list):
-        """ Checks property dependency w/ ExptFeatures option"""
-
-        for property in property_list:
-            expt = self.get_dependent_features(property)   
-            if expt == 'yes':
-                value = expt
-                break
-            else:
-                value = 'no'
-                
-        return value     
-
-    def get_dependent_features(self, property_name):
-        """Returns the dependent features corresponding to the property"""
-        
-        for item in self.td_output:
-            if item[0] == property_name:
-                return item[1] 
-
-    def get_td_output(self):
-        """Selects and returns the td_output & expt_features to be added as a list"""
-
-        added_property = self.temp_dict["property"]   # added_property as list
-        td_output_list = []
-
-        for item in added_property:
-            if item in self.property_dict.keys():            
-                property_list = self.property_dict[item]
-
-                for property in property_list:
-                    td_output_list.append(property)
-
-        return td_output_list
-
-    def format_td_output_lines(property_list:list):
-        """ Adds TDOutput keywords and returns the template"""
-
-        line1 = "%TDOutput"
-        property_temp = ""
-
-        for prop in property_list:
-            property_temp = "\n ".join([property_temp,prop])
-            line2 = "%"
-            td_block = "\n".join([line1, property_temp, line2]) 
-
-        return td_block    
-
-    # def format_td_output_lines(self, template:str):
-    #     """ Adds TDOutput keywords and returns the template"""
-
-    #     (expt, td_out) = self.get_td_output()
-    #     expt_value = self.check_property_dependency()
-    #     expt_line = "ExperimentalFeatures = {}".format(expt_value)        
-    #     output_string = "+".join(td_out)
-    #     td_line = " ".join(["TDOutput",output_string])
-    #     tlines = template.splitlines()
-    #     tlines[5] = expt_line
-    #     temp = """\n""".join(tlines)
-    #     format_td_temp = "\n".join([temp,td_line])
-    #     return format_td_temp                       
-        
 
 class OctTimedependentLaser(Task):
 
@@ -456,7 +471,7 @@ omega = {frequency}*eV
         self.user_input = user_input
         self.temp_dict = self.default_param
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
-        self.temp_dict.update(status.get_status('ground_state.param'))
+        self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape']         
         self.convert_unit()
@@ -561,7 +576,7 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
     def plot_spectrum(self):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
-        pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+        pol =  self.status.get_status('octopus.rt_tddft_delta.param.pol_dir')
         spec_file = self.task_data['spectra_file'][pol[0]]
         file = Path(self.project_dir) / spec_file
         img = file.parent / f"spec_{pol[1]}.png"
