@@ -240,7 +240,7 @@ WorkDir = '.'
 FromScratch = yes               
 CalculationMode = td
 Dimensions = {dimension} 
-
+ExperimentalFeatures = {expt_feature}    
 Unitsoutput = ev_angstrom       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
