@@ -8,9 +8,9 @@ def pre_condition_rt_tddft_delta(status):
         if status.get_status('gpaw.ground_state.done'):
             return (True, 'yes')
         else:
-            return (False, 'Please perform ground state calculation Electron Dynamics with delta pulse.')
+            return (False, 'Please perform ground state calculation before proceeding to Electron Dynamics with delta pulse.')
     except KeyError:
-        return (False, 'Please perform ground state calculation Electron Dynamics with delta pulse.')
+        return (False, 'Please perform ground state calculation before proceeding to Electron Dynamics with delta pulse.')
 
 def pre_condition_rt_tddft_laser(status):
 
