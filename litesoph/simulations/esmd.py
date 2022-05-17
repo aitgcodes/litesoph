@@ -86,14 +86,15 @@ class Task:
                 msg = f"Data file:{item} not found."
                 raise FileNotFoundError(msg)
     
-    def create_remote_job_script(self, np) -> str:
+    def create_remote_job_script(self, np, remote_path) -> str:
         """Create the bash script to run the job and "touch Done" command to it, to know when the 
         command is completed."""
         try:
             job_script = self.engine.get_engine_network_job_cmd()
         except AttributeError:
             job_script = ''
-         
+        rpath = pathlib.Path(remote_path) / self.project_dir.name
+        job_script += f"cd {str(rpath)}\n"
         job_script += self.get_network_job_cmd(np)
         job_script += "touch Done\n"
         job_script += "##############################"
