@@ -2,9 +2,13 @@ from pathlib import Path
 from typing import Any, Dict
 from litesoph.utilities.units import ang_to_au, au_to_as, as_to_au
 
+from litesoph.simulations.octopus import octopus_data
+from litesoph.simulations.esmd import Task
 
-class OctGroundState:
+class OctGroundState(Task):
 
+    task_data = octopus_data.ground_state
+    task_name = 'ground_state'
     NAME = 'inp'
 
     default_param = {
@@ -16,7 +20,7 @@ class OctGroundState:
             'name':'H',               # name of species
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
-            'theory':'dft' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
+            'theory':'kohn_sham' ,          # "DFT", "INDEPENDENT_PARTICLES","HARTREE_FOCK","HARTREE","RDMFT"
             
             'pseudo': 'pseudodojo_pbe', # else 'file|pseudo potential filename'
             'mass' : 1.0,             # mass of species in atomic unit
@@ -43,7 +47,7 @@ FromScratch = {scratch}
 ExperimentalFeatures = {exp}              
 CalculationMode = gs
 Dimensions = {dimension} 
-TheoryLevel = {theory}
+
 Unitsoutput = {out_unit}       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
@@ -63,13 +67,12 @@ ConvEnergy = {e_conv}
 PseudopotentialSet = {pseudo}
     """
     
-    def __init__(self, user_input= None) -> None:
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__('octopus',status, project_dir, lsconfig)
         self.user_input = user_input
         self.temp_dict = self.default_param 
-        if self.user_input:
-            self.temp_dict.update(self.user_input)
-        # self.temp_dict = self.default_param
-        # self.temp_dict.update(user_input)
+        self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
+        self.temp_dict.update(self.user_input)
         self.boxshape = self.temp_dict['box']['shape'] 
         self.xc_option = self.temp_dict['xc']['option']
         # self.atoms_list = self.temp_dict['atoms']
@@ -135,13 +138,15 @@ PseudopotentialSet = {pseudo}
         template = '\n'.join([temp1,temp,temp2])
         return(template)        
    
-    def format_template(self):
+    def create_template(self):
         temp1 = self.add_boxshape_template()
         temp2 = self.add_xc_template()
         # temp2 = self.add_pseudo_potential_template()
-        template = "\n".join([temp1, temp2])
+        self.template = "\n".join([temp1, temp2])
         # print(template)
-        return(template)
+        
+    def create_local_cmd(self, *args):
+        return self.engine.create_command(*args)
 
     @staticmethod
     def get_network_job_cmd(np):
@@ -176,8 +181,10 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
     #         return template    
 
         
-class OctTimedependentState:
+class OctTimedependentState(Task):
 
+    task_data = octopus_data.rt_tddft_delta
+    task_name = 'rt_tddft_delta'
     NAME = 'inp'
 
     default_param = {
@@ -185,6 +192,7 @@ class OctTimedependentState:
             'scratch' : 'yes',
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
+            'expt_feature': 'no',
             'name':'H',               # name of species
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
@@ -209,15 +217,30 @@ class OctTimedependentState:
             'time_step' : 0.002,      
             'td_propagator' : 'aetrs',
             'strength': {},
-            'e_pol': [1,0,0]             
+            'e_pol': [1,0,0],
+
+            'property': ['default'],
+            'output_freq': 50 ,
+            'par_states' : 'auto'          
             }
+
+    property_dict = {
+                    "default": ["energy", "multipoles"],
+                    "ksd": ["td_occup"],
+                    "population_correlation": []
+                    }
+
+    td_output = [("energy", "no"),
+                ("multipoles", "no"),
+                ("td_occup", "yes")
+                ]                
 
     td = """
 WorkDir = '.'    
 FromScratch = yes               
 CalculationMode = td
 Dimensions = {dimension} 
-
+ExperimentalFeatures = {expt_feature}    
 Unitsoutput = ev_angstrom       
 XYZCoordinates = '{geometry}'
 BoxShape = {box[shape]}
@@ -245,14 +268,27 @@ TDPolarizationDirection = 1
 """
    
 
-    def __init__(self, user_input) -> None:
-        #self.status = status
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__('octopus',status, project_dir, lsconfig)
+        self.user_input = user_input
         self.temp_dict = self.default_param 
+        self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
+        self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
+        self.initialise_input()
+
+    def initialise_input(self):
+        
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
-        self.check_pol()
+        added_property = self.temp_dict['property']
         self.convert_unit()
+        self.check_pol()
+        self.property_list = ['default']
+        for prop in added_property:            
+            self.property_list.append(prop)
+        self.td_out_list = self.get_td_output()  
+        self.check_property_dependency(self.td_out_list)   
 
     def convert_unit(self):
         self.temp_dict['time_step'] = round(self.temp_dict['time_step']*as_to_au, 2)  
@@ -298,6 +334,75 @@ TDPolarizationDirection = 1
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
+
+    def check_property_dependency(self, property_list:list):
+        """ Checks property dependency w/ ExptFeatures option"""
+
+        for property in property_list:
+            expt = self.get_dependent_features(property)   
+            if expt == 'yes':
+                value = expt
+                break
+            else:
+                value = 'no'
+        self.temp_dict['expt_feature'] = value
+
+        for property in property_list:
+            if property == 'td_occup':
+                self.temp_dict['par_states'] = 'no'      
+                
+    def get_dependent_features(self, property_name):
+        """Returns the dependent features corresponding to the property"""
+        
+        for item in self.td_output:
+            if item[0] == property_name:
+                return item[1] 
+
+    def get_td_output(self):
+        """Selects and returns the td_output & expt_features to be added as a list"""
+
+        td_output_list = []
+
+        for item in self.property_list:
+            if item in self.property_dict.keys():            
+                _list = self.property_dict[item]
+
+                for property in _list:
+                    td_output_list.append(property)
+
+        return td_output_list
+
+    def format_td_output_lines(self):
+        """ Adds TDOutput keywords and returns the template"""
+
+        line1 = "%TDOutput"
+        property_temp = ""
+        for prop in self.td_out_list:
+            property_temp = "\n ".join([property_temp,prop])
+            line2 = "%"
+            td_block = "\n".join([line1, property_temp, line2]) 
+
+        td_line = f"""
+TDOutputComputeInterval = {self.temp_dict['output_freq']}
+ParStates = {self.temp_dict['par_states']}"""
+        td_out_temp = "\n".join([td_block, td_line])
+
+        return td_out_temp
+
+    # def create_template(self):
+    #     self.td = self.format_box() 
+    #     temp = self.format_pol()
+    #     self.template = temp.format(**self.temp_dict)    
+
+    def create_template(self):
+        
+        self.td = self.format_box() 
+        _temp = self.format_pol()
+        td_temp = self.format_td_output_lines()
+        temp = "\n".join([_temp, td_temp])
+
+        self.template = temp.format(**self.temp_dict)
+               
     
     @staticmethod
     def get_network_job_cmd(np):
@@ -308,14 +413,14 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
 #mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
 
-    def format_template(self):
-        self.td = self.format_box() 
-        temp = self.format_pol()
-        template = temp.format(**self.temp_dict)
-        return(template)
+    def create_local_cmd(self, *args):
+        return self.engine.create_command(*args)
+    
 
-class OctTimedependentLaser:
+class OctTimedependentLaser(Task):
 
+    task_data = octopus_data.rt_tddft_laser
+    task_name = 'rt_tddft_laser'
     NAME = 'inp'
 
     default_param = {
@@ -361,10 +466,12 @@ omega = {frequency}*eV
 
 """ 
 
-    def __init__(self, user_input) -> None:
-        
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__('octopus',status, project_dir, lsconfig)
+        self.user_input = user_input
         self.temp_dict = self.default_param
-       
+        self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
+        self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape']         
         self.convert_unit()
@@ -402,31 +509,18 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
 #mpirun -np {np:d} /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
         return job_script
   
-  
-    def format_template(self):
+    def create_local_cmd(self, *args):
+        return self.engine.create_command(*args)
+
+    def create_template(self):
         self.td = self.format_box() 
-        #temp = self.format_pol()
-        template = self.td.format(**self.temp_dict)
-        return(template)
+        self.template = self.td.format(**self.temp_dict)
+        
 
-# class OctSpectrum:
+class OctSpectrum(Task):
 
-#     NAME = 'inp'
-
-#     spec = """  
-# UnitsOutput = eV_angstrom
-# """  
-
-#     def __init__(self):
-#         pass
-
-#     def format_template(self):        
-#         #template = self.td.format(**self.temp_dict)
-#         template = self.spec
-#         return(templ
-
-class OctSpectrum:
-
+    task_data = octopus_data.spectrum
+    task_name = 'spectrum'
     NAME = 'inp'
 
     default_param ={
@@ -442,22 +536,48 @@ PropagationSpectrumMaxEnergy  =    {e_max}*eV
 PropagationSpectrumEnergyStep =    {del_e}*eV
 """  
 
-    def __init__(self, user_input):
+    def __init__(self, status, project_dir, lsconfig, user_input) -> None:
+        super().__init__('octopus',status, project_dir, lsconfig)
+        self.user_input = user_input
         self.temp_dict = self.default_param       
         self.temp_dict.update(user_input)
+       
 
-
-    spectra_job_script = """
+    def get_network_job_cmd(self,np):
+        job_script = f"""
 ##### LITESOPH Appended Comands###########
 
-mpirun -np 4  <Full Path of Octopus>/oct-propagation_spectrum 
+mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum 
 
-#mpirun -np 4  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""   
-    @staticmethod
-    def get_local_cmd():
-        return 'oct-propagation_spectrum'
+#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""  
+        return job_script
 
-    def format_template(self):        
-        #template = self.td.format(**self.temp_dict)
-        template = self.spec.format(**self.temp_dict)
-        return(template)
+    def create_local_cmd(self, *args):
+
+        file = 'log'
+        command = self.lsconfig.get('engine', 'octopus')
+        cmd = 'oct-propagation_spectrum'
+        if not command:
+            command =  cmd
+        else:
+            command = Path(command).parent / cmd
+
+        command = str(command) + ' ' + '>' + ' ' + str(file)
+        return [command]
+
+
+    def create_template(self):        
+        self.template = self.spec.format(**self.temp_dict)
+    
+    def prepare_input(self):
+        self.create_template()
+        self.write_input()
+
+    def plot_spectrum(self):
+        from litesoph.utilities.plot_spectrum import plot_spectrum
+
+        pol =  self.status.get_status('octopus.rt_tddft_delta.param.pol_dir')
+        spec_file = self.task_data['spectra_file'][pol[0]]
+        file = Path(self.project_dir) / spec_file
+        img = file.parent / f"spec_{pol[1]}.png"
+        plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")

@@ -1,16 +1,6 @@
-from tkinter import filedialog
-import subprocess
 import pathlib
 import json
-
-import collections
 import copy
-#import nested_dict 
-
-
-
-def nested_dict():
-    return collections.defaultdict(nested_dict)
 
 
 class Status():
@@ -19,6 +9,7 @@ class Status():
                     'label': '',
                     'param':'',
                     'script': 0,
+                    'done': False,
                     'sub_local':{
                         'returncode' : None,
                         'n_proc' : None,
@@ -46,7 +37,6 @@ class Status():
         if self.filepath.exists():
             self.read_status()
     
-        self.update_status()
 
     def read_status(self):
         """ reads the status object from json file & updates the status dictionary"""
@@ -57,30 +47,28 @@ class Status():
             for key, value in data_dict.items():
                 self.status_dict[key] = value
             
-    def update_status(self, path:str =None, value=None):
+    def update_status(self, path:str , value):
         """ updates the status dictionary and writes to json file
          if path(string of keys separated by '.') and value are given"""
 
-        if path is None and value is None:
-            self.dict2json(self.status_dict, self.filepath)
-        else:
-            list = path.split('.')
-            if len(list) == 1:
-                self.status_dict[list[0]] = value
-            elif len(list) == 2:
-                self.status_dict[list[0]][list[1]] = value
-            elif len(list) == 3:
-                self.status_dict[list[0]][list[1]][list[2]] = value
-            elif len(list) == 4:
-                self.status_dict[list[0]][list[1]][list[2]][list[3]] = value
-            elif len(list) == 5:
-                self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]] = value
-            elif len(list) == 6:
-                self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]][list[5]] = value
-            
-            self.dict2json(self.status_dict, self.filepath)
+        list = path.split('.')
 
-    def get_status(self,path:str):
+        if len(list) == 1:
+            self.status_dict[list[0]] = value
+        elif len(list) == 2:
+            self.status_dict[list[0]][list[1]] = value
+        elif len(list) == 3:
+            self.status_dict[list[0]][list[1]][list[2]] = value
+        elif len(list) == 4:
+            self.status_dict[list[0]][list[1]][list[2]][list[3]] = value
+        elif len(list) == 5:
+            self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]] = value
+        elif len(list) == 6:
+            self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]][list[5]] = value
+        
+        self.save()
+
+    def get_status(self, path:str):
         """returns the value from the nested dictionary 
         with path(string of keys separated by '.')"""
 
@@ -106,24 +94,18 @@ class Status():
         except KeyError:
             return False        
 
-    def set_new_task(self, task_name):
-        # counter = task_name + "_counter"
-        # try:
-        #     num = self.get_status(counter)
-        # except KeyError:
-        #     self.status_dict[counter] = 1
-        #     task_name = task_name + "_1"
-        # else:
-        #     self.status_dict[counter] = num +1
-        #     task_name = task_name + f"_{num}"
-
-        self.status_dict[task_name] = copy.deepcopy(self.__default_task)
+    def set_new_task(self, engine:str, task:str):
         
-
-    def dict2json(self, dictname, filename):
-        filepath = pathlib.Path(filename)
-        with open(filepath, 'w') as file:
-            json.dump(obj=dictname, fp=file, indent= 3)   
+        engine_list = self.status_dict.keys()
+        if not engine in engine_list:
+            self.status_dict[engine] = {}
+            self.status_dict[engine][task] = copy.deepcopy(self.__default_task)
+        else:
+            self.status_dict[engine][task] = copy.deepcopy(self.__default_task)
+        
+    def save(self):
+        with open(self.filepath, 'w') as f:
+            json.dump(self.status_dict, f, indent= 3)   
 
 
 class file_check:
@@ -136,7 +118,6 @@ class file_check:
             try:
                 check = self.search_string(self.dir, fname, item)
                 if check is not True:
-                    #print("{} is not found".format(item))
                     break
             except FileNotFoundError:
                 print("File does not exist")
