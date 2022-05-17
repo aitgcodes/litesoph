@@ -781,7 +781,12 @@ class GUIAPP(tk.Tk):
 
     def _on_create_remote_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
-        b_file =  task.create_remote_job_script(np)
+        rpath = self.job_sub_page.rpath.get()
+        if rpath:
+            b_file =  task.create_remote_job_script(np, rpath)
+        else:
+            messagebox.showerror(title="Error", message="Please enter remote path")
+            return
         self.job_sub_page.text_view.set_event_name( event)
         self.job_sub_page.text_view.insert_text(b_file, 'normal')
        
