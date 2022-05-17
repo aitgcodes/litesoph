@@ -334,24 +334,7 @@ TDPolarizationDirection = 1
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
-    
-    @staticmethod
-    def get_network_job_cmd(np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-cd Octopus/
-mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
-#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
-        return job_script
 
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
-
-    def create_template(self):
-        self.td = self.format_box() 
-        temp = self.format_pol()
-        self.template = temp.format(**self.temp_dict)
-    
     def check_property_dependency(self, property_list:list):
         """ Checks property dependency w/ ExptFeatures option"""
 
@@ -413,6 +396,26 @@ ParStates = {self.temp_dict['par_states']}"""
 
     def create_template(self):
         
+        self.td = self.format_box() 
+        _temp = self.format_pol()
+        td_temp = self.format_td_output_lines()
+        temp = "\n".join([_temp, td_temp])
+
+        self.template = temp.format(**self.temp_dict)
+               
+    
+    @staticmethod
+    def get_network_job_cmd(np):
+        job_script = f"""
+##### LITESOPH Appended Comands###########
+cd Octopus/
+mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
+#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
+        return job_script
+
+    def create_local_cmd(self, *args):
+        return self.engine.create_command(*args)
+    
 
 class OctTimedependentLaser(Task):
 
