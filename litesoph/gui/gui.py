@@ -270,8 +270,10 @@ class GUIAPP(tk.Tk):
             return
 
         if self.engine == 'auto-mode' and sub_task != "Ground State":
-            messagebox.showerror(title= "Error", message="Please choose different source option" )
-            return
+            self._get_engine()
+            if self.engine:
+                messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
+                return
 
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
@@ -280,6 +282,7 @@ class GUIAPP(tk.Tk):
             else:
                 messagebox.showerror(title = 'Error', message= "Upload geometry file")
                 return
+            return
 
         if task == "Simulations":
 
@@ -294,7 +297,12 @@ class GUIAPP(tk.Tk):
                         return
                     else:
                         self.event_generate(event)
+            return
 
+        if sub_task in ["Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]:
+            messagebox.showinfo(title='Info', message="This option is not yet Implemented.")
+            return
+        
         elif sub_task == "Compute Spectrum":
             self.event_generate('<<ShowPlotSpectraPage>>')   
         elif sub_task == "Dipole Moment and Laser Pulse":
@@ -302,6 +310,7 @@ class GUIAPP(tk.Tk):
         elif sub_task == "Kohn Sham Decomposition":
                self.event_generate('<<ShowTcmPage>>')    
 
+        w.refresh_var()
 
     @staticmethod
     def _check_task_run_condition(task, network=False) -> bool:
@@ -389,7 +398,6 @@ class GUIAPP(tk.Tk):
 
     def _on_rt_tddft_delta_task(self, *_):
         
-        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
         check = check_task_pre_conditon(self.engine, 'rt_tddft_delta', self.status)
         
         if check[0]:
@@ -397,7 +405,6 @@ class GUIAPP(tk.Tk):
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.TimeDependentPage, self.engine)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
         self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
@@ -467,7 +474,6 @@ class GUIAPP(tk.Tk):
 
     def _on_rt_tddft_laser_task(self, *_):
 
-        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
         check = check_task_pre_conditon(self.engine, 'rt_tddft_laser', self.status)
         
         if check[0]:
@@ -475,7 +481,6 @@ class GUIAPP(tk.Tk):
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.LaserDesignPage, self.engine)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
         self.rt_tddft_laser_view.engine = self.engine
@@ -548,7 +553,6 @@ class GUIAPP(tk.Tk):
     
     def _on_spectra_task(self, *_):
 
-        self.engine = self._frames[v.WorkManagerPage].get_value('engine')
         check = check_task_pre_conditon(self.engine, 'spectrum', self.status)
         
         if check[0]:
@@ -556,7 +560,6 @@ class GUIAPP(tk.Tk):
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.PlotSpectraPage, self.engine)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
@@ -613,7 +616,6 @@ class GUIAPP(tk.Tk):
             messagebox.showinfo(title= "Info", message=check[1])
             return
 
-        self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.TcmPage, self._window)
         self.tcm_view = self._frames[v.TcmPage]
         
