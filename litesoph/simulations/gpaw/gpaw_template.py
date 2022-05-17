@@ -147,7 +147,7 @@ from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 
 td_calc = LCAOTDDFT(filename='{gfilename}',txt='{txt}')
 
-DipoleMomentWriter(td_calc, '{dipole_file}')
+DipoleMomentWriter(td_calc, '{dipole_file}', interval={output_freq})
 
 # Kick
 td_calc.absorption_kick({absorption_kick})
@@ -172,7 +172,7 @@ td_calc.write('{td_gpw}', mode='all')
         if self.tools and "wavefunction" in self.tools:
             tlines = template.splitlines()
             tlines[4] = "from gpaw.lcaotddft.wfwriter import WaveFunctionWriter"
-            tlines[9] = "WaveFunctionWriter(td_calc, 'wf.ulm')"
+            tlines[9] = f"WaveFunctionWriter(td_calc, 'wf.ulm', interval={self.user_input['output_freq']})"
             template = """\n""".join(tlines)
         
         self.template =  template

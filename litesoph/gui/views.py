@@ -101,22 +101,10 @@ class StartPage(tk.Frame):
 class WorkManagerPage(tk.Frame):
 
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
-    Pre_task = ["Ground State","Geometry Optimisation"]
+    Pre_task = ["Ground State"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
     Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
-
-    simulation_type = [('electrons', 'None', '<<event>>'),
-                        ('electrons', 'Delta Pulse', '<<ShowTimeDependentPage>>'),
-                        ('electrons', 'Gaussian Pulse', '<<ShowLaserDesignPage>>'),
-                        ('electron+ion', 'None', '<<event>>'),
-                        ('electron+ion', 'Delta Pulse', '<<event>>'),
-                        ('electron+ion', 'Gaussian Pulse', '<<event>>'),
-                        ('ions', 'None', '<<event>>'),
-                        ('ions', 'Delta Pulse', '<<event>>'),
-                        ('ions', 'Gaussian Pulse', '<<event>>')
-                        ]
-                        
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
@@ -136,12 +124,7 @@ class WorkManagerPage(tk.Frame):
         label_design.update({"font":myfont()})
         
         self.plot_option = None
-        # myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        # j= font.Font(family ='Courier', size=20,weight='bold')
-        # k= font.Font(family ='Courier', size=40,weight='bold')
-        # l= font.Font(family ='Courier', size=15,weight='bold')
 
-        # self.Frame1 =tk.Frame(self, background='light yellow')
         self.Frame1 =tk.Frame(self)
         self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S), pady=10)
        
@@ -151,9 +134,6 @@ class WorkManagerPage(tk.Frame):
         self.Frame1.configure(cursor="fleur")
 
         self.grid_columnconfigure(0, weight=1)
-        # self.grid_rowconfigure(0, weight=1)
-        # self.grid_rowconfigure(1, weight=1)
-        # self.grid_rowconfigure(2, weight=1)
         self.label_proj = tk.Label(self.Frame1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)        
@@ -171,7 +151,6 @@ class WorkManagerPage(tk.Frame):
         self.button_project['font'] = myfont()
         self.button_project.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10)
 
-        # self.Frame2 = tk.LabelFrame(self, background='light yellow')
         self.Frame2 = tk.Frame(self)
         self.Frame2.grid(column=0, row=1, sticky=(tk.N, tk.W, tk.E, tk.S))
         self.grid_columnconfigure(1, weight=1)
@@ -199,12 +178,6 @@ class WorkManagerPage(tk.Frame):
         self.Frame2_Button_1['font'] = myfont()
         self.Frame2_Button_1.grid(column=3, row= 0, padx=10,  pady=10)
 
-        # sub_frame = tk.Frame(self.Frame2)
-        # sub_frame.grid(row=1, column=0)
-
-        # job_frame = tk.Frame(self.Frame2)
-        # job_frame.grid(row=1, column=0)
-
         self.engine_source_label = tk.Label(common_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.engine_source_label['font'] = myfont()
         self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
@@ -225,25 +198,13 @@ class WorkManagerPage(tk.Frame):
         self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
         self.entry_task['state'] = 'readonly'
 
-        # self.Frame2_label_3 = tk.Label(common_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'], justify='left')
-        # self.Frame2_label_3['font'] = myfont()
-        # self.Frame2_label_3.grid(column=0, row= 2, sticky='we',  pady=10, padx=10)   
-
         self.sub_task_frame = tk.Frame(self.Frame2)
         self.sub_task_frame.grid(row=1, column=0, sticky='w')
-        # self.sub_task_frame.grid_columnconfigure(0, weight=1)
-        # self.sub_task_frame.grid_columnconfigure(1, weight=1)
-        # self.sub_task_frame.grid_columnconfigure(3, weight=1)
-
-        # self.Frame2_label_3 = tk.Label(self.Frame2, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
-        # self.Frame2_label_3['font'] = myfont()
-        # self.Frame2_label_3.grid(column=0, row= 1) 
 
         self.show_sub_task_frame(self.sub_task_frame)
        
         self.Frame3 = tk.Frame(self )
         self.Frame3.grid(column=0, row=2,  sticky=(tk.N, tk.W, tk.E, tk.S)) 
-        # self.Frame3.pack(side=tk.BOTTOM)       
 
         self.Frame3.configure(relief='groove')
         self.Frame3.configure(borderwidth="2")
@@ -259,8 +220,6 @@ class WorkManagerPage(tk.Frame):
         self.show_sub_task_frame(self.sub_task_frame)
 
     def show_sub_task_frame(self,parent):
-
-        # parent.grid_remove()
 
         for widget in parent.winfo_children():
             widget.destroy()
@@ -283,7 +242,6 @@ class WorkManagerPage(tk.Frame):
            
 
     def show_sim_task_frame(self, parent):
-        # parent.grid_remove()
 
         for widget in parent.winfo_children():
             widget.destroy()
@@ -301,7 +259,7 @@ class WorkManagerPage(tk.Frame):
         self.dynamics_type.grid(column=1, row= 0, sticky='nsew',  pady=10, padx=65)       
         self.dynamics_type['state'] = 'readonly'  
 
-        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Gaussian Pulse'])
+        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Gaussian Pulse', 'Customised Pulse'])
         self.laser_type['font'] = myfont()
         self.laser_type.set('-- laser type--')
         self.laser_type.grid(column=2, row= 0, sticky='nsew',  pady=10, padx=6)       
@@ -309,9 +267,6 @@ class WorkManagerPage(tk.Frame):
 
     def show_plot_option_frame(self, parent):
         
-        # plot_option_frame = tk.Frame(parent)
-        # plot_option_frame.grid(row=0, column=1)
-
         self.plot_option = ttk.Combobox(parent, width= 15, textvariable=self._var['plot'], value = ['Spectrum', 'Dipole Moment', 'Laser'])
         self.plot_option['font'] = myfont()
         self.plot_option.set('--choose option--')
@@ -334,27 +289,11 @@ class WorkManagerPage(tk.Frame):
 
     def pick_sub_task(self,*_):
         if self._var['sub_task'].get() == "Plot":
-            # print("here")
             self.show_plot_option_frame(self.sub_task_frame)
         else:
             if self.plot_option:
                 self.plot_option.destroy()    
-    # def show_plot_option(self):
-    #     if self._var['sub_task'].get() == "Plot":
-    #         print("here")
-    #         self.show_plot_option_frame(self.sub_task_frame)
             
-
-    def get_simulation_event(self): 
-        var1 = self._var['dynamics'].get()
-        var2 = self._var['laser'].get()
-        if var1 == '--dynamics type--' or var2 == '-- laser type--':
-            messagebox.showinfo(message="Please select the Sub task options")
-        else:
-            for item in self.simulation_type:
-                if item[0] == var1 and item[1] == var2:
-                    return item[2]
-
     def update_project_entry(self, proj_path):
         proj_path = pathlib.Path(proj_path)
         self._var['proj_path'].set(proj_path.parent)
@@ -376,13 +315,8 @@ class WorkManagerPage(tk.Frame):
 
     def proceed_button(self):
         """ event generate on proceed button"""
-        if self._var['task'].get() == "Simulations":
-            event = self.get_simulation_event()
-            if event:
-                # print(event)
-                self.event_generate(event)
-        else:
-            self.event_generate('<<SelectTask>>')   
+
+        self.event_generate('<<SelectProceed>>')   
 
     def show_upload_label(self):
         show_message(self.message_label,"Uploaded")
@@ -768,9 +702,8 @@ class GeomOptPage(tk.Frame):
 
 class View_note(tk.Frame):
 
-    def __init__(self, parent, controller, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
         self.parent = parent
         self.job = None
 
@@ -864,10 +797,10 @@ class GroundStatePage(View_note):
     nwc_theory = ["SCF","DFT"]
     gpfnsmear = ["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"] 
     
-    def __init__(self, parent, controller, *args, **kwargs):
-        super().__init__(parent,controller, *args, **kwargs)
-        self.controller = controller
+    def __init__(self, parent, engine, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         
+        self.engine = engine
         self.job = None
 
         self._default_var = {
@@ -979,7 +912,6 @@ class GroundStatePage(View_note):
                 self.engine = 'nwchem'
                 self.engine_specific_frame()
             elif task.get() == "fd":
-                print("fd")
                 sub_task.config(value = self.fd_task)
                 sub_task.current(0)
                 # self.box_shape.config(value = self.octgp_box)
@@ -1096,7 +1028,6 @@ class GroundStatePage(View_note):
                     widget.destroy()
                 for widget in self.Frame3_sub.winfo_children():
                     widget.destroy()    
-                # print("Oct")
                 self.octopus_frame(sub_frame)
                 self.oct_simbox(sub_frame)               
                 self.octopus_convergence(self.Frame3_sub)
@@ -1292,7 +1223,6 @@ class GroundStatePage(View_note):
                 widget.destroy()
             for widget in self.Frame3_sub.winfo_children():
                 widget.destroy()    
-                # print("Oct")
             self.octopus_frame(parent)
             self.oct_simbox(parent)               
             self.octopus_convergence(self.Frame3_sub)
@@ -1554,7 +1484,6 @@ class GroundStatePage(View_note):
 
         def frame_destroy(frame:tk.Frame):
             for widget in frame.winfo_children():
-                print(widget)
                 widget.destroy()  
 
         # self.Frame2_note = tk.Label(oct_frame,text="Spin Polarisation",bg=label_design['bg'], fg=label_design['fg'])
@@ -1973,7 +1902,6 @@ class GroundStatePage(View_note):
             'box': self._var['shape'].get(),
             'properties': 'get_potential_energy()',
             'engine':'gpaw',
-            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }   
 
         inp_dict_nw = {
@@ -1988,7 +1916,6 @@ class GroundStatePage(View_note):
             'multip' : self._var['multip'].get(),
             'maxiter' : self._var['maxiter'].get(),
             'engine':'nwchem',
-            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }
 
         inp_dict_oct = {
@@ -2010,7 +1937,6 @@ class GroundStatePage(View_note):
             'box':{'shape':self._var['shape'].get()},
             'unit_box' : self._var['unit_box'].get(),
             'engine':'octopus',
-            #'geometry': str(self.controller.directory)+"/coordinate.xyz"
                     }      
 
         if self.engine == "nwchem":
@@ -2120,11 +2046,10 @@ class View1(tk.Frame):
 
 class TimeDependentPage(View1):
 
-    def __init__(self, parent, controller, engine, *args, **kwargs):
+    def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
+
         self.parent = parent
-        self.controller = controller
-        
         self.engine = engine
         self.job = None
 
@@ -2143,19 +2068,22 @@ class TimeDependentPage(View1):
             'mooc': ['int',0],
             'prop': ['int',0],
             'elec': ['int',0],
-            'chp':['int'],
+            'output_freq': ['int']
         }
         self.gpaw_td_default = {
             'dt': ['float', 10],
-            'Nt': ['int', 2000]
+            'Nt': ['int', 2000],
+            'output_freq': ['int', 1]
         }
         self.oct_td_default = {
             'dt': ['float', 2.4],
-            'Nt': ['int', 1500]
+            'Nt': ['int', 1500],
+            'output_freq': ['int', 50]
         }
         self.nwchem_td_default = {
             'dt': ['float', 2.4],
-            'Nt': ['int', 2000]
+            'Nt': ['int', 2000],
+            'output_freq': ['int', 50]
         }
         self._var = var_define(self._default_var)
         
@@ -2282,15 +2210,16 @@ class TimeDependentPage(View1):
         #for (text, value) in values.items():
             #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
 
-        self.checkbox1 = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
+        self.checkbox_spectra = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_spectra.grid(row=value+3, column=6, ipady=5, sticky='w')
        
-        self.checkbox2 = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0).grid(row=value+5, column=6, ipady=5, sticky='w')
+        self.checkbox_ksd = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_ksd.grid(row=value+5, column=6, ipady=5, sticky='w')
                   
-        self.checkbox3 = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0).grid(row=value+7, column=6, ipady=5, sticky='w')
+        self.checkbox_pc = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_pc.grid(row=value+7, column=6, ipady=5, sticky='w')
  
         #self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
-
-        self.checkbox5 = tk.Checkbutton(self.Frame2, text="Electron Charge Dynamics", variable=self._var['elec'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')
  
         #self.Frame2_lab = tk.Label(self.Frame2, text="         ", fg="black")
         #self.Frame2_lab['font'] = myFont
@@ -2300,9 +2229,9 @@ class TimeDependentPage(View1):
         self.Frame2_lab['font'] = myFont
         self.Frame2_lab.grid(row=value+11, column=6, ipady=5,)
 
-        self.entry_chp = Onlydigits(self.Frame2, textvariable=self._var['chp'], width=5)
-        self.entry_chp['font'] = myFont
-        self.entry_chp.grid(row=value+11, column=8, ipady=5,)
+        self.entry_out_frq = Onlydigits(self.Frame2, textvariable=self._var['output_freq'], width=5)
+        self.entry_out_frq['font'] = myFont
+        self.entry_out_frq.grid(row=value+11, column=8, ipady=5,)
 
     def pol_option(self):
         if self._var['var1'] == 1:
@@ -2332,7 +2261,8 @@ class TimeDependentPage(View1):
             'absorption_kick':kick,
             'analysis_tools':self.analysis_tool(),
             'propagate': tuple(inp_list),
-            'pol_dir': self.read_pol_dir()
+            'pol_dir': self.read_pol_dir(),
+            'output_freq': self._var['output_freq'].get()
         }
 
         td_dict_oct = {
@@ -2341,7 +2271,9 @@ class TimeDependentPage(View1):
             'td_propagator' : 'aetrs',
             'strength': self._var['strength'].get(),
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
-            'pol_dir': self.read_pol_dir()
+            'pol_dir': self.read_pol_dir(),
+            'output_freq': self._var['output_freq'].get(),
+            'property': self.get_property_list()
           }
 
         td_dict_nwchem = {
@@ -2352,7 +2284,7 @@ class TimeDependentPage(View1):
             'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
             'pol_dir': self.read_pol_dir(),
             'extra_prop':self.extra_prop(),
-            'nrestart':self._var['chp'].get()
+            'output_freq': self._var['output_freq'].get()
             }
 
         if self.engine == 'gpaw':
@@ -2365,14 +2297,25 @@ class TimeDependentPage(View1):
     def analysis_tool(self):
         if self._var['wfn'].get() == 1:
             return("wavefunction")
+
+    def get_property_list(self):
+        prop_list = []
+        if self._var['wfn'].get() == 1:
+            prop_list.append("ksd")
+        if self._var['mooc'].get() == 1:
+            prop_list.append("population_correlation")    
+        return prop_list       
         
     def extra_prop(self):
-        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 1:
-            return("mooc&charge")
-        if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
-            return("moocc")
-        if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
-            return("charge")
+        # if self._var['mooc'].get() == 1:
+        #     messagebox.showinfo(message="Population Correlation is not implemented yet.")
+        #     self.checkbox3.config(state = 'disabled')            
+            return("mooc")
+
+        # if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
+        #     return("moocc")
+        # if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
+        #     return("charge")
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
@@ -2400,17 +2343,25 @@ class TimeDependentPage(View1):
         self.engine = engn
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
+            self.checkbox_ksd.config(state= 'active')
+            self.checkbox_pc.config(state = 'disabled')
+
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
-        elif engn == 'nwchem':
+            self.checkbox_ksd.config(state = 'disabled')
+            self.checkbox_pc.config(state = 'disabled')
+
+        elif engn == 'nwchem':            
             self.update_var(self.nwchem_td_default)
+            self.checkbox_ksd.config(state='disabled')
+            self.checkbox_pc.config(state = 'disabled')            
 
 
 class LaserDesignPage(tk.Frame):
 
-    def __init__(self, parent, controller, engine, *args, **kwargs):
+    def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
+
         self.engine = engine
         
         self.job = None
@@ -2696,7 +2647,6 @@ class LaserDesignPage(tk.Frame):
                           'freq': self.frequency.get()   
                         }
 
-            print(td_nwchem)
             return td_nwchem
 
     def save_button(self):
@@ -2718,9 +2668,8 @@ class LaserDesignPage(tk.Frame):
 
 class PlotSpectraPage(tk.Frame):
 
-    def __init__(self, parent, controller, engine, *args, **kwargs):
+    def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.controller = controller
         self.engine = engine
         
         self._default_var = {
@@ -3113,9 +3062,13 @@ class JobSubPage(View1):
         self.Frame_label['font'] = myfont1()
         self.Frame_label.grid(row=0, column=3)         
 
-        back = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
+        back = tk.Button(self.frame_button, text="Back ",activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Show{self.task}Page>>')])
         back['font'] = myfont()
-        back.grid(row=0, column=0, padx=40)
+        back.pack(side= tk.LEFT)
+
+        back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
+        back2main['font'] = myfont()
+        back2main.pack(side= tk.RIGHT)
     
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
@@ -3293,7 +3246,7 @@ class TextViewerPage(tk.Frame):
 
         text_scroll.config(command= self.text_view.yview)
 
-        save = tk.Button(self, text="Save",activebackground="#78d6ff",command=self.save)
+        save = tk.Button(self, text="Save",activebackground="#78d6ff",command=self._on_save_button)
         save['font'] = myFont
         save.place(x=320, y=380)
 
@@ -3307,7 +3260,7 @@ class TextViewerPage(tk.Frame):
     def insert_text(self, text):
         self.text_view.insert(tk.END, text)
  
-    def save(self):
+    def _on_save_button(self):
         self.save_txt = self.text_view.get(1.0, tk.END)
         self.event_generate(f'<<Save{self.task_name}>>')
     

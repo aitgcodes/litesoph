@@ -118,7 +118,6 @@ class file_check:
             try:
                 check = self.search_string(self.dir, fname, item)
                 if check is not True:
-                    #print("{} is not found".format(item))
                     break
             except FileNotFoundError:
                 print("File does not exist")

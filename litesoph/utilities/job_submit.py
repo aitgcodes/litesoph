@@ -29,7 +29,6 @@ class SubmitLocal:
         self.command = None
         if self.np > 1:
             mpi = get_mpi_command(self.engine.NAME, self.task.lsconfig)
-            print(mpi)
             self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
                    
     def create_command(self):
@@ -39,7 +38,6 @@ class SubmitLocal:
 
     def prepare_input(self):
         """this adds in the proper path to the data file required for the job"""
-        print('preparing')
         filename = self.project_dir.parent / self.task.filename
 
         with open(filename , 'r+') as f:
