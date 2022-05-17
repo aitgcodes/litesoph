@@ -136,7 +136,7 @@ class SubmitNetwork:
     def upload_files(self):
         """uploads entire project directory to remote path"""
 
-        (error, message) = rsync_upload_files(ruser=self.username, rhost=self.hostname, password=self.password,
+        (error, message) = rsync_upload_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
                                                 source_dir=str(self.project_dir), dst_dir=str(self.remote_path))
         #self.network_sub.upload_files(str(self.project_dir), str(self.remote_path), recursive=True)
         if error != 0:
@@ -146,7 +146,7 @@ class SubmitNetwork:
         """Downloads entire project directory to local project dir."""
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
         #self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
-        (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname, password=self.password,
+        (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
                                                 source_dir=str(remote_path), dst_dir=str(self.project_dir))
         if error != 0:
             raise Exception(message)
@@ -301,16 +301,16 @@ class NetworkJobSubmission:
 
         return exit_status, ssh_output, ssh_error
 
-def rsync_upload_files(ruser, rhost, password, source_dir, dst_dir):
+def rsync_upload_files(ruser, rhost,port, password, source_dir, dst_dir):
     
-    cmd = f"rsync -av {source_dir} {ruser}@{rhost}:{dst_dir}"
-
+    cmd = f'''rsync -av -e "ssh -p {port}" {source_dir} {ruser}@{rhost}:{dst_dir}'''
+    print(cmd)
     (error, message) = execute_rsync(cmd, passwd=password)
     return (error, message)
 
-def rsync_download_files(ruser, rhost, password, source_dir, dst_dir):
+def rsync_download_files(ruser, rhost,port, password, source_dir, dst_dir):
     
-    cmd = f"rsync -av {ruser}@{rhost}:{source_dir} {dst_dir}"
+    cmd = f'''rsync -av -e "ssh -p {port}" {ruser}@{rhost}:{source_dir} {dst_dir}'''
 
     (error, message) = execute_rsync(cmd, passwd=password)
     return (error, message)
