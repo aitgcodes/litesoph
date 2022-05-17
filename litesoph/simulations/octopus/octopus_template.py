@@ -192,6 +192,7 @@ class OctTimedependentState(Task):
             'scratch' : 'yes',
             'calc_mode':'gs',         # default calc mode
             'out_unit':'ev_angstrom', # default output unit
+            'expt_feature': 'no',
             'name':'H',               # name of species
             'geometry' : "coordinate.xyz",       
             'dimension' : 3, 
@@ -218,7 +219,9 @@ class OctTimedependentState(Task):
             'strength': {},
             'e_pol': [1,0,0],
 
-            'property': ['default', 'ksd']            
+            'property': ['default'],
+            'output_freq': 50 ,
+            'par_states' : 'auto'          
             }
 
     property_dict = {
