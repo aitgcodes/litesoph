@@ -362,9 +362,12 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
                 break
             else:
                 value = 'no'
-                
-        return value     
+        self.temp_dict['expt_feature'] = value
 
+        for property in property_list:
+            if property == 'td_occup':
+                self.temp_dict['par_states'] = 'no'      
+                
     def get_dependent_features(self, property_name):
         """Returns the dependent features corresponding to the property"""
         
