@@ -278,7 +278,7 @@ set geometry "system"
         super().__init__('nwchem',status, project_dir, lsconfig)
         self.user_input = self.default_param
         self.user_input.update(user_input)
-        gs_inp = status.get_status('ground_state.param')
+        gs_inp = status.get_status('nwchem.ground_state.param')
         self.user_input.update(gs_inp)
         self.convert_unit()
         self.prop = self.user_input['extra_prop']
@@ -692,7 +692,7 @@ set geometry "system"
         super().__init__('nwchem',status, project_dir, lsconfig)
         self.user_input = self.default_param
         self.user_input.update(user_input)
-        gs_inp = status.get_status('ground_state.param')
+        gs_inp = status.get_status('nwchem.ground_state.param')
         self.user_input.update(gs_inp)
         self.convert_unit()
         print(self.user_input)
@@ -1018,7 +1018,7 @@ class NwchemSpectrum(Task):
     def __init__(self, status, project_dir: pathlib.Path, lsconfig, user_input) -> None:
         super().__init__('nwchem', status, project_dir, lsconfig)
         self.user_input = user_input
-        self.pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+        self.pol =  self.status.get_status('nwchem.rt_tddft_delta.param.pol_dir')
     
     def prepare_input(self):
 
@@ -1068,7 +1068,7 @@ class NwchemSpectrum(Task):
     def plot_spectrum(self):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
-        pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+        pol =  self.status.get_status('nwchem.rt_tddft_delta.param.pol_dir')
         spec_file = self.task_data['spectra_file'][pol[0]]
         file = pathlib.Path(self.project_dir) / spec_file
         img = file.parent / f"spec_{pol[1]}.png"
