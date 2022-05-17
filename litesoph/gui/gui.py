@@ -338,7 +338,7 @@ class GUIAPP(tk.Tk):
     def _on_gs_save_button(self, *_):
         if self._validate_gs_input():
             self._gs_create_input()
-            self.ground_state_view.set_sub_button_state('active')
+            
 
     def _on_gs_view_button(self, *_):
         template = self._validate_gs_input()
@@ -360,6 +360,7 @@ class GUIAPP(tk.Tk):
             self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.script', 1)
             self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
             self.status_engine.set(self.engine)
+            self.ground_state_view.set_sub_button_state('active')
             self.ground_state_view.set_label_msg('saved')
 
     def _on_gs_run_local_button(self, *_):
@@ -438,8 +439,8 @@ class GUIAPP(tk.Tk):
         self.status.set_new_task(self.engine, self.rt_tddft_delta_task.task_name)
         self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
+        self.rt_tddft_delta_view.set_sub_button_state('active')
         self.rt_tddft_delta_view.set_label_msg('saved')
-        self.check = False
 
     def _on_td_run_local_button(self, *_):
 
