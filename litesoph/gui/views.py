@@ -912,7 +912,6 @@ class GroundStatePage(View_note):
                 self.engine = 'nwchem'
                 self.engine_specific_frame()
             elif task.get() == "fd":
-                print("fd")
                 sub_task.config(value = self.fd_task)
                 sub_task.current(0)
                 # self.box_shape.config(value = self.octgp_box)
@@ -1029,7 +1028,6 @@ class GroundStatePage(View_note):
                     widget.destroy()
                 for widget in self.Frame3_sub.winfo_children():
                     widget.destroy()    
-                # print("Oct")
                 self.octopus_frame(sub_frame)
                 self.oct_simbox(sub_frame)               
                 self.octopus_convergence(self.Frame3_sub)
@@ -1225,7 +1223,6 @@ class GroundStatePage(View_note):
                 widget.destroy()
             for widget in self.Frame3_sub.winfo_children():
                 widget.destroy()    
-                # print("Oct")
             self.octopus_frame(parent)
             self.oct_simbox(parent)               
             self.octopus_convergence(self.Frame3_sub)
@@ -1487,7 +1484,6 @@ class GroundStatePage(View_note):
 
         def frame_destroy(frame:tk.Frame):
             for widget in frame.winfo_children():
-                print(widget)
                 widget.destroy()  
 
         # self.Frame2_note = tk.Label(oct_frame,text="Spin Polarisation",bg=label_design['bg'], fg=label_design['fg'])
@@ -2651,7 +2647,6 @@ class LaserDesignPage(tk.Frame):
                           'freq': self.frequency.get()   
                         }
 
-            print(td_nwchem)
             return td_nwchem
 
     def save_button(self):

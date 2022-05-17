@@ -75,7 +75,6 @@ class EngineGpaw(EngineStrategy):
         command = command + ' ' + str(filename) 
         if cmd:
             command = cmd + ' ' + command
-            print(command)
         return [command]
 
     @staticmethod
