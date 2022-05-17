@@ -1010,6 +1010,16 @@ task dft rt_tddft
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
 
+    def get_network_job_cmd(self,np):
+
+      job_script = f"""
+##### LITESOPH Appended Comands###########
+
+cd {self.path}
+
+mpirun -np {np:d} nwchem {self.NAME} > tdlaser.nwo\n"""
+      return job_script
+
 class NwchemSpectrum(Task):
 
     task_data = nwchem_data.spectrum
