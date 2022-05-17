@@ -324,7 +324,7 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
         super().__init__('gpaw',status, project_dir, lsconfig)
         self.user_input = self.default_param
         self.user_input.update(user_input)
-        self.pol =  status.get_status('rt_tddft_delta.param.pol_dir')
+        self.pol =  status.get_status('gpaw.rt_tddft_delta.param.pol_dir')
         self.user_input['spectrum_file'] = f'spec_{str(self.pol[1])}.dat'
         self.user_input['moment_file']= str(Path(project_dir.name) / gpaw_data.spectrum['req'][0])
         
