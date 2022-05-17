@@ -273,7 +273,7 @@ TDPolarizationDirection = 1
         self.user_input = user_input
         self.temp_dict = self.default_param 
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
-        self.temp_dict.update(status.get_status('ground_state.param'))
+        self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
@@ -459,7 +459,7 @@ omega = {frequency}*eV
         self.user_input = user_input
         self.temp_dict = self.default_param
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
-        self.temp_dict.update(status.get_status('ground_state.param'))
+        self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
         self.boxshape = self.temp_dict['box']['shape']         
         self.convert_unit()
@@ -564,7 +564,7 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
     def plot_spectrum(self):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
-        pol =  self.status.get_status('rt_tddft_delta.param.pol_dir')
+        pol =  self.status.get_status('octopus.rt_tddft_delta.param.pol_dir')
         spec_file = self.task_data['spectra_file'][pol[0]]
         file = Path(self.project_dir) / spec_file
         img = file.parent / f"spec_{pol[1]}.png"
