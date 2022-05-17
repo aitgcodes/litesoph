@@ -41,7 +41,7 @@ def update_proj_list(project: Path) -> None:
 def update_remote_profile_list(profile: dict) -> None:
     """It adds new profile to the list. If the profile is already present it's moved to the top. """
 
-    line  = profile['username'] + '\t' + profile['ip'] + '\t'+ profile['port'] + '\t' + profile['remote_path'] + '\n'
+    line  = profile['username'] + '\t' + profile['ip'] + '\t'+ str(profile['port']) + '\t' + profile['remote_path'] + '\n'
     profile_list = []
 
     try:
@@ -65,6 +65,8 @@ def get_remote_profile() -> dict:
     try:
         with open(remote_machine_profile, 'r') as f:
             profile_list = f.readlines()
+            if not profile_list:
+                return
     except FileNotFoundError:
         return
     else:
