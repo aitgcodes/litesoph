@@ -271,7 +271,7 @@ class GUIAPP(tk.Tk):
 
         if self.engine == 'auto-mode' and sub_task != "Ground State":
             self._get_engine()
-            if self.engine:
+            if not self.engine:
                 messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
                 return
 
@@ -736,6 +736,7 @@ class GUIAPP(tk.Tk):
             task.check_prerequisite(network = True)
         except FileNotFoundError as e:
             messagebox.showerror(title = "Error", message = e)
+            self.job_sub_page.activate_run_button()
             return
 
         self.network_type = self.job_sub_page.network_job_type.get()
