@@ -275,10 +275,20 @@ TDPolarizationDirection = 1
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
         self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
+        self.initialise_input()
+
+    def initialise_input(self):
+        
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
-        self.check_pol()
+        added_property = self.temp_dict['property']
         self.convert_unit()
+        self.check_pol()
+        self.property_list = ['default']
+        for prop in added_property:            
+            self.property_list.append(prop)
+        self.td_out_list = self.get_td_output()  
+        self.check_property_dependency(self.td_out_list)   
 
     def convert_unit(self):
         self.temp_dict['time_step'] = round(self.temp_dict['time_step']*as_to_au, 2)  
