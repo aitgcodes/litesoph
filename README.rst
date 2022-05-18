@@ -12,6 +12,8 @@ Requirements
   * Numpy
   * Matplotlib
   * Paramiko
+  * scp
+  * Rsync
 
 Installation
 ============
@@ -19,7 +21,7 @@ Installation
 .. code-block:: console
 
   $ git clone https://github.com/LITESOPH/litesoph.git
-  $ pip install litesoph
+  $ pip install <path-to-litesoph>
 
 
 Usage
