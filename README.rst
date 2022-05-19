@@ -26,34 +26,38 @@ Installation
 
 Configuration
 =============================================================================================================
+
 .. code-block:: console
 
-$ litesoph config -e
+  $ litesoph config -e
 
-
+Example lsconfig file
 =========
-[path]
-lsproject = <litesoph project path>
-lsroot = <installation path of litesoph>
 
-[visualization_tools]
-vmd = <path to vmd || e.g. /usr/local/bin/vmd>
-vesta = <path to vesta || e.g. /usr/local/bin/vesta>
+.. code-block:: console
 
-[engine]
-gpaw =
-nwchem =<binary path of nwchem>
-octopus =<binary path of octopus>
+  [path]
+  lsproject = <litesoph project path>
+  lsroot = <installation path of litesoph>
+
+  [visualization_tools]
+  vmd = <path to vmd || e.g. /usr/local/bin/vmd>
+  vesta = <path to vesta || e.g. /usr/local/bin/vesta>
+
+  [engine]
+  gpaw =
+  nwchem =<binary path of nwchem>
+  octopus =<binary path of octopus>
 
 
-[programs]
-python = <path to python>
+  [programs]
+  python = <path to python>
 
-[mpi]
-mpirun = <path to mpirun || e.g. /usr/local/bin/mpirun>
-gpaw_mpi = <path to mpirun through which gpaw is compiled|| e.g. /usr/local/bin/mpirun>
-octopus_mpi =<path to mpirun through which octopus is compiled|| e.g. /usr/local/bin/mpirun>
-nwchem_mpi =<path to mpirun through which nwchem is compiled|| e.g. /usr/local/bin/mpirun>
+  [mpi]
+  mpirun = <path to mpirun || e.g. /usr/local/bin/mpirun>
+  gpaw_mpi = <path to mpirun through which gpaw is compiled|| e.g. /usr/local/bin/mpirun>
+  octopus_mpi =<path to mpirun through which octopus is compiled|| e.g. /usr/local/bin/mpirun>
+  nwchem_mpi =<path to mpirun through which nwchem is compiled|| e.g. /usr/local/bin/mpirun>
 
 
 Usage
