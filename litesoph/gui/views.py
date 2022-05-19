@@ -2398,7 +2398,7 @@ class LaserDesignPage(tk.Frame):
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.place(x=125,y=10)
 
-        self.label_proj = tk.Label(self.Frame1,text="Time Origin (tin)",bg="gray",fg="black")
+        self.label_proj = tk.Label(self.Frame1,text="Time Origin (tin) in attosecond",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
@@ -2575,6 +2575,7 @@ class LaserDesignPage(tk.Frame):
 
 
     def get_laser_pulse(self):
+        from litesoph.utilities.units import as_to_au
         laser_input = {
 
         "strength": self.strength.get(),
@@ -2586,7 +2587,7 @@ class LaserDesignPage(tk.Frame):
         "frequency" :  self.frequency.get(),
         "time_step" : self.ts.get(),
         "number_of_steps": self.ns.get(),
-        "tin" : self.tin.get()
+        "tin" : self.tin.get()*as_to_au
         
         }
         return(laser_input)               

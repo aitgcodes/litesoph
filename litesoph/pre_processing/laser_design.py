@@ -23,7 +23,7 @@ from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV, au_to_fs
 
 def laser_design(inval, tin, fwhm):
     import math
-    tin = 0.0 
+    # tin = 0.0 
     fwhm = fwhm*eV_to_au
     #loginval = (-1)*(math.log(float(inval)/float(strength)))
     tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of au
