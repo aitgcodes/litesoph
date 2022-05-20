@@ -26,10 +26,15 @@ Installation
 
 Configuration
 =============================================================================================================
+To create lsconfig file:
+  .. code-block:: console
 
-.. code-block:: console
+    $ litesoph config -c
+  
+To edit lsconfig file:
+  .. code-block:: console
 
-  $ litesoph config -e
+    $ litesoph config -e
 
 Example lsconfig file
 =========
