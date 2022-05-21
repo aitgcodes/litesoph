@@ -2256,7 +2256,7 @@ class TimeDependentPage(View1):
 
         td_dict_gp = {
             'absorption_kick':kick,
-            'analysis_tools':self.analysis_tool(),
+            'analysis_tools':self.get_property_list(),
             'propagate': tuple(inp_list),
             'pol_dir': self.read_pol_dir(),
             'output_freq': self._var['output_freq'].get()
@@ -2291,9 +2291,9 @@ class TimeDependentPage(View1):
         elif self.engine == 'octopus':
             return td_dict_oct
 
-    def analysis_tool(self):
-        if self._var['wfn'].get() == 1:
-            return("wavefunction")
+    # def analysis_tool(self):
+    #     if self._var['wfn'].get() == 1:
+    #         return("wavefunction")
 
     def get_property_list(self):
         prop_list = []
