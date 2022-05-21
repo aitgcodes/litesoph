@@ -2124,18 +2124,55 @@ class TimeDependentPage(View1):
         self.entry_nt['font'] = myFont
         self.entry_nt.grid(row=4, column=1, ipadx=2, ipady=2)
 
-        self.label_select = tk.Label(
-            self.Frame1, text="Please select preferred option:", bg="gray", fg="black")
+        #################################################################################################
+
+        frame_property = tk.Frame(self.Frame2)
+        frame_property.grid(row=0, column=0)
+
+        frame_additional = tk.Frame(self.Frame1)
+        frame_additional.grid(row=8, column=0, pady=10)
+
+        self.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
+        self.property_note['font'] = myFont
+        self.property_note.grid(row=0, column=0)
+
+        self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
+
+        frame_spec_option = tk.Frame(frame_property)
+        frame_spec_option.grid(row=2, column=0, sticky='w')
+
+        # self.checkbox_specific_spectra = tk.Checkbutton(frame_spec_option, text="Specific Polarisation", font=myFont, onvalue=1, offvalue=0)
+        # self.checkbox_specific_spectra.grid(row=0, column=0, ipady=5, sticky='w')
+
+        self.checkbox_avg_spectra = tk.Checkbutton(frame_spec_option, text="Averaged over (X,Y,Z) direction", font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_avg_spectra.grid(row=0, column=0, sticky='w', padx=20)                  
+       
+        self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
+       
+        self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
+
+        frame_output_freq = tk.Frame(frame_property)
+        frame_output_freq.grid(row=5, column=0, sticky='w')
+
+        self.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
+        self.Frame2_lab['font'] = myFont
+        self.Frame2_lab.grid(row=0, column=0,sticky='w')
+
+        self.entry_out_frq = Onlydigits(frame_output_freq, textvariable=self._var['output_freq'], width=5)
+        self.entry_out_frq['font'] = myFont
+        self.entry_out_frq.grid(row=0, column=1,sticky='w')
+
+        #######################################################################################################
+
+        self.label_select = tk.Label(frame_additional, text="Please select polarization direction:",  bg="gray", fg="black")
         self.label_select['font'] = myFont
-        self.label_select.grid(row=5, column=0, sticky='w', padx=2, pady=4)
+        self.label_select.grid(row=0, column=0, sticky='w', padx=2, pady=4)
 
-        values = {"Specific polarization direction": 2}
-        for (text, value) in values.items():
-            tk.Radiobutton(self.Frame1, text=text, variable=self._var['var1'], font=myFont, justify='left',
-                           value=value).grid(row=value+5, column=0, ipady=5, sticky='w')
-
-        frame_pol = tk.Frame(self.Frame1, borderwidth=2)
-        frame_pol.grid(row=8, column=0)
+        frame_pol = tk.Frame(frame_additional, borderwidth=2)
+        frame_pol.grid(row=1, column=0)
         
         # label_add = tk.Label(frame_pol, text="Please add polarization vectors:", bg="gray", fg="black")
         # label_add['font'] = myFont
@@ -2155,11 +2192,15 @@ class TimeDependentPage(View1):
         self.entry_pol_y.grid(row=1, column=2, padx=2, pady=2)
         self.entry_pol_y['state'] = 'readonly'
 
-        self.entry_pol_z = ttk.Combobox(
-            frame_pol, textvariable=self._var['ez'], value=pol_list, width=3)
+        self.entry_pol_z = ttk.Combobox(frame_pol, textvariable=self._var['ez'], value=pol_list, width=3)
         self.entry_pol_z['font'] = myFont
         self.entry_pol_z.grid(row=1, column=3, padx=2, pady=2)
         self.entry_pol_z['state'] = 'readonly'
+
+        # values = {"Specific polarization direction": 2}
+        # for (text, value) in values.items():
+        #     tk.Radiobutton(self.Frame1, text=text, variable=self._var['var1'], font=myFont, justify='left',
+        #                    value=value).grid(row=value+5, column=0, ipady=5, sticky='w')
 
         # Frame1_Button3 = tk.Button(frame_pol, text="Add",activebackground="#78d6ff",command=lambda:self.add_button())
         # Frame1_Button3['font'] = myFont
@@ -2188,47 +2229,6 @@ class TimeDependentPage(View1):
         self.label_msg = tk.Label(self.frame_button,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=4)
-
-        self.Frame3_note = tk.Label(self.Frame3, text="Note: Please choose properties to be extracted in post-processing", fg="black")
-        self.Frame3_note['font'] = myFont
-        self.Frame3_note.grid(row=2, column=6)
-
-        #self.Frame2_note = tk.Label(self.Frame2, text="Note: select for Population Coorelation", fg="black")
-        #self.Frame2_note['font'] = myFont
-        #self.Frame2_note.grid(row=value+7, column=7, sticky='e')
-
-        #self.Frame2_note = tk.Label(self.Frame2, text="Note: Charge calculated from density matrixs", fg="black")
-        #self.Frame2_note['font'] = myFont
-        #self.Frame2_note.grid(row=value+11, column=7, sticky='e')
-
-        #values = {"Wavefunction": 2}
-        # Loop is used to create multiple Radiobuttons
-        # rather than creating each button separately
-        #for (text, value) in values.items():
-            #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
-
-        self.checkbox_spectra = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_spectra.grid(row=value+3, column=6, ipady=5, sticky='w')
-       
-        self.checkbox_ksd = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_ksd.grid(row=value+5, column=6, ipady=5, sticky='w')
-                  
-        self.checkbox_pc = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_pc.grid(row=value+7, column=6, ipady=5, sticky='w')
- 
-        #self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
- 
-        #self.Frame2_lab = tk.Label(self.Frame2, text="         ", fg="black")
-        #self.Frame2_lab['font'] = myFont
-        #self.Frame2_lab.grid(row=value+5, column=7, ipady=5,)
-
-        self.Frame2_lab = tk.Label(self.Frame2, text="Frequency of data collection", fg="black")
-        self.Frame2_lab['font'] = myFont
-        self.Frame2_lab.grid(row=value+11, column=6, ipady=5,)
-
-        self.entry_out_frq = Onlydigits(self.Frame2, textvariable=self._var['output_freq'], width=5)
-        self.entry_out_frq['font'] = myFont
-        self.entry_out_frq.grid(row=value+11, column=8, ipady=5,)
 
     def pol_option(self):
         if self._var['var1'] == 1:
