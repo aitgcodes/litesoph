@@ -20,6 +20,9 @@ class Task:
 
     BASH_filename = 'job_script.sh'
 
+    remote_job_script_last_line = "touch Done"
+
+
     def __init__(self, engine_name, status, project_dir:pathlib.Path, lsconfig:ConfigParser) -> None:
         
         self.status = status
@@ -86,18 +89,21 @@ class Task:
                 msg = f"Data file:{item} not found."
                 raise FileNotFoundError(msg)
     
-    def create_remote_job_script(self, np, remote_path) -> str:
+    def _create_job_script(self) -> list:
         """Create the bash script to run the job and "touch Done" command to it, to know when the 
         command is completed."""
-        try:
-            job_script = self.engine.get_engine_network_job_cmd()
-        except AttributeError:
-            job_script = ''
-        rpath = pathlib.Path(remote_path) / self.project_dir.name
-        job_script += f"cd {str(rpath)}\n"
-        job_script += self.get_network_job_cmd(np)
-        job_script += "touch Done\n"
-        job_script += "##############################"
+        job_script = []
+
+        job_script.append("#!/bin/bash")
+        # try:
+        #     job_script = self.engine.get_engine_network_job_cmd()
+        # except AttributeError:
+        #     job_script = ''
+        # rpath = pathlib.Path(remote_path) / self.project_dir.name
+        # job_script += f"cd {str(rpath)}\n"
+        # job_script += self.get_network_job_cmd(np)
+        # job_script += "touch Done\n"
+        # job_script += "##############################"
         return job_script
 
     def write_remote_job_script(self, job_script):

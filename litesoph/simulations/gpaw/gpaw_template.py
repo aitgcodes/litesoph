@@ -1,4 +1,5 @@
 
+from litesoph.config import get_mpi_command
 from litesoph.simulations.gpaw import gpaw_data
 from litesoph.simulations.esmd import Task
 from pathlib import Path
@@ -99,6 +100,21 @@ calc.write('gs.gpw', mode='all')
        
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
+    
+    def create_job_script(self, np, remote_path = None) -> str:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = self._create_job_script()
+
+        if remote_path:
+            job_script = self.engine.create_command(job_script, np, remote_path, self.NAME, remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            job_script = self.engine.create_command(job_script, np, self.path, self.NAME)
+        
+        job_script = "\n".join(job_script)
+        return job_script
+
 
     def get_network_job_cmd(self, np):
         job_script = f"""
@@ -116,7 +132,7 @@ class GpawRTLCAOTddftDelta(Task):
     task_name = 'rt_tddft_delta'
     NAME = Path(task_data['inp']).name
 
-    path = str(Path(task_data['inp']).parent)
+    path = Path(task_data['inp']).parent
 
     default_param = {'absorption_kick': [1e-5, 0.0, 0.0],
                 'propagate': (20, 150),
@@ -179,6 +195,20 @@ td_calc.write('{td_gpw}', mode='all')
 
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
+
+    def create_job_script(self, np, remote_path = None) -> str:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = self._create_job_script()
+
+        if remote_path:
+            job_script = self.engine.create_command(job_script, np, remote_path, self.NAME, remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            job_script = self.engine.create_command(job_script, np, self.path, self.NAME)
+        
+        job_script = "\n".join(job_script)
+        return job_script
 
     def get_network_job_cmd(self, np):
         job_script = f"""

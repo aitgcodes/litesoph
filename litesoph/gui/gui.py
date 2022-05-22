@@ -784,7 +784,7 @@ class GUIAPP(tk.Tk):
         np = self.job_sub_page.processors.get()
         rpath = self.job_sub_page.rpath.get()
         if rpath:
-            b_file =  task.create_remote_job_script(np, rpath)
+            b_file =  task.create_job_script(np, remote_path=rpath)
         else:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
