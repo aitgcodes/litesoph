@@ -597,7 +597,7 @@ run(frequency_list)
         return self.job_script
 
     def run_job_local(self, cmd):
-        #self.write_job_script(self.job_script)
+        self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
     def get_network_job_cmd(self,np):

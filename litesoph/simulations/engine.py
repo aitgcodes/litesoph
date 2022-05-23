@@ -89,7 +89,7 @@ class EngineGpaw(EngineStrategy):
             command = path_python + ' ' + str(filename) 
             if np > 1:
                 cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
-                command = cmd_mpi + ' ' + command
+                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
             job_script.append(command)
         
         return job_script
@@ -188,16 +188,32 @@ class EngineNwchem(EngineStrategy):
         self.filename = filename 
         write2file(self.directory,self.filename,template)
     
-    def create_command(self, cmd: str):
+    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
 
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
         command = self.lsconfig.get('engine', 'nwchem')
-        if not command:
-            command = 'nwchem'
-        command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
-        if cmd:
-            command = cmd + ' ' + command
+        # if not command:
+        #     command = 'nwchem'
+        # command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
+        # if cmd:
+        #     command = cmd + ' ' + command
+
+        if remote:
+            job_script.append(self.get_engine_network_job_cmd())
+            job_script.append(f"cd {str(path)}")
+            job_script.append(f"mpirun -np {np:d}  nwchem {filename}")
+        else:
+            job_script.append(f"cd {str(path)}")
+
+            path_nwchem = self.lsconfig.get('engine', 'nwchem')
+            if not path_nwchem:
+                path_nwchem = 'nwchem'
+            command = path_nwchem + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
+            if np > 1:
+                cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
+                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
+            job_script.append(command)
         return command
 
     @staticmethod

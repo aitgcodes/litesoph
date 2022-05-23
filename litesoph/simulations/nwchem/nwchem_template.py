@@ -221,6 +221,23 @@ end
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
 
+    def create_job_script(self, np, remote_path=None, remote=False) -> list:
+        
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+
+    def run_job_local(self, cmd):
+        super().run_job_local(cmd)
     
     def get_network_job_cmd(self,np):
 
@@ -638,6 +655,24 @@ task dft rt_tddft
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
 
+    def create_job_script(self, np, remote_path=None, remote=False) -> list:
+        
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+
+    def run_job_local(self, cmd):
+        super().run_job_local(cmd)
+
     def get_network_job_cmd(self,np):
 
       job_script = f"""
@@ -1010,6 +1045,24 @@ task dft rt_tddft
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
 
+    def create_job_script(self, np, remote_path=None, remote=False) -> list:
+        
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+
+    def run_job_local(self, cmd):
+        super().run_job_local(cmd)
+
     def get_network_job_cmd(self,np):
 
       job_script = f"""
@@ -1017,13 +1070,15 @@ task dft rt_tddft
 
 cd {self.path}
 
-mpirun -np {np:d} nwchem {self.NAME} > tdlaser.nwo\n"""
+mpirun -np {np:d} nwchem {self.NAME} > tdlaser.nwo"""
       return job_script
 
 class NwchemSpectrum(Task):
 
     task_data = nwchem_data.spectrum
     task_name = 'spectrum'
+
+    path = pathlib.Path(task_data['spec_dir_path'])
 
     def __init__(self, status, project_dir: pathlib.Path, lsconfig, user_input) -> None:
         super().__init__('nwchem', status, project_dir, lsconfig)
@@ -1038,7 +1093,7 @@ class NwchemSpectrum(Task):
     def run_job_local(self):        
         self.sumbit_local.run_job()
 
-    def create_local_cmd(self, *_):
+    def create_local_cmd(self, remote=False, *_):
 
         dm_file = self.task_data['out_log']
 
@@ -1049,21 +1104,26 @@ class NwchemSpectrum(Task):
             
         path = pathlib.Path(__file__)
 
+        if remote:
+            path_python = 'python3'
+        else:
+            path_python = self.lsconfig.get('programs', 'python')
+
         nw_rtparse = str(path.parent /'nw_rtparse.py')
         rot = str(path.parent / 'rotate_fft.py')
         fft = str(path.parent / 'fft1d.py')
         
-        x_get_dm_cmd = f'python {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
-        y_get_dm_cmd = f'python {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
-        z_get_dm_cmd = f'python {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
+        x_get_dm_cmd = f'{path_python} {nw_rtparse} -xdipole -px -tkick_x {dm_file} > x.dat'
+        y_get_dm_cmd = f'{path_python} {nw_rtparse} -xdipole -py -tkick_y {dm_file} > y.dat'
+        z_get_dm_cmd = f'{path_python} {nw_rtparse} -xdipole -pz -tkick_z {dm_file} > z.dat'
 
-        x_f_cmd = f'python {fft} x.dat xw.dat'
-        y_f_cmd = f'python {fft} y.dat yw.dat'
-        z_f_cmd = f'python {fft} z.dat zw.dat'
+        x_f_cmd = f'{path_python} {fft} x.dat xw.dat'
+        y_f_cmd = f'{path_python} {fft} y.dat yw.dat'
+        z_f_cmd = f'{path_python} {fft} z.dat zw.dat'
 
-        x_r_cmd = f'python {rot} xw.dat x'
-        y_r_cmd = f'python {rot} yw.dat y'
-        z_r_cmd = f'python {rot} zw.dat z'
+        x_r_cmd = f'{path_python} {rot} xw.dat x'
+        y_r_cmd = f'{path_python} {rot} yw.dat y'
+        z_r_cmd = f'{path_python} {rot} zw.dat z'
         
         if self.pol[1] == 'x':
             return [x_get_dm_cmd, x_f_cmd, x_r_cmd]
@@ -1073,6 +1133,27 @@ class NwchemSpectrum(Task):
 
         elif self.pol[1] == 'z':
             return [z_get_dm_cmd, z_f_cmd, z_r_cmd]
+
+    def create_job_script(self, np, remote_path = None, remote=False) -> str:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = super().create_job_script()
+
+        path = self.project_dir / self.path
+        if remote_path:
+            path = Path(remote_path) / self.project_dir.name / self.path
+           
+        job_script.append(f"cd {str(path)}")
+        job_script.extend(self.create_local_cmd(remote))
+        
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+        
+
+    def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
+        super().run_job_local(cmd)
 
 
     def plot_spectrum(self):

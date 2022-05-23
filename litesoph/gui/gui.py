@@ -456,7 +456,7 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<ViewRT_TDDFT_DELTALocalOutfile>>', lambda _: self._on_out_local_view_button(self.rt_tddft_delta_task))
         self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTALocal>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', lambda _: self._on_create_local_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTALocal'))
+        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTALocalScript>>', lambda _: self._on_create_local_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTALocal'))
 
     def _on_td_run_network_button(self, *_):
 
@@ -591,6 +591,8 @@ class GUIAPP(tk.Tk):
         
 
     def _on_spectra_run_network_button(self, *_):
+        
+        return
         try:
             getattr(self.spectra_task.engine,'directory')           
         except AttributeError:
@@ -655,6 +657,8 @@ class GUIAPP(tk.Tk):
         
 
     def _on_tcm_run_network_button(self, *_):
+
+        return
         try:
             getattr(self.spectra_task.engine,'directory')           
         except AttributeError:
