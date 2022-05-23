@@ -2292,8 +2292,10 @@ class TimeDependentPage(View1):
             return td_dict_oct
 
     def analysis_tool(self):
+        tools = []
         if self._var['wfn'].get() == 1:
-            return("wavefunction")
+            tools.append("wavefunction")
+        return tools
 
     def get_property_list(self):
         prop_list = []
