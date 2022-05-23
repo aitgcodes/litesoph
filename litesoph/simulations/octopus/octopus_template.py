@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Any, Dict
-from litesoph.utilities.units import ang_to_au, au_to_as, as_to_au
+import copy 
 
+from litesoph.utilities.units import ang_to_au, au_to_as, as_to_au
 from litesoph.simulations.octopus import octopus_data
 from litesoph.simulations.esmd import Task
 
@@ -218,6 +219,7 @@ class OctTimedependentState(Task):
             'td_propagator' : 'aetrs',
             'strength': {},
             'e_pol': [1,0,0],
+            'pol_block': [[1,0,0],[0,1,0],[0,0,1]],
 
             'property': ['default'],
             'output_freq': 50 ,
@@ -254,24 +256,23 @@ TDMaxSteps = {max_step}
 TDTimeStep = {time_step}
 
 TDDeltaStrength = {strength}
-
-
 """         
 
     tlines_pol = """
 %TDPolarization
- {e_pol[0]} | {e_pol[1]} | {e_pol[2]}
- 0 | 1 | 0
- 0 | 0 | 1
+ {pol_block[0][0]} | {pol_block[0][1]} | {pol_block[0][2]}
+ {pol_block[1][0]} | {pol_block[1][1]} | {pol_block[1][2]}
+ {pol_block[2][0]} | {pol_block[2][1]} | {pol_block[2][2]}
 %
-TDPolarizationDirection = 1
+TDPolarizationDirection = {e_dir}
 """
    
 
     def __init__(self, status, project_dir, lsconfig, user_input) -> None:
         super().__init__('octopus',status, project_dir, lsconfig)
         self.user_input = user_input
-        self.temp_dict = self.default_param 
+        # self.temp_dict = self.default_param.copy() 
+        self.temp_dict = copy.deepcopy(self.default_param)
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
         self.temp_dict.update(status.get_status('octopus.ground_state.param'))
         self.temp_dict.update(user_input)
@@ -284,6 +285,7 @@ TDPolarizationDirection = 1
         added_property = self.temp_dict['property']
         self.convert_unit()
         self.check_pol()
+        self.format_pol_block()
         self.property_list = ['default']
         for prop in added_property:            
             self.property_list.append(prop)
@@ -295,24 +297,35 @@ TDPolarizationDirection = 1
     
     def check_pol(self):
         if self.e_pol == [1,0,0]:
-            self.temp_dict['e_dir'] = 1
+            self.dir_var = 1
         elif self.e_pol == [0,1,0]:
-            self.temp_dict['e_dir'] = 2 
+            self.dir_var = 2
         elif self.e_pol == [0,0,1]:
-            self.temp_dict['e_dir'] = 3
+            self.dir_var = 3
         else:
-            self.temp_dict['e_dir'] = 0
-            
-    def format_pol(self):
-        if self.temp_dict['e_dir'] in [1,2,3]:
-            tlines = self.td.splitlines()
-            tlines[19] = "TDPolarizationDirection = {e_dir}"
-            temp = """\n""".join(tlines)
-            return temp
+            self.dir_var = 0
 
-        elif self.temp_dict['e_dir'] == 0:
-            temp = "".join([self.td, self.tlines_pol])
-            return temp
+    def format_pol_block(self):
+        if self.dir_var in [1,2,3]:
+            self.temp_dict['e_dir'] = self.dir_var
+            self.temp_dict['pol_block'] = self.default_param['pol_block']
+            
+        elif self.dir_var == 0:
+            self.temp_dict['e_dir'] = 1
+            self.temp_dict['pol_block'][0] = self.e_pol
+
+
+    # def format_pol(self):
+    #     if self.temp_dict['e_dir'] in [1,2,3]:
+           
+    #         tlines = self.td.splitlines()
+    #         tlines[19] = "TDPolarizationDirection = {e_dir}"
+    #         temp = """\n""".join(tlines)
+    #         return temp
+
+    #     elif self.temp_dict['e_dir'] == 0:
+    #         temp = "".join([self.td, self.tlines_pol])
+    #         return temp
 
     def format_box(self):
         if self.boxshape not in ['cylinder', 'parallelepiped']: 
@@ -396,10 +409,11 @@ ParStates = {self.temp_dict['par_states']}"""
 
     def create_template(self):
         
-        self.td = self.format_box() 
-        _temp = self.format_pol()
+        self.td = self.format_box()
+        _temp = self.tlines_pol 
+        # _temp = self.format_pol()
         td_temp = self.format_td_output_lines()
-        temp = "\n".join([_temp, td_temp])
+        temp = "\n".join([self.td,_temp, td_temp])
 
         self.template = temp.format(**self.temp_dict)
                
