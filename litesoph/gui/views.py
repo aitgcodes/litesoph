@@ -3037,6 +3037,8 @@ class JobSubPage(View1):
         self.rpath = tk.StringVar()
         self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
+        self.sub_command = tk.StringVar()
+        self.sub_job_type = tk.IntVar()
 
         self.processors.set(1)
         self.port.set(22)
@@ -3094,19 +3096,36 @@ class JobSubPage(View1):
             self.text_view.add_button_to_textview() 
 
     def show_run_local(self): 
-        """ Creates Local JobSub input widgets"""       
+        """ Creates Local JobSub input widgets""" 
+
+        values = {"Command line execution": 0, "Submit through queue": 1}
+        for (text, value) in values.items():
+            tk.Radiobutton(self.sub_job_frame, text=text, variable=self.sub_job_type, font=myfont2(),
+             justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')   
         
         self.label_np = tk.Label(self.sub_job_frame, text="Number of processors", bg='gray', fg='black')
         self.label_np['font'] = myfont()
-        self.label_np.grid(row=0, column=0,sticky='nsew', padx=5, pady=5)
+        self.label_np.grid(row=2, column=0,sticky='nsew', padx=5, pady=5)
 
         entry_np = Onlydigits(self.sub_job_frame, textvariable=self.processors)
         entry_np['font'] = myfont()
-        entry_np.grid(row=0, column=1, ipadx=2, ipady=2)
+        entry_np.grid(row=2, column=1, ipadx=2, ipady=2)
+
+        self.label_command = tk.Label(self.sub_job_frame, text="Submit command", bg='gray', fg='black')
+        self.label_command['font'] = myfont()
+        self.label_command.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.entry_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_command)
+        self.entry_command['font'] = myfont()
+        self.entry_command.grid(row=3, column=1, ipadx=2, ipady=2)
+
+        self.create_button = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff")
+        self.create_button['font'] = myfont()
+        self.create_button.grid(row=4, column=0, pady=5)   
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=1, column=1)        
+        self.run_button.grid(row=4, column=1, pady=5)        
 
     def show_run_network(self):
         """ Creates Network JobSub input widgets""" 
