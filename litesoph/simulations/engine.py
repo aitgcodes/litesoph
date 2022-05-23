@@ -68,7 +68,7 @@ class EngineGpaw(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def create_command(self, job_script: list , np: int , path, filename, remote=False) -> list:
+    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
         
         # filename = pathlib.Path(self.directory) / self.filename
         # command = self.lsconfig.get('programs', 'python')
@@ -79,12 +79,11 @@ class EngineGpaw(EngineStrategy):
 
         if remote:
             job_script.append(self.get_engine_network_job_cmd())
-            rpath = pathlib.Path(path) / self.project_dir.name / self.path
-            job_script.append(f"cd {str(rpath)}")
-            job_script.append(f"mpirun -np {np:d}  python3 {self.NAME}")
+            #rpath = pathlib.Path(path) / self.project_dir.name / self.path
+            job_script.append(f"cd {str(path)}")
+            job_script.append(f"mpirun -np {np:d}  python3 {filename}")
         else:
-            lpath = self.project_dir / path
-            job_script.append(f"cd {str(lpath)}")
+            job_script.append(f"cd {str(path)}")
 
             path_python = self.lsconfig.get('programs', 'python')
             command = path_python + ' ' + str(filename) 
@@ -95,14 +94,16 @@ class EngineGpaw(EngineStrategy):
         
         return job_script
 
+
+
     @staticmethod
     def get_engine_network_job_cmd():
 
         job_script = """
 ##### Please Provide the Excutable Path or environment of GPAW 
 
-eval "$(conda shell.bash hook)"
-conda activate <environment name>"""
+##eval "$(conda shell.bash hook)"
+##conda activate <environment name>"""
         return job_script
 
 class EngineOctopus(EngineStrategy):
@@ -208,5 +209,5 @@ class EngineNwchem(EngineStrategy):
 #eval "$(conda shell.bash hook)"
 #conda activate <environment name>
 
-#module load nwchem\n"""
+#module load nwchem"""
         return job_script

@@ -375,6 +375,8 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
         self.job_sub_page.bind('<<ViewGroundStateLocalOutfile>>', lambda _: self._on_out_local_view_button(self.ground_state_task))
+        self.job_sub_page.text_view.bind('<<SaveGroundStateLocal>>',lambda _: self._on_save_job_script(self.ground_state_task))
+        self.job_sub_page.bind('<<CreateGroundStateLocalScript>>', lambda _: self._on_create_local_job_script(self.ground_state_task,'GroundStateLocal'))
         #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
 
     def _on_gs_run_network_button(self, *_):
@@ -392,7 +394,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.set_network_profile(remote)
         self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
         self.job_sub_page.bind('<<ViewGroundStateNetworkOutfile>>', lambda _: self. _on_out_remote_view_button(self.ground_state_task))
-        self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_remote_job_script(self.ground_state_task))
+        self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_job_script(self.ground_state_task))
         self.job_sub_page.bind('<<CreateGroundStateRemoteScript>>', lambda _: self._on_create_remote_job_script(self.ground_state_task,'GroundStateNetwork'))
 
 ##----------------------Time_dependent_task_delta---------------------------------
@@ -453,7 +455,8 @@ class GUIAPP(tk.Tk):
         
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<ViewRT_TDDFT_DELTALocalOutfile>>', lambda _: self._on_out_local_view_button(self.rt_tddft_delta_task))
-        
+        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTALocal>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
+        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', lambda _: self._on_create_local_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTALocal'))
 
     def _on_td_run_network_button(self, *_):
 
@@ -468,7 +471,7 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<ViewRT_TDDFT_DELTANetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
 ##----------------------Time_dependent_task_laser---------------------------------
@@ -597,7 +600,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+            self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
     def _on_spectra_plot_button(self, *_):
@@ -661,7 +664,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.bind('<<RunTCMNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewTCMNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<CreateTCMRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
     def _on_tcm_plot_button(self, *_):
@@ -687,15 +690,16 @@ class GUIAPP(tk.Tk):
         return text_view
     
 
-    def _run_local(self, task, np=None):
+    def _run_local(self, task: Task, np=None):
 
         if not np:
             np = self.job_sub_page.get_processors()
         
         task.set_submit_local(np)
+    
 
         try:
-            task.run_job_local()
+            task.run_job_local('bash')
         except FileNotFoundError as e:
             messagebox.showerror(title='yes',message=e)
             return
@@ -780,20 +784,26 @@ class GUIAPP(tk.Tk):
         self.submit_network.download_output_files()
         self.status.update_status(f'{self.engine}.{self.submit_network.task.task_name}.done', True)
 
+    def _on_create_local_job_script(self, task: Task, event: str, *_):
+        np = self.job_sub_page.processors.get()
+        b_file =  task.create_job_script(np)
+        self.job_sub_page.text_view.set_event_name(event)
+        self.job_sub_page.text_view.insert_text(b_file, 'normal')
+
     def _on_create_remote_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
         rpath = self.job_sub_page.rpath.get()
         if rpath:
-            b_file =  task.create_job_script(np, remote_path=rpath)
+            b_file =  task.create_job_script(np, remote_path=rpath, remote=True)
         else:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
-        self.job_sub_page.text_view.set_event_name( event)
+        self.job_sub_page.text_view.set_event_name(event)
         self.job_sub_page.text_view.insert_text(b_file, 'normal')
        
-    def _on_save_remote_job_script(self,task :Task, *_):
+    def _on_save_job_script(self,task :Task, *_):
         txt = self.job_sub_page.text_view.get_text()
-        task.write_remote_job_script(txt)
+        task.write_job_script(txt)
 
     def _on_out_remote_view_button(self,task, *_):
         

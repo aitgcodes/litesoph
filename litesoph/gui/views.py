@@ -3095,7 +3095,7 @@ class JobSubPage(View1):
         elif self.job_type == 'Network':
             self.show_run_network() 
             self.add_text_view_frame()
-            self.text_view.add_button_to_textview() 
+            #self.text_view.add_button_to_textview() 
 
     def show_run_local(self): 
         """ Creates Local JobSub input widgets""" 
@@ -3121,7 +3121,7 @@ class JobSubPage(View1):
         self.entry_command['font'] = myfont()
         self.entry_command.grid(row=3, column=1, ipadx=2, ipady=2)
 
-        self.create_button = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff")
+        self.create_button = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
         self.create_button['font'] = myfont()
         self.create_button.grid(row=4, column=0, pady=5)   
 
@@ -3225,7 +3225,7 @@ class JobSubPage(View1):
         self.run_button.config(state='active')
 
     def create_job_script(self):
-        event = '<<Create'+self.task+'RemoteScript>>'
+        event = '<<Create'+self.task+self.job_type+'Script>>'
         self.event_generate(event)
     
     def submitjob_network(self):
@@ -3317,7 +3317,8 @@ class View_Text(tk.Frame):
         self.text_view['font'] = myFont
         self.text_view.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         text_scroll.config(command=self.text_view.yview)              
-    
+        self.add_button_to_textview()
+
     def clear_text(self):
         self.text_view.delete("1.0", tk.END)
 
