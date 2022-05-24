@@ -134,17 +134,44 @@ class EngineOctopus(EngineStrategy):
         self.filename = 'inp' 
         write2file(self.directory,self.filename,template)
 
-    def create_command(self, cmd: str):
+    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
+
 
         ofilename = "log"
-        command = self.lsconfig.get('engine', 'octopus')
+        # command = self.lsconfig.get('engine', 'octopus')
 
-        if not command:
-            command = 'octopus'
-        command = command + ' ' + '>' + ' ' + str(ofilename)
-        if cmd:
-            command = cmd + ' ' + command
-        return command
+        # if not command:
+        #     command = 'octopus'
+        # command = command + ' ' + '>' + ' ' + str(ofilename)
+        # if cmd:
+        #     command = cmd + ' ' + command
+        
+        if remote:
+            job_script.append(self.get_engine_network_job_cmd())
+            job_script.append(f"cd {str(path)}")
+            job_script.append(f"mpirun -np {np:d}  octopus > {ofilename}")
+        else:
+            job_script.append(f"cd {str(path)}")
+
+            path_octopus = self.lsconfig.get('engine', 'octopus')
+            if not path_octopus:
+                path_octopus = 'octopus'
+            command = path_octopus + ' ' + '>' + ' ' + str(ofilename)
+            if np > 1:
+                cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
+                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
+            job_script.append(command)
+        return job_script
+
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of Octopus or load the module
+
+#spack load octopus
+#module load octopus"""
+        return job_script
 
         
 class EngineNwchem(EngineStrategy):
@@ -202,7 +229,7 @@ class EngineNwchem(EngineStrategy):
         if remote:
             job_script.append(self.get_engine_network_job_cmd())
             job_script.append(f"cd {str(path)}")
-            job_script.append(f"mpirun -np {np:d}  nwchem {filename}")
+            job_script.append(f"mpirun -np {np:d}  nwchem {filename} > {ofilename}")
         else:
             job_script.append(f"cd {str(path)}")
 
@@ -214,7 +241,7 @@ class EngineNwchem(EngineStrategy):
                 cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
                 command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
             job_script.append(command)
-        return command
+        return job_script
 
     @staticmethod
     def get_engine_network_job_cmd():

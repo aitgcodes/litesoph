@@ -98,10 +98,12 @@ class Task:
         
         return job_script
 
-    def write_job_script(self, job_script):
+    def write_job_script(self, job_script=None):
+        if job_script:
+            self.job_script = job_script
         self.bash_file = self.project_dir / self.BASH_filename
         with open(self.bash_file, 'w+') as f:
-            f.write(job_script)
+            f.write(self.job_script)
 
     def create_task_dir(self):
         self.task_dir = self.engine.create_dir(self.project_dir, type(self).__name__)

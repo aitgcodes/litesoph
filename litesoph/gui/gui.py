@@ -395,7 +395,7 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
         self.job_sub_page.bind('<<ViewGroundStateNetworkOutfile>>', lambda _: self. _on_out_remote_view_button(self.ground_state_task))
         self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_job_script(self.ground_state_task))
-        self.job_sub_page.bind('<<CreateGroundStateRemoteScript>>', lambda _: self._on_create_remote_job_script(self.ground_state_task,'GroundStateNetwork'))
+        self.job_sub_page.bind('<<CreateGroundStateNetworkScript>>', lambda _: self._on_create_remote_job_script(self.ground_state_task,'GroundStateNetwork'))
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
@@ -472,7 +472,7 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<ViewRT_TDDFT_DELTANetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
         self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTANetworkScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
 ##----------------------Time_dependent_task_laser---------------------------------
 
@@ -698,12 +698,27 @@ class GUIAPP(tk.Tk):
 
         if not np:
             np = self.job_sub_page.get_processors()
-        
+
+        sub_job_type = self.job_sub_page.sub_job_type.get()
+
+        cmd = self.job_sub_page.sub_command.get()
+        if sub_job_type == 1:
+            
+            if not cmd:
+                messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
+                self.job_sub_page.activate_run_button()
+                return
+        else:
+           if cmd != 'bash':
+                messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
+                self.job_sub_page.activate_run_button()
+                return
+
         task.set_submit_local(np)
     
 
         try:
-            task.run_job_local('bash')
+            task.run_job_local(cmd)
         except FileNotFoundError as e:
             messagebox.showerror(title='yes',message=e)
             return
@@ -747,7 +762,21 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.activate_run_button()
             return
 
-        self.network_type = self.job_sub_page.network_job_type.get()
+        sub_job_type = self.job_sub_page.sub_job_type.get()
+
+        cmd = self.job_sub_page.sub_command.get()
+        if sub_job_type == 1:
+            
+            if not cmd:
+                messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
+                self.job_sub_page.activate_run_button()
+                return
+        else:
+           if cmd != 'bash':
+                messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
+                self.job_sub_page.activate_run_button()
+                return
+
         
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
@@ -767,10 +796,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.activate_run_button()
             return
         try:
-            if self.network_type== 0:
-                self.submit_network.run_job('qsub')
-            elif self.network_type == 1:
-                self.submit_network.run_job('bash')
+            self.submit_network.run_job(cmd)
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.activate_run_button()

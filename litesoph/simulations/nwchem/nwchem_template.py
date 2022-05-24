@@ -237,6 +237,7 @@ end
         return self.job_script
 
     def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
         super().run_job_local(cmd)
     
     def get_network_job_cmd(self,np):
@@ -671,6 +672,7 @@ task dft rt_tddft
         return self.job_script
 
     def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
     def get_network_job_cmd(self,np):
@@ -1061,6 +1063,7 @@ task dft rt_tddft
         return self.job_script
 
     def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
     def get_network_job_cmd(self,np):
@@ -1089,9 +1092,6 @@ class NwchemSpectrum(Task):
 
         self.task_dir = self.project_dir / self.task_data['spec_dir_path']
         self.engine.create_directory(self.task_dir)
-
-    def run_job_local(self):        
-        self.sumbit_local.run_job()
 
     def create_local_cmd(self, remote=False, *_):
 
@@ -1152,8 +1152,9 @@ class NwchemSpectrum(Task):
         
 
     def run_job_local(self, cmd):
+        cmd = cmd + ' ' + self.BASH_filename
         self.write_job_script(self.job_script)
-        super().run_job_local(cmd)
+        self.sumbit_local.run_job(cmd)
 
 
     def plot_spectrum(self):

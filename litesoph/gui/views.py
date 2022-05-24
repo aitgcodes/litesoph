@@ -3042,6 +3042,8 @@ class JobSubPage(View1):
         self.sub_command = tk.StringVar()
         self.sub_job_type = tk.IntVar()
 
+        self.sub_job_type.trace_add(['write'], self._sub_command_option)
+        self.sub_command.set('bash')
         self.processors.set(1)
         self.port.set(22)
 
@@ -3071,6 +3073,7 @@ class JobSubPage(View1):
         back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
         back2main['font'] = myfont()
         back2main.pack(side= tk.RIGHT)
+
     
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
@@ -3206,6 +3209,12 @@ class JobSubPage(View1):
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
         self.run_button.grid(row=9,column=1,sticky='nsew', padx=2, pady=4)    
+
+    def _sub_command_option(self, *_):
+        if self.sub_job_type.get() == 0:
+            self.sub_command.set('bash')
+        else:
+            self.sub_command.set('')
 
     def view_outfile(self, task_name ):
         event = '<<View'+task_name+self.job_type+'Outfile>>'
