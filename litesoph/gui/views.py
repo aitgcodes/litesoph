@@ -2054,15 +2054,13 @@ class TimeDependentPage(View1):
           
         self._default_var = {
             'strength': ['float', 1e-5],
-            'ex': ['int', 0],
-            'ey': ['int', 0],
-            'ez': ['int', 0],
+            'pol_var' : ['int', 0],
             'dt': ['float'],
             'Nt': ['int'],
-            'var1': ['int',1],
-            'dpl': ['int',1],
-            'wfn': ['int',0],
-            'mooc': ['int',0],
+            'spectra': ['int', 1],
+            'avg_spectra' : ['int', 0],
+            'ksd': ['int',0],
+            'popln': ['int',0],
             'prop': ['int',0],
             'elec': ['int',0],
             'output_freq': ['int']
@@ -2136,22 +2134,22 @@ class TimeDependentPage(View1):
         self.property_note['font'] = myFont
         self.property_note.grid(row=0, column=0)
 
-        self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['spectra'], font=myFont, onvalue=1)
         self.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
-
+        
         frame_spec_option = tk.Frame(frame_property)
         frame_spec_option.grid(row=2, column=0, sticky='w')
 
         # self.checkbox_specific_spectra = tk.Checkbutton(frame_spec_option, text="Specific Polarisation", font=myFont, onvalue=1, offvalue=0)
         # self.checkbox_specific_spectra.grid(row=0, column=0, ipady=5, sticky='w')
 
-        self.checkbox_avg_spectra = tk.Checkbutton(frame_spec_option, text="Averaged over (X,Y,Z) direction", font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_avg_spectra = tk.Checkbutton(frame_spec_option, text="Averaged over (X,Y,Z) direction", variable=self._var['avg_spectra'], font=myFont, onvalue=1, offvalue=0)
         self.checkbox_avg_spectra.grid(row=0, column=0, sticky='w', padx=20)                  
        
-        self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self._var['ksd'], font=myFont, onvalue=1, offvalue=0)
         self.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
        
-        self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self._var['popln'], font=myFont, onvalue=1, offvalue=0)
         self.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
 
         frame_output_freq = tk.Frame(frame_property)
@@ -2297,9 +2295,9 @@ class TimeDependentPage(View1):
 
     def get_property_list(self):
         prop_list = []
-        if self._var['wfn'].get() == 1:
+        if self._var['ksd'].get() == 1:
             prop_list.append("ksd")
-        if self._var['mooc'].get() == 1:
+        if self._var['popln'].get() == 1:
             prop_list.append("population_correlation")    
         return prop_list       
         
@@ -2345,6 +2343,7 @@ class TimeDependentPage(View1):
 
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
+            self._var['ksd'].set(0)
             self.checkbox_ksd.config(state = 'disabled')
             self.checkbox_pc.config(state = 'disabled')
 
