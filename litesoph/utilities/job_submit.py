@@ -27,9 +27,10 @@ class SubmitLocal:
         self.project_dir = self.task.project_dir
         self.np = nprocessors
         self.command = None
-        if self.np > 1:
-            mpi = get_mpi_command(self.engine.NAME, self.task.lsconfig)
-            self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
+        task.create_job_script(self.np)
+        # if self.np > 1:
+        #     mpi = get_mpi_command(self.engine.NAME, self.task.lsconfig)
+        #     self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
                    
     def create_command(self):
         """creates  the command to run the job"""
@@ -52,10 +53,10 @@ class SubmitLocal:
             f.truncate() 
         print('done preparing')
 
-    def run_job(self):    
-        self.create_command()
-        result = self.execute(self.command, self.task.task_dir)
-        self.task.local_cmd_out = (result[self.command[0]]['returncode'], result[self.command[0]]['output'], result[self.command[0]]['error'])
+    def run_job(self, cmd):    
+        #self.create_command()
+        result = self.execute(cmd, self.project_dir)
+        self.task.local_cmd_out = (result[cmd]['returncode'], result[cmd]['output'], result[cmd]['error'])
         print(result)
         
     def execute(self, command, directory):

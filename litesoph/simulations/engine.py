@@ -8,7 +8,7 @@ from litesoph.lsio.IO import write2file
 from litesoph.simulations.gpaw import gpaw_data
 from litesoph.simulations.nwchem import nwchem_data
 from litesoph.simulations.octopus import octopus_data 
-
+from litesoph import config
 
 class EngineStrategy(ABC):
     """Abstract base class for the different engine."""
@@ -18,7 +18,7 @@ class EngineStrategy(ABC):
         pass
 
     @abstractmethod
-    def create_command(self):
+    def create_command(self) -> list:
         pass
 
     def create_directory(self, directory):
@@ -49,7 +49,7 @@ class EngineGpaw(EngineStrategy):
 
     task_dirs = gpaw_data.task_dirs
     
-    def __init__(self,project_dir,lsconfig, status=None) -> None:
+    def __init__(self, project_dir:pathlib.Path ,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
         self.lsconfig = lsconfig
@@ -68,14 +68,33 @@ class EngineGpaw(EngineStrategy):
         self.create_directory(directory)
         return directory
 
-    def create_command(self, cmd , *_):
+    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
         
-        filename = pathlib.Path(self.directory) / self.filename
-        command = self.lsconfig.get('programs', 'python')
-        command = command + ' ' + str(filename) 
-        if cmd:
-            command = cmd + ' ' + command
-        return [command]
+        # filename = pathlib.Path(self.directory) / self.filename
+        # command = self.lsconfig.get('programs', 'python')
+        # command = command + ' ' + str(filename) 
+        
+        # if cmd:
+        #     command = cmd + ' ' + command
+
+        if remote:
+            job_script.append(self.get_engine_network_job_cmd())
+            #rpath = pathlib.Path(path) / self.project_dir.name / self.path
+            job_script.append(f"cd {str(path)}")
+            job_script.append(f"mpirun -np {np:d}  python3 {filename}")
+        else:
+            job_script.append(f"cd {str(path)}")
+
+            path_python = self.lsconfig.get('programs', 'python')
+            command = path_python + ' ' + str(filename) 
+            if np > 1:
+                cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
+                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
+            job_script.append(command)
+        
+        return job_script
+
+
 
     @staticmethod
     def get_engine_network_job_cmd():
@@ -83,8 +102,8 @@ class EngineGpaw(EngineStrategy):
         job_script = """
 ##### Please Provide the Excutable Path or environment of GPAW 
 
-eval "$(conda shell.bash hook)"
-conda activate <environment name>\n"""
+##eval "$(conda shell.bash hook)"
+##conda activate <environment name>"""
         return job_script
 
 class EngineOctopus(EngineStrategy):
@@ -115,17 +134,44 @@ class EngineOctopus(EngineStrategy):
         self.filename = 'inp' 
         write2file(self.directory,self.filename,template)
 
-    def create_command(self, cmd: list ):
+    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
+
 
         ofilename = "log"
-        command = self.lsconfig.get('engine', 'octopus')
+        # command = self.lsconfig.get('engine', 'octopus')
 
-        if not command:
-            command = 'octopus'
-        command = command + ' ' + '>' + ' ' + str(ofilename)
-        if cmd:
-            command = cmd + ' ' + command
-        return [command]
+        # if not command:
+        #     command = 'octopus'
+        # command = command + ' ' + '>' + ' ' + str(ofilename)
+        # if cmd:
+        #     command = cmd + ' ' + command
+        
+        if remote:
+            job_script.append(self.get_engine_network_job_cmd())
+            job_script.append(f"cd {str(path)}")
+            job_script.append(f"mpirun -np {np:d}  octopus > {ofilename}")
+        else:
+            job_script.append(f"cd {str(path)}")
+
+            path_octopus = self.lsconfig.get('engine', 'octopus')
+            if not path_octopus:
+                path_octopus = 'octopus'
+            command = path_octopus + ' ' + '>' + ' ' + str(ofilename)
+            if np > 1:
+                cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
+                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
+            job_script.append(command)
+        return job_script
+
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of Octopus or load the module
+
+#spack load octopus
+#module load octopus"""
+        return job_script
 
         
 class EngineNwchem(EngineStrategy):
@@ -169,17 +215,33 @@ class EngineNwchem(EngineStrategy):
         self.filename = filename 
         write2file(self.directory,self.filename,template)
     
-    def create_command(self, cmd: list, *_):
+    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
 
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
         command = self.lsconfig.get('engine', 'nwchem')
-        if not command:
-            command = 'nwchem'
-        command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
-        if cmd:
-            command = cmd + ' ' + command
-        return [command]
+        # if not command:
+        #     command = 'nwchem'
+        # command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
+        # if cmd:
+        #     command = cmd + ' ' + command
+
+        if remote:
+            job_script.append(self.get_engine_network_job_cmd())
+            job_script.append(f"cd {str(path)}")
+            job_script.append(f"mpirun -np {np:d}  nwchem {filename} > {ofilename}")
+        else:
+            job_script.append(f"cd {str(path)}")
+
+            path_nwchem = self.lsconfig.get('engine', 'nwchem')
+            if not path_nwchem:
+                path_nwchem = 'nwchem'
+            command = path_nwchem + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
+            if np > 1:
+                cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
+                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
+            job_script.append(command)
+        return job_script
 
     @staticmethod
     def get_engine_network_job_cmd():
@@ -190,5 +252,5 @@ class EngineNwchem(EngineStrategy):
 #eval "$(conda shell.bash hook)"
 #conda activate <environment name>
 
-#module load nwchem\n"""
+#module load nwchem"""
         return job_script
