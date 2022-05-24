@@ -191,7 +191,7 @@ td_calc.write('{td_gpw}', mode='all')
 
         template = self.delta_kick_template.format(**self.user_input)
 
-        if self.tools and "wavefunction" in self.tools:
+        if self.tools and "ksd" in self.tools:
             tlines = template.splitlines()
             tlines[4] = "from gpaw.lcaotddft.wfwriter import WaveFunctionWriter"
             tlines[9] = f"WaveFunctionWriter(td_calc, 'wf.ulm', interval={self.user_input['output_freq']})"
