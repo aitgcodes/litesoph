@@ -51,5 +51,11 @@ def config(create, open_file):
         return
 
     if open_file:
-        subprocess.run(['vim',f'{config_file}'])
+        if config_file.exists():
+            subprocess.run(['vim',f'{config_file}'])
+        else:
+            print("lsconfig file doesn't exists.")
+            print("create lsconfig file using command.")
+            print(" ")
+            print("     litesoph config -c")
         return
