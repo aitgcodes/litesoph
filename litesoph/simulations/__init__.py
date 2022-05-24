@@ -6,6 +6,7 @@ from litesoph.simulations import gpaw as g
 from litesoph.simulations import nwchem as n
 from litesoph.simulations import octopus as o
 
+
 task_dict = {
     'gpaw' : {
         'ground_state' : [gp.GpawGroundState, g.pre_condition_ground_state],

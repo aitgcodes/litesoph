@@ -19,6 +19,9 @@ class Task:
     """It takes in the user input dictionary as input."""
 
     BASH_filename = 'job_script.sh'
+    job_script_first_line = "#!/bin/bash"
+    remote_job_script_last_line = "touch Done"
+
 
     def __init__(self, engine_name, status, project_dir:pathlib.Path, lsconfig:ConfigParser) -> None:
         
@@ -77,7 +80,7 @@ class Task:
             if not  self.bash_file.exists():
                 msg = f"job_script:{ self.bash_file} not found."
                 raise FileNotFoundError(msg)
-            self.bash_filename =  self.bash_file.relative_to(self.project_dir.parent)
+            #self.bash_filename =  self.bash_file.relative_to(self.project_dir.parent)
             return
             
         for item in self.input_data_files:
@@ -86,24 +89,21 @@ class Task:
                 msg = f"Data file:{item} not found."
                 raise FileNotFoundError(msg)
     
-    def create_remote_job_script(self, np, remote_path) -> str:
+    def create_job_script(self) -> list:
         """Create the bash script to run the job and "touch Done" command to it, to know when the 
         command is completed."""
-        try:
-            job_script = self.engine.get_engine_network_job_cmd()
-        except AttributeError:
-            job_script = ''
-        rpath = pathlib.Path(remote_path) / self.project_dir.name
-        job_script += f"cd {str(rpath)}\n"
-        job_script += self.get_network_job_cmd(np)
-        job_script += "touch Done\n"
-        job_script += "##############################"
+        job_script = []
+
+        job_script.append(self.job_script_first_line)
+        
         return job_script
 
-    def write_remote_job_script(self, job_script):
+    def write_job_script(self, job_script=None):
+        if job_script:
+            self.job_script = job_script
         self.bash_file = self.project_dir / self.BASH_filename
         with open(self.bash_file, 'w+') as f:
-            f.write(job_script)
+            f.write(self.job_script)
 
     def create_task_dir(self):
         self.task_dir = self.engine.create_dir(self.project_dir, type(self).__name__)
@@ -119,12 +119,12 @@ class Task:
 
     def set_submit_local(self, *args):
         from litesoph.utilities.job_submit import SubmitLocal
-        
         self.sumbit_local = SubmitLocal(self, *args)
 
-    def run_job_local(self):        
+    def run_job_local(self,cmd):
+        cmd = cmd + ' ' + self.BASH_filename
         self.sumbit_local.prepare_input()
-        self.sumbit_local.run_job()
+        self.sumbit_local.run_job(cmd)
         
 def pbs_job_script(name):
 
