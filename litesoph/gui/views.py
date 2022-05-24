@@ -2170,30 +2170,39 @@ class TimeDependentPage(View1):
         self.label_select.grid(row=0, column=0, sticky='w', padx=2, pady=4)
 
         frame_pol = tk.Frame(frame_additional, borderwidth=2)
-        frame_pol.grid(row=1, column=0)
+        frame_pol.grid(row=1, column=0, sticky='w')
+
+        values = {"X": 0, "Y": 1, "Z": 2}
+        for (text, value) in values.items():
+            tk.Radiobutton(frame_pol, text=text, variable=self._var['pol_var'], font=myfont2(),
+             justify='left',value=value).grid(row=0, column=value, ipady=5, sticky='w')
         
         # label_add = tk.Label(frame_pol, text="Please add polarization vectors:", bg="gray", fg="black")
         # label_add['font'] = myFont
         # label_add.grid(row=0, column=1, sticky='w', padx=2, pady=4)
+
+        #######################################################################################################
         
-        label_E = tk.Label(frame_pol, text="E:",  fg="black", font=myFont)
-        label_E.grid(row=1, column =0, sticky='nsew')
+        # label_E = tk.Label(frame_pol, text="E:",  fg="black", font=myFont)
+        # label_E.grid(row=1, column =0, sticky='nsew')
 
-        pol_list = [0, 1]
-        self.entry_pol_x = ttk.Combobox(frame_pol, textvariable=self._var['ex'], value=pol_list, width=3)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.grid(row=1, column=1, padx=2, pady=2)
-        self.entry_pol_x['state'] = 'readonly'
+        # pol_list = [0, 1]
+        # self.entry_pol_x = ttk.Combobox(frame_pol, textvariable=self._var['ex'], value=pol_list, width=3)
+        # self.entry_pol_x['font'] = myFont
+        # self.entry_pol_x.grid(row=1, column=1, padx=2, pady=2)
+        # self.entry_pol_x['state'] = 'readonly'
 
-        self.entry_pol_y = ttk.Combobox(frame_pol, textvariable=self._var['ey'], value=pol_list, width=3)
-        self.entry_pol_y['font'] = myFont
-        self.entry_pol_y.grid(row=1, column=2, padx=2, pady=2)
-        self.entry_pol_y['state'] = 'readonly'
+        # self.entry_pol_y = ttk.Combobox(frame_pol, textvariable=self._var['ey'], value=pol_list, width=3)
+        # self.entry_pol_y['font'] = myFont
+        # self.entry_pol_y.grid(row=1, column=2, padx=2, pady=2)
+        # self.entry_pol_y['state'] = 'readonly'
 
-        self.entry_pol_z = ttk.Combobox(frame_pol, textvariable=self._var['ez'], value=pol_list, width=3)
-        self.entry_pol_z['font'] = myFont
-        self.entry_pol_z.grid(row=1, column=3, padx=2, pady=2)
-        self.entry_pol_z['state'] = 'readonly'
+        # self.entry_pol_z = ttk.Combobox(frame_pol, textvariable=self._var['ez'], value=pol_list, width=3)
+        # self.entry_pol_z['font'] = myFont
+        # self.entry_pol_z.grid(row=1, column=3, padx=2, pady=2)
+        # self.entry_pol_z['state'] = 'readonly'
+
+        ##########################################################################################################    
 
         # values = {"Specific polarization direction": 2}
         # for (text, value) in values.items():
@@ -2228,28 +2237,31 @@ class TimeDependentPage(View1):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=4)
 
-    def pol_option(self):
-        if self._var['var1'] == 1:
-            pass
-        elif self._var['var1'] == 2:
-            pass    
+    def get_pol_list(self): 
+        if self._var['pol_var'].get() == 0:
+            pol_list = [1,0,0]         
+        elif self._var['pol_var'].get() == 1:
+            pol_list = [0,1,0] 
+        elif self._var['pol_var'].get() == 2:
+            pol_list = [0,0,1]                
+        return pol_list
 
-    def read_pol_dir(self):
-        pol_list = [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
-        if pol_list == [1,0,0]:
+    def read_pol_dir(self):        
+        if self.pol_list == [1,0,0]:
             self.pol_dir = (0,'x')
-        elif pol_list == [0,1,0]:
+        elif self.pol_list == [0,1,0]:
             self.pol_dir = (1,'y') 
-        elif pol_list == [0,0,1]:
+        elif self.pol_list == [0,0,1]:
             self.pol_dir = (2,'z')
-        elif pol_list == [1,1,0]:
-            self.pol_dir = (3,'xy') 
+        # elif self.pol_list == [1,1,0]:
+        #     self.pol_dir = (3,'xy') 
         return self.pol_dir     
 
     def get_parameters(self):
-        kick = [float(self._var['strength'].get())*float(self._var['ex'].get()),
-                float(self._var['strength'].get())*float(self._var['ey'].get()),
-                float(self._var['strength'].get())*float(self._var['ez'].get())]
+        self.pol_list = self.get_pol_list()
+        kick = [float(self._var['strength'].get())*float(self.pol_list[0]),
+                float(self._var['strength'].get())*float(self.pol_list[1]),
+                float(self._var['strength'].get())*float(self.pol_list[2])]
         inp_list = [float(self._var['dt'].get()),int(self._var['Nt'].get())]
 
         td_dict_gp = {
@@ -2265,7 +2277,7 @@ class TimeDependentPage(View1):
             'time_step' : self._var['dt'].get(),
             'td_propagator' : 'aetrs',
             'strength': self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'e_pol': self.pol_list,
             'pol_dir': self.read_pol_dir(),
             'output_freq': self._var['output_freq'].get(),
             'property': self.get_property_list()
@@ -2276,7 +2288,7 @@ class TimeDependentPage(View1):
             'tmax': self._var['Nt'].get() * self._var['dt'].get(),
             'dt': self._var['dt'].get(),
             'max':self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'e_pol': self.pol_list,
             'pol_dir': self.read_pol_dir(),
             'extra_prop':self.extra_prop(),
             'output_freq': self._var['output_freq'].get()
