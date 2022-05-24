@@ -1,5 +1,7 @@
+from fcntl import F_GETSIG
 from pathlib import Path
 from typing import Any, Dict
+from litesoph.simulations import octopus
 from litesoph.utilities.units import ang_to_au, au_to_as, as_to_au
 
 from litesoph.simulations.octopus import octopus_data
@@ -36,6 +38,7 @@ class OctGroundState(Task):
             'conv_reldens' : 1e-6,      # SCF calculation
             'smearing_func' :'semiconducting',
             'smearing' : 0.1   ,       # in eV
+            'extra_states' : 0,
             'unit_box' : 'angstrom',
             'atoms': ['C', 'H'],
             'xc':{'option': 1, 'x':"", 'c':"", 'xc':""}
@@ -62,6 +65,7 @@ MaximumIter = {max_iter}
 Eigensolver = {eigensolver}
 Smearing = {smearing}
 SmearingFunction = {smearing_func}
+ExtraStates = {extra_states}
 ConvRelDens = {conv_reldens}
 ConvEnergy = {e_conv}
 PseudopotentialSet = {pseudo}
@@ -212,6 +216,7 @@ class OctTimedependentState(Task):
             'conv_reldens' : {},      # SCF calculation
             'smearing_func' : {},
             'smearing' : {},
+            'extra_states' : {},
 
             'max_step' : 200 ,            
             'time_step' : 0.002,      
@@ -248,7 +253,7 @@ Radius = {box[radius]}
 
 
 Spacing = {spacing}*angstrom
-
+ExtraStates = {extra_states}
 TDPropagator = {td_propagator}
 TDMaxSteps = {max_step}
 TDTimeStep = {time_step}
@@ -415,6 +420,65 @@ mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
 
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
+
+    
+    
+    def create_job_avg_script(self,np):
+        
+        workpath=self.project_dir/"octopus"
+
+        scrpt= f"""
+        
+        #cd {workpath}
+
+        cp -r {workpath}/td.general {workpath}/specific_td.general
+
+        cp inp td.inp
+
+        perl -i -p0e 's/%TDPolarization.*?%/ /s' inp
+
+        perl -i -p0e 's/TDPolarizationDirection =.*?\n/TDPolarizationDirection = 1\n/s' inp
+
+
+        mpirun -np {np:d}  octopus > log.td
+
+
+        mv {workpath}/td.general/multipoles {workpath}/td.general/multipoles.1
+
+        mv {workpath}/td.general/energy {workpath}/td.general/energy.1
+
+        mv {workpath}/td.general/projections {workpath}/td.general/projections.1
+
+        perl -i -p0e 's/TDPolarizationDirection =.*?\n/TDPolarizationDirection = 2\n/s' inp
+
+
+        mpirun -np {np:d} octopus > log.td
+
+
+        mv {workpath}/td.general/multipoles {workpath}/td.general/multipoles.2
+
+        mv {workpath}/td.general/energy {workpath}/td.general/energy.2
+
+        mv {workpath}/td.general/projections {workpath}/td.general/projections.2
+
+        perl -i -p0e 's/TDPolarizationDirection =.*?\n/TDPolarizationDirection = 3\n/s' inp
+
+
+        mpirun -np {np:d} octopus > log.td
+
+
+        mv {workpath}/td.general/multipoles {workpath}/td.general/multipoles.3
+
+        mv {workpath}/td.general/energy {workpath}/td.general/energy.3
+
+        mv {workpath}/td.general/projections {workpath}/td.general/projections.3
+        
+        cp -r {workpath}/td.general {workpath}/avg_td.general
+
+        """
+        return scrpt
+
+
     
 
 class OctTimedependentLaser(Task):
@@ -551,6 +615,7 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
 
 #mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""  
         return job_script
+
 
     def create_local_cmd(self, *args):
 
