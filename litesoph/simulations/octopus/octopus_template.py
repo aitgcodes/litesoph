@@ -269,7 +269,7 @@ class OctTimedependentState(Task):
             'e_pol': [1,0,0],
             'pol_block': [[1,0,0],[0,1,0],[0,0,1]],
 
-            'property': ['default'],
+            'analysis_tools': ['default'],
             'output_freq': 50 ,
             'par_states' : 'auto'          
             }
@@ -330,7 +330,7 @@ TDPolarizationDirection = {e_dir}
         
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
-        added_property = self.temp_dict['property']
+        added_property = self.temp_dict['analysis_tools']
         self.convert_unit()
         self.check_pol()
         self.format_pol_block()
