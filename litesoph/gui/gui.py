@@ -73,12 +73,14 @@ class GUIAPP(tk.Tk):
         self._show_page_events()
         self._bind_event_callbacks()
         self._show_frame(v.StartPage)
-        self.after(1000, self.update_project_dir_tree())
+        self.after(1000, self.update_project_dir_tree)
         self.main_window_size()
 
     def update_project_dir_tree(self):
         if self.directory:
             self.navigation.populate(self.directory)
+        self.after(5000, self.update_project_dir_tree)
+        
 
     def main_window_size(self):
         self.resizable(True, True)
