@@ -35,4 +35,11 @@ def pre_condition_spectrum(status):
 
 def pre_condition_tcm(status):
 
-   return (False, 'Kohn-Sham is not implemented for Octopus')
+    try:
+        if status.get_status('octopus.ground_state.done') and 'ksd' in status.get_status('octopus.rt_tddft_delta.param.analysis_tools'):
+            return(True, 'yes')
+        else:
+            return (False, 'Please perform RT-TDDFT delta pulse calculation with Kohn-Sham decomposition option before proceeding to KSD.')
+    except KeyError:
+        return (False, 'Please perform RT-TDDFT delta pulse calculation with Kohn-Sham decomposition option before proceeding to KSD .')
+   

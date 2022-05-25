@@ -842,7 +842,8 @@ class GroundStatePage(View_note):
             'eigenstate': ['float', 4e-8],
             'absdensity': ['float',0.0],
             'abseigen'  : ['float',0.0],
-            'rlteigen'   : ['float',0.0]
+            'rlteigen'   : ['float',0.0],
+            'extra_states' : ['int', 0]
         }
         self.add_jobsub()
         self._var = var_define(self._default_var)
@@ -1501,7 +1502,16 @@ class GroundStatePage(View_note):
         self.entry_pol_x.current(0)
         self.entry_pol_x['font'] = label_design['font']
         self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=7, column=1, sticky='w', padx=2, pady=6)              
+        self.entry_pol_x.grid(row=7, column=1, sticky='w', padx=2, pady=6) 
+
+        self.label_extra_states = tk.Label(oct_frame,text="Number of Extra States",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_extra_states['font'] = label_design['font']
+        self.label_extra_states.grid(row=8, column=0, sticky='w', padx=2, pady=6)
+
+        self.entry_extra_states = Onlydigits(oct_frame, textvariable= self._var['extra_states'])
+        # self.entry_extra_states.current(0)
+        self.entry_extra_states['font'] = label_design['font']
+        self.entry_extra_states.grid(row=8, column=1, sticky='w', padx=2, pady=6)              
     
     def nwchem_convergence(self, parent):
         #parent.grid_remove()
@@ -1898,7 +1908,7 @@ class GroundStatePage(View_note):
             'maxiter' : self._var['maxiter'].get(),
             'box': self._var['shape'].get(),
             'properties': 'get_potential_energy()',
-            'engine':'gpaw',
+            'engine':'gpaw'
                     }   
 
         inp_dict_nw = {
@@ -1912,7 +1922,7 @@ class GroundStatePage(View_note):
             'gradient':self._var['gradient'].get(),
             'multip' : self._var['multip'].get(),
             'maxiter' : self._var['maxiter'].get(),
-            'engine':'nwchem',
+            'engine':'nwchem'
                     }
 
         inp_dict_oct = {
@@ -1933,7 +1943,8 @@ class GroundStatePage(View_note):
             'mixing':self._var['mix'].get(),
             'box':{'shape':self._var['shape'].get()},
             'unit_box' : self._var['unit_box'].get(),
-            'engine':'octopus',
+            'extra_states' : self._var['extra_states'].get(),
+            'engine':'octopus'
                     }      
 
         if self.engine == "nwchem":
@@ -2280,7 +2291,7 @@ class TimeDependentPage(View1):
             'e_pol': self.pol_list,
             'pol_dir': self.read_pol_dir(),
             'output_freq': self._var['output_freq'].get(),
-            'property': self.get_property_list()
+            'analysis_tools': self.get_property_list()
           }
 
         td_dict_nwchem = {
@@ -2351,8 +2362,8 @@ class TimeDependentPage(View1):
 
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
-            self._var['ksd'].set(0)
-            self.checkbox_ksd.config(state = 'disabled')
+            # self._var['ksd'].set(0)
+            # self.checkbox_ksd.config(state = 'disabled')
             self.checkbox_pc.config(state = 'disabled')
 
         elif engn == 'nwchem':            
@@ -2943,49 +2954,99 @@ class TcmPage(tk.Frame):
     
         self.parent = parent
         self.job = None
-
+        
+        self.engine_name = tk.StringVar()
         self.min = tk.DoubleVar()
         self.max = tk.DoubleVar()
         self.step = tk.DoubleVar()
         self.freq = tk.DoubleVar()
         self.frequency = tk.StringVar()
+        self.ni = tk.IntVar()
+        self.na = tk.IntVar()
 
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
+        self.heading = tk.Label(self,text="LITESOPH Kohn Sham Decomposition", fg='blue')
+        self.heading['font'] = myfont()
+        self.heading.grid(row=0, column=0)
+
         self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button.grid(row=2, column=0, sticky='nsew')
         self.Frame1.grid(row=1,column=0, sticky='nsew')
 
         self.grid_rowconfigure(1, weight=5)
         self.grid_rowconfigure(2, weight=1)
 
-        self.heading = tk.Label(self,text="LITESOPH Kohn Sham Decomposition", fg='blue')
-        self.heading['font'] = myfont()
-        self.heading.grid(row=0, column=0)
-        
-        self.FrameTcm2_label_path = tk.Label(self.Frame1,text="Frequency space density matrix",fg="blue")
-        self.FrameTcm2_label_path['font'] = myfont()
-        self.FrameTcm2_label_path.grid(row=0, column=0)
+        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button.grid(row=2, column=0, sticky='nsew')
 
-        self.Label_freqs = tk.Label(self.Frame1,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
-        self.Label_freqs['font'] = myfont()
-        self.Label_freqs.grid(row=1, column=0)        
-        
-        self.entry_freq = tk.Entry(self.Frame1, textvariable= self.frequency, width=30)
-        self.entry_freq['font'] = myfont()
-        self.entry_freq.grid(row=2, column=0, columnspan=3)
+        self.frame_inp = tk.Frame(self.Frame1, borderwidth=2)
+        self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
         Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myfont()
         Frame_Button1.grid(row=0, column=0)
-
     
         self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.event_generate('<<CreateTCMScript>>'))
         self.create_button['font'] = myfont()
         self.create_button.grid(row=2, column=1)
 
+        self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
         self.add_job_frame("TCM")
+
+    def add_gpaw_ksd_frame(self, parent):
+        """ Creates widgets for gpaw ksd calculation"""    
+        
+        self.FrameTcm2_label_path = tk.Label(parent,text="Frequency space density matrix",fg="blue")
+        self.FrameTcm2_label_path['font'] = myfont()
+        self.FrameTcm2_label_path.grid(row=0, column=0)
+
+        self.Label_freqs = tk.Label(parent,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
+        self.Label_freqs['font'] = myfont()
+        self.Label_freqs.grid(row=1, column=0)        
+        
+        self.entry_freq = tk.Entry(parent, textvariable= self.frequency, width=30)
+        self.entry_freq['font'] = myfont()
+        self.entry_freq.grid(row=2, column=0, columnspan=3)
+
+    def add_oct_ksd_frame(self, parent):
+        """ Creates widgets for Octopus ksd calculation"""
+
+        self.Label_ni = tk.Label(parent,text="Number of occupied states(HOMO & below)",fg="black", justify='left')
+        self.Label_ni['font'] = myfont()
+        self.Label_ni.grid(row=1, column=0)        
+        
+        self.entry_ni = Onlydigits(parent, textvariable= self.ni, width=5)
+        self.entry_ni['font'] = myfont()
+        self.entry_ni.grid(row=1, column=1)
+
+        self.Label_na = tk.Label(parent,text="Number of unoccupied states(LUMO & above)",fg="black", justify='left')
+        self.Label_na['font'] = myfont()
+        self.Label_na.grid(row=2, column=0)        
+        
+        self.entry_na = Onlydigits(parent, textvariable= self.na, width=5)
+        self.entry_na['font'] = myfont()
+        self.entry_na.grid(row=2, column=1)
+
+    def select_ksd_frame(self, parent):
+        engine = self.engine_name.get()
+
+        for widget in parent.winfo_children():
+            widget.destroy()
+        if engine == 'gpaw':
+            self.add_gpaw_ksd_frame(parent)
+        elif engine == 'octopus':
+            self.add_oct_ksd_frame(parent)    
+
+        # Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+        # Frame_Button1['font'] = myfont()
+        # Frame_Button1.grid(row=0, column=0)
+
+    
+        # self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.event_generate('<<CreateTCMScript>>'))
+        # self.create_button['font'] = myfont()
+        # self.create_button.grid(row=2, column=1)
+
+        # self.add_job_frame("TCM")
 
     def add_job_frame(self, task_name):  
         """  Adds submit job buttons"""
@@ -3019,12 +3080,23 @@ class TcmPage(tk.Frame):
         return(self.freq_list)   
     
     def get_parameters(self):
+        engine = self.engine_name.get()    
         self.retrieve_input()
-        tcm_dict = {
-                'frequency_list' : self.freq_list,
-                 }     
-        return tcm_dict    
 
+        gpaw_ksd_dict = {
+                'frequency_list' : self.freq_list,
+                 } 
+
+        oct_ksd_dict = {
+            'ni': self.ni.get(),
+            'na': self.na.get()
+        } 
+
+        if engine == 'gpaw':
+            return gpaw_ksd_dict
+        elif engine == 'octopus':
+            return oct_ksd_dict                
+       
 class JobSubPage(View1):
     """ Creates widgets for JobSub Page"""
 
