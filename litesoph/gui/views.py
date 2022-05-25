@@ -2291,7 +2291,7 @@ class TimeDependentPage(View1):
             'e_pol': self.pol_list,
             'pol_dir': self.read_pol_dir(),
             'output_freq': self._var['output_freq'].get(),
-            'property': self.get_property_list()
+            'analysis_tools': self.get_property_list()
           }
 
         td_dict_nwchem = {
@@ -2362,8 +2362,8 @@ class TimeDependentPage(View1):
 
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
-            self._var['ksd'].set(0)
-            self.checkbox_ksd.config(state = 'disabled')
+            # self._var['ksd'].set(0)
+            # self.checkbox_ksd.config(state = 'disabled')
             self.checkbox_pc.config(state = 'disabled')
 
         elif engn == 'nwchem':            
