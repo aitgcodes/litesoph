@@ -624,6 +624,7 @@ class GUIAPP(tk.Tk):
 
         self._show_frame(v.TcmPage, self._window)
         self.tcm_view = self._frames[v.TcmPage]
+        self.tcm_view.engine_name.set(self.engine)
         
         self.bind('<<CreateTCMScript>>', self._on_create_tcm_button)
         self.bind('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
