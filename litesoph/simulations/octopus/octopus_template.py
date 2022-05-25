@@ -775,6 +775,7 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
 class OctKSD(Task):
 
     task_data = octopus_data.ksd
+    task_name = 'tcm'
 
     default_param = {
         'occ': 4,
@@ -802,28 +803,32 @@ IPROJ {proj_start}-{proj_end}
 NI {ni} NA {na}
 AXIS {e_pol[0]} {e_pol[1]} {e_pol[2]}
 
-{pop} {dmat}
+DMAT
 """
 
     def __init__(self, status, project_dir, lsconfig, user_input:dict) -> None:
         import copy
 
         super().__init__('octopus',status, project_dir, lsconfig)
-        self.user_input = copy.deepcopy(user_input)
+        # self.user_input = copy.deepcopy(user_input)
         self.status = status
         # self.temp_dict = self.default_param.copy() 
         self.temp_dict = copy.deepcopy(self.default_param)        
+        self.user_input = self.temp_dict
         self.temp_dict.update(user_input)
         self.read_from_status()
-        self.update_output_keyword()
+        
         file = self.task_data['req'][0]
         info_file = Path(self.project_dir)/file
         self.read_info_file(info_file)
+        self.update_keyword()
+        
          
     def read_from_status(self):
         """ Updates default dict with status parameters """
 
-        self.unocc = self.status.get_status('octopus.ground_state.param.unocc')
+        # self.unocc = self.status.get_status('octopus.ground_state.param.unocc')
+        
         self.unocc = self.status.get_status('octopus.ground_state.param.extra_states')
         e_pol = self.status.get_status('octopus.rt_tddft_delta.param.e_pol')
         max_step = self.status.get_status('octopus.rt_tddft_delta.param.max_step')
@@ -835,14 +840,21 @@ AXIS {e_pol[0]} {e_pol[1]} {e_pol[2]}
             'e_pol': e_pol,
             'nt': nt
         }
-        # temp_dict = self.default 
+        # print(dict_to_update)
         self.temp_dict.update(dict_to_update) 
 
-    def update_output_keyword(self):
-        if self.temp_dict['pop_value']:
-            self.temp_dict['pop'] = "POP"
-        if self.temp_dict['dmat_value']:
-            self.temp_dict['dmat'] = "DMAT"  
+    def update_keyword(self):
+        self.ni = int(self.temp_dict['ni'])
+        self.na = int(self.temp_dict['na'])
+
+        # if self.temp_dict['pop_value']:
+        #     self.temp_dict['pop'] = "POP"
+        # if self.temp_dict['dmat_value']:
+        #     self.temp_dict['dmat'] = "DMAT" 
+
+        self.temp_dict['nproj'] = self.ni + self.na
+        self.temp_dict['proj_start'] = self.occ - self.ni
+        self.temp_dict['proj_end'] = self.occ + self.na  
 
     def read_info_file(self, evfile):
         """ Gets number of occ states, HOMO/LUMO"""
@@ -880,8 +892,8 @@ AXIS {e_pol[0]} {e_pol[1]} {e_pol[2]}
     def create_template(self):
         """ Creates input template for KSD calculation"""
 
-        template = self.inp_temp.format(**self.temp_dict)
-        return template
+        self.template = self.inp_temp.format(**self.temp_dict)
+        # return template
 
     def write_input(self, template=None):
         from litesoph.lsio.IO import write2file 
@@ -893,7 +905,7 @@ AXIS {e_pol[0]} {e_pol[1]} {e_pol[2]}
         if not self.template:
             msg = 'Template not given or created'
             raise Exception(msg)
-        ksd_dir = Path(self.project_dir)/'ksd' 
+        ksd_dir = Path(self.project_dir)/'octopus/ksd' 
         # inp_file = Path(ksd_dir) / 'oct.inp'   
         self.engine.create_directory(ksd_dir)
-        write2file(ksd_dir, 'oct.inp')
+        write2file(ksd_dir, 'oct.inp', self.template)
