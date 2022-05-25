@@ -2949,46 +2949,49 @@ class DmLdPage(tk.Frame):
    
 class TcmPage(tk.Frame):
 
-    def __init__(self, parent,engine, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
         self.parent = parent
         self.job = None
-        self.engine = engine
-
+        
+        self.engine_name = tk.StringVar()
         self.min = tk.DoubleVar()
         self.max = tk.DoubleVar()
         self.step = tk.DoubleVar()
         self.freq = tk.DoubleVar()
         self.frequency = tk.StringVar()
+        self.ni = tk.IntVar()
+        self.na = tk.IntVar()
 
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
-
-        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button.grid(row=2, column=0, sticky='nsew')
-        self.Frame1.grid(row=1,column=0, sticky='nsew')
-
-        self.grid_rowconfigure(1, weight=5)
-        self.grid_rowconfigure(2, weight=1)
 
         self.heading = tk.Label(self,text="LITESOPH Kohn Sham Decomposition", fg='blue')
         self.heading['font'] = myfont()
         self.heading.grid(row=0, column=0)
 
+        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame1.grid(row=1,column=0, sticky='nsew')
+
+        self.grid_rowconfigure(1, weight=5)
+        self.grid_rowconfigure(2, weight=1)
+
+        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button.grid(row=2, column=0, sticky='nsew')
+
+        self.frame_inp = tk.Frame(self.Frame1, borderwidth=2)
+        self.frame_inp.grid(row=1,column=0, sticky='nsew')           
+
         Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myfont()
         Frame_Button1.grid(row=0, column=0)
-
     
         self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.event_generate('<<CreateTCMScript>>'))
         self.create_button['font'] = myfont()
         self.create_button.grid(row=2, column=1)
 
-        self.select_ksd_frame()
-
+        self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
         self.add_job_frame("TCM")
-
 
     def add_gpaw_ksd_frame(self, parent):
         """ Creates widgets for gpaw ksd calculation"""    
@@ -3006,13 +3009,33 @@ class TcmPage(tk.Frame):
         self.entry_freq.grid(row=2, column=0, columnspan=3)
 
     def add_oct_ksd_frame(self, parent):
-        pass
+        """ Creates widgets for Octopus ksd calculation"""
 
-    def select_ksd_frame(self):
-        if self.engine == 'gpaw':
-            self.add_gpaw_ksd_frame(self.Frame1)
-        elif self.engine == 'octopus':
-            self.add_gpaw_ksd_frame(self.Frame1)    
+        self.Label_ni = tk.Label(parent,text="Number of occupied states(HOMO & below)",fg="black", justify='left')
+        self.Label_ni['font'] = myfont()
+        self.Label_ni.grid(row=1, column=0)        
+        
+        self.entry_ni = Onlydigits(parent, textvariable= self.ni, width=5)
+        self.entry_ni['font'] = myfont()
+        self.entry_ni.grid(row=1, column=1)
+
+        self.Label_na = tk.Label(parent,text="Number of unoccupied states(LUMO & above)",fg="black", justify='left')
+        self.Label_na['font'] = myfont()
+        self.Label_na.grid(row=2, column=0)        
+        
+        self.entry_na = Onlydigits(parent, textvariable= self.na, width=5)
+        self.entry_na['font'] = myfont()
+        self.entry_na.grid(row=2, column=1)
+
+    def select_ksd_frame(self, parent):
+        engine = self.engine_name.get()
+
+        for widget in parent.winfo_children():
+            widget.destroy()
+        if engine == 'gpaw':
+            self.add_gpaw_ksd_frame(parent)
+        elif engine == 'octopus':
+            self.add_oct_ksd_frame(parent)    
 
         # Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         # Frame_Button1['font'] = myfont()
@@ -3057,12 +3080,23 @@ class TcmPage(tk.Frame):
         return(self.freq_list)   
     
     def get_parameters(self):
+        engine = self.engine_name.get()    
         self.retrieve_input()
-        tcm_dict = {
-                'frequency_list' : self.freq_list,
-                 }     
-        return tcm_dict    
 
+        gpaw_ksd_dict = {
+                'frequency_list' : self.freq_list,
+                 } 
+
+        oct_ksd_dict = {
+            'ni': self.ni.get(),
+            'na': self.na.get()
+        } 
+
+        if engine == 'gpaw':
+            return gpaw_ksd_dict
+        elif engine == 'octopus':
+            return oct_ksd_dict                
+       
 class JobSubPage(View1):
     """ Creates widgets for JobSub Page"""
 
