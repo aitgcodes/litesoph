@@ -1,4 +1,5 @@
 
+from litesoph.config import get_mpi_command
 from litesoph.simulations.gpaw import gpaw_data
 from litesoph.simulations.esmd import Task
 from pathlib import Path
@@ -99,6 +100,27 @@ calc.write('gs.gpw', mode='all')
        
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
+    
+    def create_job_script(self, np, remote_path = None, remote=False) -> str:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+
+    def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
+        super().run_job_local(cmd)
+        
 
     def get_network_job_cmd(self, np):
         job_script = f"""
@@ -116,7 +138,7 @@ class GpawRTLCAOTddftDelta(Task):
     task_name = 'rt_tddft_delta'
     NAME = Path(task_data['inp']).name
 
-    path = str(Path(task_data['inp']).parent)
+    path = Path(task_data['inp']).parent
 
     default_param = {'absorption_kick': [1e-5, 0.0, 0.0],
                 'propagate': (20, 150),
@@ -169,7 +191,7 @@ td_calc.write('{td_gpw}', mode='all')
 
         template = self.delta_kick_template.format(**self.user_input)
 
-        if self.tools and "wavefunction" in self.tools:
+        if self.tools and "ksd" in self.tools:
             tlines = template.splitlines()
             tlines[4] = "from gpaw.lcaotddft.wfwriter import WaveFunctionWriter"
             tlines[9] = f"WaveFunctionWriter(td_calc, 'wf.ulm', interval={self.user_input['output_freq']})"
@@ -179,6 +201,27 @@ td_calc.write('{td_gpw}', mode='all')
 
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
+
+    def create_job_script(self, np, remote_path = None, remote=False) -> str:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+        
+
+    def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
+        super().run_job_local(cmd)
 
     def get_network_job_cmd(self, np):
         job_script = f"""
@@ -286,7 +329,27 @@ td_calc.write('{td_gpw}', mode='all')
 
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
-    
+
+    def create_job_script(self, np, remote_path = None, remote=False) -> str:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+        
+    def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
+        super().run_job_local(cmd)
+
     def get_network_job_cmd(self, np):
 
         job_script = f"""
@@ -337,6 +400,27 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
     def prepare_input(self):
         self.create_template()
         self.write_input()
+
+    def create_job_script(self, np, remote_path = None, remote=False) -> str:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+        
+
+    def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
+        super().run_job_local(cmd)
 
     def get_network_job_cmd(self, np):
 
@@ -497,7 +581,25 @@ run(frequency_list)
         
     def create_local_cmd(self, *args):
         return self.engine.create_command(*args)
-    
+
+    def create_job_script(self, np, remote_path = None, remote=False) -> str:
+        """Create the bash script to run the job and "touch Done" command to it"""
+        job_script = super().create_job_script()
+
+        if remote_path:
+            rpath = Path(remote_path) / self.project_dir.name / self.path
+            job_script = self.engine.create_command(job_script, np=1, filename =self.NAME,path=rpath,remote=True)
+            job_script.append(self.remote_job_script_last_line)
+        else:
+            lpath = self.project_dir / self.path
+            job_script = self.engine.create_command(job_script, np=1,filename=self.NAME,path=lpath)
+        self.job_script = "\n".join(job_script)
+        return self.job_script
+
+    def run_job_local(self, cmd):
+        self.write_job_script(self.job_script)
+        super().run_job_local(cmd)
+
     def get_network_job_cmd(self,np):
 
         job_script = f"""

@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 python_requires = '>=3.7'
 requirements = [
     'click>=8.0.3',
-    'matplotlib','numpy','ase'
+    'matplotlib','numpy','ase',
     'paramiko', 'scp', 'pexpect'
 ]
 

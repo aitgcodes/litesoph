@@ -2054,15 +2054,13 @@ class TimeDependentPage(View1):
           
         self._default_var = {
             'strength': ['float', 1e-5],
-            'ex': ['int', 0],
-            'ey': ['int', 0],
-            'ez': ['int', 0],
+            'pol_var' : ['int', 0],
             'dt': ['float'],
             'Nt': ['int'],
-            'var1': ['int',1],
-            'dpl': ['int',1],
-            'wfn': ['int',0],
-            'mooc': ['int',0],
+            'spectra': ['int', 1],
+            'avg_spectra' : ['int', 0],
+            'ksd': ['int',0],
+            'popln': ['int',0],
             'prop': ['int',0],
             'elec': ['int',0],
             'output_freq': ['int']
@@ -2124,42 +2122,92 @@ class TimeDependentPage(View1):
         self.entry_nt['font'] = myFont
         self.entry_nt.grid(row=4, column=1, ipadx=2, ipady=2)
 
-        self.label_select = tk.Label(
-            self.Frame1, text="Please select preferred option:", bg="gray", fg="black")
+        #################################################################################################
+
+        frame_property = tk.Frame(self.Frame2)
+        frame_property.grid(row=0, column=0)
+
+        frame_additional = tk.Frame(self.Frame1)
+        frame_additional.grid(row=8, column=0, pady=10)
+
+        self.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
+        self.property_note['font'] = myFont
+        self.property_note.grid(row=0, column=0)
+
+        self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['spectra'], font=myFont, onvalue=1)
+        self.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
+        
+        frame_spec_option = tk.Frame(frame_property)
+        frame_spec_option.grid(row=2, column=0, sticky='w')
+
+        # self.checkbox_specific_spectra = tk.Checkbutton(frame_spec_option, text="Specific Polarisation", font=myFont, onvalue=1, offvalue=0)
+        # self.checkbox_specific_spectra.grid(row=0, column=0, ipady=5, sticky='w')
+
+        self.checkbox_avg_spectra = tk.Checkbutton(frame_spec_option, text="Averaged over (X,Y,Z) direction", variable=self._var['avg_spectra'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_avg_spectra.grid(row=0, column=0, sticky='w', padx=20)                  
+       
+        self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self._var['ksd'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
+       
+        self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self._var['popln'], font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
+
+        frame_output_freq = tk.Frame(frame_property)
+        frame_output_freq.grid(row=5, column=0, sticky='w')
+
+        self.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
+        self.Frame2_lab['font'] = myFont
+        self.Frame2_lab.grid(row=0, column=0,sticky='w')
+
+        self.entry_out_frq = Onlydigits(frame_output_freq, textvariable=self._var['output_freq'], width=5)
+        self.entry_out_frq['font'] = myFont
+        self.entry_out_frq.grid(row=0, column=1,sticky='w')
+
+        #######################################################################################################
+
+        self.label_select = tk.Label(frame_additional, text="Please select polarization direction:",  bg="gray", fg="black")
         self.label_select['font'] = myFont
-        self.label_select.grid(row=5, column=0, sticky='w', padx=2, pady=4)
+        self.label_select.grid(row=0, column=0, sticky='w', padx=2, pady=4)
 
-        values = {"Specific polarization direction": 2}
+        frame_pol = tk.Frame(frame_additional, borderwidth=2)
+        frame_pol.grid(row=1, column=0, sticky='w')
+
+        values = {"X": 0, "Y": 1, "Z": 2}
         for (text, value) in values.items():
-            tk.Radiobutton(self.Frame1, text=text, variable=self._var['var1'], font=myFont, justify='left',
-                           value=value).grid(row=value+5, column=0, ipady=5, sticky='w')
-
-        frame_pol = tk.Frame(self.Frame1, borderwidth=2)
-        frame_pol.grid(row=8, column=0)
+            tk.Radiobutton(frame_pol, text=text, variable=self._var['pol_var'], font=myfont2(),
+             justify='left',value=value).grid(row=0, column=value, ipady=5, sticky='w')
         
         # label_add = tk.Label(frame_pol, text="Please add polarization vectors:", bg="gray", fg="black")
         # label_add['font'] = myFont
         # label_add.grid(row=0, column=1, sticky='w', padx=2, pady=4)
+
+        #######################################################################################################
         
-        label_E = tk.Label(frame_pol, text="E:",  fg="black", font=myFont)
-        label_E.grid(row=1, column =0, sticky='nsew')
+        # label_E = tk.Label(frame_pol, text="E:",  fg="black", font=myFont)
+        # label_E.grid(row=1, column =0, sticky='nsew')
 
-        pol_list = [0, 1]
-        self.entry_pol_x = ttk.Combobox(frame_pol, textvariable=self._var['ex'], value=pol_list, width=3)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.grid(row=1, column=1, padx=2, pady=2)
-        self.entry_pol_x['state'] = 'readonly'
+        # pol_list = [0, 1]
+        # self.entry_pol_x = ttk.Combobox(frame_pol, textvariable=self._var['ex'], value=pol_list, width=3)
+        # self.entry_pol_x['font'] = myFont
+        # self.entry_pol_x.grid(row=1, column=1, padx=2, pady=2)
+        # self.entry_pol_x['state'] = 'readonly'
 
-        self.entry_pol_y = ttk.Combobox(frame_pol, textvariable=self._var['ey'], value=pol_list, width=3)
-        self.entry_pol_y['font'] = myFont
-        self.entry_pol_y.grid(row=1, column=2, padx=2, pady=2)
-        self.entry_pol_y['state'] = 'readonly'
+        # self.entry_pol_y = ttk.Combobox(frame_pol, textvariable=self._var['ey'], value=pol_list, width=3)
+        # self.entry_pol_y['font'] = myFont
+        # self.entry_pol_y.grid(row=1, column=2, padx=2, pady=2)
+        # self.entry_pol_y['state'] = 'readonly'
 
-        self.entry_pol_z = ttk.Combobox(
-            frame_pol, textvariable=self._var['ez'], value=pol_list, width=3)
-        self.entry_pol_z['font'] = myFont
-        self.entry_pol_z.grid(row=1, column=3, padx=2, pady=2)
-        self.entry_pol_z['state'] = 'readonly'
+        # self.entry_pol_z = ttk.Combobox(frame_pol, textvariable=self._var['ez'], value=pol_list, width=3)
+        # self.entry_pol_z['font'] = myFont
+        # self.entry_pol_z.grid(row=1, column=3, padx=2, pady=2)
+        # self.entry_pol_z['state'] = 'readonly'
+
+        ##########################################################################################################    
+
+        # values = {"Specific polarization direction": 2}
+        # for (text, value) in values.items():
+        #     tk.Radiobutton(self.Frame1, text=text, variable=self._var['var1'], font=myFont, justify='left',
+        #                    value=value).grid(row=value+5, column=0, ipady=5, sticky='w')
 
         # Frame1_Button3 = tk.Button(frame_pol, text="Add",activebackground="#78d6ff",command=lambda:self.add_button())
         # Frame1_Button3['font'] = myFont
@@ -2189,74 +2237,36 @@ class TimeDependentPage(View1):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=4)
 
-        self.Frame3_note = tk.Label(self.Frame3, text="Note: Please choose properties to be extracted in post-processing", fg="black")
-        self.Frame3_note['font'] = myFont
-        self.Frame3_note.grid(row=2, column=6)
+    def get_pol_list(self): 
+        if self._var['pol_var'].get() == 0:
+            pol_list = [1,0,0]         
+        elif self._var['pol_var'].get() == 1:
+            pol_list = [0,1,0] 
+        elif self._var['pol_var'].get() == 2:
+            pol_list = [0,0,1]                
+        return pol_list
 
-        #self.Frame2_note = tk.Label(self.Frame2, text="Note: select for Population Coorelation", fg="black")
-        #self.Frame2_note['font'] = myFont
-        #self.Frame2_note.grid(row=value+7, column=7, sticky='e')
-
-        #self.Frame2_note = tk.Label(self.Frame2, text="Note: Charge calculated from density matrixs", fg="black")
-        #self.Frame2_note['font'] = myFont
-        #self.Frame2_note.grid(row=value+11, column=7, sticky='e')
-
-        #values = {"Wavefunction": 2}
-        # Loop is used to create multiple Radiobuttons
-        # rather than creating each button separately
-        #for (text, value) in values.items():
-            #tk.Checkbutton(self.Frame2, text=text, variable=self._var['var2'], font=myFont, onvalue=1, offvalue=0).grid(row=value+3, column=6, ipady=5, sticky='w')
-
-        self.checkbox_spectra = tk.Checkbutton(self.Frame2, text="Absorption Spectrum", variable=self._var['dpl'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_spectra.grid(row=value+3, column=6, ipady=5, sticky='w')
-       
-        self.checkbox_ksd = tk.Checkbutton(self.Frame2, text="Kohn Sham Decomposition", variable=self._var['wfn'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_ksd.grid(row=value+5, column=6, ipady=5, sticky='w')
-                  
-        self.checkbox_pc = tk.Checkbutton(self.Frame2, text="Population Correlation", variable=self._var['mooc'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_pc.grid(row=value+7, column=6, ipady=5, sticky='w')
- 
-        #self.checkbox4 = tk.Checkbutton(self.Frame2, text="Projections", variable=self._var['prop'], font=myFont, onvalue=1, offvalue=0).grid(row=value+9, column=6, ipady=5, sticky='w')  
- 
-        #self.Frame2_lab = tk.Label(self.Frame2, text="         ", fg="black")
-        #self.Frame2_lab['font'] = myFont
-        #self.Frame2_lab.grid(row=value+5, column=7, ipady=5,)
-
-        self.Frame2_lab = tk.Label(self.Frame2, text="Frequency of data collection", fg="black")
-        self.Frame2_lab['font'] = myFont
-        self.Frame2_lab.grid(row=value+11, column=6, ipady=5,)
-
-        self.entry_out_frq = Onlydigits(self.Frame2, textvariable=self._var['output_freq'], width=5)
-        self.entry_out_frq['font'] = myFont
-        self.entry_out_frq.grid(row=value+11, column=8, ipady=5,)
-
-    def pol_option(self):
-        if self._var['var1'] == 1:
-            pass
-        elif self._var['var1'] == 2:
-            pass    
-
-    def read_pol_dir(self):
-        pol_list = [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()]
-        if pol_list == [1,0,0]:
+    def read_pol_dir(self):        
+        if self.pol_list == [1,0,0]:
             self.pol_dir = (0,'x')
-        elif pol_list == [0,1,0]:
+        elif self.pol_list == [0,1,0]:
             self.pol_dir = (1,'y') 
-        elif pol_list == [0,0,1]:
+        elif self.pol_list == [0,0,1]:
             self.pol_dir = (2,'z')
-        elif pol_list == [1,1,0]:
-            self.pol_dir = (3,'xy') 
+        # elif self.pol_list == [1,1,0]:
+        #     self.pol_dir = (3,'xy') 
         return self.pol_dir     
 
     def get_parameters(self):
-        kick = [float(self._var['strength'].get())*float(self._var['ex'].get()),
-                float(self._var['strength'].get())*float(self._var['ey'].get()),
-                float(self._var['strength'].get())*float(self._var['ez'].get())]
+        self.pol_list = self.get_pol_list()
+        kick = [float(self._var['strength'].get())*float(self.pol_list[0]),
+                float(self._var['strength'].get())*float(self.pol_list[1]),
+                float(self._var['strength'].get())*float(self.pol_list[2])]
         inp_list = [float(self._var['dt'].get()),int(self._var['Nt'].get())]
 
         td_dict_gp = {
             'absorption_kick':kick,
-            'analysis_tools':self.analysis_tool(),
+            'analysis_tools':self.get_property_list(),
             'propagate': tuple(inp_list),
             'pol_dir': self.read_pol_dir(),
             'output_freq': self._var['output_freq'].get()
@@ -2267,7 +2277,7 @@ class TimeDependentPage(View1):
             'time_step' : self._var['dt'].get(),
             'td_propagator' : 'aetrs',
             'strength': self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'e_pol': self.pol_list,
             'pol_dir': self.read_pol_dir(),
             'output_freq': self._var['output_freq'].get(),
             'property': self.get_property_list()
@@ -2278,7 +2288,7 @@ class TimeDependentPage(View1):
             'tmax': self._var['Nt'].get() * self._var['dt'].get(),
             'dt': self._var['dt'].get(),
             'max':self._var['strength'].get(),
-            'e_pol': [self._var['ex'].get(),self._var['ey'].get(),self._var['ez'].get()],
+            'e_pol': self.pol_list,
             'pol_dir': self.read_pol_dir(),
             'extra_prop':self.extra_prop(),
             'output_freq': self._var['output_freq'].get()
@@ -2291,15 +2301,11 @@ class TimeDependentPage(View1):
         elif self.engine == 'octopus':
             return td_dict_oct
 
-    def analysis_tool(self):
-        if self._var['wfn'].get() == 1:
-            return("wavefunction")
-
     def get_property_list(self):
         prop_list = []
-        if self._var['wfn'].get() == 1:
+        if self._var['ksd'].get() == 1:
             prop_list.append("ksd")
-        if self._var['mooc'].get() == 1:
+        if self._var['popln'].get() == 1:
             prop_list.append("population_correlation")    
         return prop_list       
         
@@ -2345,6 +2351,7 @@ class TimeDependentPage(View1):
 
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
+            self._var['ksd'].set(0)
             self.checkbox_ksd.config(state = 'disabled')
             self.checkbox_pc.config(state = 'disabled')
 
@@ -2398,7 +2405,7 @@ class LaserDesignPage(tk.Frame):
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.place(x=125,y=10)
 
-        self.label_proj = tk.Label(self.Frame1,text="Time Origin (tin)",bg="gray",fg="black")
+        self.label_proj = tk.Label(self.Frame1,text="Time Origin (tin) in attosecond",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.place(x=10,y=60)
 
@@ -2575,6 +2582,7 @@ class LaserDesignPage(tk.Frame):
 
 
     def get_laser_pulse(self):
+        from litesoph.utilities.units import as_to_au
         laser_input = {
 
         "strength": self.strength.get(),
@@ -2586,7 +2594,7 @@ class LaserDesignPage(tk.Frame):
         "frequency" :  self.frequency.get(),
         "time_step" : self.ts.get(),
         "number_of_steps": self.ns.get(),
-        "tin" : self.tin.get()
+        "tin" : self.tin.get()*as_to_au
         
         }
         return(laser_input)               
@@ -3036,7 +3044,11 @@ class JobSubPage(View1):
         self.rpath = tk.StringVar()
         self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
+        self.sub_command = tk.StringVar()
+        self.sub_job_type = tk.IntVar()
 
+        self.sub_job_type.trace_add(['write'], self._sub_command_option)
+        self.sub_command.set('bash')
         self.processors.set(1)
         self.port.set(22)
 
@@ -3066,6 +3078,7 @@ class JobSubPage(View1):
         back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
         back2main['font'] = myfont()
         back2main.pack(side= tk.RIGHT)
+
     
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
@@ -3090,30 +3103,53 @@ class JobSubPage(View1):
         elif self.job_type == 'Network':
             self.show_run_network() 
             self.add_text_view_frame()
-            self.text_view.add_button_to_textview() 
+            #self.text_view.add_button_to_textview() 
 
     def show_run_local(self): 
-        """ Creates Local JobSub input widgets"""       
+        """ Creates Local JobSub input widgets""" 
+
+        values = {"Command line execution": 0, "Submit through queue": 1}
+        for (text, value) in values.items():
+            tk.Radiobutton(self.sub_job_frame, text=text, variable=self.sub_job_type, font=myfont2(),
+             justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')   
         
         self.label_np = tk.Label(self.sub_job_frame, text="Number of processors", bg='gray', fg='black')
         self.label_np['font'] = myfont()
-        self.label_np.grid(row=0, column=0,sticky='nsew', padx=5, pady=5)
+        self.label_np.grid(row=2, column=0,sticky='nsew', padx=5, pady=5)
 
         entry_np = Onlydigits(self.sub_job_frame, textvariable=self.processors)
         entry_np['font'] = myfont()
-        entry_np.grid(row=0, column=1, ipadx=2, ipady=2)
+        entry_np.grid(row=2, column=1, ipadx=2, ipady=2)
+
+        self.label_command = tk.Label(self.sub_job_frame, text="Submit command", bg='gray', fg='black')
+        self.label_command['font'] = myfont()
+        self.label_command.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.entry_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_command)
+        self.entry_command['font'] = myfont()
+        self.entry_command.grid(row=3, column=1, ipadx=2, ipady=2)
+
+        self.create_button = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
+        self.create_button['font'] = myfont()
+        self.create_button.grid(row=4, column=0, pady=5)   
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=1, column=1)        
+        self.run_button.grid(row=4, column=1, pady=5)        
 
     def show_run_network(self):
         """ Creates Network JobSub input widgets""" 
 
-        values = {"Cluster": 0, "WorkStation": 1}
+        # values = {"Cluster": 0, "WorkStation": 1}
+        # for (text, value) in values.items():
+        #     tk.Radiobutton(self.sub_job_frame, text=text, variable=self.network_job_type, font=myfont2(),
+        #      justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')
+
+
+        values = {"Command line execution": 0, "Submit through queue": 1}
         for (text, value) in values.items():
-            tk.Radiobutton(self.sub_job_frame, text=text, variable=self.network_job_type, font=myfont2(),
-             justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')
+            tk.Radiobutton(self.sub_job_frame, text=text, variable=self.sub_job_type, font=myfont2(),
+             justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')   
 
         host_label = tk.Label(self.sub_job_frame, text= "Host IP address", bg='gray', fg='black')
         host_label['font'] = myfont()
@@ -3162,14 +3198,28 @@ class JobSubPage(View1):
         num_processor_entry = Onlydigits(self.sub_job_frame,textvariable= self.processors, width=20)
         num_processor_entry['font'] = myfont()
         num_processor_entry.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)
+
+        self.label_command = tk.Label(self.sub_job_frame, text="Submit command", bg='gray', fg='black')
+        self.label_command['font'] = myfont()
+        self.label_command.grid(row=8, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.entry_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_command)
+        self.entry_command['font'] = myfont()
+        self.entry_command.grid(row=8, column=1, ipadx=2, ipady=2)
       
         upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
         upload_button2['font'] = myfont()
-        upload_button2.grid(row=8,column=0,sticky='nsew', padx=2, pady=4)
+        upload_button2.grid(row=9,column=0,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=8,column=1,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=9,column=1,sticky='nsew', padx=2, pady=4)    
+
+    def _sub_command_option(self, *_):
+        if self.sub_job_type.get() == 0:
+            self.sub_command.set('bash')
+        else:
+            self.sub_command.set('')
 
     def view_outfile(self, task_name ):
         event = '<<View'+task_name+self.job_type+'Outfile>>'
@@ -3189,7 +3239,7 @@ class JobSubPage(View1):
         self.run_button.config(state='active')
 
     def create_job_script(self):
-        event = '<<Create'+self.task+'RemoteScript>>'
+        event = '<<Create'+self.task+self.job_type+'Script>>'
         self.event_generate(event)
     
     def submitjob_network(self):
@@ -3281,7 +3331,8 @@ class View_Text(tk.Frame):
         self.text_view['font'] = myFont
         self.text_view.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         text_scroll.config(command=self.text_view.yview)              
-    
+        self.add_button_to_textview()
+
     def clear_text(self):
         self.text_view.delete("1.0", tk.END)
 
