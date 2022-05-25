@@ -70,16 +70,8 @@ class EngineGpaw(EngineStrategy):
 
     def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
         
-        # filename = pathlib.Path(self.directory) / self.filename
-        # command = self.lsconfig.get('programs', 'python')
-        # command = command + ' ' + str(filename) 
-        
-        # if cmd:
-        #     command = cmd + ' ' + command
-
         if remote:
             job_script.append(self.get_engine_network_job_cmd())
-            #rpath = pathlib.Path(path) / self.project_dir.name / self.path
             job_script.append(f"cd {str(path)}")
             job_script.append(f"mpirun -np {np:d}  python3 {filename}")
         else:
@@ -93,8 +85,6 @@ class EngineGpaw(EngineStrategy):
             job_script.append(command)
         
         return job_script
-
-
 
     @staticmethod
     def get_engine_network_job_cmd():
@@ -138,13 +128,6 @@ class EngineOctopus(EngineStrategy):
 
 
         ofilename = "log"
-        # command = self.lsconfig.get('engine', 'octopus')
-
-        # if not command:
-        #     command = 'octopus'
-        # command = command + ' ' + '>' + ' ' + str(ofilename)
-        # if cmd:
-        #     command = cmd + ' ' + command
         
         if remote:
             job_script.append(self.get_engine_network_job_cmd())
@@ -220,11 +203,6 @@ class EngineNwchem(EngineStrategy):
         filename = pathlib.Path(self.directory) / self.filename
         ofilename = pathlib.Path(filename).stem + '.nwo'
         command = self.lsconfig.get('engine', 'nwchem')
-        # if not command:
-        #     command = 'nwchem'
-        # command = command + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
-        # if cmd:
-        #     command = cmd + ' ' + command
 
         if remote:
             job_script.append(self.get_engine_network_job_cmd())

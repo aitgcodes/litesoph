@@ -218,9 +218,6 @@ end
             #tlines[20] = 
             #template = """\n""".join(tlines)
 
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
-
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
         
         job_script = super().create_job_script()
@@ -239,19 +236,6 @@ end
     def run_job_local(self, cmd):
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
-    
-    def get_network_job_cmd(self,np):
-
-      job_script = f"""
-##### LITESOPH Appended Comands###########
-
-cd {self.path}
-mpirun -np {np:d}  nwchem {self.NAME} > gs.nwo\n"""
-      return job_script
-
-
-
-
 
 #################################### Starting of Delta Kick default and template ################
 
@@ -653,9 +637,6 @@ task dft rt_tddft
                 template = """\n""".join(tlines)
         self.template = template
 
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
-
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
         
         job_script = super().create_job_script()
@@ -674,16 +655,6 @@ task dft rt_tddft
     def run_job_local(self, cmd):
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
-
-    def get_network_job_cmd(self,np):
-
-      job_script = f"""
-##### LITESOPH Appended Comands###########
-
-cd {self.path}
-
-mpirun -np {np:d} nwchem {self.NAME} > td.nwo\n"""
-      return job_script
 
 
 #################################### Starting of Gaussian Pulse default and template ################
@@ -1043,9 +1014,6 @@ task dft rt_tddft
     def create_template(self):
         self.pulse_task()
         self.template = self.gp_temp.format(**self.user_input)
-    
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
 
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
         
@@ -1066,16 +1034,6 @@ task dft rt_tddft
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
-    def get_network_job_cmd(self,np):
-
-      job_script = f"""
-##### LITESOPH Appended Comands###########
-
-cd {self.path}
-
-mpirun -np {np:d} nwchem {self.NAME} > tdlaser.nwo"""
-      return job_script
-
 class NwchemSpectrum(Task):
 
     task_data = nwchem_data.spectrum
@@ -1093,7 +1051,7 @@ class NwchemSpectrum(Task):
         self.task_dir = self.project_dir / self.task_data['spec_dir_path']
         self.engine.create_directory(self.task_dir)
 
-    def create_local_cmd(self, remote=False, *_):
+    def create_cmd(self, remote=False ):
 
         dm_file = self.task_data['out_log']
 
@@ -1144,7 +1102,7 @@ class NwchemSpectrum(Task):
             path = Path(remote_path) / self.project_dir.name / self.path
            
         job_script.append(f"cd {str(path)}")
-        job_script.extend(self.create_local_cmd(remote))
+        job_script.extend(self.create_cmd(remote))
         
         
         self.job_script = "\n".join(job_script)
