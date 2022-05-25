@@ -696,12 +696,15 @@ class GUIAPP(tk.Tk):
 
     def _run_local(self, task: Task, np=None):
 
-        if not np:
+        if np:
+            sub_job_type = 0
+            cmd = 'bash'
+        else:
             np = self.job_sub_page.get_processors()
+            sub_job_type = self.job_sub_page.sub_job_type.get()
 
-        sub_job_type = self.job_sub_page.sub_job_type.get()
-
-        cmd = self.job_sub_page.sub_command.get()
+            cmd = self.job_sub_page.sub_command.get()
+            
         if sub_job_type == 1:
             
             if not cmd:
