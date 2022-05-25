@@ -29,7 +29,7 @@ task_dict = {
         'rt_tddft_delta' : [ot.OctTimedependentState, o.pre_condition_rt_tddft_delta],
         'rt_tddft_laser' : [ot.OctTimedependentLaser, o.pre_condition_rt_tddft_laser],
         'spectrum' : [ot.OctSpectrum, o.pre_condition_spectrum],
-        'tcm' : [None, o.pre_condition_tcm]
+        'tcm' : [ot.OctKSD, o.pre_condition_tcm]
 
     }
 }
