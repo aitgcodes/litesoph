@@ -824,6 +824,7 @@ AXIS {e_pol[0]} {e_pol[1]} {e_pol[2]}
         """ Updates default dict with status parameters """
 
         self.unocc = self.status.get_status('octopus.ground_state.param.unocc')
+        self.unocc = self.status.get_status('octopus.ground_state.param.extra_states')
         e_pol = self.status.get_status('octopus.rt_tddft_delta.param.e_pol')
         max_step = self.status.get_status('octopus.rt_tddft_delta.param.max_step')
         output_freq = self.status.get_status('octopus.rt_tddft_delta.param.output_freq') 
