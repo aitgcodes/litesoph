@@ -663,12 +663,13 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
         cmd = 'oct-propagation_spectrum'
         path_oct = self.lsconfig.get('engine', 'octopus')
         if remote :
-            command = str(cmd) + ' ' + '>' + ' ' + str(file)
+            command = cmd + ' ' + '>' + ' ' + str(file)
         else:
             if path_oct:
                 cmd = Path(path_oct).parent / cmd
 
             command = str(cmd) + ' ' + '>' + ' ' + str(file)
+        print(command)
         return command
 
 
@@ -688,10 +689,12 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
             path = Path(remote_path) / self.project_dir.name / "octopus"
            
         job_script.append(f"cd {str(path)}")
-        job_script.extend(self.create_cmd(remote))
+        job_script.append(self.create_cmd(remote))
         
-        
+        print(job_script)
         self.job_script = "\n".join(job_script)
+        print(self.job_script)
+        exit()
         return self.job_script
 
     def run_job_local(self, cmd):
