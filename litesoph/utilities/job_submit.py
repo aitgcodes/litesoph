@@ -148,7 +148,7 @@ class SubmitNetwork:
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
         #self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
         (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
-                                                source_dir=str(remote_path), dst_dir=str(self.project_dir))
+                                                source_dir=str(remote_path), dst_dir=str(self.project_dir.parent))
         if error != 0:
             raise Exception(message)
 
@@ -161,9 +161,8 @@ class SubmitNetwork:
 
     def run_job(self, cmd):
         "This method creates the job submission command and executes the command on the cluster"
-        bash_filename = pathlib.Path(self.task.bash_filename).name
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.name
-        self.command = f"cd {str(remote_path)} && {cmd} {bash_filename}"
+        self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"
         
         
         exit_status, ssh_output, ssh_error = self.network_sub.execute_command(self.command)
@@ -181,7 +180,6 @@ class SubmitNetwork:
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
         remote_path = pathlib.Path(self.remote_path) / self.task.filename.parent / 'Done'
-        print("Checking for job completion..")
         return self.network_sub.check_file(str(remote_path))
 
 class NetworkJobSubmission:
