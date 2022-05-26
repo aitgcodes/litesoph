@@ -10,8 +10,8 @@ import errno
 import numpy as np
 import re
 import copy
-from litesoph.post_processing.oct_projections import Projections
-from litesoph.post_processing.binner import binit
+from litesoph.post_processing.octopus.oct_projections import Projections
+from litesoph.post_processing.octopus.binner import binit
 from numpy import fft
 
 ### Computes the time-dependent populations of the t=0 K-S states
