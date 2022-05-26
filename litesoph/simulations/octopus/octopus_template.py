@@ -150,21 +150,12 @@ PseudopotentialSet = {pseudo}
         self.template = "\n".join([temp1, temp2])
         # print(template)
         
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
 
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
+      
         job_script = super().create_job_script()
         ofilename = "log"
-        # if remote_path:
-        #     rpath = Path(remote_path) / self.project_dir.name / 'octopus'
-        #     job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
-        #     job_script.append(self.remote_job_script_last_line)
-        # else:
-        #     lpath = self.project_dir / 'octopus'
-        #     job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
-        # job_script.append('cp inp gs.inp')
-        # job_script.append("perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp" )
+
         extra_cmd = ["cp inp gs.inp","perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp"]
         if remote:
             cmd = f"mpirun -np {np:d}  octopus > {ofilename}"
@@ -195,15 +186,6 @@ PseudopotentialSet = {pseudo}
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
     
-
-    @staticmethod
-    def get_network_job_cmd(np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-cd Octopus/
-mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
-#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
-        return job_script
     # def format_template(self):
     #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
     #         template = self.gs_min.format(**self.temp_dict)
@@ -269,7 +251,7 @@ class OctTimedependentState(Task):
             'e_pol': [1,0,0],
             'pol_block': [[1,0,0],[0,1,0],[0,0,1]],
 
-            'property': ['default'],
+            'analysis_tools': ['default'],
             'output_freq': 50 ,
             'par_states' : 'auto'          
             }
@@ -319,7 +301,6 @@ TDPolarizationDirection = {e_dir}
     def __init__(self, status, project_dir, lsconfig, user_input) -> None:
         super().__init__('octopus',status, project_dir, lsconfig)
         self.user_input = user_input
-        # self.temp_dict = self.default_param.copy() 
         self.temp_dict = copy.deepcopy(self.default_param)
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
         self.temp_dict.update(status.get_status('octopus.ground_state.param'))
@@ -330,7 +311,7 @@ TDPolarizationDirection = {e_dir}
         
         self.boxshape = self.temp_dict['box']['shape']         
         self.e_pol = self.temp_dict['e_pol']
-        added_property = self.temp_dict['property']
+        added_property = self.temp_dict['analysis_tools']
         self.convert_unit()
         self.check_pol()
         self.format_pol_block()
@@ -465,18 +446,6 @@ ParStates = {self.temp_dict['par_states']}"""
 
         self.template = temp.format(**self.temp_dict)
                
-    
-    @staticmethod
-    def get_network_job_cmd(np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-cd Octopus/
-mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
-#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
-        return job_script
-
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
     
     def create_job_avg_script(self,np):
         
@@ -635,18 +604,6 @@ omega = {frequency}*eV
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
-    
-    @staticmethod
-    def get_network_job_cmd(np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-cd Octopus/
-mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
-#mpirun -np {np:d} /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
-        return job_script
-  
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
 
     def create_template(self):
         self.td = self.format_box() 
@@ -699,28 +656,20 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
         self.temp_dict.update(user_input)
        
 
-    def get_network_job_cmd(self,np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-
-mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum 
-
-#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""  
-        return job_script
-
-    def create_local_cmd(self, remote=False):
+    def create_cmd(self, remote=False):
 
         file = 'log'
 
         cmd = 'oct-propagation_spectrum'
         path_oct = self.lsconfig.get('engine', 'octopus')
         if remote :
-            command = str(cmd) + ' ' + '>' + ' ' + str(file)
+            command = cmd + ' ' + '>' + ' ' + str(file)
         else:
             if path_oct:
                 cmd = Path(path_oct).parent / cmd
 
             command = str(cmd) + ' ' + '>' + ' ' + str(file)
+        print(command)
         return command
 
 
@@ -740,19 +689,7 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
             path = Path(remote_path) / self.project_dir.name / "octopus"
            
         job_script.append(f"cd {str(path)}")
-        job_script.extend(self.create_local_cmd(remote))
-        
-        
-        self.job_script = "\n".join(job_script)
-        return self.job_script
-
-        if remote_path:
-            rpath = Path(remote_path) / self.project_dir.name / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
-            job_script.append(self.remote_job_script_last_line)
-        else:
-            lpath = self.project_dir / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        job_script.append(self.create_cmd(remote))
         
         self.job_script = "\n".join(job_script)
         return self.job_script
@@ -770,3 +707,142 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
         file = Path(self.project_dir) / spec_file
         img = file.parent / f"spec_{pol[1]}.png"
         plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+
+
+class OctKSD(Task):
+
+    task_data = octopus_data.ksd
+    task_name = 'tcm'
+
+    default_param = {
+        'occ': 4,
+        'unocc': 6,
+        'nt': 100,
+        'nbeg': 1,
+        'nskp':1,
+        'nproj':10,
+        'proj_start':1,
+        'proj_end': 10,
+        'ni': 4,
+        'na': 6,
+        'e_pol': [1,0,0],
+        'pop_value': True,
+        'dmat_value': True,
+        'pop': '',
+        'dmat': ''
+    }
+
+
+    inp_temp = """
+OCC {occ} UNOCC {unocc}
+NT {nt} NBEG {nbeg} NSKP {nskp} NPROJ {nproj}
+IPROJ {proj_start}-{proj_end}
+NI {ni} NA {na}
+AXIS {e_pol[0]} {e_pol[1]} {e_pol[2]}
+
+DMAT
+"""
+
+    def __init__(self, status, project_dir, lsconfig, user_input:dict) -> None:
+        import copy
+
+        super().__init__('octopus',status, project_dir, lsconfig)
+        # self.user_input = copy.deepcopy(user_input)
+        self.status = status
+        # self.temp_dict = self.default_param.copy() 
+        self.temp_dict = copy.deepcopy(self.default_param)        
+        self.user_input = self.temp_dict
+        self.temp_dict.update(user_input)
+        self.read_from_status()
+        
+        file = self.task_data['req'][0]
+        info_file = Path(self.project_dir)/file
+        self.read_info_file(info_file)
+        self.update_keyword()
+        
+         
+    def read_from_status(self):
+        """ Updates default dict with status parameters """
+
+        # self.unocc = self.status.get_status('octopus.ground_state.param.unocc')
+        
+        self.unocc = self.status.get_status('octopus.ground_state.param.extra_states')
+        e_pol = self.status.get_status('octopus.rt_tddft_delta.param.e_pol')
+        max_step = self.status.get_status('octopus.rt_tddft_delta.param.max_step')
+        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.output_freq') 
+        nt = int(max_step/output_freq) 
+
+        dict_to_update = {
+            'unocc': self.unocc,
+            'e_pol': e_pol,
+            'nt': nt
+        }
+        # print(dict_to_update)
+        self.temp_dict.update(dict_to_update) 
+
+    def update_keyword(self):
+        self.ni = int(self.temp_dict['ni'])
+        self.na = int(self.temp_dict['na'])
+
+        # if self.temp_dict['pop_value']:
+        #     self.temp_dict['pop'] = "POP"
+        # if self.temp_dict['dmat_value']:
+        #     self.temp_dict['dmat'] = "DMAT" 
+
+        self.temp_dict['nproj'] = self.ni + self.na
+        self.temp_dict['proj_start'] = self.occ - self.ni
+        self.temp_dict['proj_end'] = self.occ + self.na  
+
+    def read_info_file(self, evfile):
+        """ Gets number of occ states, HOMO/LUMO"""
+
+        fp = open(evfile,"r")
+        lines = fp.readlines()
+        itr = 0
+        for line in lines:
+            if "Occupation" in line:
+                itr_beg = itr
+                break
+            itr += 1 
+
+        ### extracts number of occupied states from 'static/info' file
+        occ_itr = 0
+        for line in lines[itr_beg+1:]:            
+            occ_value = float(line.strip().split()[3])
+            occ_itr +=1 
+            if occ_value == 0.0:  
+                occ_end = occ_itr              
+                break 
+
+        self.occ = occ_end-1
+        self.temp_dict['occ'] = self.occ 
+
+        ### stores energy eigen values in a list
+        evals = []
+        itr_st = 0
+        for line in lines[itr_beg+1:]:
+            if itr_st == (self.occ + self.unocc):
+                break
+            evals.append(float(line.strip().split()[2]))
+            itr_st += 1
+
+    def create_template(self):
+        """ Creates input template for KSD calculation"""
+
+        self.template = self.inp_temp.format(**self.temp_dict)
+        # return template
+
+    def write_input(self, template=None):
+        from litesoph.lsio.IO import write2file 
+        
+        if template:
+            self.template = template
+        # if not self.task_dir:
+        #     self.create_task_dir()
+        if not self.template:
+            msg = 'Template not given or created'
+            raise Exception(msg)
+        ksd_dir = Path(self.project_dir)/'octopus/ksd' 
+        # inp_file = Path(ksd_dir) / 'oct.inp'   
+        self.engine.create_directory(ksd_dir)
+        write2file(ksd_dir, 'oct.inp', self.template)

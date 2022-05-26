@@ -626,6 +626,7 @@ class GUIAPP(tk.Tk):
 
         self._show_frame(v.TcmPage, self._window)
         self.tcm_view = self._frames[v.TcmPage]
+        self.tcm_view.engine_name.set(self.engine)
         
         self.bind('<<CreateTCMScript>>', self._on_create_tcm_button)
         self.bind('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
@@ -645,7 +646,9 @@ class GUIAPP(tk.Tk):
 
     def _tcm_create_input(self, template=None):     
         self.tcm_task.write_input(template)
-        self.status.set_new_task(self.tcm_task.task_name)
+        self.status.set_new_task(self.engine,self.tcm_task.task_name)
+        self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
         #self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 

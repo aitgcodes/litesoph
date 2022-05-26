@@ -98,8 +98,6 @@ calc.write('gs.gpw', mode='all')
     def create_template(self):
         self.template = self.gs_template.format(**self.user_input)
        
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
     
     def create_job_script(self, np, remote_path = None, remote=False) -> str:
         """Create the bash script to run the job and "touch Done" command to it, to know when the 
@@ -121,14 +119,6 @@ calc.write('gs.gpw', mode='all')
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
         
-
-    def get_network_job_cmd(self, np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-
-cd {self.path}
-mpirun -np {np:d}  python3 {self.NAME}\n"""
-        return job_script
 
 class GpawRTLCAOTddftDelta(Task):
     """This class contains the template  for creating gpaw 
@@ -327,9 +317,6 @@ td_calc.write('{td_gpw}', mode='all')
             template = self.external_field_template.format(**self.user_input)
             self.template =  template 
 
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
-
     def create_job_script(self, np, remote_path = None, remote=False) -> str:
         """Create the bash script to run the job and "touch Done" command to it, to know when the 
         command is completed."""
@@ -350,16 +337,7 @@ td_calc.write('{td_gpw}', mode='all')
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
-    def get_network_job_cmd(self, np):
-
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-
-cd {self.path}
-mpirun -np {np:d}  python3 {self.NAME}\n"""
-        return job_script
-
-
+    
 class GpawSpectrum(Task):
     
     task_data = gpaw_data.spectrum
@@ -394,9 +372,7 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
     def create_template(self):
         self.template = self.dm2spec.format(**self.user_input)
        
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
-
+    
     def prepare_input(self):
         self.create_template()
         self.write_input()
@@ -421,15 +397,6 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
     def run_job_local(self, cmd):
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
-
-    def get_network_job_cmd(self, np):
-
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-
-cd {self.path}
-python3 {self.NAME}\n"""  
-        return job_script
 
     def plot_spectrum(self):
         from litesoph.utilities.plot_spectrum import plot_spectrum
@@ -579,9 +546,6 @@ run(frequency_list)
     def create_template(self):
         self.template = self.tcm_temp1.format(**self.user_input)
         
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
-
     def create_job_script(self, np, remote_path = None, remote=False) -> str:
         """Create the bash script to run the job and "touch Done" command to it"""
         job_script = super().create_job_script()
@@ -600,14 +564,6 @@ run(frequency_list)
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
-    def get_network_job_cmd(self,np):
-
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-
-cd {self.path}
-python3 {self.NAME}\n"""  
-        return job_script
 
 class GpawLrTddft:
     """This class contains the template  for creating gpaw 
