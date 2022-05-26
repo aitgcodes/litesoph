@@ -3185,6 +3185,7 @@ class JobSubPage(View1):
 
         self.text_view = View_Text(self.Frame2)
         self.text_view.grid(row=1, column=0, columnspan=2, sticky='nswe')
+        self.text_view.add_button_to_textview()
 
     def show_job_frame(self):
         """ Creates Job Sub input widgets"""
@@ -3415,16 +3416,21 @@ class View_Text(tk.Frame):
 
         myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
         self.save_button = None
+
+        # self.grid_columnconfigure(0, weight=2)
+        # self.grid_columnconfigure(1, weight=1)
+
         text_scroll =tk.Scrollbar(self)
-        text_scroll.grid(row=0, column=1, sticky='nsew', columnspan=2)
+        text_scroll.grid(row=0, column=1, sticky='nsew')
         #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
         #self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
-        self.text_view = tk.Text(self, height=40, yscrollcommand= text_scroll.set)
+        # self.text_view = tk.Text(self, height=40, yscrollcommand= text_scroll.set)
+        self.text_view = tk.Text(self, yscrollcommand= text_scroll.set)
         self.text_view['font'] = myFont
         self.text_view.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
         text_scroll.config(command=self.text_view.yview)              
-        self.add_button_to_textview()
+        # self.add_button_to_textview()
 
     def clear_text(self):
         self.text_view.delete("1.0", tk.END)
