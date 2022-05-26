@@ -866,12 +866,12 @@ class GUIAPP(tk.Tk):
 
         # if exist_status != 0:
         #     return
-
+        print("Checking for job completion..")
         if self.submit_network.check_job_status():
 
             # if self.network_type == 0:
             #     messagebox.showinfo(title='Info', message="Job commpleted.")
-
+            print('job Done.')
             self._get_remote_output()   
             log_txt = read_file(log_file)
             self.job_sub_page.text_view.clear_text()
