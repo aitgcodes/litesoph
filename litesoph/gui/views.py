@@ -123,14 +123,17 @@ class WorkManagerPage(tk.Frame):
         self.plot_option = None
 
         self.Frame1 =tk.Frame(self)
-        self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S), pady=10)
+        self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        # self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S), pady=10)
        
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
         self.Frame1.configure(cursor="fleur")
 
-        self.grid_columnconfigure(0, weight=1)
+        # self.grid_columnconfigure(0, weight=1)
+        # self.grid_columnconfigure(1, weight=2)
+
         self.label_proj = tk.Label(self.Frame1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)        
@@ -150,7 +153,7 @@ class WorkManagerPage(tk.Frame):
 
         self.Frame2 = tk.Frame(self)
         self.Frame2.grid(column=0, row=1, sticky=(tk.N, tk.W, tk.E, tk.S))
-        self.grid_columnconfigure(1, weight=1)
+        # self.grid_columnconfigure(1, weight=1)
 
         self.Frame2.configure(relief='groove')
         self.Frame2.configure(borderwidth="2")
@@ -207,14 +210,32 @@ class WorkManagerPage(tk.Frame):
         self.Frame3.configure(borderwidth="2")
         self.Frame3.configure(cursor="fleur")
 
-        self.Frame3_Button_MainPage = tk.Button(self.Frame3, text="Start Page",activebackground="#78d6ff", command=lambda:self.event_generate('<<ShowStartPage>>'))
-        self.Frame3_Button_MainPage['font'] = myfont()
-        self.Frame3_Button_MainPage.grid(column=0, row= 0, sticky="we")
+        # self.Frame3_Button_MainPage = tk.Button(self.Frame3, text="Start Page",activebackground="#78d6ff", command=lambda:self.event_generate('<<ShowStartPage>>'))
+        # self.Frame3_Button_MainPage['font'] = myfont()
+        # self.Frame3_Button_MainPage.grid(column=0, row= 0, sticky="we")
            
         Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=lambda:self.proceed_button())
         Frame3_Button1['font'] = myfont()
-        Frame3_Button1.grid(column=1, row= 0, sticky="we", padx=(600,0))
+        Frame3_Button1.grid(row=0, column=0, padx= 200)
+        # Frame3_Button1.grid(column=1, row= 0, sticky="we", padx=(600,0))
         self.show_sub_task_frame(self.sub_task_frame)
+
+        self.Frame_status = tk.Frame(self )
+        # self.Frame_status.pack(side = 'right')
+        self.Frame_status.grid(row=0, column=1, rowspan=2, sticky='nsew') 
+        self.Frame_status.configure(relief='groove', borderwidth="2", cursor="fleur" )
+
+        self.show_view_status_frame(self.Frame_status)
+        
+    def show_view_status_frame(self, parent):
+        for widget in parent.winfo_children():
+            widget.destroy()
+
+        status_frame = View_Text(parent)
+        
+        status_frame.text_view.config(width=60)
+        status_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
+        
 
     def show_sub_task_frame(self,parent):
 
