@@ -231,10 +231,10 @@ class WorkManagerPage(tk.Frame):
         for widget in parent.winfo_children():
             widget.destroy()
 
-        status_frame = View_Text(parent)
+        self.status_frame = View_Text(parent)
         
-        status_frame.text_view.config(width=60)
-        status_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
+        self.status_frame.text_view.config(width=60)
+        self.status_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
         
 
     def show_sub_task_frame(self,parent):

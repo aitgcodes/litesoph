@@ -22,7 +22,7 @@ from litesoph.simulations import check_task_pre_conditon, get_engine_task, model
 from litesoph.gui import views as v
 
 from litesoph.simulations.esmd import Task
-from litesoph.gui.navigation import ProjectList
+from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.filehandler import Status
 
 home = pathlib.Path.home()
@@ -171,13 +171,17 @@ class GUIAPP(tk.Tk):
         if self.engine:
             self._frames[v.WorkManagerPage].set_value('engine', self.engine)
 
+        if self.status:
+            self.update_summary_of_project()
+
     def _init_project(self, path):
         
         path = pathlib.Path(path)
         if not self._status_init(path):       
             return
         self._change_directory(path)
-        self.navigation.populate(self.directory)
+        self.update_summary_of_project()
+        #self.navigation.populate(self.directory)
         #self._get_engine()
         update_proj_list(path)
 
@@ -243,6 +247,13 @@ class GUIAPP(tk.Tk):
             detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/.litesoph/lsconfig.ini".format(cmd.split()[0])
             messagebox.showerror(title='Error', message=msg, detail=detail) 
     
+    def update_summary_of_project(self):
+         
+        summary = summary_of_current_project(self.status)
+        summary_frame = self._frames[v.WorkManagerPage].status_frame
+
+        summary_frame.insert_text(summary, state='disabled')
+
     def _on_proceed(self, *_):
 
         simulation_type = [('electrons', 'None', '<<event>>'),
