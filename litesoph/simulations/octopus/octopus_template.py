@@ -691,10 +691,7 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
         job_script.append(f"cd {str(path)}")
         job_script.append(self.create_cmd(remote))
         
-        print(job_script)
         self.job_script = "\n".join(job_script)
-        print(self.job_script)
-        exit()
         return self.job_script
 
     def run_job_local(self, cmd):
