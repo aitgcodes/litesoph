@@ -150,21 +150,12 @@ PseudopotentialSet = {pseudo}
         self.template = "\n".join([temp1, temp2])
         # print(template)
         
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
 
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
+      
         job_script = super().create_job_script()
         ofilename = "log"
-        # if remote_path:
-        #     rpath = Path(remote_path) / self.project_dir.name / 'octopus'
-        #     job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
-        #     job_script.append(self.remote_job_script_last_line)
-        # else:
-        #     lpath = self.project_dir / 'octopus'
-        #     job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
-        # job_script.append('cp inp gs.inp')
-        # job_script.append("perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp" )
+
         extra_cmd = ["cp inp gs.inp","perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp"]
         if remote:
             cmd = f"mpirun -np {np:d}  octopus > {ofilename}"
@@ -195,15 +186,6 @@ PseudopotentialSet = {pseudo}
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
     
-
-    @staticmethod
-    def get_network_job_cmd(np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-cd Octopus/
-mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
-#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
-        return job_script
     # def format_template(self):
     #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
     #         template = self.gs_min.format(**self.temp_dict)
@@ -319,7 +301,6 @@ TDPolarizationDirection = {e_dir}
     def __init__(self, status, project_dir, lsconfig, user_input) -> None:
         super().__init__('octopus',status, project_dir, lsconfig)
         self.user_input = user_input
-        # self.temp_dict = self.default_param.copy() 
         self.temp_dict = copy.deepcopy(self.default_param)
         self.temp_dict['geometry']= str(Path(project_dir.name) / self.task_data['req'][0])
         self.temp_dict.update(status.get_status('octopus.ground_state.param'))
@@ -465,18 +446,6 @@ ParStates = {self.temp_dict['par_states']}"""
 
         self.template = temp.format(**self.temp_dict)
                
-    
-    @staticmethod
-    def get_network_job_cmd(np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-cd Octopus/
-mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
-#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
-        return job_script
-
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
     
     def create_job_avg_script(self,np):
         
@@ -635,18 +604,6 @@ omega = {frequency}*eV
             tlines[11] = "%"
             temp = """\n""".join(tlines)
             return temp
-    
-    @staticmethod
-    def get_network_job_cmd(np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-cd Octopus/
-mpirun -np {np:d}  <Full Path of Octopus>/octopus > log
-#mpirun -np {np:d} /opt/apps/octopus/7.2/intel/bin/octopus > log\n"""
-        return job_script
-  
-    def create_local_cmd(self, *args):
-        return self.engine.create_command(*args)
 
     def create_template(self):
         self.td = self.format_box() 
@@ -699,28 +656,20 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
         self.temp_dict.update(user_input)
        
 
-    def get_network_job_cmd(self,np):
-        job_script = f"""
-##### LITESOPH Appended Comands###########
-
-mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum 
-
-#mpirun -np {np:d}  /opt/apps/octopus/7.2/intel/bin/oct-propagation_spectrum\n"""  
-        return job_script
-
-    def create_local_cmd(self, remote=False):
+    def create_cmd(self, remote=False):
 
         file = 'log'
 
         cmd = 'oct-propagation_spectrum'
         path_oct = self.lsconfig.get('engine', 'octopus')
         if remote :
-            command = str(cmd) + ' ' + '>' + ' ' + str(file)
+            command = cmd + ' ' + '>' + ' ' + str(file)
         else:
             if path_oct:
                 cmd = Path(path_oct).parent / cmd
 
             command = str(cmd) + ' ' + '>' + ' ' + str(file)
+        print(command)
         return command
 
 
@@ -740,19 +689,7 @@ mpirun -np {np:d}  <Full Path of Octopus>/oct-propagation_spectrum
             path = Path(remote_path) / self.project_dir.name / "octopus"
            
         job_script.append(f"cd {str(path)}")
-        job_script.extend(self.create_local_cmd(remote))
-        
-        
-        self.job_script = "\n".join(job_script)
-        return self.job_script
-
-        if remote_path:
-            rpath = Path(remote_path) / self.project_dir.name / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
-            job_script.append(self.remote_job_script_last_line)
-        else:
-            lpath = self.project_dir / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+        job_script.append(self.create_cmd(remote))
         
         self.job_script = "\n".join(job_script)
         return self.job_script

@@ -73,12 +73,14 @@ class GUIAPP(tk.Tk):
         self._show_page_events()
         self._bind_event_callbacks()
         self._show_frame(v.StartPage)
-        self.after(1000, self.update_project_dir_tree())
+        self.after(1000, self.update_project_dir_tree)
         self.main_window_size()
 
     def update_project_dir_tree(self):
         if self.directory:
             self.navigation.populate(self.directory)
+        self.after(5000, self.update_project_dir_tree)
+        
 
     def main_window_size(self):
         self.resizable(True, True)
@@ -699,12 +701,15 @@ class GUIAPP(tk.Tk):
 
     def _run_local(self, task: Task, np=None):
 
-        if not np:
+        if np:
+            sub_job_type = 0
+            cmd = 'bash'
+        else:
             np = self.job_sub_page.get_processors()
+            sub_job_type = self.job_sub_page.sub_job_type.get()
 
-        sub_job_type = self.job_sub_page.sub_job_type.get()
-
-        cmd = self.job_sub_page.sub_command.get()
+            cmd = self.job_sub_page.sub_command.get()
+            
         if sub_job_type == 1:
             
             if not cmd:
