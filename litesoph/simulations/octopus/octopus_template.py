@@ -870,7 +870,7 @@ DMAT
         else:
             path_python = self.lsconfig.get('programs', 'python')
 
-        path_tddenmat = str(path.parents[2]/ 'post_processing/tddenmat.py')
+        path_tddenmat = str(path.parents[2]/ 'post_processing/octopus/tddenmat.py')
         cmd = f'{path_python} {path_tddenmat} {ksd_inp_file} {info_file} {projection_file}'
 
         return cmd
