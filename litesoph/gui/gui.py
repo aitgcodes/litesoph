@@ -85,7 +85,7 @@ class GUIAPP(tk.Tk):
     def main_window_size(self):
         self.resizable(True, True)
         self.minsize(700,600)
-        self.maxsize(1200, 750)
+        #self.maxsize(1200, 750)
 
     def _status_init(self, path):
         """Initializes the status object."""
