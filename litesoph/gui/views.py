@@ -214,9 +214,9 @@ class WorkManagerPage(tk.Frame):
         # self.Frame3_Button_MainPage['font'] = myfont()
         # self.Frame3_Button_MainPage.grid(column=0, row= 0, sticky="we")
            
-        Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=lambda:self.proceed_button())
+        Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
         Frame3_Button1['font'] = myfont()
-        Frame3_Button1.grid(row=0, column=0, padx= 200)
+        Frame3_Button1.pack(side=tk.RIGHT, padx=10)
         # Frame3_Button1.grid(column=1, row= 0, sticky="we", padx=(600,0))
         self.show_sub_task_frame(self.sub_task_frame)
 
