@@ -117,7 +117,7 @@ class SubmitNetwork:
             self.prepare_input(self.remote_path)
             self.upload_files()
         else:
-            raise FileNotFoundError()
+            raise Exception(f"Remote path: {self.remote_path} not found.")
     
     def prepare_input(self, path):
         """this adds in the proper path to the data file required for the job"""
