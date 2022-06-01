@@ -847,11 +847,16 @@ DMAT
         self.engine.create_directory(ksd_dir)
         write2file(ksd_dir, 'oct.inp', self.template)
 
-    def create_cmd(self, remote=False ):
+    def create_cmd(self, remote=False):
         import pathlib
+
+        # self.wmin = self.status.get_status('octopus.tcm.param.wmin')
+        # self.wmax = self.status.get_status('octopus.tcm.param.wmax')
+        # self.sigma = self.status.get_status('octopus.tcm.param.sigma')
 
         info_file = self.task_data['req'][0]
         projection_file = self.task_data['req'][1]
+        ksd_file = self.task_data['ksd_file']
         ksd_inp_file = self.project_dir / self.task_data['inp']
 
         info_file = self.project_dir / info_file
@@ -871,9 +876,11 @@ DMAT
             path_python = self.lsconfig.get('programs', 'python')
 
         path_tddenmat = str(path.parents[2]/ 'post_processing/octopus/tddenmat.py')
-        cmd = f'{path_python} {path_tddenmat} {ksd_inp_file} {info_file} {projection_file}'
+        path_plotdmat = str(path.parents[2]/ 'visualization/octopus/plotdmat.py')
+        cmd1 = f'{path_python} {path_tddenmat} {ksd_inp_file} {info_file} {projection_file}'
+        # cmd2 = f'{path_python} {path_plotdmat} {ksd_file} {self.wmin} {self.wmax} -s {self.sigma}'
 
-        return cmd
+        return cmd1
 
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
         
@@ -893,3 +900,6 @@ DMAT
     def run_job_local(self, cmd):
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
+
+    def plot_tcm(self):
+        pass    
