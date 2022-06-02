@@ -150,8 +150,10 @@ class Projections:
 
                 (nt, nx, ny) = dmat.shape
 
+                thresh = 1e-6 ## Minimum threshold for division
                 sigma = 0.08
                 axmag = 0.0
+          
                 for k in range(3):
                         axmag += axis[k]**2
                 axmag = np.sqrt(axmag)
@@ -184,13 +186,13 @@ class Projections:
                             #wia[it,ix,iy] = 2.0*np.sign(mu)*dmatw[it,ix,iy].imag
 
 #               Normalize the strength function
-                sumresptot = min(sum(resptot[0:nt//2])*delw,1.0e-6)
+                sumresptot = max(sum(resptot[0:nt//2])*delw,thresh)
                 nel = sum(self.wt)
                 resp = resp*nel/sumresptot
                 resptot = resptot*nel/sumresptot
 
                 for it in range(nt):
-                    wia[it,:,:] = resp[it,:,:]/resptot[it]
+                    wia[it,:,:] = resp[it,:,:]/max(resptot[it],thresh)
 
                 return freqs, dmatw, resp, wia, resptot
 
