@@ -302,12 +302,12 @@ if tdmat:
        
         # fp=open("strength.dat","w")
         fp=open(strength_path,"w")
-        TDsystem.write_dmat(nus,strengthKS,enocc,enuocc,fp)
+        TDsystem.write_dmatr(nus,strengthKS,enocc,enuocc,fp)
         fp.close()
        
         # fp=open("transwt.dat","w")
         fp=open(transwt_path,"w")
-        TDsystem.write_dmat(nus,transwt,enocc,enuocc,fp)
+        TDsystem.write_dmatr(nus,transwt,enocc,enuocc,fp)
         fp.close()
        
 #######  Plot the particle-hole resolved strength function 
