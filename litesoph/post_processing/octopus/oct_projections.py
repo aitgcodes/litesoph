@@ -212,7 +212,8 @@ class Projections:
                     fp.write("%10.6f " %(t[it]))
                     for ix in range(nx):
                         for iy in range(ny):
-                            fp.write("%10.6f " %(abs(dmat[it,ix,iy])))
+                            #fp.write("%10.6f " %(abs(dmat[it,ix,iy])))
+                            fp.write("%10.6f " %(dmat[it,ix,iy]))
                     fp.write("\n")
 
                 return
