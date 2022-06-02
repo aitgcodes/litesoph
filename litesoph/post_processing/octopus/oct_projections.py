@@ -161,6 +161,7 @@ class Projections:
                 wia = np.zeros((nt,nx,ny), dtype=float)
                 resptot = np.zeros(nt, dtype=float)
                 freqs = np.fft.fftfreq(nt)/self.delt
+                delw = 2*np.pi*(freqs[1]-freqs[0])
 
                 gauss=np.zeros(nt, dtype=float)
 
@@ -179,14 +180,17 @@ class Projections:
                         mu = np.dot(self.muvec[x,y,:],axis[:])/axmag
                         for it in range(nt):
                             resp[it,ix,iy] = -8.0*freqs[it]*mu*dmatw[it,ix,iy].imag
-                            wia[it,ix,iy] = 2.0*np.sign(mu)*dmatw[it,ix,iy].imag
                             resptot[it] += resp[it,ix,iy]
+                            #wia[it,ix,iy] = 2.0*np.sign(mu)*dmatw[it,ix,iy].imag
 
 #               Normalize the strength function
-                sumresptot = sum(resptot[0:nt//2])
+                sumresptot = min(sum(resptot[0:nt//2])*delw,1.0e-6)
                 nel = sum(self.wt)
                 resp = resp*nel/sumresptot
                 resptot = resptot*nel/sumresptot
+
+                for it in range(nt):
+                    wia[it,:,:] = resp[it,:,:]/resptot[it]
 
                 return freqs, dmatw, resp, wia, resptot
 
