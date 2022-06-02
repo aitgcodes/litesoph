@@ -313,7 +313,8 @@ if tdmat:
 #######  Plot the particle-hole resolved strength function 
         # fp=open("spectrum_prop.dat","w")
         fp=open(spectrum_prop_path,"w")
-        for iw in range(nt):
-             fp.write("%10.6f %10.6f \n" %(nus[iw],strength[iw]))
+        nuspos = np.where(nus >=0)[0]
+        for iw in range(nuspos.size):
+             fp.write("%10.6f %10.6f \n" %(nuspos[iw],strength[iw]))
         fp.close()
 
