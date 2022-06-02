@@ -164,6 +164,10 @@ class Projections:
                 resptot = np.zeros(nt, dtype=float)
                 freqs = np.fft.fftfreq(nt)/self.delt
                 delw = 2*np.pi*(freqs[1]-freqs[0])
+                if (nt % 2) == 0:
+                   npos = nt//2
+                else:
+                   npos = nt//2 + 1
 
                 gauss=np.zeros(nt, dtype=float)
 
@@ -186,7 +190,8 @@ class Projections:
                             #wia[it,ix,iy] = 2.0*np.sign(mu)*dmatw[it,ix,iy].imag
 
 #               Normalize the strength function
-                sumresptot = max(sum(resptot[0:nt//2])*delw,thresh)
+                
+                sumresptot = max(sum(resptot[0:npos])*delw,thresh)
                 nel = sum(self.wt)
                 resp = resp*nel/sumresptot
                 resptot = resptot*nel/sumresptot
@@ -197,6 +202,8 @@ class Projections:
                 return freqs, dmatw, resp, wia, resptot
 
         def write_dmat(self,t,dmat,aocc,auocc,fp):
+
+                ## Writes complex dmat type matrices through their absolute values
 		
                 (nt, nx, ny) = dmat.shape
 
@@ -212,7 +219,29 @@ class Projections:
                     fp.write("%10.6f " %(t[it]))
                     for ix in range(nx):
                         for iy in range(ny):
-                            #fp.write("%10.6f " %(abs(dmat[it,ix,iy])))
+                            fp.write("%10.6f " %(abs(dmat[it,ix,iy])))
+                    fp.write("\n")
+
+                return
+
+        def write_dmatr(self,t,dmat,aocc,auocc,fp):
+
+                ## Writes real dmat type matrices through their actual values
+
+                (nt, nx, ny) = dmat.shape
+
+                fp.write("%d %d %d %d\n" %(nt, self.nocc, nx, ny))
+                for en in aocc:
+                         fp.write("%10.6f " %(en))
+                fp.write("\n")
+                for en in auocc:
+                        fp.write("%10.6f " %(en))
+                fp.write("\n")
+
+                for it in range(nt):
+                    fp.write("%10.6f " %(t[it]))
+                    for ix in range(nx):
+                        for iy in range(ny):
                             fp.write("%10.6f " %(dmat[it,ix,iy]))
                     fp.write("\n")
 
