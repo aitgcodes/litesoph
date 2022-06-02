@@ -275,12 +275,10 @@ if tdmat:
         enuocc = []
        
         for ix in stocc:
-                enocc.append(evals[ix])
-                # enocc.append(ener[ix])
+                enocc.append(ener[ix])
        
         for ix in stunocc:
-                enuocc.append(evals[ix])
-                # enuocc.append(ener[ix])
+                enuocc.append(ener[ix])
 
         dmat_path = ksd_folder_path / "dmat.dat"
         dmatw_path = ksd_folder_path / "dmatw.dat" 
