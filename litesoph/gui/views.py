@@ -11,6 +11,7 @@ from litesoph.gui import images
 from litesoph.simulations.filehandler import show_message
 from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
+from litesoph.simulations.models import get_engine_model
 
 class StartPage(tk.Frame):
 
@@ -114,8 +115,9 @@ class WorkManagerPage(tk.Frame):
             'dynamics': ['str','--dynamics type--'],
             'laser': ['str','-- laser type--'],
             'plot':['str', '-- choose option --'],
-            'engine' : ['str','auto-mode'],
         }
+
+        self.engine = tk.StringVar(value='auto-mode')
 
         self._var = var_define(self._default_var)
         label_design.update({"font":myfont()})
@@ -182,7 +184,7 @@ class WorkManagerPage(tk.Frame):
         self.engine_source_label['font'] = myfont()
         self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
             
-        self.engine_source = ttk.Combobox(common_frame,width=20, textvariable= self._var['engine'], values= self.engine_list)
+        self.engine_source = ttk.Combobox(common_frame,width=20, textvariable= self.engine, values= self.engine_list)
         self.engine_source['font'] = myfont()
         self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
         self.engine_source['state'] = 'readonly'
@@ -373,6 +375,27 @@ def var_define(var_dict:dict):
                 var ={ key : tk.DoubleVar()}   
          
         var_def_dict.update(var)
+
+    return var_def_dict
+
+def define_tk_var(var_dict:dict):
+    from litesoph.lsio.data_types import DataTypes as DT
+    var_def_dict ={}
+    var_type = {
+        DT.boolean : tk.BooleanVar,
+        DT.integer : tk.IntVar,
+        DT.string : tk.StringVar,
+        DT.decimal : tk.DoubleVar
+    }
+    for key, value in var_dict.items():
+        #type = value['type']
+        
+        vtype = var_type.get(value['type'], tk.StringVar)
+        try:
+            v = value['default_value']
+        except KeyError:
+            v = ''
+        var_def_dict[key] = vtype(value=v)   
 
     return var_def_dict
         
@@ -815,10 +838,11 @@ class GroundStatePage(View_note):
     nwc_theory = ["SCF","DFT"]
     gpfnsmear = ["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"] 
     
-    def __init__(self, parent, engine, *args, **kwargs):
+    def __init__(self, parent,engine,*args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         
-        self.engine = engine
+        self.engine = tk.StringVar(value=engine)
+        self.engine.trace_add('write', self.on_engine_change)
         self.job = None
 
         self._default_var = {
@@ -866,11 +890,23 @@ class GroundStatePage(View_note):
             'rlteigen'   : ['float',0.0],
             'extra_states' : ['int', 0]
         }
+        self.get_engine_parameters()
         self.add_jobsub()
-        self._var = var_define(self._default_var)
+        #self._var = v(self._default_var)
         self.frame_collection()
         
         #self.test()
+    def on_engine_change(self, *_):
+        self.get_engine_parameters()
+        self.engine_specific_frame()
+        
+
+    def get_engine_parameters(self, *_):
+        print(self.engine.get())
+        engine_para = get_engine_model(self.engine.get())
+        self.gs_dict = engine_para.ground_state
+        self._var = define_tk_var(self.gs_dict)
+        print(self._var)
 
     def tab1_button_frame(self):
 
@@ -914,28 +950,28 @@ class GroundStatePage(View_note):
                 sub_task.current(0)
                 # self.box_shape.config(value = self.gp_box)
                 # self.box_shape.current(0)
-                self.engine = 'gpaw'
-                self.engine_specific_frame()
+                self.engine.set('gpaw')
+                #self.engine_specific_frame()
             if task.get() == "pw":
                 sub_task.config(value = self.pw_task)
                 sub_task.current(0)
                 # self.box_shape.config(value = self.gp_box)
                 # self.box_shape.current(0)
-                self.engine = 'gpaw'
-                self.engine_specific_frame()
+                self.engine.set('gpaw')
+                #self.engine_specific_frame()
             if task.get() == "gaussian":
                 sub_task.config(value = self.gauss_task)
                 sub_task.current(0)
                 # self.box_shape.config(value = self.nw_box)
                 # self.box_shape.current(0)
-                self.engine = 'nwchem'
-                self.engine_specific_frame()
+                self.engine.set('nwchem')
+                #self.engine_specific_frame()
             elif task.get() == "fd":
                 sub_task.config(value = self.fd_task)
                 sub_task.current(0)
                 # self.box_shape.config(value = self.octgp_box)
                 # self.box_shape.set("--choose box--")
-                
+                self.engine.set('auto-mode')
                 for widget in self.Frame2_sub.winfo_children():
                     widget.destroy()
                 self.show_calc_details_tab_fd(self.Frame2_sub)
@@ -1042,7 +1078,7 @@ class GroundStatePage(View_note):
             if self.box_shape.get() == "parallelepiped":
                 self.gp2oct(sub_frame)
             elif self.box_shape.get() in ["minimum","sphere","cylinder"] : 
-                self.engine = 'octopus'
+                self.engine.set('octopus')
                 for widget in sub_frame.winfo_children():
                     widget.destroy()
                 for widget in self.Frame3_sub.winfo_children():
@@ -1228,7 +1264,7 @@ class GroundStatePage(View_note):
 
         self.check = messagebox.askyesno(message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
         if self.check is True:
-            self.engine = 'gpaw'
+            self.engine.set('gpaw')
             for widget in parent.winfo_children():
                 widget.destroy()
             for widget in self.Frame3_sub.winfo_children():
@@ -1237,7 +1273,7 @@ class GroundStatePage(View_note):
             self.gpaw_convergence(self.Frame3_sub)
             # self.engine_specific_frame()
         else:
-            self.engine = 'octopus'
+            self.engine.set('octopus')
             for widget in parent.winfo_children():
                 widget.destroy()
             for widget in self.Frame3_sub.winfo_children():
@@ -1884,12 +1920,12 @@ class GroundStatePage(View_note):
         self.tab2_button_frame()
         #self.common_convergence(self.Frame3)
 
-    def engine_specific_frame(self):
+    def engine_specific_frame(self, *_):
         # self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2, relief='groove')
         # self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
         # self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2, relief='groove')
         # self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
-        if self.engine == "nwchem":
+        if self.engine.get() == "nwchem":
             #To refresh the frames by removing the all existing widgets 
 
             for widget in self.Frame2_sub.winfo_children():
@@ -1900,7 +1936,7 @@ class GroundStatePage(View_note):
             self.nwchem_frame(self.Frame2_sub)
             self.nwchem_convergence(self.Frame3_sub)
 
-        elif self.engine == "gpaw":
+        elif self.engine.get() == "gpaw":
             for widget in self.Frame2_sub.winfo_children():
                 widget.destroy()
             for widget in self.Frame3_sub.winfo_children():
@@ -1968,11 +2004,11 @@ class GroundStatePage(View_note):
             'engine':'octopus'
                     }      
 
-        if self.engine == "nwchem":
+        if self.engine.get() == "nwchem":
            
             return inp_dict_nw
 
-        elif self.engine == 'gpaw':
+        elif self.engine.get() == 'gpaw':
             if self._var['basis'].get() == '':
                 inp_dict_gp['basis']={}
 
@@ -1984,7 +2020,7 @@ class GroundStatePage(View_note):
            
             return inp_dict_gp
 
-        elif self.engine == 'octopus':
+        elif self.engine.get() == 'octopus':
             if self._var['shape'].get() in ['minimum','sphere']:
                 inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get()}
             if self._var['shape'].get() == 'cylinder':
@@ -2007,10 +2043,10 @@ class GroundStatePage(View_note):
         self.event_generate('<<SubGroundState>>')
 
     def refresh_var(self):
-        for key, value in self._default_var.items():
+        for key, value in self.gs_dict.items():
             try:
-                self._var[key].set(value[1])
-            except IndexError:
+                self._var[key].set(value['default_value'])
+            except KeyError:
                 self._var[key].set('')     
 
     def read_atoms(self, geom_xyz):

@@ -169,7 +169,7 @@ class GUIAPP(tk.Tk):
 
         self._show_frame(v.WorkManagerPage)
         if self.engine:
-            self._frames[v.WorkManagerPage].set_value('engine', self.engine)
+            self._frames[v.WorkManagerPage].engine.set(self.engine)
 
         if self.status:
             self.update_summary_of_project()
@@ -193,7 +193,7 @@ class GUIAPP(tk.Tk):
             return
         self._init_project(project_path)
         self._get_engine()
-        self._frames[v.WorkManagerPage].set_value('engine', self.engine)
+        self._frames[v.WorkManagerPage].engine.set(self.engine)
         
        
         
@@ -248,7 +248,7 @@ class GUIAPP(tk.Tk):
             messagebox.showerror(title='Error', message=msg, detail=detail) 
     
     def update_summary_of_project(self):
-         
+        
         summary = summary_of_current_project(self.status)
         summary_frame = self._frames[v.WorkManagerPage].status_frame
 
@@ -272,7 +272,7 @@ class GUIAPP(tk.Tk):
         w = self._frames[v.WorkManagerPage]
         sub_task = w.get_value('sub_task')
         task = w.get_value('task')
-        self.engine = w.get_value('engine')
+        self.engine = w.engine.get()
 
         if not self.directory:
             messagebox.showerror(title='Error', message='Please create project directory')
@@ -340,6 +340,8 @@ class GUIAPP(tk.Tk):
         self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.GroundStatePage, self.engine)
         self.ground_state_view = self._frames[v.GroundStatePage]
+        if self.ground_state_view.engine.get() != self.engine:
+            self.ground_state_view.engine.set(self.engine)
         self.ground_state_view.set_sub_button_state('disabled')
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
