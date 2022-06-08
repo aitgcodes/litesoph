@@ -2982,8 +2982,11 @@ class TcmPage(tk.Frame):
         self.step = tk.DoubleVar()
         self.freq = tk.DoubleVar()
         self.frequency = tk.StringVar()
-        self.ni = tk.IntVar()
-        self.na = tk.IntVar()
+        self.ni = tk.IntVar(value=1)
+        self.na = tk.IntVar(value=1)
+        self.wmin = tk.DoubleVar()
+        self.wmax = tk.DoubleVar()
+        self.sigma = tk.DoubleVar(value=0.1)
 
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -3048,6 +3051,35 @@ class TcmPage(tk.Frame):
         self.entry_na['font'] = myfont()
         self.entry_na.grid(row=2, column=1)
 
+        self.label_plot = tk.Label(parent,text="Frequency range for KSD Contour Plots:",fg="black", justify='left')
+        self.label_plot['font'] = myfont()
+        self.label_plot.grid(row=3, column=0)
+
+        self.Label_wmin = tk.Label(parent,text="Minimum frequency value",fg="black", justify='left')
+        self.Label_wmin['font'] = myfont()
+        self.Label_wmin.grid(row=4, column=0)        
+        
+        self.entry_wmin = Decimalentry(parent, textvariable= self.wmin, width=5)
+        self.entry_wmin['font'] = myfont()
+        self.entry_wmin.grid(row=4, column=1)
+
+        self.Label_wmax = tk.Label(parent,text="Maximum frequency value",fg="black", justify='left')
+        self.Label_wmax['font'] = myfont()
+        self.Label_wmax.grid(row=5, column=0)        
+        
+        self.entry_wmin = Decimalentry(parent, textvariable= self.wmax, width=5)
+        self.entry_wmin['font'] = myfont()
+        self.entry_wmin.grid(row=5, column=1)
+
+        self.label_sigma = tk.Label(parent,text="Gaussian width value",fg="black", justify='left')
+        self.label_sigma['font'] = myfont()
+        self.label_sigma.grid(row=6, column=0)        
+        
+        self.entry_sigma = Decimalentry(parent, textvariable= self.sigma, width=5)
+        self.entry_sigma['font'] = myfont()
+        self.entry_sigma.grid(row=6, column=1)
+
+
     def select_ksd_frame(self, parent):
         engine = self.engine_name.get()
 
@@ -3110,7 +3142,10 @@ class TcmPage(tk.Frame):
 
         oct_ksd_dict = {
             'ni': self.ni.get(),
-            'na': self.na.get()
+            'na': self.na.get(),
+            'wmin': self.wmin.get(),
+            'wmax': self.wmax.get(),
+            'sigma': self.sigma.get()
         } 
 
         if engine == 'gpaw':
