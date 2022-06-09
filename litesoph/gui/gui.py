@@ -184,6 +184,8 @@ class GUIAPP(tk.Tk):
         #self.navigation.populate(self.directory)
         #self._get_engine()
         update_proj_list(path)
+        self._get_engine()
+        return True
 
     def _on_open_project(self, *_):
         """creates dialog to get project path and opens existing project"""
@@ -192,8 +194,8 @@ class GUIAPP(tk.Tk):
         if not project_path:
             return
         self._init_project(project_path)
-        self._get_engine()
-        self._frames[v.WorkManagerPage].engine.set(self.engine)
+        if self.engine:
+            self._frames[v.WorkManagerPage].engine.set(self.engine)
         
        
         
