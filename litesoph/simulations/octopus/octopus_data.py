@@ -22,5 +22,6 @@ spectrum = {'inp':'octopus/inp',
 
 ksd = {'inp': 'octopus/ksd/oct.inp',
         'req':['octopus/static/info',
-        'octopus/td.general/projections']}            
+        'octopus/td.general/projections'],
+        'ksd_file': 'octopus/ksd/transwt.dat'}            
 

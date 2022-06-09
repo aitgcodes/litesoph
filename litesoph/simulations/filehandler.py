@@ -36,6 +36,8 @@ class Status():
 
         if self.filepath.exists():
             self.read_status()
+        else:
+            self.save()
     
 
     def read_status(self):
