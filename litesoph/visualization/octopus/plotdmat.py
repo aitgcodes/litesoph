@@ -134,7 +134,7 @@ def plot_slice_dmatw(eo,eu,dmatw,w0,fnm):
 	plt.ylim(ymin,ymax)
 	#plt.show()
 	plt.savefig(fname1)
-	plt.close() 	
+	plt.show() 	
 
 	return fname1
 
@@ -218,9 +218,9 @@ def plot_slice_dmatw_en(eo,eu,dmatw,w0,fnm,sig,ne,xylim):
 	plt.plot(xlist,lineeqn)
 	#plt.show()
 	plt.savefig(fname1)
-	plt.close()
-	return fname1                          
-        
+	plt.show()
+
+	return fname1              
 
 def plot_dmatw(dmatw,w,wrange,fnm):
 
