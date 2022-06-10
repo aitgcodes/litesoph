@@ -1115,7 +1115,7 @@ class NwchemSpectrum(Task):
         self.sumbit_local.run_job(cmd)
 
 
-    def plot_spectrum(self):
+    def plot(self):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
         pol =  self.status.get_status('nwchem.rt_tddft_delta.param.pol_dir')

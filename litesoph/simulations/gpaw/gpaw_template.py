@@ -398,7 +398,7 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
-    def plot_spectrum(self):
+    def plot(self):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
         spec_file = self.task_data['spectra_file'][self.pol[0]]

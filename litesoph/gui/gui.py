@@ -624,7 +624,7 @@ class GUIAPP(tk.Tk):
 
     def _on_spectra_plot_button(self, *_):
         """ Selects engine specific plot function"""
-        self.spectra_task.plot_spectrum()
+        self.spectra_task.plot()
     
         
 ##----------------------compute---tcm---------------------------------

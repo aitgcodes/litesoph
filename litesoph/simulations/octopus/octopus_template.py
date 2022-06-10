@@ -699,7 +699,7 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
         super().run_job_local(cmd)
     
 
-    def plot_spectrum(self):
+    def plot(self):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
         pol =  self.status.get_status('octopus.rt_tddft_delta.param.pol_dir')
