@@ -1878,8 +1878,8 @@ class TimeDependentPage(View1):
         # self.checkbox_specific_spectra = tk.Checkbutton(frame_spec_option, text="Specific Polarisation", font=myFont, onvalue=1, offvalue=0)
         # self.checkbox_specific_spectra.grid(row=0, column=0, ipady=5, sticky='w')
 
-        self.checkbox_avg_spectra = tk.Checkbutton(frame_spec_option, text="Averaged over (X,Y,Z) direction", variable=self._var['avg_spectra'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_avg_spectra.grid(row=0, column=0, sticky='w', padx=20)                  
+        # self.checkbox_avg_spectra = tk.Checkbutton(frame_spec_option, text="Averaged over (X,Y,Z) direction", variable=self._var['avg_spectra'], font=myFont, onvalue=1, offvalue=0)
+        # self.checkbox_avg_spectra.grid(row=0, column=0, sticky='w', padx=20)                  
        
         self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self._var['ksd'], font=myFont, onvalue=1, offvalue=0)
         self.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
