@@ -693,16 +693,10 @@ class GUIAPP(tk.Tk):
 
     def _on_tcm_plot_button(self, *_):
         """ Selects engine specific plot function"""
-        from PIL import Image
-       
-        for item in self.tcm_task.user_input['frequency_list']:
-            img_file = pathlib.Path(self.directory) / 'gpaw' / 'TCM' / f'tcm_{item:.2f}.png'
-            
-            image = Image.open(img_file)
-            image.show()
-            # img = mpimg.imread(img_file)
-            # plt.imshow(img)
-            # plt.show()
+        try:
+            self.tcm_task.plot()
+        except Exception as e:
+            messagebox.showerror(title='Error', message="Error occured during plotting", details= e)
 
 
     def _init_text_viewer(self,name, template, *_):

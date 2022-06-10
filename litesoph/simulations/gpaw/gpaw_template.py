@@ -564,6 +564,14 @@ run(frequency_list)
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
+    def plot(self):
+        from PIL import Image
+       
+        for item in self.user_input.get('frequency_list'):
+            img_file = Path(self.project_dir) / 'gpaw' / 'TCM' / f'tcm_{item:.2f}.png'
+            
+            image = Image.open(img_file)
+            image.show()
 
 class GpawLrTddft:
     """This class contains the template  for creating gpaw 
