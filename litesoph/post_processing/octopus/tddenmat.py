@@ -201,14 +201,14 @@ ksd_folder_path = input_file.parents[0]
 project_folder_path = input_file.parents[1]
 
 # print(ksd_folder_path)
-try:
-   projection_file ="td.general/"+sys.argv[2]
-except:
-   projection_file ="td.general/projections"
+# try:
+#    projection_file ="td.general/"+sys.argv[2]
+# except:
+#    projection_file ="td.general/projections"
 
-projection_file = project_folder_path / projection_file
+# projection_file = project_folder_path / projection_file
 
-
+projection_file = sys.argv[3]
 ################################################################################################
 # Reads ksd input file
 
