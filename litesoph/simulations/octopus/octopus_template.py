@@ -842,17 +842,17 @@ DMAT
         if not self.template:
             msg = 'Template not given or created'
             raise Exception(msg)
-        ksd_dir = Path(self.project_dir)/'octopus/ksd' 
+        self.ksd_dir = Path(self.project_dir)/'octopus/ksd' 
         # inp_file = Path(ksd_dir) / 'oct.inp'   
-        self.engine.create_directory(ksd_dir)
-        write2file(ksd_dir, 'oct.inp', self.template)
+        self.engine.create_directory(self.ksd_dir)
+        write2file(self.ksd_dir, 'oct.inp', self.template)
 
-    def create_cmd(self, remote=False):
+    def create_cmd(self, remote=False, plot_cmd=False):
         import pathlib
 
-        # self.wmin = self.status.get_status('octopus.tcm.param.wmin')
-        # self.wmax = self.status.get_status('octopus.tcm.param.wmax')
-        # self.sigma = self.status.get_status('octopus.tcm.param.sigma')
+        self.fmin = self.user_input.get('fmin')
+        self.fmax = self.user_input.get('fmax')
+        self.axis_limit = self.user_input.get('axis_limit')
 
         info_file = self.task_data['req'][0]
         projection_file = self.task_data['req'][1]
@@ -877,16 +877,19 @@ DMAT
 
         path_tddenmat = str(path.parents[2]/ 'post_processing/octopus/tddenmat.py')
         path_plotdmat = str(path.parents[2]/ 'visualization/octopus/plotdmat.py')
-        cmd1 = f'{path_python} {path_tddenmat} {ksd_inp_file} {info_file} {projection_file}'
-        # cmd2 = f'{path_python} {path_plotdmat} {ksd_file} {self.wmin} {self.wmax} -s {self.sigma}'
 
-        return cmd1
+        if plot_cmd:
+            cmd = f'{path_python} {path_plotdmat} {ksd_file} {self.fmin} {self.fmax} {self.axis_limit} -i'
+        else:
+            cmd = f'{path_python} {path_tddenmat} {ksd_inp_file} {info_file} {projection_file}'
+      
+        return cmd
 
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
         
         job_script = super().create_job_script()
 
-        path = self.project_dir / "octopus/ksd"
+        path = self.ksd_dir
         if remote_path:
             path = Path(remote_path) / self.project_dir.name / "octopus"
            
@@ -894,12 +897,19 @@ DMAT
         job_script.append(self.create_cmd(remote))
         
         self.job_script = "\n".join(job_script)
-        print(self.job_script)
         return self.job_script
 
     def run_job_local(self, cmd):
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
 
-    def plot_tcm(self):
-        pass    
+    def plot(self):
+        from litesoph.utilities.job_submit import execute
+        
+        cmd =  self.create_cmd(plot_cmd=True)
+
+        result = execute(cmd, self.ksd_dir)
+        
+        if result[cmd]['returncode'] != 0:
+            raise Exception(f"{result[cmd]['error']}")
+        
