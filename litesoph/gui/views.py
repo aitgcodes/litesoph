@@ -2689,7 +2689,7 @@ class TcmPage(tk.Frame):
         self.na = tk.IntVar(value=1)
         self.wmin = tk.DoubleVar()
         self.wmax = tk.DoubleVar()
-        self.sigma = tk.DoubleVar(value=0.1)
+        self.axis_limit = tk.DoubleVar(value=3)
 
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -2774,11 +2774,11 @@ class TcmPage(tk.Frame):
         self.entry_wmin['font'] = myfont()
         self.entry_wmin.grid(row=5, column=1)
 
-        self.label_sigma = tk.Label(parent,text="Gaussian width value",fg="black", justify='left')
+        self.label_sigma = tk.Label(parent,text="Axis limit",fg="black", justify='left')
         self.label_sigma['font'] = myfont()
         self.label_sigma.grid(row=6, column=0)        
         
-        self.entry_sigma = Decimalentry(parent, textvariable= self.sigma, width=5)
+        self.entry_sigma = Decimalentry(parent, textvariable= self.axis_limit, width=5)
         self.entry_sigma['font'] = myfont()
         self.entry_sigma.grid(row=6, column=1)
 
@@ -2837,23 +2837,26 @@ class TcmPage(tk.Frame):
     
     def get_parameters(self):
         engine = self.engine_name.get()    
-        self.retrieve_input()
+       
+        if engine == 'gpaw':
+            
+            self.retrieve_input()
 
-        gpaw_ksd_dict = {
+            gpaw_ksd_dict = {
                 'frequency_list' : self.freq_list,
                  } 
+            return gpaw_ksd_dict
 
-        oct_ksd_dict = {
+        elif engine == 'octopus':
+
+            oct_ksd_dict = {
             'ni': self.ni.get(),
             'na': self.na.get(),
-            'wmin': self.wmin.get(),
-            'wmax': self.wmax.get(),
-            'sigma': self.sigma.get()
+            'fmin': self.wmin.get(),
+            'fmax': self.wmax.get(),
+            'axis_limit': self.axis_limit.get()
         } 
 
-        if engine == 'gpaw':
-            return gpaw_ksd_dict
-        elif engine == 'octopus':
             return oct_ksd_dict                
        
 class JobSubPage(View1):
