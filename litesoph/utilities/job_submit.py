@@ -8,7 +8,6 @@ import subprocess
 import re
 from scp import SCPClient
 from litesoph.simulations.esmd import Task
-from litesoph.config import get_mpi_command
 import pexpect
 
 
@@ -61,14 +60,7 @@ class SubmitLocal:
         self.np = nprocessors
         self.command = None
         task.create_job_script(self.np)
-        # if self.np > 1:
-        #     mpi = get_mpi_command(self.engine.NAME, self.task.lsconfig)
-        #     self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
                    
-    def create_command(self):
-        """creates  the command to run the job"""
-        self.command = self.task.create_local_cmd(self.command)
-        
 
     def prepare_input(self):
         """this adds in the proper path to the data file required for the job"""
