@@ -643,7 +643,6 @@ class GUIAPP(tk.Tk):
         self.tcm_view = self._frames[v.TcmPage]
         self.tcm_view.engine_name.set(self.engine)
         
-        self.bind('<<CreateTCMScript>>', self._on_create_tcm_button)
         self.bind('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
         self.bind('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
         self.bind('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
@@ -652,12 +651,7 @@ class GUIAPP(tk.Tk):
         inp_dict = self.tcm_view.get_parameters()
         self.tcm_task = get_engine_task(self.engine, 'tcm', self.status, self.directory, self.lsconfig, inp_dict)
         self.tcm_task.create_template()
-        return self.tcm_task.template    
 
-    def _on_create_tcm_button(self, *_):
-
-        self._validate_tcm_input()
-        self._tcm_create_input()
 
     def _tcm_create_input(self, template=None):     
         self.tcm_task.write_input(template)
@@ -669,9 +663,8 @@ class GUIAPP(tk.Tk):
 
     def _on_tcm_run_local_button(self, *_):
         
-        if not self._check_task_run_condition(self.tcm_task):
-            messagebox.showerror(message="Input not saved.", detail = "Please save the input before job submission")
-            return
+        self._validate_tcm_input()
+        self._tcm_create_input()
 
         self._run_local(self.tcm_task,np=1 )
         
