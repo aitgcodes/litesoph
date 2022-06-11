@@ -8,7 +8,6 @@ import subprocess
 import re
 from scp import SCPClient
 from litesoph.simulations.esmd import Task
-from litesoph.config import get_mpi_command
 import pexpect
 
 
@@ -18,6 +17,39 @@ def get_submit_class(network=None, **kwargs):
         return SubmitNetwork(**kwargs)
     else:
         return SubmitLocal(**kwargs)
+
+def execute(command, directory):
+    
+    result = {}
+    
+    if type(command).__name__ == 'str':
+        command = [command]
+
+    for cmd in command:
+        out_dict = result[cmd] = {}
+        print("Job started with command:", cmd)
+        try:
+            job = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
+            output = job.communicate()
+        except Exception as e:
+            raise Exception(e)
+        else:
+            print("returncode =", job.returncode)
+    
+            if job.returncode != 0:
+                print("Error...")
+                for line in output[1].decode(encoding='utf-8').split('\n'):
+                    print(line)
+            else:
+                print("job done..")
+                if output[0]:
+                    print("Output...")
+                    for line in output[0].decode(encoding='utf-8').split('\n'):
+                        print(line)
+            out_dict['returncode'] = job.returncode
+            out_dict['output'] = output[0]
+            out_dict['error'] = output[1]
+    return result
     
 class SubmitLocal:
 
@@ -27,14 +59,8 @@ class SubmitLocal:
         self.project_dir = self.task.project_dir
         self.np = nprocessors
         self.command = None
-        if self.np > 1:
-            mpi = get_mpi_command(self.engine.NAME, self.task.lsconfig)
-            self.command = mpi + ' ' + '-np' + ' ' + str(self.np)
+        task.create_job_script(self.np)
                    
-    def create_command(self):
-        """creates  the command to run the job"""
-        self.command = self.task.create_local_cmd(self.command)
-        
 
     def prepare_input(self):
         """this adds in the proper path to the data file required for the job"""
@@ -52,44 +78,10 @@ class SubmitLocal:
             f.truncate() 
         print('done preparing')
 
-    def run_job(self):    
-        self.create_command()
-        result = self.execute(self.command, self.task.task_dir)
-        self.task.local_cmd_out = (result[self.command[0]]['returncode'], result[self.command[0]]['output'], result[self.command[0]]['error'])
+    def run_job(self, cmd):    
+        result = execute(cmd, self.project_dir)
+        self.task.local_cmd_out = (result[cmd]['returncode'], result[cmd]['output'], result[cmd]['error'])
         print(result)
-        
-    def execute(self, command, directory):
-        
-        result = {}
-        
-        if type(command).__name__ == 'str':
-            command = [command]
-
-        for cmd in command:
-            out_dict = result[cmd] = {}
-            print("Job started with command:", cmd)
-            try:
-                job = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
-                output = job.communicate()
-            except Exception as e:
-                raise Exception(e)
-            else:
-                print("returncode =", job.returncode)
-        
-                if job.returncode != 0:
-                    print("Error...")
-                    for line in output[1].decode(encoding='utf-8').split('\n'):
-                        print(line)
-                else:
-                    print("job done..")
-                    if output[0]:
-                        print("Output...")
-                        for line in output[0].decode(encoding='utf-8').split('\n'):
-                            print(line)
-                out_dict['returncode'] = job.returncode
-                out_dict['output'] = output[0]
-                out_dict['error'] = output[1]
-        return result
 
 class SubmitNetwork:
 
@@ -116,7 +108,7 @@ class SubmitNetwork:
             self.prepare_input(self.remote_path)
             self.upload_files()
         else:
-            raise FileNotFoundError()
+            raise Exception(f"Remote path: {self.remote_path} not found.")
     
     def prepare_input(self, path):
         """this adds in the proper path to the data file required for the job"""
@@ -147,7 +139,7 @@ class SubmitNetwork:
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
         #self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
         (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
-                                                source_dir=str(remote_path), dst_dir=str(self.project_dir))
+                                                source_dir=str(remote_path), dst_dir=str(self.project_dir.parent))
         if error != 0:
             raise Exception(message)
 
@@ -160,9 +152,8 @@ class SubmitNetwork:
 
     def run_job(self, cmd):
         "This method creates the job submission command and executes the command on the cluster"
-        bash_filename = pathlib.Path(self.task.bash_filename).name
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.name
-        self.command = f"cd {str(remote_path)} && {cmd} {bash_filename}"
+        self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"
         
         
         exit_status, ssh_output, ssh_error = self.network_sub.execute_command(self.command)
@@ -180,7 +171,6 @@ class SubmitNetwork:
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
         remote_path = pathlib.Path(self.remote_path) / self.task.filename.parent / 'Done'
-        print("Checking for job completion..")
         return self.network_sub.check_file(str(remote_path))
 
 class NetworkJobSubmission:

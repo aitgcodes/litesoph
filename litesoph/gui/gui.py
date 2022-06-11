@@ -22,7 +22,7 @@ from litesoph.simulations import check_task_pre_conditon, get_engine_task, model
 from litesoph.gui import views as v
 
 from litesoph.simulations.esmd import Task
-from litesoph.gui.navigation import ProjectList
+from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.filehandler import Status
 
 home = pathlib.Path.home()
@@ -73,17 +73,19 @@ class GUIAPP(tk.Tk):
         self._show_page_events()
         self._bind_event_callbacks()
         self._show_frame(v.StartPage)
-        self.after(1000, self.update_project_dir_tree())
+        self.after(1000, self.update_project_dir_tree)
         self.main_window_size()
 
     def update_project_dir_tree(self):
         if self.directory:
             self.navigation.populate(self.directory)
+        self.after(5000, self.update_project_dir_tree)
+        
 
     def main_window_size(self):
         self.resizable(True, True)
         self.minsize(700,600)
-        self.maxsize(1200, 750)
+        #self.maxsize(1200, 750)
 
     def _status_init(self, path):
         """Initializes the status object."""
@@ -167,7 +169,10 @@ class GUIAPP(tk.Tk):
 
         self._show_frame(v.WorkManagerPage)
         if self.engine:
-            self._frames[v.WorkManagerPage].set_value('engine', self.engine)
+            self._frames[v.WorkManagerPage].engine.set(self.engine)
+
+        if self.status:
+            self.update_summary_of_project()
 
     def _init_project(self, path):
         
@@ -175,9 +180,12 @@ class GUIAPP(tk.Tk):
         if not self._status_init(path):       
             return
         self._change_directory(path)
-        self.navigation.populate(self.directory)
+        self.update_summary_of_project()
+        #self.navigation.populate(self.directory)
         #self._get_engine()
         update_proj_list(path)
+        self._get_engine()
+        return True
 
     def _on_open_project(self, *_):
         """creates dialog to get project path and opens existing project"""
@@ -186,8 +194,8 @@ class GUIAPP(tk.Tk):
         if not project_path:
             return
         self._init_project(project_path)
-        self._get_engine()
-        self._frames[v.WorkManagerPage].set_value('engine', self.engine)
+        if self.engine:
+            self._frames[v.WorkManagerPage].engine.set(self.engine)
         
        
         
@@ -241,6 +249,13 @@ class GUIAPP(tk.Tk):
             detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/.litesoph/lsconfig.ini".format(cmd.split()[0])
             messagebox.showerror(title='Error', message=msg, detail=detail) 
     
+    def update_summary_of_project(self):
+        
+        summary = summary_of_current_project(self.status)
+        summary_frame = self._frames[v.WorkManagerPage].status_frame
+
+        summary_frame.insert_text(summary, state='disabled')
+
     def _on_proceed(self, *_):
 
         simulation_type = [('electrons', 'None', '<<event>>'),
@@ -259,7 +274,7 @@ class GUIAPP(tk.Tk):
         w = self._frames[v.WorkManagerPage]
         sub_task = w.get_value('sub_task')
         task = w.get_value('task')
-        self.engine = w.get_value('engine')
+        self.engine = w.engine.get()
 
         if not self.directory:
             messagebox.showerror(title='Error', message='Please create project directory')
@@ -327,6 +342,8 @@ class GUIAPP(tk.Tk):
         self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.GroundStatePage, self.engine)
         self.ground_state_view = self._frames[v.GroundStatePage]
+        if self.ground_state_view.engine.get() != self.engine:
+            self.ground_state_view.engine.set(self.engine)
         self.ground_state_view.set_sub_button_state('disabled')
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
@@ -375,6 +392,8 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
         self.job_sub_page.bind('<<ViewGroundStateLocalOutfile>>', lambda _: self._on_out_local_view_button(self.ground_state_task))
+        self.job_sub_page.text_view.bind('<<SaveGroundStateLocal>>',lambda _: self._on_save_job_script(self.ground_state_task))
+        self.job_sub_page.bind('<<CreateGroundStateLocalScript>>', lambda _: self._on_create_local_job_script(self.ground_state_task,'GroundStateLocal'))
         #self.job_sub_page.bind('<<Back2GroundState>>', lambda _: self._run_network(self.ground_state_task))
 
     def _on_gs_run_network_button(self, *_):
@@ -392,8 +411,8 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.set_network_profile(remote)
         self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
         self.job_sub_page.bind('<<ViewGroundStateNetworkOutfile>>', lambda _: self. _on_out_remote_view_button(self.ground_state_task))
-        self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_remote_job_script(self.ground_state_task))
-        self.job_sub_page.bind('<<CreateGroundStateRemoteScript>>', lambda _: self._on_create_remote_job_script(self.ground_state_task,'GroundStateNetwork'))
+        self.job_sub_page.text_view.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_job_script(self.ground_state_task))
+        self.job_sub_page.bind('<<CreateGroundStateNetworkScript>>', lambda _: self._on_create_remote_job_script(self.ground_state_task,'GroundStateNetwork'))
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
@@ -453,7 +472,8 @@ class GUIAPP(tk.Tk):
         
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<ViewRT_TDDFT_DELTALocalOutfile>>', lambda _: self._on_out_local_view_button(self.rt_tddft_delta_task))
-        
+        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTALocal>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
+        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTALocalScript>>', lambda _: self._on_create_local_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTALocal'))
 
     def _on_td_run_network_button(self, *_):
 
@@ -468,8 +488,8 @@ class GUIAPP(tk.Tk):
         self.job_sub_page.activate_run_button()
         self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
         self.job_sub_page.bind('<<ViewRT_TDDFT_DELTANetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTARemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+        self.job_sub_page.text_view.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
+        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTANetworkScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
 ##----------------------Time_dependent_task_laser---------------------------------
 
@@ -588,6 +608,8 @@ class GUIAPP(tk.Tk):
         
 
     def _on_spectra_run_network_button(self, *_):
+        
+        return
         try:
             getattr(self.spectra_task.engine,'directory')           
         except AttributeError:
@@ -597,12 +619,12 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+            self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
     def _on_spectra_plot_button(self, *_):
         """ Selects engine specific plot function"""
-        self.spectra_task.plot_spectrum()
+        self.spectra_task.plot()
     
         
 ##----------------------compute---tcm---------------------------------
@@ -619,8 +641,8 @@ class GUIAPP(tk.Tk):
 
         self._show_frame(v.TcmPage, self._window)
         self.tcm_view = self._frames[v.TcmPage]
+        self.tcm_view.engine_name.set(self.engine)
         
-        self.bind('<<CreateTCMScript>>', self._on_create_tcm_button)
         self.bind('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
         self.bind('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
         self.bind('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
@@ -629,29 +651,27 @@ class GUIAPP(tk.Tk):
         inp_dict = self.tcm_view.get_parameters()
         self.tcm_task = get_engine_task(self.engine, 'tcm', self.status, self.directory, self.lsconfig, inp_dict)
         self.tcm_task.create_template()
-        return self.tcm_task.template    
 
-    def _on_create_tcm_button(self, *_):
-
-        self._validate_tcm_input()
-        self._tcm_create_input()
 
     def _tcm_create_input(self, template=None):     
         self.tcm_task.write_input(template)
-        self.status.set_new_task(self.tcm_task.task_name)
+        self.status.set_new_task(self.engine,self.tcm_task.task_name)
+        self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
         #self.rt_tddft_laser_view.set_label_msg('saved')
         self.check = False
 
     def _on_tcm_run_local_button(self, *_):
         
-        if not self._check_task_run_condition(self.tcm_task):
-            messagebox.showerror(message="Input not saved.", detail = "Please save the input before job submission")
-            return
+        self._validate_tcm_input()
+        self._tcm_create_input()
 
         self._run_local(self.tcm_task,np=1 )
         
 
     def _on_tcm_run_network_button(self, *_):
+
+        return
         try:
             getattr(self.spectra_task.engine,'directory')           
         except AttributeError:
@@ -661,21 +681,15 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
             self.job_sub_page.bind('<<RunTCMNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<ViewTCMNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_remote_job_script(self.rt_tddft_delta_task))
+            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
             self.job_sub_page.bind('<<CreateTCMRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
 
     def _on_tcm_plot_button(self, *_):
         """ Selects engine specific plot function"""
-        from PIL import Image
-       
-        for item in self.tcm_task.user_input['frequency_list']:
-            img_file = pathlib.Path(self.directory) / 'gpaw' / 'TCM' / f'tcm_{item:.2f}.png'
-            
-            image = Image.open(img_file)
-            image.show()
-            # img = mpimg.imread(img_file)
-            # plt.imshow(img)
-            # plt.show()
+        try:
+            self.tcm_task.plot()
+        except Exception as e:
+            messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
 
     def _init_text_viewer(self,name, template, *_):
@@ -687,15 +701,34 @@ class GUIAPP(tk.Tk):
         return text_view
     
 
-    def _run_local(self, task, np=None):
+    def _run_local(self, task: Task, np=None):
 
-        if not np:
+        if np:
+            sub_job_type = 0
+            cmd = 'bash'
+        else:
             np = self.job_sub_page.get_processors()
-        
+            sub_job_type = self.job_sub_page.sub_job_type.get()
+
+            cmd = self.job_sub_page.sub_command.get()
+            
+        if sub_job_type == 1:
+            
+            if not cmd:
+                messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
+                self.job_sub_page.activate_run_button()
+                return
+        else:
+           if cmd != 'bash':
+                messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
+                self.job_sub_page.activate_run_button()
+                return
+
         task.set_submit_local(np)
+    
 
         try:
-            task.run_job_local()
+            task.run_job_local(cmd)
         except FileNotFoundError as e:
             messagebox.showerror(title='yes',message=e)
             return
@@ -739,7 +772,21 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.activate_run_button()
             return
 
-        self.network_type = self.job_sub_page.network_job_type.get()
+        sub_job_type = self.job_sub_page.sub_job_type.get()
+
+        cmd = self.job_sub_page.sub_command.get()
+        if sub_job_type == 1:
+            
+            if not cmd:
+                messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
+                self.job_sub_page.activate_run_button()
+                return
+        else:
+           if cmd != 'bash':
+                messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
+                self.job_sub_page.activate_run_button()
+                return
+
         
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
@@ -759,10 +806,7 @@ class GUIAPP(tk.Tk):
             self.job_sub_page.activate_run_button()
             return
         try:
-            if self.network_type== 0:
-                self.submit_network.run_job('qsub')
-            elif self.network_type == 1:
-                self.submit_network.run_job('bash')
+            self.submit_network.run_job(cmd)
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.activate_run_button()
@@ -780,20 +824,26 @@ class GUIAPP(tk.Tk):
         self.submit_network.download_output_files()
         self.status.update_status(f'{self.engine}.{self.submit_network.task.task_name}.done', True)
 
+    def _on_create_local_job_script(self, task: Task, event: str, *_):
+        np = self.job_sub_page.processors.get()
+        b_file =  task.create_job_script(np)
+        self.job_sub_page.text_view.set_event_name(event)
+        self.job_sub_page.text_view.insert_text(b_file, 'normal')
+
     def _on_create_remote_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
         rpath = self.job_sub_page.rpath.get()
         if rpath:
-            b_file =  task.create_remote_job_script(np, rpath)
+            b_file =  task.create_job_script(np, remote_path=rpath, remote=True)
         else:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
-        self.job_sub_page.text_view.set_event_name( event)
+        self.job_sub_page.text_view.set_event_name(event)
         self.job_sub_page.text_view.insert_text(b_file, 'normal')
        
-    def _on_save_remote_job_script(self,task :Task, *_):
+    def _on_save_job_script(self,task :Task, *_):
         txt = self.job_sub_page.text_view.get_text()
-        task.write_remote_job_script(txt)
+        task.write_job_script(txt)
 
     def _on_out_remote_view_button(self,task, *_):
         
@@ -807,12 +857,12 @@ class GUIAPP(tk.Tk):
 
         # if exist_status != 0:
         #     return
-
+        print("Checking for job completion..")
         if self.submit_network.check_job_status():
 
             # if self.network_type == 0:
             #     messagebox.showinfo(title='Info', message="Job commpleted.")
-
+            print('job Done.')
             self._get_remote_output()   
             log_txt = read_file(log_file)
             self.job_sub_page.text_view.clear_text()

@@ -6,6 +6,7 @@ from litesoph.simulations import gpaw as g
 from litesoph.simulations import nwchem as n
 from litesoph.simulations import octopus as o
 
+
 task_dict = {
     'gpaw' : {
         'ground_state' : [gp.GpawGroundState, g.pre_condition_ground_state],
@@ -28,7 +29,7 @@ task_dict = {
         'rt_tddft_delta' : [ot.OctTimedependentState, o.pre_condition_rt_tddft_delta],
         'rt_tddft_laser' : [ot.OctTimedependentLaser, o.pre_condition_rt_tddft_laser],
         'spectrum' : [ot.OctSpectrum, o.pre_condition_spectrum],
-        'tcm' : [None, o.pre_condition_tcm]
+        'tcm' : [ot.OctKSD, o.pre_condition_tcm]
 
     }
 }

@@ -25,76 +25,79 @@ import copy
 
 #### Methods used by main code ###########
 
-def get_input_params(strx):
+def get_input_params(strx):	
 
-        tint = False
+	tint = False
 	sigma = 0.1
-	nev = 51
+	nev = 51 
 
-        fname = strx[1].strip()
-        wmin = float(strx[2])
-        wmax = float(strx[3])
-
-        if len(strx) > 4:
-                if "-i" in strx[4:]:
-                        tint = True
-                if "-s" in strx[4:]:
-                        i = 4
-                        for item in strx[4:]:
-                                if item == "-s":
-                                        break
-                                i += 1
-                        sigma = float(sys.argv[i+1])
-                if "-ne" in strx[4:]:
-                        i = 4
-                        for item in strx[4:]:
-                                if item == "-ne":
-                                        break
-                                i += 1
-                        nev = int(sys.argv[i+1])
-                        
-
-        return (fname, wmin, wmax, tint, sigma, nev)
-
+	fname = strx[1].strip()
+	wmin = float(strx[2])
+	wmax = float(strx[3]) 
+	xylim = float(strx[4]) 
+	if len(strx) > 5:
+		if "-i" in strx[5:]:
+			tint = True 
+		if "-s" in strx[5:]:
+			i = 4
+			for item in strx[5:]:
+				if item == "-s":
+					break
+				i += 1
+			sigma = float(sys.argv[i+1]) 
+		if "-ne" in strx[5:]:
+			i = 4
+			for item in strx[5:]:
+				if item == "-ne":
+					break
+				i += 1
+			nev = int(sys.argv[i+1]) 
+	print(tint)		 
+	return(fname, wmin, wmax,xylim, tint, sigma, nev)			                 
+                                
 def read_dmat(fp):
+	lines=fp.readlines()
+	arr1 = lines[0].strip().split()
+	nt = int(arr1[0])
+	nocc = int(arr1[1])
+	nx = int(arr1[2])
+	ny = int(arr1[3])
 
-       lines=fp.readlines()
-       arr1 = lines[0].strip().split()
-       nt = int(arr1[0])
-       nocc = int(arr1[1])
-       nx = int(arr1[2])
-       ny = int(arr1[3])
+	t=[]
+	dmat=np.zeros((nt,nx,ny), dtype=float)
+	eocc=[]
+	euocc=[]
 
-       t=[]
-       dmat=np.zeros((nt,nx,ny), dtype=float)
-       eocc=[]
-       euocc=[]
-
-       arr1=lines[1].strip().split()
-       ehomo = float(arr1[nx-1])
-
-       for ix in range(nx):
+	arr1=lines[1].strip().split()
+	ehomo = float(arr1[nx-1])
+	# print(ehomo)
+	for ix in range(nx):
 		ediff = float(arr1[ix])-ehomo
 		eocc.append(ediff)
+	# print(eocc)	
+	
+	arr1=lines[2].strip().split()
 
-
-       arr1=lines[2].strip().split()
-       for ix in range(ny):
+	for ix in range(ny):
 		euocc.append(float(arr1[ix])-ehomo)
+	# print(euocc)
 
-       it = 0
-       for line in lines[3:]:
-	    arr1 = line.strip().split()
-	    t.append(float(arr1[0]))
-            ik = 1
-            for ix in range(nx):
-                 for iy in range(ny):
-                      dmat[it,ix,iy] = copy.copy(float(arr1[ik]))
-		      ik += 1
-	    it += 1
+	it = 0
 
-       return (t, dmat, nocc, eocc, euocc)
-
+	for line in lines[3:]:
+		arr1 = line.strip().split()
+		t.append(float(arr1[0]))
+		ik = 1
+		for ix in range(nx):
+			for iy in range(ny):
+				dmat[it,ix,iy] = copy.copy(float(arr1[ik]))
+				ik += 1
+		it += 1
+	# print(t)
+				
+	return (t, dmat, nocc, eocc, euocc)
+	           
+                        
 def plot_slice_dmatw(eo,eu,dmatw,w0,fnm):
 
 	(nx, ny) = dmatw.shape
@@ -131,67 +134,93 @@ def plot_slice_dmatw(eo,eu,dmatw,w0,fnm):
 	plt.ylim(ymin,ymax)
 	#plt.show()
 	plt.savefig(fname1)
-      	plt.close()
+	plt.show() 	
 
 	return fname1
 
-def plot_slice_dmatw_en(eo,eu,dmatw,w0,fnm,sig,ne):
+def plot_slice_dmatw_en(eo,eu,dmatw,w0,fnm,sig,ne,xylim):
 
-        (nx, ny) = dmatw.shape
+	(nx, ny) = dmatw.shape  
+	# print(nx)   
+	# print(ny)
 
-#	ne = 51
-#	sig = 0.1
+	ne = 51
+	sig = 0.1
 	fact = 1.0/(2.0*np.pi*sig**2)
-
-	emini = min([min(eo), -max(eu)])
+	emini=-xylim
+	# emini = min([min(eo), -max(eu)])
 	emaxi = max(eo)+(min(eu)-max(eo))/2.0
 	dei = (emaxi-emini)/float(ne-1)
 
 	emina = max(eo)-(min(eu)-max(eo))/2.0
-	emaxa = max([max(eu),-min(eo)])
+	emaxa=xylim
+	# emaxa = max([max(eu),-min(eo)])
 	dea = (emaxa-emina)/float(ne-1)
 
+	# emini=-3
+	# emaxi=0.132
+	# emina=-0.132
+	# emaxa=3
+	
+	xlist=np.linspace(emini,emaxi,ne)
+	ylist=np.linspace(emina,emaxa,ne)
+	X,Y = np.meshgrid(xlist,ylist)  
 
-        xlist=np.linspace(emini,emaxi,ne)
-        ylist=np.linspace(emina,emaxa,ne)
-        X,Y = np.meshgrid(xlist,ylist)
+	xmin = emini-dei  
+	xmax = emaxi+dei  
+	# print(emina)
+	# print(emaxa)
+	# print(emini)
+	# print(emaxi)
+	# print((eo))
+	# print((eu))
+	# print(min(eu))
+	# print(xlist)
+	# print(ylist)
+	ymin = emina-dea
+	ymax = emaxa+dea
+	# print(ymin)
+	# print(ymax)
+	fname1=fnm+".png"
 
-        xmin = emini-dei
-        xmax = emaxi+dei
+	Z=np.zeros((ne,ne), dtype=float)
 
-        ymin = emina-dea
-        ymax = emaxa+dea
+	file_z = open('tcm_z.dat', 'w')
 
-        fname1=fnm+".png"
-
-        Z=np.zeros((ne,ne), dtype=float)
-
-        for i in range(ne):
-                for j in range(ne):
+	for i in range(ne):
+		for j in range(ne):
 			for ix in range(nx):
 				xx = (xlist[i]-eo[ix])/sig
 				for iy in range(ny):
 					yy = (ylist[j]-eu[iy])/sig
 					gx = fact*np.exp(-(xx**2+yy**2)/2.0)
-                        		Z[j,i] += dmatw[ix,iy]*gx
+					# print(gx)
+					# print(dmatw[ix, iy])
+					Z[j,i] += dmatw[ix,iy]*gx
+		# 	file_z.write("%d" %(Z[j,i]))
+		# file_z.write('\n')	
+	# np.savetxt('tcm.txt', Z, delimiter="            ", fmt="%s") 	
+	
+	plt.figure()
+	#levels = range(0,500,5)
+    #cp = plt.contourf(X,Y,Z,levels) #,colors='k')
+    #plt.clabel(cp,colors='k',fmt='%2.1f',fontsize=12)
+    #cp_filled = plt.contourf(X,Y,Z,levels)	
+	
+	cp_filled = plt.contourf(X,Y,Z,cmap=cm.inferno)
+	plt.colorbar(cp_filled) 
+	plt.title('KS decomposition') 
+	plt.xlabel('Occupied states') 
+	plt.ylabel('Unoccupied states')
+	plt.xlim(xmin,xmax) 
+	plt.ylim(ymin,ymax) 
+	lineeqn=xlist+w0
+	plt.plot(xlist,lineeqn)
+	#plt.show()
+	plt.savefig(fname1)
+	plt.show()
 
-        plt.figure()
-        #levels = range(0,500,5)
-        #cp = plt.contourf(X,Y,Z,levels) #,colors='k')
-        #plt.clabel(cp,colors='k',fmt='%2.1f',fontsize=12)
-        #cp_filled = plt.contourf(X,Y,Z,levels)
-        cp_filled = plt.contourf(X,Y,Z,cmap=cm.inferno)
-        plt.colorbar(cp_filled)
-        plt.title('KS decomposition')
-        plt.xlabel('Occupied states')
-        plt.ylabel('Unoccupied states')
-        plt.xlim(xmin,xmax)
-        plt.ylim(ymin,ymax)
-        #plt.show()
-        plt.savefig(fname1)
-        plt.close()
-
-        return fname1
+	return fname1              
 
 def plot_dmatw(dmatw,w,wrange,fnm):
 
@@ -202,15 +231,16 @@ def plot_dmatw(dmatw,w,wrange,fnm):
 	Z=np.zeros((nt,ncol), dtype=float)
 	phlist=np.zeros((ncol,2),dtype=int)
 
-        ik = 0
+	ik = 0
+    
 	for ix in range(nx):
-	     phlist[ik,0]=ix
-             for iy in range(ny):
-	          phlist[ik,1]=iy
-	          for it in range(nt):
-	               Z[it,ik] = dmatw[it,ix,iy]
-	          ik += 1
-
+		phlist[ik,0]=ix
+		for iy in range(ny):
+			phlist[ik,1]=iy
+			for it in range(nt):
+				Z[it,ik] = dmatw[it,ix,iy]
+			ik += 1             
+	          
 	wmin=0.0
 	wmax=2.0*max(w)
 
@@ -232,21 +262,26 @@ def plot_dmatw(dmatw,w,wrange,fnm):
 	#plt.show()
 	fname1 = fnm+".png"
 	plt.savefig(fname1)
-        plt.close()
-
-        return phlist
+	plt.close()
+	return phlist       
+        
 
 ####### Main code begins ##########
 
-(fname, wmin, wmax, tint, sigma, nev) = get_input_params(sys.argv)
+(fname, wmin, wmax, xylim, tint, sigma, nev) = get_input_params(sys.argv)
 
 arr = fname.strip().split('.')
 fpref = arr[0]
 for i in range(1,len(arr)-1):
 	fpref += "."+arr[i]
 
-fp=file(fname,"r")
+# fp=file(fname,"r")
+fp=open(fname,"r")
 (w, dmat, nocc, eo, eu) = read_dmat(fp)
+# print(w)
+# np.savetxt('tcm.txt', Z, delimiter="            ", fmt="%s") 
+# np.savetxt('read_strength.txt',  dmat, delimiter="   ", fmt="%s")
+# print(dmat)
 fp.close()
 nw = len(w)
 nx = len(eo)
@@ -256,29 +291,32 @@ wrange=[]
 wrange.append(wmin)
 wrange.append(wmax)
 
+xylim=xylim
 #phl = plot_dmatw(dmat, w, wrange,fpref)
 
 if not tint:
 	for it in range(nw):
+		print(w[it])
 		if w[it] >= wmin and w[it] <= wmax:
 			f1 = fpref+"_"+str(w[it])
-			fn = plot_slice_dmatw_en(eo,eu,dmat[it,:,:],w[it],f1,sigma,nev)
-			print fn
+			fn = plot_slice_dmatw_en(eo,eu,dmat[it,:,:],w[it],f1,sigma,nev)			
+			print(fn)
+			
 			f1 = f1+"_idx"
 			fn = plot_slice_dmatw(eo,eu,dmat[it,:,:],w[it],f1)
-			print fn
+			print(fn)
 else:
 	dmat_tot = np.zeros((nx,ny), dtype=float)
 	ntot = 0
 	for it in range(nw):
 		if w[it] >= wmin and w[it] <= wmax:
-			dmat_tot[:,:] += abs(dmat[it,:,:])
+			dmat_tot[:,:] += (dmat[it,:,:])
 			ntot += 1
 	#dmat_tot =  dmat_tot/float(ntot)
 	w0 = (wmax+wmin)/2.0
 	f1 = fpref+"_"+str(w0)
-	fn = plot_slice_dmatw_en(eo,eu,dmat_tot,w0,f1,sigma,nev)
-	print fn
+	fn = plot_slice_dmatw_en(eo,eu,dmat_tot,w0,f1,sigma,nev,xylim)
+	print(fn)
 	f1 = f1+"_idx"
 	fn = plot_slice_dmatw(eo,eu,dmat_tot,w[it],f1)
-	print fn
+	print(fn)

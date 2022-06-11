@@ -20,3 +20,8 @@ spectrum = {'inp':'octopus/inp',
             'req' : ['coordinate.xyz'],
             'spectra_file': ['octopus/cross_section_vector']}
 
+ksd = {'inp': 'octopus/ksd/oct.inp',
+        'req':['octopus/static/info',
+        'octopus/td.general/projections'],
+        'ksd_file': 'octopus/ksd/transwt.dat'}            
+
