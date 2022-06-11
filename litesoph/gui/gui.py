@@ -689,7 +689,7 @@ class GUIAPP(tk.Tk):
         try:
             self.tcm_task.plot()
         except Exception as e:
-            messagebox.showerror(title='Error', message="Error occured during plotting", details= e)
+            messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
 
     def _init_text_viewer(self,name, template, *_):
