@@ -2719,17 +2719,21 @@ class TcmPage(tk.Frame):
     def add_gpaw_ksd_frame(self, parent):
         """ Creates widgets for gpaw ksd calculation"""    
         
-        self.FrameTcm2_label_path = tk.Label(parent,text="Frequency space density matrix",fg="blue")
-        self.FrameTcm2_label_path['font'] = myfont()
-        self.FrameTcm2_label_path.grid(row=0, column=0)
-
-        self.Label_freqs = tk.Label(parent,text="List of the Frequencies obtained from the photoabsorption \nspectrum (in eV) at which Fourier transform of density matrix is sought.\n(Entries should be separated by space,eg: 2.1  4)",fg="black", justify='left')
+        self.Label_freqs = tk.Label(parent,text="List of Frequencies(eV) (eg: 2.1, 4)",fg="black", justify='left')
         self.Label_freqs['font'] = myfont()
-        self.Label_freqs.grid(row=1, column=0)        
+        self.Label_freqs.grid(row=0, column=0)        
         
-        self.entry_freq = tk.Entry(parent, textvariable= self.frequency, width=30)
+        self.entry_freq = tk.Entry(parent, textvariable= self.frequency, width=20)
         self.entry_freq['font'] = myfont()
-        self.entry_freq.grid(row=2, column=0, columnspan=3)
+        self.entry_freq.grid(row=0, column=1, columnspan=2)
+
+        self.label_sigma = tk.Label(parent,text="Axis limit",fg="black", justify='left')
+        self.label_sigma['font'] = myfont()
+        self.label_sigma.grid(row=1, column=0)        
+        
+        self.entry_sigma = Decimalentry(parent, textvariable= self.axis_limit, width=5)
+        self.entry_sigma['font'] = myfont()
+        self.entry_sigma.grid(row=1, column=1)
 
     def add_oct_ksd_frame(self, parent):
         """ Creates widgets for Octopus ksd calculation"""
@@ -2840,6 +2844,7 @@ class TcmPage(tk.Frame):
 
             gpaw_ksd_dict = {
                 'frequency_list' : self.freq_list,
+                'axis_limit': self.axis_limit.get()
                  } 
             return gpaw_ksd_dict
 
