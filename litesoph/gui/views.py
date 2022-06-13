@@ -459,11 +459,9 @@ class GroundStatePage(View_note):
         self.engine.trace_add('write', self.on_engine_change)
         self.job = None
 
-        self.get_engine_parameters()
-        
         self.add_jobsub()
         self.frame_collection()
-        self.engine_specific_frame()
+        self.on_engine_change()
         
     def on_engine_change(self, *_):
         self.get_engine_parameters()
