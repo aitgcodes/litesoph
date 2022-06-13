@@ -8,7 +8,7 @@ from tkinter import font
 import pathlib
 
 from litesoph.gui import images
-from litesoph.simulations.filehandler import show_message
+from litesoph.simulations.project_status import show_message
 from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.simulations.models import get_engine_model
