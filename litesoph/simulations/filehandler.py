@@ -107,7 +107,10 @@ class Status():
         
     def save(self):
         with open(self.filepath, 'w') as f:
-            json.dump(self.status_dict, f, indent= 3)   
+            try:
+                json.dump(self.status_dict, f, indent= 3)
+            except TypeError:
+                raise   
 
 
 class file_check:
