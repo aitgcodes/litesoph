@@ -23,7 +23,7 @@ from litesoph.gui import views as v
 
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
-from litesoph.simulations.filehandler import Status
+from litesoph.simulations.project_status import Status
 
 home = pathlib.Path.home()
 

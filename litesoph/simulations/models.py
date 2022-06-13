@@ -137,8 +137,8 @@ class GpawModel:
             'lx' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'ly' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'lz' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
-            'smear' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.1},    
-            'smearfn' :{'type':DT.string, 'values':["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"], 'default_value': 'fermi-dirac'},
+            'smear' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.0},    
+            'smearfn' :{'type':DT.string, 'values':["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"], 'default_value': ''},
             'eigenstate': {'type': DT.decimal , 'min': None, 'max': None, 'default_value': 4e-8}
         }
 
