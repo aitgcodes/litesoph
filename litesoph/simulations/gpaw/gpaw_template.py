@@ -68,6 +68,7 @@ atoms.center(vacuum={vacuum})
 #Ground-state calculation
 calc = GPAW(mode='{mode}',
     xc='{xc}',
+    occupations = {occupations},
     h={h},  # Angstrom
     gpts={gpts},
     kpts={kpts},

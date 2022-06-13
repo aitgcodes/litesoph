@@ -1635,6 +1635,8 @@ class GroundStatePage(View_note):
             'mode': self._var['mode'].get(),
             'xc': self._var['xc'].get(),
             'vacuum': self._var['vacuum'].get(),
+            'occupations':{'name': self._var['smearfn'].get(),
+                            'width': self._var['smear'].get()},
             'basis':{'default': self._var['basis'].get()},
             'h': self._var['h'].get(),
             'nbands' : self._var['nbands'].get(),
