@@ -856,7 +856,7 @@ DMAT
 
         info_file = self.task_data['req'][0]
         projection_file = self.task_data['req'][1]
-        ksd_file = self.task_data['ksd_file']
+        ksd_file = self.project_dir / self.task_data['ksd_file']
         ksd_inp_file = self.project_dir / self.task_data['inp']
 
         info_file = self.project_dir / info_file
@@ -907,7 +907,6 @@ DMAT
         from litesoph.utilities.job_submit import execute
         
         cmd =  self.create_cmd(plot_cmd=True)
-
         result = execute(cmd, self.ksd_dir)
         
         if result[cmd]['returncode'] != 0:

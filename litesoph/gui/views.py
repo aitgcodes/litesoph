@@ -2712,10 +2712,6 @@ class TcmPage(tk.Frame):
         Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myfont()
         Frame_Button1.grid(row=0, column=0)
-    
-        self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.event_generate('<<CreateTCMScript>>'))
-        self.create_button['font'] = myfont()
-        self.create_button.grid(row=2, column=1)
 
         self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
         self.add_job_frame("TCM")
