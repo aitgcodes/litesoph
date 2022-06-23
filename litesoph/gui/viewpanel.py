@@ -9,7 +9,7 @@ class ViewPanelManager:
     def clear_text(self):
         self.view_txt.delete("1.0", tk.END)
 
-    def insert_text(self, text, state):
+    def insert_text(self, text, state='normal'):
         self.view_txt.configure(state='normal')
         self.clear_text()
         
@@ -19,8 +19,4 @@ class ViewPanelManager:
     def get_text(self):
         txt = self.view_txt.get(1.0, tk.END)
         return txt
-
-    def save(self):
-        event = "<<Save"+ self.event_name + ">>"
-        self.event_generate(event)
        
