@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict
 import copy
-import litesoph 
 
 from litesoph.utilities.units import ang_to_au, au_to_as, as_to_au
 from litesoph.simulations.octopus import octopus_data
@@ -154,11 +153,11 @@ PseudopotentialSet = {pseudo}
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
       
         job_script = super().create_job_script()
-        ofilename = "log"
+        ofilename = str(Path(self.task_data['out_log']).relative_to('octopus'))
 
         extra_cmd = ["cp inp gs.inp","perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp"]
         if remote:
-            cmd = f"mpirun -np {np:d}  octopus > {ofilename}"
+            cmd = f"mpirun -np {np:d}  octopus > {str(ofilename)}"
             rpath = Path(remote_path) / self.project_dir.name / 'octopus'
             job_script.append(self.engine.get_engine_network_job_cmd())
             job_script.append(f"cd {str(rpath)}")
@@ -186,36 +185,13 @@ PseudopotentialSet = {pseudo}
         self.write_job_script(self.job_script)
         super().run_job_local(cmd)
     
-    # def format_template(self):
-    #     if self.boxshape not in ['cylinder', 'parallelepiped']: 
-    #         template = self.gs_min.format(**self.temp_dict)
-    #         return template 
-
-    #     elif self.boxshape == "cylinder":
-    #         tlines = self.gs_min.splitlines()
-    #         tlines[10] = "Xlength = {box[xlength]}"
-    #         temp = """\n""".join(tlines)
-    #         template = temp.format(**self.temp_dict)
-    #         return template
-
-    #     elif self.boxshape == "parallelepiped":
-    #         tlines = self.gs_min.splitlines()
-    #         lx = round(self.temp_dict['box']['sizex']/2, 2)
-    #         ly = round(self.temp_dict['box']['sizey']/2, 2)
-    #         lz = round(self.temp_dict['box']['sizez']/2, 2)
-    #         tlines[9] = "%LSize"
-    #         tlines[10] = "{}|{}|{}".format(lx, ly, lz)
-    #         tlines[11] = "%"
-    #         temp = """\n""".join(tlines)
-    #         template = temp.format(**self.temp_dict)
-    #         return template    
-
         
 class OctTimedependentState(Task):
 
     task_data = octopus_data.rt_tddft_delta
     task_name = 'rt_tddft_delta'
     NAME = 'inp'
+    engine_log = str(Path(task_data['out_log']).relative_to('octopus'))
 
     default_param = {
             'work_dir' : ".",         # default 
@@ -447,72 +423,17 @@ ParStates = {self.temp_dict['par_states']}"""
         self.template = temp.format(**self.temp_dict)
                
     
-    def create_job_avg_script(self,np):
-        
-        workpath=self.project_dir/"octopus"
-
-        scrpt= f"""
-        
-        #cd {workpath}
-
-        cp -r {workpath}/td.general {workpath}/specific_td.general
-
-        cp inp td.inp
-
-        perl -i -p0e 's/%TDPolarization.*?%/ /s' inp
-
-        perl -i -p0e 's/TDPolarizationDirection =.*?\n/TDPolarizationDirection = 1\n/s' inp
-
-
-        mpirun -np {np:d}  octopus > log.td
-
-
-        mv {workpath}/td.general/multipoles {workpath}/td.general/multipoles.1
-
-        mv {workpath}/td.general/energy {workpath}/td.general/energy.1
-
-        mv {workpath}/td.general/projections {workpath}/td.general/projections.1
-
-        perl -i -p0e 's/TDPolarizationDirection =.*?\n/TDPolarizationDirection = 2\n/s' inp
-
-
-        mpirun -np {np:d} octopus > log.td
-
-
-        mv {workpath}/td.general/multipoles {workpath}/td.general/multipoles.2
-
-        mv {workpath}/td.general/energy {workpath}/td.general/energy.2
-
-        mv {workpath}/td.general/projections {workpath}/td.general/projections.2
-
-        perl -i -p0e 's/TDPolarizationDirection =.*?\n/TDPolarizationDirection = 3\n/s' inp
-
-
-        mpirun -np {np:d} octopus > log.td
-
-
-        mv {workpath}/td.general/multipoles {workpath}/td.general/multipoles.3
-
-        mv {workpath}/td.general/energy {workpath}/td.general/energy.3
-
-        mv {workpath}/td.general/projections {workpath}/td.general/projections.3
-        
-        cp -r {workpath}/td.general {workpath}/avg_td.general
-
-        """
-        return scrpt
-
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
         
         job_script = super().create_job_script()
 
         if remote_path:
             rpath = Path(remote_path) / self.project_dir.name / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script = self.engine.create_command(job_script, np, self.engine_log,path=rpath,remote=True)
             job_script.append(self.remote_job_script_last_line)
         else:
             lpath = self.project_dir / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+            job_script = self.engine.create_command(job_script, np, self.engine_log,path=lpath)
         
         self.job_script = "\n".join(job_script)
         return self.job_script
@@ -527,6 +448,7 @@ class OctTimedependentLaser(Task):
     task_data = octopus_data.rt_tddft_laser
     task_name = 'rt_tddft_laser'
     NAME = 'inp'
+    engine_log = str(Path(task_data['out_log']).relative_to('octopus'))
 
     default_param = {
             'max_step' : 200 ,            
@@ -615,11 +537,11 @@ omega = {frequency}*eV
 
         if remote_path:
             rpath = Path(remote_path) / self.project_dir.name / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=rpath,remote=True)
+            job_script = self.engine.create_command(job_script, np, self.engine_log,path=rpath,remote=True)
             job_script.append(self.remote_job_script_last_line)
         else:
             lpath = self.project_dir / 'octopus'
-            job_script = self.engine.create_command(job_script, np, self.NAME,path=lpath)
+            job_script = self.engine.create_command(job_script, np, self.engine_log,path=lpath)
         
         self.job_script = "\n".join(job_script)
         return self.job_script
@@ -635,6 +557,7 @@ class OctSpectrum(Task):
     task_data = octopus_data.spectrum
     task_name = 'spectrum'
     NAME = 'inp'
+    engine_log = str(Path(task_data['out_log']).relative_to('octopus'))
 
     default_param ={
         'e_min' : 0.0,
@@ -658,18 +581,15 @@ PropagationSpectrumEnergyStep =    {del_e}*eV
 
     def create_cmd(self, remote=False):
 
-        file = 'log'
-
         cmd = 'oct-propagation_spectrum'
         path_oct = self.lsconfig.get('engine', 'octopus')
         if remote :
-            command = cmd + ' ' + '>' + ' ' + str(file)
+            command = cmd + ' ' + '>' + ' ' + str(self.engine_log)
         else:
             if path_oct:
                 cmd = Path(path_oct).parent / cmd
 
-            command = str(cmd) + ' ' + '>' + ' ' + str(file)
-        print(command)
+            command = str(cmd) + ' ' + '>' + ' ' + str(self.engine_log)
         return command
 
 

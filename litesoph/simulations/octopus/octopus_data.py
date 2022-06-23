@@ -1,27 +1,33 @@
 
 import pathlib
 
-ground_state = {'inp':'octopus/inp',
-        'out_log': 'octopus/log',
+engine_dir = 'octopus'
+
+engine_log_dir = f'{engine_dir}/log'
+
+general_input_file = f'{engine_dir}/inp'
+
+ground_state = {'inp':general_input_file,
+        'out_log': f'{engine_log_dir}/gs.log',
         'req' : ['coordinate.xyz'],
         'check_list':['SCF converged']}
 
-rt_tddft_delta = {'inp':'octopus/inp',
-        'out_log': 'octopus/log',
+rt_tddft_delta = {'inp':general_input_file,
+        'out_log': f'{engine_log_dir}/delta.log',
             'req' : ['coordinate.xyz'],
             'check_list':['Finished writing information', 'Calculation ended']}    
 
-rt_tddft_laser = {'inp':'octopus/inp',
-        'out_log': 'octopus/log',
+rt_tddft_laser = {'inp':general_input_file,
+            'out_log': f'{engine_log_dir}/laser.log',
             'req' : ['coordinate.xyz']}
 
-spectrum = {'inp':'octopus/inp',
-        'out_log': 'octopus/log',
+spectrum = {'inp':general_input_file,
+        'out_log': f'{engine_log_dir}/spec.log',
             'req' : ['coordinate.xyz'],
-            'spectra_file': ['octopus/cross_section_vector']}
+            'spectra_file': [f'{engine_dir}/cross_section_vector']}
 
-ksd = {'inp': 'octopus/ksd/oct.inp',
-        'req':['octopus/static/info',
-        'octopus/td.general/projections'],
-        'ksd_file': 'octopus/ksd/transwt.dat'}            
+ksd = {'inp': f'{engine_dir}/ksd/oct.inp',
+        'req':[f'{engine_dir}/static/info',
+        f'{engine_dir}/td.general/projections'],
+        'ksd_file': f'{engine_dir}/ksd/transwt.dat'}            
 
