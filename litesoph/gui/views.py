@@ -220,18 +220,6 @@ class WorkManagerPage(ttk.Frame):
         self.Frame_status.grid(row=0, column=1, rowspan=2, sticky='nsew') 
         self.Frame_status.configure(relief='groove', borderwidth="2", cursor="fleur" )
 
-        #self.show_view_status_frame(self.Frame_status)
-        
-    def show_view_status_frame(self, parent):
-        for widget in parent.winfo_children():
-            widget.destroy()
-
-        self.status_frame = View_Text(parent)
-        
-        self.status_frame.text_view.config(width=60)
-        self.status_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
-        
-
     def show_sub_task_frame(self,parent):
 
         for widget in parent.winfo_children():
@@ -2917,24 +2905,14 @@ class JobSubPage(ttk.Frame):
         self.rpath.set(remote_profile['remote_path'])
 
 
-    def add_text_view_frame(self):
-        """ Adds text view frame"""
-
-        self.text_view = View_Text(self.Frame2)
-        self.text_view.grid(row=1, column=0, columnspan=2, sticky='nswe')
-        self.text_view.add_button_to_textview()
-
     def show_job_frame(self):
         """ Creates Job Sub input widgets"""
 
         if self.job_type == 'Local':
             self.show_run_local()
-            #self.add_text_view_frame()
             self.text_view_button_frame = None
         elif self.job_type == 'Network':
             self.show_run_network() 
-            #self.add_text_view_frame()
-            #self.text_view.add_button_to_textview() 
 
     def show_run_local(self): 
         """ Creates Local JobSub input widgets""" 
@@ -2974,12 +2952,6 @@ class JobSubPage(ttk.Frame):
 
     def show_run_network(self):
         """ Creates Network JobSub input widgets""" 
-
-        # values = {"Cluster": 0, "WorkStation": 1}
-        # for (text, value) in values.items():
-        #     tk.Radiobutton(self.sub_job_frame, text=text, variable=self.network_job_type, font=myfont2(),
-        #      justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')
-
 
         values = {"Command line execution": 0, "Submit through queue": 1}
         for (text, value) in values.items():
@@ -3099,131 +3071,3 @@ class JobSubPage(ttk.Frame):
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
-    
-    
-class TextViewerPage(ttk.Frame):
-
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        
-        self.save_txt = None
-        self.task_name = None
-        myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
-
-        j=tk.font.Font(family ='Courier', size=20,weight='bold')
-        k=tk.font.Font(family ='Courier', size=40,weight='bold')
-        l=tk.font.Font(family ='Courier', size=15,weight='bold')
-
-        self.Frame = ttk.Frame(self)
-
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.98)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
-  
-        self.FrameTcm1_label_path = tk.Label(self, text="LITESOPH Text Viewer",fg="blue")
-        self.FrameTcm1_label_path['font'] = myFont
-        self.FrameTcm1_label_path.place(x=400,y=10)
-
-        
-        text_scroll =tk.Scrollbar(self)
-        text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
-        self.text_view['font'] = myFont
-        self.text_view.place(x=15,y=60)
-
-        text_scroll.config(command= self.text_view.yview)
-
-        save = tk.Button(self, text="Save",activebackground="#78d6ff",command=self._on_save_button)
-        save['font'] = myFont
-        save.place(x=320, y=380)
-
-        back = tk.Button(self, text="Back",activebackground="#78d6ff",command=lambda:[self.back_button()])
-        back['font'] = myFont
-        back.place(x=30,y=380)
-    
-    def set_task_name(self, name):
-        self.task_name = name
-   
-    def insert_text(self, text):
-        self.text_view.insert(tk.END, text)
- 
-    def _on_save_button(self):
-        self.save_txt = self.text_view.get(1.0, tk.END)
-        self.event_generate(f'<<Save{self.task_name}>>')
-    
-    def back_button(self):
-        self.event_generate(f'<<View{self.task_name}Page>>')
-
-class View_Text(ttk.Frame):
-    """ Text_View class with grid options"""
-
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent,*args, **kwargs)
-
-        myFont = tk.font.Font(family='Helvetica', size=10, weight='bold')
-        self.save_button = None
-
-        # self.grid_columnconfigure(0, weight=2)
-        # self.grid_columnconfigure(1, weight=1)
-
-        text_scroll =tk.Scrollbar(self)
-        text_scroll.grid(row=0, column=1, sticky='nsew')
-        #text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        #self.text_view = tk.Text(self, width = 130, height = 20, yscrollcommand= text_scroll.set)
-        # self.text_view = tk.Text(self, height=40, yscrollcommand= text_scroll.set)
-        self.text_view = tk.Text(self, yscrollcommand= text_scroll.set)
-        self.text_view['font'] = myFont
-        self.text_view.grid(row=0, column=0, padx=5, pady=5, sticky='nsew')
-        text_scroll.config(command=self.text_view.yview)              
-        # self.add_button_to_textview()
-
-    def clear_text(self):
-        self.text_view.delete("1.0", tk.END)
-
-    def insert_text(self, text, state):
-        self.text_view.configure(state='normal')
-        self.clear_text()
-        
-        self.text_view.insert(tk.END, text)
-        self.text_view.configure(state=state)
-        if self.save_button:
-            if state=='disabled':
-                self.save_button.config(state='disabled')
-            else:
-                self.save_button.config(state='active')
-
-    
-    def get_text(self):
-        txt = self.text_view.get(1.0, tk.END)
-        return txt
-
-    def set_event_name(self, name):
-        self.event_name = name
-
-    def save(self):
-        event = "<<Save"+ self.event_name + ">>"
-        self.event_generate(event)
-       
-
-    def add_button_to_textview(self):
-        """ Adds button to textview frame"""
-
-        text_view_button_frame = ttk.Frame(self)
-        text_view_button_frame.grid(row=1, column=0)
-
-        # view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
-        # view['font'] = myFont
-        # view.place(x=100,y=450)
-        self.save_button = tk.Button(text_view_button_frame, text="Save",activebackground="#78d6ff", command= lambda:self.save())
-        self.save_button['font'] = myfont()
-        self.save_button.grid(row=1, column=0, padx=5)
-        
-        # refresh_button = tk.Button(text_view_button_frame, text="Reload", activebackground="#78d6ff")
-        # refresh_button['font'] = myfont()
-        # refresh_button.grid(row=0,column=1, padx=5)
-
-        
