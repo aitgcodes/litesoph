@@ -3042,9 +3042,13 @@ class JobSubPage(ttk.Frame):
         self.entry_command['font'] = myfont()
         self.entry_command.grid(row=8, column=1, ipadx=2, ipady=2)
       
-        upload_button2 = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
+        upload_button2 = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = self.create_job_script)
         upload_button2['font'] = myfont()
         upload_button2.grid(row=9,column=0,sticky='nsew', padx=2, pady=4)
+
+        save_job_script = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = self.save_job_script)
+        save_job_script['font'] = myfont()
+        save_job_script.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
@@ -3077,6 +3081,10 @@ class JobSubPage(ttk.Frame):
         event = '<<Create'+self.task+self.job_type+'Script>>'
         self.event_generate(event)
     
+    def save_job_script(self):
+        event = '<<Save'+self.task+self.job_type+'>>'
+        self.event_generate(event)
+
     def submitjob_network(self):
         event = '<<Run'+self.task+'Network>>'
         self.event_generate(event)
