@@ -123,11 +123,9 @@ class WorkManagerPage(ttk.Frame):
         label_design.update({"font":myfont()})
         
         self.plot_option = None
-        #self.parent = ttk.Frame(parent)
-        #self.parent.grid(column=0, row=0)
+
         self.Frame1 =ttk.Frame(self)
         self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        # self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S), pady=10)
        
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
@@ -154,7 +152,7 @@ class WorkManagerPage(ttk.Frame):
         self.button_project['font'] = myfont()
         self.button_project.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10)
 
-        self.Frame2 = tk.Frame(self)
+        self.Frame2 = ttk.Frame(self)
         self.Frame2.grid(column=0, row=1, sticky=(tk.N, tk.W, tk.E, tk.S))
         # self.grid_columnconfigure(1, weight=1)
 
@@ -162,7 +160,7 @@ class WorkManagerPage(ttk.Frame):
         self.Frame2.configure(borderwidth="2")
         self.Frame2.configure(cursor="fleur")
 
-        common_frame = tk.Frame(self.Frame2)
+        common_frame = ttk.Frame(self.Frame2)
         common_frame.grid(row=0, column=0, sticky='w')
 
         self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
@@ -239,7 +237,7 @@ class WorkManagerPage(ttk.Frame):
         for widget in parent.winfo_children():
             widget.destroy()
 
-        common_sub_task_frame = tk.Frame(parent)        
+        common_sub_task_frame = ttk.Frame(parent)        
         common_sub_task_frame.grid(row=0, column=0)  
 
         self.Frame2_label_3 = tk.Label(common_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
@@ -261,7 +259,7 @@ class WorkManagerPage(ttk.Frame):
         for widget in parent.winfo_children():
             widget.destroy()
 
-        sim_sub_task_frame = tk.Frame(parent)
+        sim_sub_task_frame = ttk.Frame(parent)
         sim_sub_task_frame.grid(row=1, column=0)
 
         self.sub_task_label = tk.Label(sim_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
@@ -395,7 +393,7 @@ def define_tk_var(var_dict:dict):
     return var_def_dict
         
 
-class View_note(tk.Frame):
+class View_note(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -407,11 +405,11 @@ class View_note(tk.Frame):
         notebook = ttk.Notebook(self)
         notebook.grid()
         style.configure("TNotebook.Tab", font=('Helvetica','10'))
-        style.map("TNotebook.Tab", background=[('selected', 'light blue')])
+        #style.map("TNotebook.Tab", background=[('selected')])
         
-        self.Frame1 = tk.Frame(notebook, borderwidth=2, relief='groove')
-        self.Frame2 = tk.Frame(notebook, borderwidth=2, relief='groove')
-        self.Frame3 = tk.Frame(notebook, borderwidth=2, relief='groove')
+        self.Frame1 = ttk.Frame(notebook, borderwidth=2, relief='groove')
+        self.Frame2 = ttk.Frame(notebook, borderwidth=2, relief='groove')
+        self.Frame3 = ttk.Frame(notebook, borderwidth=2, relief='groove')
 
         self.Frame1.grid(row=0, column=0)
         self.Frame2.grid(row=0, column=0)
@@ -421,13 +419,13 @@ class View_note(tk.Frame):
         notebook.add(self.Frame2, text='Calculation Details')
         notebook.add(self.Frame3, text='Advanced Info')
 
-        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
         self.frame_button.grid(row=10, column=0,columnspan=10, sticky='nswe')
 
     def add_jobsub(self):
         """ Adds Job Sub buttons to View_note"""
 
-        self.frame_run = tk.Frame(self,borderwidth=2, relief='groove')
+        self.frame_run = ttk.Frame(self,borderwidth=2, relief='groove')
         self.frame_run.grid(row=0, column=1, sticky='nsew')
 
         self.sublocal_Button2 = tk.Button(self.frame_run, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocalGroundState>>'))
@@ -497,7 +495,7 @@ class GroundStatePage(View_note):
             widget.destroy()
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        mode_frame = tk.Frame(parent)
+        mode_frame = ttk.Frame(parent)
         mode_frame.grid(row=0, column=0)      
 
         self.heading = tk.Label(mode_frame,text="LITESOPH input for Ground State",fg='green')
@@ -509,7 +507,6 @@ class GroundStatePage(View_note):
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
         def pick_box(e):
-            print(task.get())
             if task.get() == "nao" or task.get() == 'pw':
                 #check = messagebox.ask(title = 'Message',message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
                 self.engine.set('gpaw')
@@ -553,7 +550,7 @@ class GroundStatePage(View_note):
         multiplicity_entry.grid(row=7, column=1, sticky='w', padx=2, pady=2)
 
        
-        empty_frame = tk.Frame(mode_frame, borderwidth=2)
+        empty_frame = ttk.Frame(mode_frame, borderwidth=2)
         empty_frame.grid(row=10, column=0)
 
         title = tk.Label(empty_frame,  height=3)
@@ -590,7 +587,7 @@ class GroundStatePage(View_note):
         #     widget.destroy()
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        mode_frame = tk.Frame(parent)
+        mode_frame = ttk.Frame(parent)
         mode_frame.grid(row=0, column=0)      
 
         self.heading = tk.Label(mode_frame,text="LITESOPH input for Ground State",fg='green')
@@ -643,7 +640,7 @@ class GroundStatePage(View_note):
         multiplicity_entry.grid(row=7, column=1, sticky='w', padx=2, pady=2)
 
 
-        empty_frame = tk.Frame(mode_frame, borderwidth=2)
+        empty_frame = ttk.Frame(mode_frame, borderwidth=2)
         empty_frame.grid(row=10, column=0)
 
         title = tk.Label(empty_frame,  height=3)
@@ -681,7 +678,7 @@ class GroundStatePage(View_note):
             widget.destroy()
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        mode_frame = tk.Frame(parent)
+        mode_frame = ttk.Frame(parent)
         mode_frame.grid(row=0, column=0)      
 
         self.heading = tk.Label(mode_frame,text="LITESOPH input for Ground State",fg='green')
@@ -723,7 +720,7 @@ class GroundStatePage(View_note):
         multiplicity_entry['font'] =label_design['font']
         multiplicity_entry.grid(row=7, column=1, sticky='w', padx=2, pady=2)
 
-        empty_frame = tk.Frame(mode_frame, borderwidth=2)
+        empty_frame = ttk.Frame(mode_frame, borderwidth=2)
         empty_frame.grid(row=10, column=0)
 
         title = tk.Label(empty_frame,  height=3)
@@ -760,7 +757,7 @@ class GroundStatePage(View_note):
             widget.destroy()
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        mode_frame = tk.Frame(parent)
+        mode_frame = ttk.Frame(parent)
         mode_frame.grid(row=0, column=0)      
 
         self.heading = tk.Label(mode_frame,text="LITESOPH input for Ground State",fg='green')
@@ -794,7 +791,7 @@ class GroundStatePage(View_note):
         multiplicity_entry.grid(row=7, column=1, sticky='w', padx=2, pady=2)
 
        
-        empty_frame = tk.Frame(mode_frame, borderwidth=2)
+        empty_frame = ttk.Frame(mode_frame, borderwidth=2)
         empty_frame.grid(row=10, column=0)
 
         title = tk.Label(empty_frame,  height=3)
@@ -827,10 +824,10 @@ class GroundStatePage(View_note):
     def show_octopus_calc_tab(self, parent):
         """ Creates widgets for fd mode in second tab"""
 
-        common_frame = tk.Frame(parent)
+        common_frame = ttk.Frame(parent)
         common_frame.grid(row=0, column=0, sticky='nsew')
 
-        sub_frame = tk.Frame(parent)
+        sub_frame = ttk.Frame(parent)
         sub_frame.grid(row=1, column=0, sticky='nsew')
 
         self.shape = tk.Label(common_frame,text="Box Shape", justify='left', bg=label_design['bg'], fg=label_design['fg'])
@@ -873,10 +870,10 @@ class GroundStatePage(View_note):
     def show_auto_mode_calc_tab(self, parent):
         """ Creates widgets for fd mode in second tab"""
 
-        common_frame = tk.Frame(parent)
+        common_frame = ttk.Frame(parent)
         common_frame.grid(row=0, column=0, sticky='nsew')
 
-        sub_frame = tk.Frame(parent)
+        sub_frame = ttk.Frame(parent)
         sub_frame.grid(row=1, column=0, sticky='nsew')
 
         self.shape = tk.Label(common_frame,text="Box Shape", justify='left', bg=label_design['bg'], fg=label_design['fg'])
@@ -903,7 +900,7 @@ class GroundStatePage(View_note):
 
 
     def oct_simbox(self, parent):
-        self.oct_simb = tk.Frame(parent)
+        self.oct_simb = ttk.Frame(parent)
         self.oct_simb.grid(row=2, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -952,7 +949,7 @@ class GroundStatePage(View_note):
   
     def oct_ppl_frame(self,parent):
 
-        oct_ppd_frame = tk.Frame(parent)
+        oct_ppd_frame = ttk.Frame(parent)
         oct_ppd_frame.grid(row=4, column=0, columnspan=3)
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -982,7 +979,7 @@ class GroundStatePage(View_note):
                   
     def oct_minsph_frame(self,parent):
   
-        ocms_frame = tk.Frame(parent, borderwidth=2)
+        ocms_frame = ttk.Frame(parent, borderwidth=2)
         ocms_frame.grid(row=4, column=0)
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -996,7 +993,7 @@ class GroundStatePage(View_note):
 
     def oct_cyl_frame(self, parent):
 
-        occyl_frame = tk.Frame(parent, borderwidth=2)
+        occyl_frame = ttk.Frame(parent, borderwidth=2)
         occyl_frame.grid(row=4, column=0)
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1025,7 +1022,7 @@ class GroundStatePage(View_note):
     def gpaw_frame(self,parent): 
         """ Creates widgets in calc_details tab for nao/pw"""
 
-        gp_frame = tk.Frame(parent, borderwidth=2)
+        gp_frame = ttk.Frame(parent, borderwidth=2)
         gp_frame.grid(row=0, column=0, sticky='w')
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -1079,7 +1076,7 @@ class GroundStatePage(View_note):
 
     def nwchem_frame(self,parent):   
 
-        nw_frame = tk.Frame(parent, borderwidth=2)
+        nw_frame = ttk.Frame(parent, borderwidth=2)
         nw_frame.grid(row=0, column=0, sticky='w')
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1097,7 +1094,7 @@ class GroundStatePage(View_note):
         self.entry_pol_x['state'] = 'readonly'
         self.entry_pol_x.grid(row=2, column=1, sticky='w', padx=2, pady=2)
    
-        em_frame = tk.Frame(nw_frame, borderwidth=2)
+        em_frame = ttk.Frame(nw_frame, borderwidth=2)
         em_frame.grid(row=8, column=0)
         
         title = tk.Label(em_frame,  height=3)
@@ -1109,7 +1106,7 @@ class GroundStatePage(View_note):
     def octopus_frame(self,parent): 
         """Creates widgets in calc_details tab/Octopus""" 
 
-        oct_frame = tk.Frame(parent, borderwidth=2)
+        oct_frame = ttk.Frame(parent, borderwidth=2)
         oct_frame.grid(row=1, column=0, sticky='nsew')
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
@@ -1172,7 +1169,7 @@ class GroundStatePage(View_note):
         self.cb1.set("--choose option--")
         self.cb1.grid(row=3, column=1, sticky='we', padx=2, pady=6)
 
-        oct_xc_frame = tk.Frame(oct_frame)
+        oct_xc_frame = ttk.Frame(oct_frame)
         oct_xc_frame.grid(row = 5, column=0, columnspan=4)
        
         self.Frame2_note = tk.Label(oct_frame,text="Exchange Correlation",bg=label_design['bg'], fg=label_design['fg'])
@@ -1221,7 +1218,7 @@ class GroundStatePage(View_note):
 
     def nwchem_convergence(self, parent):
         #parent.grid_remove()
-        nwchem_conv = tk.Frame(parent, borderwidth=2)
+        nwchem_conv = ttk.Frame(parent, borderwidth=2)
         nwchem_conv.grid(row=0, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1282,7 +1279,7 @@ class GroundStatePage(View_note):
         # self.entry_pol_x.grid(row=9, column=1, sticky='w', padx=2, pady=2)
         # self.entry_pol_x['state'] = 'readonly'
    
-        empty_frame = tk.Frame(nwchem_conv, borderwidth=2)
+        empty_frame = ttk.Frame(nwchem_conv, borderwidth=2)
         empty_frame.grid(row=10, column=0)
 
         title = tk.Label(empty_frame,  height=3)
@@ -1314,7 +1311,7 @@ class GroundStatePage(View_note):
 
     def gpaw_convergence(self, parent):
         # parent.grid_remove()
-        gp_conv = tk.Frame(parent, borderwidth=2)
+        gp_conv = ttk.Frame(parent, borderwidth=2)
         gp_conv.grid(row=0, column=0, sticky='w')
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1400,7 +1397,7 @@ class GroundStatePage(View_note):
         #self.entry_sm.place(x=360,y=60)
         self.entry_sm.grid(row=14, column=1, sticky='w', padx=2, pady=2)
  
-        empty_frame = tk.Frame(gp_conv, borderwidth=2)
+        empty_frame = ttk.Frame(gp_conv, borderwidth=2)
         empty_frame.grid(row=16, column=0, sticky='w')
 
         title = tk.Label(empty_frame,  height=3)
@@ -1422,7 +1419,7 @@ class GroundStatePage(View_note):
         empty_frame.grid_rowconfigure(1, weight=1)
 
     def octopus_convergence(self, parent):
-        oct_conv = tk.Frame(parent, borderwidth=2)
+        oct_conv = ttk.Frame(parent, borderwidth=2)
         oct_conv.grid(row=0, column=0, sticky = 'w')
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1490,7 +1487,7 @@ class GroundStatePage(View_note):
         #self.entry_proj.place(x=280,y=10)
         self.entry_proj.grid(row=12, column=1, sticky='w', padx=2, pady=2)
     
-        #oct_rlt = tk.Frame(parent, borderwidth=2)
+        #oct_rlt = ttk.Frame(parent, borderwidth=2)
         #oct_rlt.grid(row=1, column=0)
 
         #myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1512,7 +1509,7 @@ class GroundStatePage(View_note):
         #self.entry_proj.place(x=280,y=10)
         self.entry_proj.grid(row=16, column=1, sticky='w', padx=2, pady=2)
 
-        #oct_mix = tk.Frame(parent, borderwidth=2)
+        #oct_mix = ttk.Frame(parent, borderwidth=2)
         #oct_mix.grid(row=2, column=0)
 
         #myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1557,11 +1554,11 @@ class GroundStatePage(View_note):
         self.entry_pol_x.grid(row=24, column=1, sticky='w', padx=2, pady=2)
 
     def frame_collection(self):
-        self.Frame1_sub = tk.Frame(self.Frame1, borderwidth=2)
+        self.Frame1_sub = ttk.Frame(self.Frame1, borderwidth=2)
         self.Frame1_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky='we')
-        self.Frame2_sub = tk.Frame(self.Frame2, borderwidth=2)
+        self.Frame2_sub = ttk.Frame(self.Frame2, borderwidth=2)
         self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
-        self.Frame3_sub = tk.Frame(self.Frame3, borderwidth=2)
+        self.Frame3_sub = ttk.Frame(self.Frame3, borderwidth=2)
         self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
         
         self.tab1_button_frame()
@@ -1717,7 +1714,7 @@ class GroundStatePage(View_note):
         atom_list = list(atoms.symbols)
         return atom_list
 
-class View1(tk.Frame):
+class View1(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -1727,10 +1724,10 @@ class View1(tk.Frame):
 
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame2 = tk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame2 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
         # layout all of the main containers
         #self.grid_rowconfigure(0, weight=1)
         #self.grid_rowconfigure(0, weight=1)
@@ -1753,7 +1750,7 @@ class View1(tk.Frame):
     def add_job_frame(self, task_name):  
         """  Adds submit job buttons to View1"""
 
-        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
         self.Frame3.grid(row=1, column=9, sticky='nswe')
         # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
         # View_Button1['font'] = self.myFont
@@ -1854,10 +1851,10 @@ class TimeDependentPage(View1):
 
         #################################################################################################
 
-        frame_property = tk.Frame(self.Frame2)
+        frame_property = ttk.Frame(self.Frame2)
         frame_property.grid(row=0, column=0)
 
-        frame_additional = tk.Frame(self.Frame1)
+        frame_additional = ttk.Frame(self.Frame1)
         frame_additional.grid(row=8, column=0, pady=10)
 
         self.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
@@ -1867,7 +1864,7 @@ class TimeDependentPage(View1):
         self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['spectra'], font=myFont, onvalue=1)
         self.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
         
-        frame_spec_option = tk.Frame(frame_property)
+        frame_spec_option = ttk.Frame(frame_property)
         frame_spec_option.grid(row=2, column=0, sticky='w')
 
         # self.checkbox_specific_spectra = tk.Checkbutton(frame_spec_option, text="Specific Polarisation", font=myFont, onvalue=1, offvalue=0)
@@ -1882,7 +1879,7 @@ class TimeDependentPage(View1):
         self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self._var['popln'], font=myFont, onvalue=1, offvalue=0)
         self.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
 
-        frame_output_freq = tk.Frame(frame_property)
+        frame_output_freq = ttk.Frame(frame_property)
         frame_output_freq.grid(row=5, column=0, sticky='w')
 
         self.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
@@ -1899,7 +1896,7 @@ class TimeDependentPage(View1):
         self.label_select['font'] = myFont
         self.label_select.grid(row=0, column=0, sticky='w', padx=2, pady=4)
 
-        frame_pol = tk.Frame(frame_additional, borderwidth=2)
+        frame_pol = ttk.Frame(frame_additional, borderwidth=2)
         frame_pol.grid(row=1, column=0, sticky='w')
 
         values = {"X": 0, "Y": 1, "Z": 2}
@@ -2091,7 +2088,7 @@ class TimeDependentPage(View1):
             self.checkbox_pc.config(state = 'disabled')            
 
 
-class LaserDesignPage(tk.Frame):
+class LaserDesignPage(ttk.Frame):
 
     def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2106,13 +2103,13 @@ class LaserDesignPage(tk.Frame):
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
         
-        self.Frame1 = tk.Frame(self)
+        self.Frame1 = ttk.Frame(self)
         #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
         self.Frame1.configure(relief='groove')
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
         self.Frame1.configure(cursor="fleur")
-        self.Frame1 = tk.Frame(self)
+        self.Frame1 = ttk.Frame(self)
         
         self.strength = tk.DoubleVar()
         self.inval = tk.DoubleVar()
@@ -2221,7 +2218,7 @@ class LaserDesignPage(tk.Frame):
         self.button_project['font'] = myFont
         self.button_project.place(x=170,y=380)
 
-        self.Frame2 = tk.Frame(self)
+        self.Frame2 = ttk.Frame(self)
         self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
         self.Frame2.configure(relief='groove')
@@ -2280,7 +2277,7 @@ class LaserDesignPage(tk.Frame):
 
     def show_laser_plot(self, figure):
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
-        self.Frame3 = tk.Frame(self)
+        self.Frame3 = ttk.Frame(self)
         self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
         self.Frame3.configure(relief='groove')
@@ -2401,7 +2398,7 @@ class LaserDesignPage(tk.Frame):
 
    
 
-class PlotSpectraPage(tk.Frame):
+class PlotSpectraPage(ttk.Frame):
 
     def __init__(self, parent, engine, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2432,7 +2429,7 @@ class PlotSpectraPage(tk.Frame):
         self.axis = tk.StringVar()
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
         # self.grid_columnconfigure(9, weight=3)
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=5)
@@ -2478,7 +2475,7 @@ class PlotSpectraPage(tk.Frame):
         # self.label_msg['font'] = myFont
         # self.label_msg.place(x=420,y=60)
 
-        self.button_frame = tk.Frame(self, borderwidth=2, relief='groove')
+        self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
         self.button_frame.grid(row=1, column=0, sticky='nsew')
 
         # self.Frame2_Run = tk.Button(self.Frame1,text="Run Job",activebackground="#78d6ff",command=lambda:[self.event_generate('<<SubSpectrum>>')])
@@ -2494,7 +2491,7 @@ class PlotSpectraPage(tk.Frame):
     def add_job_frame(self, parent, task_name, r:int, c:int):  
         """  Adds submit job buttons to View1"""
 
-        self.Frame3 = tk.Frame(parent, borderwidth=2, relief='groove')
+        self.Frame3 = ttk.Frame(parent, borderwidth=2, relief='groove')
         self.Frame3.grid(row=r, column=c, sticky='nswe')
         # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
         # View_Button1['font'] = self.myFont
@@ -2514,7 +2511,7 @@ class PlotSpectraPage(tk.Frame):
         self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
 
     def gpaw_specific_spectra(self, parent):
-        gpaw_spec_frame = tk.Frame(parent)  
+        gpaw_spec_frame = ttk.Frame(parent)  
         gpaw_spec_frame.grid(row=0, column=0)
 
         self.label_folding = tk.Label(gpaw_spec_frame,text="Folding (in eV)",bg="gray",fg="black")
@@ -2534,7 +2531,7 @@ class PlotSpectraPage(tk.Frame):
         self.entry_emax.grid(row=1, column=1)
 
     def oct_specific_spectra(self, parent):
-        oct_spec_frame = tk.Frame(parent)
+        oct_spec_frame = ttk.Frame(parent)
         oct_spec_frame.grid(row=0, column=0)
 
         self.label_1 = tk.Label(oct_spec_frame,text="Propagation Spectrum Damp Mode",bg="gray",fg="black")
@@ -2588,7 +2585,7 @@ class PlotSpectraPage(tk.Frame):
     
   
 
-class DmLdPage(tk.Frame):
+class DmLdPage(ttk.Frame):
 
     def __init__(self, parent, controller, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2604,7 +2601,7 @@ class DmLdPage(tk.Frame):
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
         
-        self.Frame = tk.Frame(self) 
+        self.Frame = ttk.Frame(self) 
         
         self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
         self.Frame.configure(relief='groove')
@@ -2666,7 +2663,7 @@ class DmLdPage(tk.Frame):
         if self.plot_task.get() == "Dipole Moment and Laser":
             plot_files(str(self.controller.directory)+'/laser.dat',str(self.controller.directory)+'/TD_Laser/dmlaser.dat',1, self.returnaxis())
    
-class TcmPage(tk.Frame):
+class TcmPage(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2692,16 +2689,16 @@ class TcmPage(tk.Frame):
         self.heading['font'] = myfont()
         self.heading.grid(row=0, column=0)
 
-        self.Frame1 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
         self.Frame1.grid(row=1,column=0, sticky='nsew')
 
         self.grid_rowconfigure(1, weight=5)
         self.grid_rowconfigure(2, weight=1)
 
-        self.frame_button = tk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
         self.frame_button.grid(row=2, column=0, sticky='nsew')
 
-        self.frame_inp = tk.Frame(self.Frame1, borderwidth=2)
+        self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
         self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
         Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
@@ -2802,7 +2799,7 @@ class TcmPage(tk.Frame):
     def add_job_frame(self, task_name):  
         """  Adds submit job buttons"""
 
-        self.Frame3 = tk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
         self.Frame3.grid(row=1, column=1, sticky='nswe')
         
         self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
@@ -3096,7 +3093,7 @@ class JobSubPage(ttk.Frame):
         return network_job_dict
     
     
-class TextViewerPage(tk.Frame):
+class TextViewerPage(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -3109,7 +3106,7 @@ class TextViewerPage(tk.Frame):
         k=tk.font.Font(family ='Courier', size=40,weight='bold')
         l=tk.font.Font(family ='Courier', size=15,weight='bold')
 
-        self.Frame = tk.Frame(self)
+        self.Frame = ttk.Frame(self)
 
         self.Frame.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.98)
         self.Frame.configure(relief='groove')
@@ -3152,7 +3149,7 @@ class TextViewerPage(tk.Frame):
     def back_button(self):
         self.event_generate(f'<<View{self.task_name}Page>>')
 
-class View_Text(tk.Frame):
+class View_Text(ttk.Frame):
     """ Text_View class with grid options"""
 
     def __init__(self, parent, *args, **kwargs):
@@ -3207,7 +3204,7 @@ class View_Text(tk.Frame):
     def add_button_to_textview(self):
         """ Adds button to textview frame"""
 
-        text_view_button_frame = tk.Frame(self)
+        text_view_button_frame = ttk.Frame(self)
         text_view_button_frame.grid(row=1, column=0)
 
         # view = tk.Button(top1, text="Select Script",activebackground="#78d6ff",command=lambda:[self.open_txt(my_Text)])
