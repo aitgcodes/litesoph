@@ -364,36 +364,29 @@ class GUIAPP:
         self.ground_state_view.set_sub_button_state('disabled')
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
+        self.view_panel.insert_text('')
         self.main_window.bind_all('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
-        self.main_window.bind_all('<<ViewGroundStateScript>>', lambda _ : self._on_gs_view_button())
+        self.main_window.bind_all('<<GenerateGroundStateScript>>', lambda _ : self._generate_gs_input())
         self.main_window.bind_all('<<SubLocalGroundState>>',  self._on_gs_run_local_button)
         self.main_window.bind_all('<<SubNetworkGroundState>>', self._on_gs_run_network_button)
 
     def _on_gs_save_button(self, *_):
-        if self._validate_gs_input():
-            self._gs_create_input()
+        template = self.view_panel.get_text()
+        self.ground_state_task.write_input(template)
+        self.status.set_new_task(self.engine, self.ground_state_task.task_name)
+        self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
+        self.status_engine.set(self.engine)
+        self.ground_state_view.set_sub_button_state('active')
+        self.ground_state_view.set_label_msg('saved')
             
-
-    def _on_gs_view_button(self, *_):
-        template = self._validate_gs_input()
-        if template:
-            self.view_panel.insert_text(text=template, state='normal')
-
-    def _validate_gs_input(self):
+    def _generate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
         self.engine = inp_dict.pop('engine')
         self.ground_state_task = get_engine_task(self.engine, 'ground_state', self.status, self.directory, self.lsconfig, inp_dict)
         self.ground_state_task.create_template()
-        return self.ground_state_task.template
-
-    def _gs_create_input(self, template=None):     
-            self.ground_state_task.write_input(template)
-            self.status.set_new_task(self.engine, self.ground_state_task.task_name)
-            self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.script', 1)
-            self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
-            self.status_engine.set(self.engine)
-            self.ground_state_view.set_sub_button_state('active')
-            self.ground_state_view.set_label_msg('saved')
+        self.view_panel.insert_text(text=self.ground_state_task.template, state='normal')
+        
 
     def _on_gs_run_local_button(self, *_):
         if not self._check_task_run_condition(self.ground_state_task):
@@ -445,31 +438,24 @@ class GUIAPP:
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
 
         self.main_window.bind_all('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
-        self.main_window.bind_all('<<ViewRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_view_button())
+        self.main_window.bind_all('<<GenerateRT_TDDFT_DELTAScript>>', lambda _ : self._generate_td_input())
         self.main_window.bind_all('<<SubLocalRT_TDDFT_DELTA>>',  self._on_td_run_local_button)
         self.main_window.bind_all('<<SubNetworkRT_TDDFT_DELTA>>',  self._on_td_run_network_button)
 
     def _on_td_save_button(self, *_):
-        self._validate_td_input()
-        self._td_create_input()
-        self.rt_tddft_delta_view.set_sub_button_state('active')
-
-    def _on_td_view_button(self, *_):
-        template = self._validate_td_input()
-        self.view_panel.insert_text(text=template, state='normal')
-
-    def _validate_td_input(self):
-        inp_dict = self.rt_tddft_delta_view.get_parameters()
-        self.rt_tddft_delta_task = get_engine_task(self.engine, 'rt_tddft_delta', self.status, self.directory, self.lsconfig, inp_dict)
-        self.rt_tddft_delta_task.create_template()
-        return self.rt_tddft_delta_task.template
-
-    def _td_create_input(self, template=None):     
+        template = self.view_panel.get_text()
         self.rt_tddft_delta_task.write_input(template)
         self.status.set_new_task(self.engine, self.rt_tddft_delta_task.task_name)
         self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
         self.rt_tddft_delta_view.set_sub_button_state('active')
+        self.rt_tddft_delta_view.set_label_msg('saved')
+
+    def _generate_td_input(self):
+        inp_dict = self.rt_tddft_delta_view.get_parameters()
+        self.rt_tddft_delta_task = get_engine_task(self.engine, 'rt_tddft_delta', self.status, self.directory, self.lsconfig, inp_dict)
+        self.rt_tddft_delta_task.create_template()
+        self.view_panel.insert_text(text=self.rt_tddft_delta_task.template, state='normal')
         self.rt_tddft_delta_view.set_label_msg('saved')
 
     def _on_td_run_local_button(self, *_):

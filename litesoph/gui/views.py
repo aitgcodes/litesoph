@@ -464,7 +464,7 @@ class GroundStatePage(View_note):
 
     def tab2_button_frame(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.view_Button2 = tk.Button(self.frame_button, text="View Input", activebackground="#78d6ff", command=lambda: self.view_button())
+        self.view_Button2 = tk.Button(self.frame_button, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.view_Button2['font'] = myFont
         self.view_Button2.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
@@ -1683,8 +1683,8 @@ class GroundStatePage(View_note):
     def save_button(self):
         self.event_generate('<<SaveGroundStateScript>>')          
 
-    def view_button(self):
-        self.event_generate('<<ViewGroundStateScript>>')
+    def generate_input_button(self):
+        self.event_generate('<<GenerateGroundStateScript>>')
 
     def run_job_button(self):
         self.event_generate('<<SubGroundState>>')
@@ -1940,7 +1940,7 @@ class TimeDependentPage(View1):
         self.Frame1_Button1.grid(row=0, column=1, sticky='nsew', padx=3, pady=3)
         self.frame_button.grid_columnconfigure(2, weight=1)
         self.frame_button.grid_columnconfigure(4, weight=1)
-        self.Frame1_Button2 = tk.Button(self.frame_button, text="View Input", activebackground="#78d6ff", command=lambda: self.view_button())
+        self.Frame1_Button2 = tk.Button(self.frame_button, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.Frame1_Button2['font'] = myFont
         self.Frame1_Button2.grid(row=0, column=3, sticky='nsew', padx=3, pady=3)
         
@@ -2041,8 +2041,8 @@ class TimeDependentPage(View1):
     def save_button(self):
         self.event_generate('<<SaveRT_TDDFT_DELTAScript>>')
 
-    def view_button(self):
-        self.event_generate('<<ViewRT_TDDFT_DELTAScript>>')
+    def generate_input_button(self):
+        self.event_generate('<<GenerateRT_TDDFT_DELTAScript>>')
 
     def run_job_button(self):
         self.event_generate('<<SubRT_TDDFT_DELTA>>')
