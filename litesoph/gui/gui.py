@@ -104,7 +104,7 @@ class GUIAPP:
     def update_project_dir_tree(self):
         if self.directory:
             self.navigation.populate(self.directory)
-        self.main_window.after(5000, self.update_project_dir_tree)
+        self.main_window.after(1000, self.update_project_dir_tree)
         
     def on_bpanel_button_clicked(self):
         self.log_panel.on_bpanel_button_clicked()
