@@ -44,7 +44,7 @@ class GUIAPP:
 
         self.builder = pygubu.Builder()
 
-        self.builder.add_from_file(str(DESINGER_DIR / "main.ui"))
+        self.builder.add_from_file(str(DESINGER_DIR / "main_window.ui"))
 
         self.main_window = self.builder.get_object('mainwindow')
 
