@@ -1,0 +1,372 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface version="1.2">
+  <object class="tk.Toplevel" id="mainwindow">
+    <property name="geometry">1080x720</property>
+    <property name="height">200</property>
+    <property name="resizable">both</property>
+    <property name="title" translatable="yes">LITESOPH</property>
+    <property name="width">200</property>
+    <child>
+      <object class="ttk.Frame" id="mainframe">
+        <property name="height">200</property>
+        <property name="padding">2</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="expand">true</property>
+          <property name="fill">both</property>
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="ttk.Panedwindow" id="mainpw">
+            <property name="height">200</property>
+            <property name="orient">vertical</property>
+            <property name="width">200</property>
+            <layout manager="pack">
+              <property name="expand">true</property>
+              <property name="fill">both</property>
+              <property name="side">top</property>
+            </layout>
+            <child>
+              <object class="ttk.Panedwindow.Pane" id="mainpw_top">
+                <property name="weight">1</property>
+                <child>
+                  <object class="ttk.Frame" id="workframe">
+                    <property name="height">200</property>
+                    <property name="width">200</property>
+                    <layout manager="pack">
+                      <property name="expand">true</property>
+                      <property name="fill">both</property>
+                      <property name="side">top</property>
+                    </layout>
+                    <child>
+                      <object class="ttk.Panedwindow" id="workpw">
+                        <property name="height">400</property>
+                        <property name="orient">horizontal</property>
+                        <property name="width">400</property>
+                        <layout manager="pack">
+                          <property name="expand">true</property>
+                          <property name="fill">both</property>
+                          <property name="side">top</property>
+                        </layout>
+                        <child>
+                          <object class="ttk.Panedwindow.Pane" id="otree1">
+                            <property name="weight">0</property>
+                            <child>
+                              <object class="ttk.Frame" id="addnavframe">
+                                <property name="height">200</property>
+                                <property name="padding">0 0 0 2</property>
+                                <property name="width">200</property>
+                                <layout manager="pack">
+                                  <property name="expand">true</property>
+                                  <property name="fill">both</property>
+                                  <property name="side">top</property>
+                                </layout>
+                                <child>
+                                  <object class="ttk.Label" id="label3">
+                                    <property name="style">PanelTitle.TLabel</property>
+                                    <property name="text" translatable="yes">Project</property>
+                                    <layout manager="pack">
+                                      <property name="fill">x</property>
+                                      <property name="pady">0 2</property>
+                                      <property name="side">top</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="pygubu.builder.widgets.scrollbarhelper" id="sbh3">
+                                    <property name="scrolltype">both</property>
+                                    <property name="usemousewheel">true</property>
+                                    <layout manager="pack">
+                                      <property name="expand">true</property>
+                                      <property name="fill">both</property>
+                                      <property name="side">top</property>
+                                    </layout>
+                                    <child>
+                                      <object class="ttk.Treeview" id="treeview1">
+                                        <property name="selectmode">extended</property>
+                                        <layout manager="pack">
+                                          <property name="expand">true</property>
+                                          <property name="fill">both</property>
+                                          <property name="side">top</property>
+                                        </layout>
+                                        <child>
+                                          <object class="ttk.Treeview.Column" id="treecolumn">
+                                            <property name="column_anchor">w</property>
+                                            <property name="heading_anchor">w</property>
+                                            <property name="minwidth">200</property>
+                                            <property name="stretch">true</property>
+                                            <property name="text" translatable="yes">Task_list</property>
+                                            <property name="tree_column">true</property>
+                                            <property name="visible">true</property>
+                                            <property name="width">200</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="ttk.Panedwindow.Pane" id="task_input_pane">
+                            <property name="weight">0</property>
+                            <child>
+                              <object class="ttk.Frame" id="frame7">
+                                <property name="height">200</property>
+                                <property name="width">200</property>
+                                <layout manager="pack">
+                                  <property name="expand">true</property>
+                                  <property name="fill">both</property>
+                                  <property name="side">top</property>
+                                </layout>
+                                <child>
+                                  <object class="ttk.Label" id="ititle">
+                                    <property name="padding">1</property>
+                                    <property name="style">PanelTitle.TLabel</property>
+                                    <property name="text" translatable="yes">Input</property>
+                                    <layout manager="pack">
+                                      <property name="fill">x</property>
+                                      <property name="pady">0 2</property>
+                                      <property name="side">top</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="ttk.Notebook" id="notebook1">
+                                    <property name="height">200</property>
+                                    <property name="padding">0 2 0 0</property>
+                                    <property name="width">600</property>
+                                    <layout manager="pack">
+                                      <property name="expand">true</property>
+                                      <property name="fill">both</property>
+                                      <property name="side">top</property>
+                                    </layout>
+                                    <child>
+                                      <object class="ttk.Notebook.Tab" id="input_tab">
+                                        <property name="padding">2 6 2 6</property>
+                                        <property name="sticky">nsew</property>
+                                        <property name="text" translatable="yes">Input</property>
+                                        <child>
+                                          <object class="pygubu.builder.widgets.scrolledframe" id="inputframescr">
+                                            <property name="padding">5</property>
+                                            <property name="scrolltype">both</property>
+                                            <property name="usemousewheel">true</property>
+                                            <layout manager="pack">
+                                              <property name="expand">true</property>
+                                              <property name="fill">both</property>
+                                              <property name="side">top</property>
+                                            </layout>
+                                            <child>
+                                              <object class="ttk.Frame" id="inputframe">
+                                                <property name="height">200</property>
+                                                <property name="width">200</property>
+                                                <layout manager="pack">
+                                                  <property name="expand">true</property>
+                                                  <property name="fill">both</property>
+                                                  <property name="side">top</property>
+                                                </layout>
+                                              </object>
+                                            </child>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="ttk.Notebook.Tab" id="result_tab">
+                                        <property name="padding">2 6 2 6</property>
+                                        <property name="sticky">nsew</property>
+                                        <property name="text" translatable="yes">Results</property>
+                                        <child>
+                                          <object class="pygubu.builder.widgets.scrollbarhelper" id="resultframe">
+                                            <property name="scrolltype">both</property>
+                                            <property name="usemousewheel">true</property>
+                                            <layout manager="pack">
+                                              <property name="expand">true</property>
+                                              <property name="fill">both</property>
+                                              <property name="side">top</property>
+                                            </layout>
+                                            <child>
+                                              <object class="pygubu.builder.widgets.editabletreeview" id="resulttree">
+                                                <property name="selectmode">extended</property>
+                                                <property name="show">headings</property>
+                                                <layout manager="pack">
+                                                  <property name="expand">true</property>
+                                                  <property name="fill">both</property>
+                                                  <property name="side">top</property>
+                                                </layout>
+                                                <child>
+                                                  <object class="ttk.Treeview.Column" id="output_files_col">
+                                                    <property name="column_anchor">w</property>
+                                                    <property name="heading_anchor">w</property>
+                                                    <property name="minwidth">20</property>
+                                                    <property name="stretch">true</property>
+                                                    <property name="text" translatable="yes">Output files</property>
+                                                    <property name="tree_column">false</property>
+                                                    <property name="visible">true</property>
+                                                    <property name="width">200</property>
+                                                  </object>
+                                                </child>
+                                              </object>
+                                            </child>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="ttk.Panedwindow.Pane" id="viewpane">
+                            <property name="weight">2</property>
+                            <child>
+                              <object class="ttk.Frame" id="frame6">
+                                <property name="height">250</property>
+                                <property name="padding">1</property>
+                                <property name="width">250</property>
+                                <layout manager="pack">
+                                  <property name="expand">true</property>
+                                  <property name="fill">both</property>
+                                  <property name="side">top</property>
+                                </layout>
+                                <child>
+                                  <object class="ttk.Label" id="ioview">
+                                    <property name="padding">1</property>
+                                    <property name="style">PanelTitle.TLabel</property>
+                                    <property name="text" translatable="yes">View</property>
+                                    <layout manager="pack">
+                                      <property name="fill">x</property>
+                                      <property name="pady">0 2</property>
+                                      <property name="side">top</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="pygubu.builder.widgets.scrollbarhelper" id="scrollbarhelper2">
+                                    <property name="scrolltype">both</property>
+                                    <property name="usemousewheel">true</property>
+                                    <layout manager="pack">
+                                      <property name="expand">true</property>
+                                      <property name="fill">both</property>
+                                      <property name="side">top</property>
+                                    </layout>
+                                    <child>
+                                      <object class="tk.Text" id="view_text">
+                                        <property name="background">#ffffff</property>
+                                        <property name="font">{liberation sans} 14 {}</property>
+                                        <property name="height">10</property>
+                                        <property name="highlightthickness">0</property>
+                                        <property name="takefocus">true</property>
+                                        <property name="width">50</property>
+                                        <layout manager="pack">
+                                          <property name="expand">true</property>
+                                          <property name="fill">both</property>
+                                          <property name="side">top</property>
+                                        </layout>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Panedwindow.Pane" id="mainpw_bottom">
+                <property name="weight">0</property>
+                <child>
+                  <object class="ttk.Frame" id="bpanel">
+                    <property name="height">200</property>
+                    <property name="width">200</property>
+                    <layout manager="pack">
+                      <property name="side">top</property>
+                    </layout>
+                    <child>
+                      <object class="ttk.Frame" id="bp_container">
+                        <property name="height">200</property>
+                        <property name="width">200</property>
+                        <layout manager="pack">
+                          <property name="expand">true</property>
+                          <property name="fill">both</property>
+                          <property name="side">top</property>
+                        </layout>
+                        <child>
+                          <object class="pygubu.builder.widgets.scrollbarhelper" id="scrollbarhelper1">
+                            <property name="scrolltype">both</property>
+                            <property name="usemousewheel">false</property>
+                            <layout manager="pack">
+                              <property name="expand">true</property>
+                              <property name="fill">both</property>
+                              <property name="side">top</property>
+                            </layout>
+                            <child>
+                              <object class="tk.Text" id="text_log">
+                                <property name="background">#f8f8f8</property>
+                                <property name="font">{TKFixedFont} 12 {}</property>
+                                <property name="height">8</property>
+                                <property name="state">disabled</property>
+                                <property name="width">50</property>
+                                <layout manager="pack">
+                                  <property name="side">top</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Frame" id="bp_buttons">
+                        <property name="height">200</property>
+                        <property name="width">200</property>
+                        <layout manager="pack">
+                          <property name="fill">x</property>
+                          <property name="side">bottom</property>
+                        </layout>
+                        <child>
+                          <object class="ttk.Checkbutton" id="btn_messages">
+                            <property name="command" type="command" cbtype="simple">on_bpanel_button_clicked</property>
+                            <property name="offvalue">0</property>
+                            <property name="onvalue">messages</property>
+                            <property name="style">Toolbutton</property>
+                            <property name="text" translatable="yes">Message</property>
+                            <property name="variable">string:bpanel_buttonsvar</property>
+                            <layout manager="pack">
+                              <property name="side">left</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="ttk.Label" id="current_engine">
+                            <property name="state">normal</property>
+                            <property name="takefocus">true</property>
+                            <property name="text" translatable="yes">Enigne</property>
+                            <property name="textvariable">string:cengine_var</property>
+                            <layout manager="pack">
+                              <property name="padx">5</property>
+                              <property name="side">left</property>
+                            </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

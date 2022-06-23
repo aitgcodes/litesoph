@@ -13,7 +13,7 @@ from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.simulations.models import get_engine_model
 
-class StartPage(tk.Frame):
+class StartPage(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -96,7 +96,7 @@ class StartPage(tk.Frame):
         button_open_project['font'] = myFont
         button_open_project.place(x=80,y=300)
 
-class WorkManagerPage(tk.Frame):
+class WorkManagerPage(ttk.Frame):
 
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
     Pre_task = ["Ground State"]
@@ -116,15 +116,16 @@ class WorkManagerPage(tk.Frame):
             'laser': ['str','-- laser type--'],
             'plot':['str', '-- choose option --'],
         }
-
+        self.parent = parent
         self.engine = tk.StringVar(value='auto-mode')
 
         self._var = var_define(self._default_var)
         label_design.update({"font":myfont()})
         
         self.plot_option = None
-
-        self.Frame1 =tk.Frame(self)
+        #self.parent = ttk.Frame(parent)
+        #self.parent.grid(column=0, row=0)
+        self.Frame1 =ttk.Frame(self)
         self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
         # self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S), pady=10)
        
