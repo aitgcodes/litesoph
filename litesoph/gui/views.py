@@ -201,34 +201,28 @@ class WorkManagerPage(ttk.Frame):
         self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
         self.entry_task['state'] = 'readonly'
 
-        self.sub_task_frame = tk.Frame(self.Frame2)
+        self.sub_task_frame = ttk.Frame(self.Frame2)
         self.sub_task_frame.grid(row=1, column=0, sticky='w')
 
         self.show_sub_task_frame(self.sub_task_frame)
        
-        self.Frame3 = tk.Frame(self )
+        self.Frame3 = ttk.Frame(self)
         self.Frame3.grid(column=0, row=2,  sticky=(tk.N, tk.W, tk.E, tk.S)) 
 
         self.Frame3.configure(relief='groove')
         self.Frame3.configure(borderwidth="2")
         self.Frame3.configure(cursor="fleur")
 
-        # self.Frame3_Button_MainPage = tk.Button(self.Frame3, text="Start Page",activebackground="#78d6ff", command=lambda:self.event_generate('<<ShowStartPage>>'))
-        # self.Frame3_Button_MainPage['font'] = myfont()
-        # self.Frame3_Button_MainPage.grid(column=0, row= 0, sticky="we")
-           
         Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
         Frame3_Button1['font'] = myfont()
         Frame3_Button1.pack(side=tk.RIGHT, padx=10)
-        # Frame3_Button1.grid(column=1, row= 0, sticky="we", padx=(600,0))
         self.show_sub_task_frame(self.sub_task_frame)
 
-        self.Frame_status = tk.Frame(self )
-        # self.Frame_status.pack(side = 'right')
+        self.Frame_status = ttk.Frame(self)
         self.Frame_status.grid(row=0, column=1, rowspan=2, sticky='nsew') 
         self.Frame_status.configure(relief='groove', borderwidth="2", cursor="fleur" )
 
-        self.show_view_status_frame(self.Frame_status)
+        #self.show_view_status_frame(self.Frame_status)
         
     def show_view_status_frame(self, parent):
         for widget in parent.winfo_children():
@@ -2861,7 +2855,7 @@ class TcmPage(tk.Frame):
 
             return oct_ksd_dict                
        
-class JobSubPage(View1):
+class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
 
     def __init__(self, parent, task, job_type, *args, **kwargs):
@@ -2887,11 +2881,14 @@ class JobSubPage(View1):
         self.sub_command.set('bash')
         self.processors.set(1)
         self.port.set(22)
-
-        self.sub_job_frame = tk.Frame(self.Frame1)
+        self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame1.grid(row=1,column=0, columnspan=4, rowspan=100, sticky='nsew')
+        self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
+        self.sub_job_frame = ttk.Frame(self.Frame1)
         self.sub_job_frame.grid(row=0, column=0, sticky='nsew')
 
-        view_option_frame = tk.Frame(self.Frame1, borderwidth=2 ,relief='groove')
+        view_option_frame = ttk.Frame(self.Frame1, borderwidth=2 ,relief='groove')
         view_option_frame.grid(row=1,column=0, sticky='nsew', pady=15)
         self.show_job_frame()
 
@@ -2935,11 +2932,11 @@ class JobSubPage(View1):
 
         if self.job_type == 'Local':
             self.show_run_local()
-            self.add_text_view_frame()
+            #self.add_text_view_frame()
             self.text_view_button_frame = None
         elif self.job_type == 'Network':
             self.show_run_network() 
-            self.add_text_view_frame()
+            #self.add_text_view_frame()
             #self.text_view.add_button_to_textview() 
 
     def show_run_local(self): 
@@ -2966,9 +2963,13 @@ class JobSubPage(View1):
         self.entry_command['font'] = myfont()
         self.entry_command.grid(row=3, column=1, ipadx=2, ipady=2)
 
-        self.create_button = tk.Button(self.sub_job_frame, text="Create Job Script",activebackground="#78d6ff",command = self.create_job_script)
+        self.create_button = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = self.create_job_script)
         self.create_button['font'] = myfont()
         self.create_button.grid(row=4, column=0, pady=5)   
+
+        save_job_script = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = self.save_job_script)
+        save_job_script['font'] = myfont()
+        save_job_script.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         self.run_button['font'] = myfont()

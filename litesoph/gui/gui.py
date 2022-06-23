@@ -16,8 +16,10 @@ from configparser import ConfigParser, NoSectionError
 
 #---LITESOPH modules
 from litesoph.config import check_config, read_config
+from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
+from litesoph.gui.viewpanel import ViewPanelManager
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
 from litesoph.gui import views as v
@@ -207,7 +209,6 @@ class GUIAPP:
 
     def _on_open_project(self, *_):
         """creates dialog to get project path and opens existing project"""
-        
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
         if not project_path:
             return
@@ -270,9 +271,7 @@ class GUIAPP:
     def update_summary_of_project(self):
         
         summary = summary_of_current_project(self.status)
-        summary_frame = self._frames[v.WorkManagerPage].status_frame
-
-        summary_frame.insert_text(summary, state='disabled')
+        self.view_panel.insert_text(summary, state='disabled')
 
     def _on_proceed(self, *_):
 
@@ -378,9 +377,7 @@ class GUIAPP:
     def _on_gs_view_button(self, *_):
         template = self._validate_gs_input()
         if template:
-            text_view = self._init_text_viewer('GroundState', template)
-            text_view.bind('<<SaveGroundState>>', lambda _: self._gs_create_input(text_view.save_txt))
-            text_view.bind('<<ViewGroundStatePage>>', lambda _: self._show_frame(v.GroundStatePage, self))
+            self.view_panel.insert_text(text=template, state='normal')
 
     def _validate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
@@ -459,9 +456,7 @@ class GUIAPP:
 
     def _on_td_view_button(self, *_):
         template = self._validate_td_input()
-        text_view = self._init_text_viewer('RT_TDDFT_DELTA', template)
-        text_view.bind('<<SaveRT_TDDFT_DELTA>>', lambda _: self._td_create_input(text_view.save_txt))
-        text_view.bind('<<ViewRT_TDDFT_DELTAPage>>', lambda _: self._show_frame(v.TimeDependentPage))
+        self.view_panel.insert_text(text=template, state='normal')
 
     def _validate_td_input(self):
         inp_dict = self.rt_tddft_delta_view.get_parameters()
@@ -707,15 +702,11 @@ class GUIAPP:
         except Exception as e:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
+##-----------------------------------------------------------------------------------------------------------##
 
-    def _init_text_viewer(self,name, template, *_):
-        #self._show_frame(v.TextViewerPage, self)
-        text_view = v.TextViewerPage(self._window)
-        text_view.grid(row=0, column=1, sticky ="nsew")
-        text_view.set_task_name(name)
-        text_view.insert_text(template)
-        return text_view
-    
+    def view_input_file(self, task:Task):
+        self.view_panel.insert_text(task.template)
+
 
     def _run_local(self, task: Task, np=None):
 
@@ -764,7 +755,6 @@ class GUIAPP:
 
     def _on_out_local_view_button(self,task: Task, *_):
 
-        self.job_sub_page.text_view.clear_text()
         log_file = self.directory.parent / task.output_log_file
 
         try:
@@ -774,7 +764,7 @@ class GUIAPP:
             return
 
         log_txt = read_file(log_file)
-        self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
+        self.view_panel.insert_text(log_txt, 'disabled')
 
 
     def _run_network(self, task):
@@ -843,8 +833,7 @@ class GUIAPP:
     def _on_create_local_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
         b_file =  task.create_job_script(np)
-        self.job_sub_page.text_view.set_event_name(event)
-        self.job_sub_page.text_view.insert_text(b_file, 'normal')
+        self.view_panel.insert_text(b_file, 'normal')
 
     def _on_create_remote_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
@@ -854,16 +843,14 @@ class GUIAPP:
         else:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
-        self.job_sub_page.text_view.set_event_name(event)
-        self.job_sub_page.text_view.insert_text(b_file, 'normal')
+        self.view_panel.insert_text(b_file, 'normal')
        
     def _on_save_job_script(self,task :Task, *_):
-        txt = self.job_sub_page.text_view.get_text()
+        txt = self.view_panel.get_text()
         task.write_job_script(txt)
 
     def _on_out_remote_view_button(self,task, *_):
         
-        self.job_sub_page.text_view.clear_text()
         log_file = self.directory.parent / task.output_log_file
 
         try:
@@ -881,8 +868,8 @@ class GUIAPP:
             print('job Done.')
             self._get_remote_output()   
             log_txt = read_file(log_file)
-            self.job_sub_page.text_view.clear_text()
-            self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
+            #self.job_sub_page.text_view.clear_text()
+            self.view_panel.insert_text(log_txt, 'disabled')
 
         else:
             get = messagebox.askyesno(title='Info', message="Job not commpleted.", detail= "Do you what to download engine log file?")
@@ -890,43 +877,14 @@ class GUIAPP:
             if get:
                 self.submit_network.get_output_log()
                 log_txt = read_file(log_file)
-                self.job_sub_page.text_view.insert_text(log_txt, 'disabled')
+                self.view_panel.insert_text(log_txt, 'disabled')
             else:
                 return                
-        
-        
-
-    def _load_settings(self):
-        """Load settings into our self.settings dict"""
-
-        vartypes = {
-            'bool' : tk.BooleanVar,
-            'str' : tk.StringVar,
-            'int' : tk.IntVar,
-            'float' : tk.DoubleVar
-        }
-
-        self.settings = dict()
-        for key, data in self.settings_model.options.items():
-            vartype = vartypes.get(data['type'], tk.StringVar)
-            self.settings[key] = vartype(value=data['value'])
-            
-        for var in self.settings.values():
-            var.trace_add('write', self._save_settings)
-
-    def _save_settings(self, *_):
-        for key, variable in self.settings.items():
-            self.settings_model.set(key, variable.get())
-        self.settings_model.save()
 
 #--------------------------------------------------------------------------------        
-
-
 if __name__ == '__main__':
-   
+
+    from litesoph.config import read_config
     
-    app = GUIAPP()
-    app.title("AITG - LITESOPH")
-    #app.geometry("1500x700")
-    app.resizable(True,True)
-    app.mainloop()
+    app = GUIAPP(lsconfig=read_config())
+    app.run()
