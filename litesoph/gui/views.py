@@ -2459,31 +2459,18 @@ class PlotSpectraPage(ttk.Frame):
         self.entry_emax.grid(row=4, column=1, padx=2, pady=4, sticky='nsew')
 
 
-        # self.label_msg = tk.Label(self.Frame, text= "",fg="black")
-        # self.label_msg['font'] = myFont
-        # self.label_msg.place(x=420,y=60)
-
         self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
         self.button_frame.grid(row=1, column=0, sticky='nsew')
 
-        # self.Frame2_Run = tk.Button(self.Frame1,text="Run Job",activebackground="#78d6ff",command=lambda:[self.event_generate('<<SubSpectrum>>')])
-        # self.Frame2_Run['font'] = myFont
-        # self.Frame2_Run.grid(row=5, column=0)
-    
         Frame_Button1 = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
         Frame_Button1['font'] = myfont()
         Frame_Button1.grid(row=0, column=0, padx=3, pady=6)
-        #self.show_engine_specific_frame(self.engine)
-        #self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
 
     def add_job_frame(self, parent, task_name, r:int, c:int):  
         """  Adds submit job buttons to View1"""
 
         self.Frame3 = ttk.Frame(parent, borderwidth=2, relief='groove')
         self.Frame3.grid(row=r, column=c, sticky='nswe')
-        # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
-        # View_Button1['font'] = self.myFont
-        # View_Button1.grid(row=2, column=1, sticky='nsew')
 
         self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
         self.Frame1_Button2['font'] = myfont()
@@ -2773,16 +2760,6 @@ class TcmPage(ttk.Frame):
         elif engine == 'octopus':
             self.add_oct_ksd_frame(parent)    
 
-        # Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
-        # Frame_Button1['font'] = myfont()
-        # Frame_Button1.grid(row=0, column=0)
-
-    
-        # self.create_button = tk.Button(self.Frame1, text="Create input",activebackground="#78d6ff",command=lambda:self.event_generate('<<CreateTCMScript>>'))
-        # self.create_button['font'] = myfont()
-        # self.create_button.grid(row=2, column=1)
-
-        # self.add_job_frame("TCM")
 
     def add_job_frame(self, task_name):  
         """  Adds submit job buttons"""
