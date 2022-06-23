@@ -459,7 +459,7 @@ class GroundStatePage(View_note):
     def on_engine_change(self, *_):
         self.get_engine_parameters()
         self.engine_specific_frame()
-        self.parent.master.status_engine.set(self.engine.get())
+        #self.parent.master.status_engine.set(self.engine.get())
         
         
     def get_engine_parameters(self, *_):
