@@ -382,6 +382,8 @@ class GUIAPP:
             
     def _generate_gs_input(self):
         inp_dict = self.ground_state_view.get_parameters()
+        if not inp_dict:
+            return
         self.engine = inp_dict.pop('engine')
         self.ground_state_task = get_engine_task(self.engine, 'ground_state', self.status, self.directory, self.lsconfig, inp_dict)
         self.ground_state_task.create_template()
