@@ -11,7 +11,7 @@ python_requires = '>=3.7'
 requirements = [
     'click>=8.0.3',
     'matplotlib','numpy','ase',
-    'paramiko', 'scp', 'pexpect'
+    'paramiko', 'scp', 'pexpect','pygubu'
 ]
 
 setup_requirements = []

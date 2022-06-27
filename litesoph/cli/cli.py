@@ -34,8 +34,7 @@ def gui():
 
     from litesoph.gui.gui import GUIAPP
     app = GUIAPP(lsconfig)
-    app.title('LITESOPH')
-    app.mainloop()
+    app.run()
 
 
 @cli.command(no_args_is_help=True)
