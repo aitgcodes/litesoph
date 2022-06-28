@@ -68,6 +68,7 @@ atoms.center(vacuum={vacuum})
 #Ground-state calculation
 calc = GPAW(mode='{mode}',
     xc='{xc}',
+    occupations = {occupations},
     h={h},  # Angstrom
     gpts={gpts},
     kpts={kpts},
@@ -418,7 +419,8 @@ class GpawCalTCM(Task):
                     'gfilename' : 'gs.gpw',
                     'wfilename' : 'wf.ulm',
                     'frequency_list' : [],
-                    'name' : " "
+                    'name' : " ",
+                    'axis_limit': 10
                     }
 
     tcm_temp = """
@@ -512,8 +514,8 @@ def do(w):
 
     # Plot the decomposition as a TCM
     de = 0.01
-    energy_o = np.arange(-3, 0.1 + 1e-6, de)
-    energy_u = np.arange(-0.1, 3 + 1e-6, de)
+    energy_o = np.arange(-{axis_limit:.2f}, 0.1 + 1e-6, de)
+    energy_u = np.arange(-0.1, {axis_limit:.2f} + 1e-6, de)
     plt.clf()
     plotter = TCMPlotter(ksd, energy_o, energy_u, sigma=0.1)
     plotter.plot_TCM(weight_p)

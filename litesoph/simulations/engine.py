@@ -108,15 +108,19 @@ class EngineOctopus(EngineStrategy):
 
     spectrum =  octopus_data.spectrum
 
+    engine_log_dir = octopus_data.engine_log_dir
+
     def __init__(self,project_dir,lsconfig, status=None) -> None:
         self.project_dir = project_dir
         self.status = status
         self.lsconfig = lsconfig
 
     def create_dir(self, directory, *_):
-        directory = pathlib.Path(directory) / self.NAME
+        engine_directory = pathlib.Path(directory) / self.NAME
+        eng_log_dir = pathlib.Path(directory) / self.engine_log_dir
         self.create_directory(directory)
-        return directory
+        self.create_directory(eng_log_dir)
+        return engine_directory
 
     def create_script(self,directory,template: str, *_) -> None:
         """creates the input scripts for gpaw"""
@@ -124,15 +128,15 @@ class EngineOctopus(EngineStrategy):
         self.filename = 'inp' 
         write2file(self.directory,self.filename,template)
 
-    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
+    def create_command(self, job_script: list , np: int ,ofilename, path=None, remote=False) -> list:
 
 
-        ofilename = "log"
+        #ofilename = "log"
         
         if remote:
             job_script.append(self.get_engine_network_job_cmd())
             job_script.append(f"cd {str(path)}")
-            job_script.append(f"mpirun -np {np:d}  octopus > {ofilename}")
+            job_script.append(f"mpirun -np {np:d}  octopus > {str(ofilename)}")
         else:
             job_script.append(f"cd {str(path)}")
 
