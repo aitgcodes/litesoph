@@ -109,6 +109,12 @@ class GUIAPP:
     def on_bpanel_button_clicked(self):
         self.log_panel.on_bpanel_button_clicked()
 
+    def set_title(self, newtitle):
+        self.current_title = newtitle
+        default_title = 'LITESOPH - {0}'
+        title = default_title.format(newtitle)
+        self.main_window.wm_title(title)
+
 
     def _status_init(self, path):
         """Initializes the status object."""
@@ -200,6 +206,7 @@ class GUIAPP:
         if not self._status_init(path):       
             return
         self._change_directory(path)
+        self.set_title(path.name)
         self.update_summary_of_project()
         #self.navigation.populate(self.directory)
         #self._get_engine()
