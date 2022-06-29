@@ -1014,13 +1014,13 @@ class LaserDesignPage(ttk.Frame):
         k=font.Font(family ='Courier', size=40,weight='bold')
         l=font.Font(family ='Courier', size=15,weight='bold')
         
-        self.Frame1 = ttk.Frame(self)
-        #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-        self.Frame1 = ttk.Frame(self)
+        # self.Frame1 = ttk.Frame(self)
+        # #self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.489)
+        # self.Frame1.configure(relief='groove')
+        # self.Frame1.configure(borderwidth="2")
+        # self.Frame1.configure(relief="groove")
+        # self.Frame1.configure(cursor="fleur")
+        # self.Frame1 = ttk.Frame(self)
         
         self.strength = tk.DoubleVar()
         self.inval = tk.DoubleVar()
@@ -1033,29 +1033,43 @@ class LaserDesignPage(ttk.Frame):
         self.ns =  tk.IntVar()
         self.tin =  tk.DoubleVar()
 
-        self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
+        self.frame_title = ttk.Frame(self)
+        self.frame_title.grid(row=0, column=0, sticky='nsew')
+
+        self.Frame1 = ttk.Frame(self)
+        # self.Frame1.place(relx=0.01, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame1.grid(row=1, column=0, sticky='nswe')
+        self.Frame1.configure(relief='groove',borderwidth="2", cursor="fleur") 
+
+        # self.Frame2 = ttk.Frame(self)
+        # self.Frame2.grid(row=1, column=1) 
+        # self.Frame1.configure(relief='groove',borderwidth="2", cursor="fleur")   
+
+        self.frame_button = ttk.Frame(self)
+        self.frame_button.grid(row=101, sticky='nswe') 
+        self.frame_button.configure(relief='groove',borderwidth="2", cursor="fleur")    
         
-        self.Frame1_label_path = tk.Label(self.Frame1,text="LITESOPH Input for Laser Design", fg='blue')
+        self.Frame1_label_path = tk.Label(self.frame_title,text="LITESOPH Input for Laser Design", fg='blue')
         self.Frame1_label_path['font'] = myFont
-        self.Frame1_label_path.place(x=125,y=10)
+        # self.Frame1_label_path.place(x=125,y=10)
+        self.Frame1_label_path.grid(row=0, column=0)
 
         self.label_proj = tk.Label(self.Frame1,text="Time Origin (tin) in attosecond",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=60)
+        self.label_proj.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+        # self.label_proj.place(x=10,y=60)
 
         #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.tin)
         self.entry_tin = Decimalentry(self.Frame1, textvariable= self.tin)
         self.entry_tin['font'] = myFont
         self.tin.set(0)
-        self.entry_tin.place(x=280,y=60)
+        self.entry_tin.grid(row=1, column=1)
+        # self.entry_tin.place(x=280,y=60)
         
-        self.label_inval = tk.Label(self.Frame1,text="-log((E at tin)/Eo),(value>=6)",bg="gray",fg="black")
+        self.label_inval = tk.Label(self.Frame1,text="-log((E at tin)/Eo)",bg="gray",fg="black")
         self.label_inval['font'] = myFont
-        self.label_inval.place(x=10,y=100)
+        self.label_inval.grid(row=2, column=0, sticky='w', padx=5, pady=5)
+        # self.label_inval.place(x=10,y=100)
  
         # inval_list = ["1e-8", "1e-9"]
         # self.entry_pol_z = ttk.Combobox(self.Frame1,textvariable= self.inval, value = inval_list)
@@ -1065,131 +1079,162 @@ class LaserDesignPage(ttk.Frame):
         self.entry_inval = Onlydigits(self.Frame1, textvariable= self.inval)
         self.entry_inval['font'] = myFont
         self.inval.set(6)
-        self.entry_inval.place(x=280,y=100)
+        self.entry_inval.grid(row=2, column=1)
+        # self.entry_inval.place(x=280,y=100)
 
         self.label_proj = tk.Label(self.Frame1,text="Laser Strength in a.u (Eo)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=140)
+        self.label_proj.grid(row=3, column=0, sticky='w', padx=5, pady=5)
+        # self.label_proj.place(x=10,y=140)
     
         instr = ["1e-5","1e-4","1e-3"]
         self.entry_proj = ttk.Combobox(self.Frame1,textvariable= self.strength, value = instr)
         self.entry_proj['font'] = myFont
         self.entry_proj.current(0)
-        self.entry_proj.place(x=280,y=140)
+        self.entry_proj.grid(row=3, column=1)
+        # self.entry_proj.place(x=280,y=140)
         self.entry_proj['state'] = 'readonly'
 
         self.label_proj = tk.Label(self.Frame1,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=180)
+        self.label_proj.grid(row=4, column=0, sticky='w', padx=5, pady=5)
+        # self.label_proj.place(x=10,y=180)
 
         #self.entry_fwhm = tk.Entry(self.Frame1,textvariable= self.fwhm)
         self.entry_fwhm = Decimalentry(self.Frame1, textvariable= self.fwhm)
         #self.fwhm.set("0.2")
         self.entry_fwhm['font'] = myFont
-        self.entry_fwhm.place(x=280,y=180)
+        self.entry_fwhm.grid(row=4, column=1)
+        # self.entry_fwhm.place(x=280,y=180)
 
         self.label_proj = tk.Label(self.Frame1,text="Frequency in eV",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=220)
+        self.label_proj.grid(row=5, column=0, sticky='w', padx=5, pady=5)
+        # self.label_proj.place(x=10,y=220)
 
         #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.frequency)
         self.entry_frq = Decimalentry(self.Frame1,textvariable= self.frequency)
         self.entry_frq['font'] = myFont
-        self.entry_frq.place(x=280,y=220)
+        self.entry_frq.grid(row=5, column=1)
+        # self.entry_frq.place(x=280,y=220)
 
         self.label_proj = tk.Label(self.Frame1,text="Time step in attosecond ",bg="gray",fg="black")
         self.label_proj['font'] = myFont
-        self.label_proj.place(x=10,y=260)
+        self.label_proj.grid(row=6, column=0, sticky='w', padx=5, pady=5)
+        # self.label_proj.place(x=10,y=260)
 
         #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ts)
         self.entry_ts = Decimalentry(self.Frame1,textvariable= self.ts)
         self.entry_ts['font'] = myFont
         self.ts.set(10)
-        self.entry_ts.place(x=280,y=260)
+        self.entry_ts.grid(row=6, column=1)
+        # self.entry_ts.place(x=280,y=260)
         
         self.label_ns = tk.Label(self.Frame1,text="Number of Steps",bg="gray",fg="black")
         self.label_ns['font'] = myFont
-        self.label_ns.place(x=10,y=300)
+        self.label_ns.grid(row=7, column=0, sticky='w', padx=5, pady=5)
+        # self.label_ns.place(x=10,y=300)
 
         #self.entry_proj = tk.Entry(self.Frame1,textvariable= self.ns)
         self.entry_ns = Onlydigits(self.Frame1, textvariable= self.ns)
         self.entry_ns['font'] = myFont
         self.ns.set(2000)
-        self.entry_ns.place(x=280,y=300)
+        self.entry_ns.grid(row=7, column=1)
+        # self.entry_ns.place(x=280,y=300)
+
+
+        # self.label_select = tk.Label(self.Frame1, text="Select polarization direction:",  bg="gray", fg="black")
+        # self.label_select['font'] = myFont
+        # self.label_select.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+
+        # frame_pol = ttk.Frame(self.label_select, borderwidth=2)
+        # frame_pol.grid(row=1, column=0, sticky='w')
+
+        # values = {"X": 0, "Y": 1, "Z": 2}
+        # for (text, value) in values.items():
+        #     tk.Radiobutton(frame_pol, text=text, variable=self._var['pol_var'], font=myfont2(),
+        #      justify='left',value=value).grid(row=0, column=value, ipady=5, sticky='w')
+
  
-        Frame1_Button1 = tk.Button(self.Frame1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
+        Frame1_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Frame1_Button1['font'] = myFont
-        Frame1_Button1.place(x=10,y=380)
+        Frame1_Button1.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
+        # Frame1_Button1.place(x=10,y=380)
         
-        self.button_project = tk.Button(self.Frame1,text="Next",activebackground="#78d6ff",command=lambda:[self.choose_laser()])
+        self.button_project = tk.Button(self.frame_button,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
         self.button_project['font'] = myFont
-        self.button_project.place(x=350,y=380)
+        self.button_project.grid(row=0, column=1, sticky='nsew', padx=20, pady=5)
+        # self.button_project.place(x=350,y=380)
 
-        self.button_project = tk.Button(self.Frame1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
+        self.button_project = tk.Button(self.frame_button,text="Next",activebackground="#78d6ff",command=lambda:[self.choose_laser()])
         self.button_project['font'] = myFont
-        self.button_project.place(x=170,y=380)
+        # self.button_project.pack(side=tk.RIGHT, padx=10)
+        self.button_project.grid(row=0, column=2, sticky='nswe', padx=5, pady=5)
+        # self.button_project.place(x=170,y=380)
 
-        self.Frame2 = ttk.Frame(self)
-        self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        # self.Frame2 = ttk.Frame(self)
+        # self.Frame2.grid(row=)
+        # self.Frame2.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(relief="groove")
-        self.Frame2.configure(cursor="fleur")
+        # self.Frame2.configure(relief='groove')
+        # self.Frame2.configure(borderwidth="2")
+        # self.Frame2.configure(relief="groove")
+        # self.Frame2.configure(cursor="fleur")
 
-        self.label_pol_x = tk.Label(self.Frame2, text="Electric Polarisation in x axis", bg= "grey",fg="black")
-        self.label_pol_x['font'] = myFont
-        self.label_pol_x.place(x=10,y=60)
+        # self.label_pol_x = tk.Label(self.Frame2, text="Electric Polarisation in x axis", bg= "grey",fg="black")
+        # self.label_pol_x['font'] = myFont
+        # self.label_pol_x.place(x=10,y=60)
         
-        pol_list = ["0","1"]
-        self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.pol_x, value = pol_list)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"0")
-        self.entry_pol_x.place(x=280,y=60)
-        self.entry_pol_x['state'] = 'readonly'
+        # pol_list = ["0","1"]
+        # self.entry_pol_x = ttk.Combobox(self.Frame2, textvariable= self.pol_x, value = pol_list)
+        # self.entry_pol_x['font'] = myFont
+        # self.entry_pol_x.insert(0,"0")
+        # self.entry_pol_x.place(x=280,y=60)
+        # self.entry_pol_x['state'] = 'readonly'
 
-        self.label_pol_y = tk.Label(self.Frame2, text="Electric Polarisation in y axis", bg= "grey",fg="black")
-        self.label_pol_y['font'] = myFont
-        self.label_pol_y.place(x=10,y=110)
+        # self.label_pol_y = tk.Label(self.Frame2, text="Electric Polarisation in y axis", bg= "grey",fg="black")
+        # self.label_pol_y['font'] = myFont
+        # self.label_pol_y.place(x=10,y=110)
     
-        self.entry_pol_y = ttk.Combobox(self.Frame2,textvariable= self.pol_y, value = pol_list)
-        self.entry_pol_y['font'] = myFont
-        self.entry_pol_y.insert(0,"0")
-        self.entry_pol_y.place(x=280,y=110)
-        self.entry_pol_y['state'] = 'readonly'
+        # self.entry_pol_y = ttk.Combobox(self.Frame2,textvariable= self.pol_y, value = pol_list)
+        # self.entry_pol_y['font'] = myFont
+        # self.entry_pol_y.insert(0,"0")
+        # self.entry_pol_y.place(x=280,y=110)
+        # self.entry_pol_y['state'] = 'readonly'
 
-        self.label_pol_z = tk.Label(self.Frame2, text="Electric Polarisation in z axis", bg= "grey",fg="black")
-        self.label_pol_z['font'] = myFont
-        self.label_pol_z.place(x=10,y=160)
+        # self.label_pol_z = tk.Label(self.Frame2, text="Electric Polarisation in z axis", bg= "grey",fg="black")
+        # self.label_pol_z['font'] = myFont
+        # self.label_pol_z.place(x=10,y=160)
  
-        self.entry_pol_z = ttk.Combobox(self.Frame2,textvariable= self.pol_z, value = pol_list)
-        self.entry_pol_z['font'] = myFont
-        self.entry_pol_z.insert(0,"0")
-        self.entry_pol_z.place(x=280,y=160) 
-        self.entry_pol_z['state'] = 'readonly'
+        # self.entry_pol_z = ttk.Combobox(self.Frame2,textvariable= self.pol_z, value = pol_list)
+        # self.entry_pol_z['font'] = myFont
+        # self.entry_pol_z.insert(0,"0")
+        # self.entry_pol_z.place(x=280,y=160) 
+        # self.entry_pol_z['state'] = 'readonly'
 
-        self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.save_button()])
-        self.Frame2_Button1['font'] = myFont
-        self.Frame2_Button1.place(x=10,y=380)
+        # self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.save_button()])
+        # self.Frame2_Button1['font'] = myFont
+        # self.Frame2_Button1.place(x=10,y=380)
 
-        self.label_msg = tk.Label(self.Frame2,text="")
-        self.label_msg['font'] = myFont
-        self.label_msg.place(x=10,y=350)
+        # self.label_msg = tk.Label(self.Frame2,text="")
+        # self.label_msg['font'] = myFont
+        # self.label_msg.place(x=10,y=350)
  
-        self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.view_button()])
-        self.Frame2_Button2['font'] = myFont
-        self.Frame2_Button2.place(x=170,y=380)
+        # self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.view_button()])
+        # self.Frame2_Button2['font'] = myFont
+        # self.Frame2_Button2.place(x=170,y=380)
         
-        self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
-        self.Frame2_Button3['font'] = myFont
-        self.Frame2_Button3.place(x=350,y=380)
+        # self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
+        # self.Frame2_Button3['font'] = myFont
+        # self.Frame2_Button3.place(x=350,y=380)
         self.Frame3 = None
 
 
     def show_laser_plot(self, figure):
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
         self.Frame3 = ttk.Frame(self)
-        self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
+        self.Frame3.grid(row=1, column=1)
+        # self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
         self.Frame3.configure(relief='groove')
         self.Frame3.configure(borderwidth="2")
