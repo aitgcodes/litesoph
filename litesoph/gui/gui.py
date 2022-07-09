@@ -508,18 +508,19 @@ class GUIAPP:
         self.main_window.bind_all('<<SaveRT_TDDFT_LASERScript>>', self._on_td_laser_save_button)
         self.main_window.bind_all('<<ViewRT_TDDFT_LASERScript>>',  self._on_td_laser_view_button)
         self.main_window.bind_all('<<SubRT_TDDFT_LASER>>',  self._on_td_laser_run_job_button)
-        self.main_window.bind_all('<<DesignLaser>>', self._on_desgin_laser)
+        self.main_window.bind_all('<<DesignLaser>>', self._on_design_laser)
         self.main_window.bind_all('<<ChooseLaser>>', self._on_choose_laser)
 
     def _on_td_laser_save_button(self, *_):
         self._validate_td_laser_input()
         self._td_laser_create_input()
     
-    def _on_desgin_laser(self, *_):
+    def _on_design_laser(self, *_):
         laser_desgin_inp = self.rt_tddft_laser_view.get_laser_pulse()
         self.laser_design = m.LaserDesignModel(laser_desgin_inp)
         self.laser_design.create_pulse()
-        self.rt_tddft_laser_view.show_laser_plot(self.laser_design.plot_time_strength())
+        self.laser_design.plot_time_strength()
+        # self.rt_tddft_laser_view.show_laser_plot(self.laser_design.plot_time_strength())
 
     def _on_choose_laser(self, *_):
         if not self.laser_design:
@@ -527,8 +528,9 @@ class GUIAPP:
             return
         check = messagebox.askokcancel(message= "Do you want to proceed with this laser set up?")
         if check is True:
-            self.rt_tddft_laser_view.destroy_plot()
-            self.rt_tddft_laser_view.activate_td_frame()
+            # self.rt_tddft_laser_view.destroy_plot()
+            # self.rt_tddft_laser_view.activate_td_frame()
+            self.laser_design.write_laser("laser.dat")
         else:
             self.laser_design = None 
             self._on_rt_tddft_laser_task()
