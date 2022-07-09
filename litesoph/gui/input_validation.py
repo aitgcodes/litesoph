@@ -48,14 +48,16 @@ class Validatedconv(ttk.Entry):
  
 class Decimalentry(ttk.Entry):
   def __init__(self, *args, **kwargs):
+    self.max = kwargs.pop("max", 100)
     super().__init__(*args, **kwargs)
+    
     self.configure(
         validate='all',
         validatecommand=(self.register(self.validate), '%P'),
         )
   def validate(self, inp):
     try:
-        return True if inp == '' else float(inp) <= 100 
+        return True if inp == '' else float(inp) <= self.max 
     except:
         return False
 
