@@ -20,7 +20,7 @@ Installation
 
 .. code-block:: console
 
-  $ git clone https://github.com/LITESOPH/litesoph.git
+  $ git clone -b main https://github.com/LITESOPH/litesoph.git
   $ pip install <path-to-litesoph>
 
 

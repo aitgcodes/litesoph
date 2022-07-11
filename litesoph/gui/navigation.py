@@ -3,38 +3,23 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import collections
 
-class ProjectList(tk.Frame):
+class ProjectList:
 
-    def __init__(self, parent, *args, **Kwargs):
-        super().__init__( parent, *args, **Kwargs)
+    def __init__(self, app):
         
-        self.nodes = dict()
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
+        self.treedata = dict()
         self.current_path_list = []
-        self.tree = ttk.Treeview(self, selectmode='none')
-
-        self.tree.heading('#0',text='ProjectList', anchor='w')
-
-        self.tree.grid(row=0, column=0, sticky='NSEW')
-
-        self.scrollbar_y = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
-        self.scrollbar_x = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.tree.xview)
-       
-        self.tree.configure(yscrollcommand=self.scrollbar_y.set)
-        self.tree.configure(xscrollcommand=self.scrollbar_x.set)
-        self.scrollbar_y.grid(row=0, column=1,rowspan=2, sticky='NSW')
-        self.scrollbar_x.grid(row=1, column=0, sticky='NSEW')
+        self.treeview = app.treeview
         
-        self.tree.bind('<<TreeviewOpen>>', self.open_node)
+        self.treeview.bind('<<TreeviewOpen>>', self.open_node)
         
     def populate(self, project_path: Path):
         
         paths = [path for path in project_path.glob('**/*')]
         if not compare_list(paths, self.current_path_list):    
-            rot = self.tree.get_children()
+            rot = self.treeview.get_children()
             if rot:
-                self.tree.delete(rot)
+                self.treeview.delete(rot)
 
             self.current_path_list = paths
             self.insert_node('', project_path.name, project_path)
@@ -42,16 +27,16 @@ class ProjectList(tk.Frame):
             return
 
     def insert_node(self, parent, text, abspath):
-        node = self.tree.insert(parent, 'end', text=text, open=False)
+        node = self.treeview.insert(parent, 'end', text=text, open=False)
         if Path.is_dir(abspath):
-            self.nodes[node] = abspath
-            self.tree.insert(node, 'end')
+            self.treedata[node] = abspath
+            self.treeview.insert(node, 'end')
 
     def open_node(self, event):
-        node = self.tree.focus()
-        abspath = self.nodes.pop(node, None)
+        node = self.treeview.focus()
+        abspath = self.treedata.pop(node, None)
         if abspath:
-            self.tree.delete(self.tree.get_children(node))
+            self.treeview.delete(self.treeview.get_children(node))
             for p in Path.iterdir(abspath):
                 self.insert_node(node, p.name, Path.joinpath(abspath, p))
 

@@ -173,9 +173,8 @@ class GenericMainMenu(tk.Menu):
       self.add_cascade(label=label, menu=menu)
     self.configure(**self.styles)
 
-  def __init__(self, parent, settings, **kwargs):
+  def __init__(self, parent, **kwargs):
     super().__init__(parent, **kwargs)
-    self.settings = settings
     self._menus = dict()
     self._build_menu()
     self._bind_accelerators()
