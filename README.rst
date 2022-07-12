@@ -1,12 +1,21 @@
 ============================
  LITESOPH
 ============================
+LITESOPH Supported Engines
+============================
+`GPAW <https://wiki.fysik.dtu.dk/gpaw/index.html>`_(version 20.1.0 or later)
+  `Installation Instruction <https://wiki.fysik.dtu.dk/gpaw/install.html>`_ 
 
+`Octopus <https://octopus-code.org/wiki/Main_Page>`_(version 11.4)
+  `Installation Instruction <https://octopus-code.org/wiki/Manual:Installation>`_
+
+`NWChem <https://nwchemgit.github.io/>`_(version 7.0.0 or later)
+  `Installation Instruction <https://nwchemgit.github.io/Download.html>`_
 
 Requirements
 ============
 
-  * Python 3.7.6 or higher
+  * Python 3.7.6 or later
   * Tkinter
   * click
   * Numpy
@@ -46,7 +55,7 @@ Example lsconfig file
   lsroot = <installation path of litesoph>
 
   [visualization_tools]
-  vmd = <path to vmd || e.g. /usr/local/bin/vmd>
+  vmd = <path to vmd || e.g. /usr/local/bin/vmd ||can be find using :command:`which vmd` >
   vesta = <path to vesta || e.g. /usr/local/bin/vesta>
 
   [engine]
