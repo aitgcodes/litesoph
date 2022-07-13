@@ -1,7 +1,7 @@
 ============================
  LITESOPH
 ============================
-LITESOPH Supported Engines
+Engines Interfaced with LITESOPH
 ============================
 `GPAW <https://wiki.fysik.dtu.dk/gpaw/index.html>`_    (version 20.1.0 or later)
   `Installation Instruction <https://wiki.fysik.dtu.dk/gpaw/install.html>`_ 
