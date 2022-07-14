@@ -541,6 +541,8 @@ class GroundStatePage(View_note):
         self.basis = tk.Label(mode_frame, text="Basis",bg=label_design['bg'], fg=label_design['fg'])
         self.basis['font'] = label_design['font']
         self.basis.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        myTip_basis = Hovertip(self.basis, tooltipdoc.basis_doc)   
+
 
         sub_task = ttk.Combobox(mode_frame, textvariable= self._var['basis'], value = self.gs_dict['basis']['values'])
         sub_task['font'] = label_design['font']
@@ -550,6 +552,9 @@ class GroundStatePage(View_note):
         self.charge = tk.Label(mode_frame, text="Charge",bg=label_design['bg'], fg=label_design['fg'])
         self.charge['font'] = label_design['font']
         self.charge.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        myTip_charge = Hovertip(self.charge, tooltipdoc.charge_doc)   
+
+        
 
         self.entry_chrg = Onlydigits(mode_frame,textvariable=self._var['charge'])
         self.entry_chrg['font'] = label_design['font']
@@ -558,6 +563,9 @@ class GroundStatePage(View_note):
         multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
         multiplicity_label['font'] = label_design['font']
         multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        # myTip_multiplicity_label = Hovertip(self.multiplicity_label, tooltipdoc.multiplicity_doc)   
+
+        
 
         multiplicity_entry = Onlydigits(mode_frame,textvariable= self._var['multip'])
         multiplicity_entry['font'] =label_design['font']
