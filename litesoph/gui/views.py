@@ -13,6 +13,10 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 from litesoph.simulations.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
 
+########## tooltip description ###########
+from litesoph.gui import tooltipdoc
+from idlelib.tooltip import Hovertip
+
 
 class StartPage(ttk.Frame):
 
@@ -166,11 +170,13 @@ class WorkManagerPage(ttk.Frame):
 
         self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
         self.Frame2_label_1['font'] = myfont()
-        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4,  pady=10)       
+        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4,  pady=10)    
+        myTip_Frame2_label_1 = Hovertip(self.Frame2_label_1, tooltipdoc.upload_geometry_doc)   
 
         self.Frame2_Button_1 = tk.Button(common_frame,text="Select",activebackground="#78d6ff",command=self._get_geometry_file)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=1, row= 0, padx=10,  pady=10)       
+        self.Frame2_Button_1.grid(column=1, row= 0, padx=10,  pady=10)
+        myTip_Frame2_Button_1 = Hovertip(self.Frame2_Button_1,tooltipdoc.select_geometry_doc)       
 
         self.message_label = tk.Label(common_frame, text='', foreground='red')
         self.message_label['font'] = myfont()
@@ -182,7 +188,8 @@ class WorkManagerPage(ttk.Frame):
 
         self.engine_source_label = tk.Label(common_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.engine_source_label['font'] = myfont()
-        self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
+        self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)   
+        myTip_engine_source_label = Hovertip(self.engine_source_label, tooltipdoc.engine_source_doc)    
             
         self.engine_source = ttk.Combobox(common_frame,width=20, textvariable= self.engine, values= self.engine_list)
         self.engine_source['font'] = myfont()
@@ -191,7 +198,9 @@ class WorkManagerPage(ttk.Frame):
 
         self.label_proj = tk.Label(common_frame,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.label_proj['font'] = myfont()
-        self.label_proj.grid(row= 2, column=0,  sticky='w', padx=4, pady=10)       
+        self.label_proj.grid(row= 2, column=0,  sticky='w', padx=4, pady=10) 
+        myTip_label_proj = Hovertip(self.label_proj, tooltipdoc.jobtype_doc)    
+      
             
         self.entry_task = ttk.Combobox(common_frame,width=20, textvariable= self._var['task'], values= self.MainTask)
         self.entry_task['font'] = myfont()
@@ -202,6 +211,7 @@ class WorkManagerPage(ttk.Frame):
 
         self.sub_task_frame = ttk.Frame(self.Frame2)
         self.sub_task_frame.grid(row=1, column=0, sticky='w')
+        
 
         self.show_sub_task_frame(self.sub_task_frame)
        
@@ -232,6 +242,8 @@ class WorkManagerPage(ttk.Frame):
         self.Frame2_label_3 = tk.Label(common_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.Frame2_label_3['font'] = myfont()
         self.Frame2_label_3.grid( row= 0,column=0, sticky='nswe', padx=4, pady=10) 
+        myTip_Frame2_label_3 = Hovertip(self.Frame2_label_3, tooltipdoc.subtask_doc)    
+
         
         self.entry_sub_task = ttk.Combobox(common_sub_task_frame, width= 20, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myfont()
@@ -504,6 +516,9 @@ class GroundStatePage(View_note):
         self.label_proj = tk.Label(mode_frame,text="Mode",bg=label_design['bg'], fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        myTip_label_proj = Hovertip(self.label_proj, tooltipdoc.mode_doc)   
+
+        
 
         def pick_box(e):
             if task.get() == "nao" or task.get() == 'pw':
