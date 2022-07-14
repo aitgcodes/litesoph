@@ -560,10 +560,10 @@ class GroundStatePage(View_note):
         self.entry_chrg['font'] = label_design['font']
         self.entry_chrg.grid(row=6, column=1, sticky='w', padx=2, pady=2)
 
-        multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
-        multiplicity_label['font'] = label_design['font']
-        multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
-        # myTip_multiplicity_label = Hovertip(self.multiplicity_label, tooltipdoc.multiplicity_doc)   
+        self.multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
+        self.multiplicity_label['font'] = label_design['font']
+        self.multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        myTip_multiplicity_label = Hovertip(self.multiplicity_label, tooltipdoc.multiplicity_doc)   
 
         
 
