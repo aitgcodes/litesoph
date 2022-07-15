@@ -516,7 +516,7 @@ class GroundStatePage(View_note):
         self.label_proj = tk.Label(mode_frame,text="Mode",bg=label_design['bg'], fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
-        myTip_label_proj = Hovertip(self.label_proj, tooltipdoc.mode_doc)   
+        myTip_label_proj = Hovertip(self.label_proj,  self.gs_dict['mode']['tooltipdoc'])   
 
         
 
@@ -541,7 +541,9 @@ class GroundStatePage(View_note):
         self.basis = tk.Label(mode_frame, text="Basis",bg=label_design['bg'], fg=label_design['fg'])
         self.basis['font'] = label_design['font']
         self.basis.grid(row=4, column=0, sticky='w', padx=2, pady=4)
-        myTip_basis = Hovertip(self.basis, tooltipdoc.basis_doc)   
+        # myTip_basis = Hovertip(self.basis, self.gs_dict['mode']['tooltipdoc'])   
+        myTip_basis = Hovertip(self.basis, self.gs_dict['basis']['tooltipdoc'])   
+
 
 
         sub_task = ttk.Combobox(mode_frame, textvariable= self._var['basis'], value = self.gs_dict['basis']['values'])
@@ -552,7 +554,7 @@ class GroundStatePage(View_note):
         self.charge = tk.Label(mode_frame, text="Charge",bg=label_design['bg'], fg=label_design['fg'])
         self.charge['font'] = label_design['font']
         self.charge.grid(row=6, column=0, sticky='w', padx=2, pady=4)
-        myTip_charge = Hovertip(self.charge, tooltipdoc.charge_doc)   
+        myTip_charge = Hovertip(self.charge, self.gs_dict['charge']['tooltipdoc'])   
 
         
 
@@ -563,7 +565,7 @@ class GroundStatePage(View_note):
         self.multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
         self.multiplicity_label['font'] = label_design['font']
         self.multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
-        myTip_multiplicity_label = Hovertip(self.multiplicity_label, tooltipdoc.multiplicity_doc)   
+        myTip_multiplicity_label = Hovertip(self.multiplicity_label, self.gs_dict['multip']['tooltipdoc'])   
 
         
 
