@@ -22,12 +22,15 @@ def _get_set(**params):
 def _get_field(key, val):
     
     prefix = '      '
-    name = val.pop('name', '"kick"')
+    name = val.pop('name', 'kick')
     _lines = [f'    {key} "{name}"']
+    
+    geo_name = val.pop('geo_name', 'system')
 
     for subkey, subval in val.items():
         _lines.append(prefix + _format_line(subkey, subval))
     _lines.append('  ' + 'end')
+    _lines.append('  ' + f'excite "{geo_name}" with "{name}"')
     return _lines
 
 def _format_block(key, val, nindent=0):
@@ -60,12 +63,24 @@ def _format_block(key, val, nindent=0):
     return _lines
 
 def _get_geom(**params):
-    geom_header = ['geometry units angstrom']
+    
+    geo = params.get('geometry', None)
 
-    geo = params.get('geometry')
+    if not geo:
+        raise Exception("Geometry file not given.")
     
     if isinstance(geo, str):
         geo = dict(file = geo)
+
+    geo_file = geo.get('file', None)
+
+    if not geo_file:
+        raise Exception("Geometry file not given.")
+
+    name = geo.get('name', 'system')
+    name = '"'+name+'"'
+    geom_header = [f'geometry {name} units angstrom']
+
 
     for geomkw in ['center', 'autosym', 'autoz']:
         geom_header.append(geomkw if geo.get(geomkw, None) else 'no' + geomkw)
@@ -73,9 +88,9 @@ def _get_geom(**params):
         geom_header.append(params['geompar'])
     geom = [' '.join(geom_header)]
 
-    geom.append('   load {}'.format(geo['file']))
+    geom.append('   load {}'.format(geo_file))
     geom.append('end')
-
+    geom.extend(_get_set(geometry=name))
     return geom
 
 def _get_basis(**params):
@@ -116,10 +131,26 @@ def nwchem_create_input(echo = False, **kwargs) -> str:
     params = deepcopy(kwargs)
     _lines = []
 
+    geo = params.get('geometry', None)
+
+    if not geo:
+        raise Exception("Geometry file not given.")
+    
+    if isinstance(geo, str):
+        params['geometry'] = geo = dict(file = geo)
+
+    geo_name = geo.get('name', None)
+    
+    if not geo_name:
+        params['geometry']['name'] = geo_name = 'system'
+
+    if 'rt_tddft' in params:
+        params['rt_tddft']['field']['geo_name'] = geo_name
+
     theory, task = _get_task(params)
     label = params.get('label', 'nwchem')
-    perm = params.pop('perm', label)
-    scratch = params.pop('scratch', perm)
+    perm = os.path.abspath(params.pop('perm', label))
+    scratch = os.path.abspath(params.pop('scratch', perm))
     restart_kw = params.get('restart_kw', 'start')
     if restart_kw not in ('start', 'restart'):
         raise ValueError("Unrecognised restart keyword: {}!"
