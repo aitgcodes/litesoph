@@ -108,11 +108,11 @@ def get_engine_model(engine):
 class AutoModeModel:
     
     ground_state = {
-            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw', 'gaussian'], 'default_value': '--choose mode--'},
+            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw', 'gaussian'], 'default_value': '--choose mode--','tooltipdoc': 'mode doc label' },
             'shape' : {'type':DT.string, 'values':["parallelepiped","minimum", "sphere", "cylinder"], 'default_value':"--choose box--"},
-            'basis' : {'type':DT.string, 'values':[], 'default_value': ''},
-            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0},
-            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1},
+            'basis' : {'type':DT.string, 'values':[], 'default_value': '','tooltipdoc': 'doc label'},
+            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0, 'tooltipdoc': 'doc label'},
+            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1, 'tooltipdoc': 'doc label'},
         }
 
 
@@ -120,14 +120,14 @@ class AutoModeModel:
 class GpawModel:
     
    ground_state = {
-            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw'], 'default_value': 'nao'},
+            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw'], 'default_value': 'nao', 'tooltipdoc': 'doc label' },
             'xc' : {'type':DT.string, 'values':["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"], 'default_value': 'LDA'},
-            'basis' : {'type':DT.string, 'values':["dzp","sz","dz","szp","pvalence.dz"], 'default_value': 'dzp'},
-            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0},
+            'basis' : {'type':DT.string, 'values':["dzp","sz","dz","szp","pvalence.dz"], 'default_value': 'dzp','tooltipdoc': ' doc label'},
+            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0, 'tooltipdoc': 'doc label'},
             'maxiter' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 300},
             'shape' : {'type':DT.string, 'values':['parallelepiped'], 'default_value':'parallelepiped'},
             'spinpol' : {'type':DT.string, 'values':['None', 'True'], 'default_value':'None'},
-            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1},
+            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1, 'tooltipdoc': 'doc label'},
             'h' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},
             'nbands' :{'type':DT.string, 'min': None, 'max': None, 'default_value': ''},
             'vacuum' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6},
@@ -139,19 +139,20 @@ class GpawModel:
             'lz' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'smear' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.0},    
             'smearfn' :{'type':DT.string, 'values':["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"], 'default_value': ''},
-            'eigenstate': {'type': DT.decimal , 'min': None, 'max': None, 'default_value': 4e-8}
+            'eigenstate': {'type': DT.decimal , 'min': None, 'max': None, 'default_value': 4e-8},
+            'tooltip_label': {'type':DT.string, 'upload_geometry_doc': 'Please upload the geometry file i.e xyz coordinate file using "SELECT" button'}
         }
 
 @dataclass
 class NWchemModel:
     
     ground_state = {
-            'mode' : {'type':DT.string, 'values':['gaussian'], 'default_value': 'gaussian'},
+            'mode' : {'type':DT.string, 'values':['gaussian'], 'default_value': 'gaussian','tooltipdoc': 'mode doc label'  },
             'xc' : {'type':DT.string, 'values':["PBE96","PBE0","B3LYP","PW91", "BP86", "BP91","BHLYP","M05","M05-2X","M06-HF","M08-SO","M011","CAM-B3LYP","LC-BLYP","LC-PBE","LC-wPBE","HSE03","HSE06"], 'default_value': "PBE0"},
-            'basis' : {'type':DT.string, 'values':["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"], 'default_value': "6-31G"},
-            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0},
+            'basis' : {'type':DT.string, 'values':["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"], 'default_value': "6-31G", 'tooltipdoc': 'doc label'},
+            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0, 'tooltipdoc': 'doc label'},
             'maxiter' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 300},
-            'multip' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 1},
+            'multip' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 1, 'tooltipdoc': 'doc label'},
             'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7},
             'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6},
             #'tolerances' : ['str','tight'],
@@ -162,7 +163,7 @@ class NWchemModel:
 class OctopusModel:
     
     ground_state = {
-            'mode' : {'type':DT.string, 'values':['fd'], 'default_value': 'fd'},
+            'mode' : {'type':DT.string, 'values':['fd'], 'default_value': 'fd','tooltipdoc': 'mode doc label' },
             'var_oct_xc' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 1},
             #'oct_xc' : ['str',''],
             'x' :  {'type':DT.string, 'values':{'lda_x' : ["lda_x","lda_x_rel","lda_x_erf","lda_x_rae"],
@@ -172,11 +173,11 @@ class OctopusModel:
             'pseudo' : {'type':DT.string, 'values':{'expt_yes' :[["pseudodojo_lda","hscv_lda","pseudodojo_lda_stringent"],["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_pbe"]],
                                                     'expt_no':["standard", "hgh_lda_sc","hgh_lda"]}, 'default_value':''},
             'expt' : {'type':DT.string, 'values':['yes','no'], 'default_value':'no'},
-            'charge': {'type':DT.integer,'min': None, 'max': None, 'default_value': 0},
+            'charge': {'type':DT.integer,'min': None, 'max': None, 'default_value': 0, 'tooltipdoc': 'doc label'},
             'maxiter' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 300},
             'shape' :{'type':DT.string, 'values':["parallelepiped","minimum", "sphere", "cylinder"], 'default_value':'parallelepiped'},
             'spinpol' :{'type':DT.string, 'values':['unpolarized', 'polarized'], 'default_value':'unpolarized'},
-            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1},
+            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1, 'tooltipdoc': 'doc label'},
             'h' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},
             'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7},
             'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6},
