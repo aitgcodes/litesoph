@@ -39,9 +39,6 @@ def _format_block(key, val, nindent=0):
 
     if val is None:
         return [prefix + key]
-    
-    if isinstance(val, list):
-        return [prefix + ' '.join([_format_line(a, None) for a in val])]
 
     if not isinstance(val, dict):
         return [prefix + _format_line(key, val)]
@@ -57,6 +54,8 @@ def _format_block(key, val, nindent=0):
         else:
             if isinstance(subval, dict):
                 subval = ' '.join([_format_line(a, b) for a, b in subval.items()])
+            if isinstance(subval, list):
+                subval = ' '.join([a for a in subval])
             _lines.append(prefix2 + ' '.join([_format_line(subkey, subval)]))
     
     _lines.append(prefix + 'end')
