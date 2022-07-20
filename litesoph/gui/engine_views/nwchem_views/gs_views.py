@@ -150,17 +150,14 @@ class NWGSPage(EngineViews):
 
     def get_parameters(self) -> dict:
         inp_dict_nw = {
-            'mode': self._var['mode'].get(),
-            'xc': self._var['xc'].get(),
-            #'tolerances': self._var['tolerances'].get(),
+            'dft':{'xc': self._var['xc'].get(),
+                    'convergence':{'energy': self._var['energy'].get(),
+                                    'density' : self._var['density'].get(),
+                                    'gradient':self._var['gradient'].get()},
+                    'mult' : self._var['multip'].get(),
+                    'iterations' : self._var['maxiter'].get()},
             'basis': self._var['basis'].get(),
-            'energy': self._var['energy'].get(),
-            'density' : self._var['density'].get(),
             'charge' : self._var['charge'].get(),
-            'gradient':self._var['gradient'].get(),
-            'multip' : self._var['multip'].get(),
-            'maxiter' : self._var['maxiter'].get(),
             'engine':'nwchem'
-                    }
-           
+                    }     
         return inp_dict_nw

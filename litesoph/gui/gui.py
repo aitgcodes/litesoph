@@ -611,7 +611,10 @@ class GUIAPP:
         
         self._validate_spectra_input()
         self._spectra_create_input()
-        self.spectra_task.prepare_input()
+        if self.engine == 'nwchem':
+            self.spectra_task.create_job_script()
+        else:
+            self.spectra_task.prepare_input()
         self._run_local(self.spectra_task, np=1)
         
 
