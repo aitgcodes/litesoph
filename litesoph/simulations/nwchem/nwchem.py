@@ -23,6 +23,9 @@ class NWChem:
 
     def write_input(self, template=None):
 
+        if template is not None:
+            self.template = template
+            
         if self.directory == ".":
             self.directory = pathlib.Path.cwd()
 
