@@ -143,7 +143,7 @@ class NwchemTask(Task):
         
         return [dm_cmd, spec_cmd]
 
-    def create_job_script(self, np=1, remote_path=None) -> list:
+    def create_job_script(self, np=1, remote_path=None, remote=None) -> list:
 
         ifilename =  self.infile
         ofilename = self.outfile
