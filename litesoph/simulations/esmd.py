@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 import pathlib
 import re
+import os
 
 from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
 
@@ -54,7 +55,13 @@ class Task:
         
     def create_template(self):
         ...
-       
+    
+    @staticmethod
+    def create_directory(directory):
+        absdir = os.path.abspath(directory)
+        if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
+            os.makedirs(directory)
+
     def write_input(self, template=None):
         
         if template:
@@ -108,14 +115,12 @@ class Task:
     def create_task_dir(self):
         self.task_dir = self.engine.create_dir(self.project_dir, type(self).__name__)
 
-    def replacetext(filename, search_text,replace_text):
-
-        with open(filename,'r+') as f:
-            file = f.read()
-            file = re.sub(search_text, replace_text, file)
-            f.seek(0)
-            f.write(file)
-            f.truncate()
+    def prepare_input(self, path):
+        """this adds in the proper path to the data file required for the job"""
+        
+        if str(self.project_dir.parent) in self.template:
+            text = re.sub(str(self.project_dir.parent), str(path), self.template)
+        self.write_input(text)
 
     def set_submit_local(self, *args):
         from litesoph.utilities.job_submit import SubmitLocal

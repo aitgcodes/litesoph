@@ -94,7 +94,6 @@ class SubmitNetwork:
 
         self.task = task
         self.project_dir = self.task.project_dir
-        self.engine = self.task.engine
 
         self.username = username
         self.hostname = hostname
@@ -112,6 +111,11 @@ class SubmitNetwork:
     
     def prepare_input(self, path):
         """this adds in the proper path to the data file required for the job"""
+        
+        if "NwchemTask" == type(self.task).__name__:
+            self.task.prepare_input(self.remote_path)
+            return
+
         filename = self.task.project_dir.parent / self.task.filename
         path = pathlib.Path(path)
 

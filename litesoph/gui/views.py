@@ -6,6 +6,8 @@ from tkinter import font
 
 import pathlib
 
+from numpy import append
+
 from litesoph.gui import images
 from litesoph.simulations.project_status import show_message
 from litesoph.gui.input_validation import Onlydigits, Decimalentry
@@ -896,6 +898,7 @@ class TimeDependentPage(View1):
         return self.pol_dir     
 
     def get_parameters(self):
+        from litesoph.utilities.units import as_to_au
         self.pol_list = self.get_pol_list()
         kick = [float(self._var['strength'].get())*float(self.pol_list[0]),
                 float(self._var['strength'].get())*float(self.pol_list[1]),
@@ -921,20 +924,18 @@ class TimeDependentPage(View1):
             'analysis_tools': self.get_property_list()
           }
 
-        td_dict_nwchem = {
-
-            'tmax': self._var['Nt'].get() * self._var['dt'].get(),
-            'dt': self._var['dt'].get(),
-            'max':self._var['strength'].get(),
-            'e_pol': self.pol_list,
-            'pol_dir': self.read_pol_dir(),
-            'extra_prop':self.extra_prop(),
-            'output_freq': self._var['output_freq'].get()
-            }
-
         if self.engine == 'gpaw':
             return td_dict_gp
         elif self.engine == 'nwchem':
+            td_dict_nwchem = {
+            'task':'rt_tddft_delta',
+            'rt_tddft':{'tmax': round(self._var['Nt'].get() * self._var['dt'].get() * as_to_au,2),
+                        'dt': round(self._var['dt'].get() * as_to_au, 2),
+                        'field':{'name': 'kick_' + self.read_pol_dir()[1],
+                                'type': 'delta',
+                                'polarization':self.read_pol_dir()[1],
+                                'max':self._var['strength'].get()},
+            'print':self.out_print()}}
             return td_dict_nwchem
         elif self.engine == 'octopus':
             return td_dict_oct
@@ -947,16 +948,11 @@ class TimeDependentPage(View1):
             prop_list.append("population_correlation")    
         return prop_list       
         
-    def extra_prop(self):
-        # if self._var['mooc'].get() == 1:
-        #     messagebox.showinfo(message="Population Correlation is not implemented yet.")
-        #     self.checkbox3.config(state = 'disabled')            
-            return("mooc")
-
-        # if self._var['mooc'].get() == 1 and self._var['elec'].get() == 0:
-        #     return("moocc")
-        # if self._var['elec'].get() == 1 and self._var['mooc'].get() == 0:
-        #     return("charge")
+    def out_print(self):
+        p_list = ['dipole'] 
+        if self._var['popln'].get() == 1 :
+            p_list.append('moocc')
+        return p_list
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
@@ -996,7 +992,6 @@ class TimeDependentPage(View1):
         elif engn == 'nwchem':            
             self.update_var(self.nwchem_td_default)
             self.checkbox_ksd.config(state='disabled')
-            self.checkbox_pc.config(state = 'disabled')            
 
 
 class LaserDesignPage(ttk.Frame):
@@ -1436,16 +1431,16 @@ class PlotSpectraPage(ttk.Frame):
             'e_max':self._var['e_max'].get(),
             'e_min': self._var['e_min'].get()
           }
-
-        td_dict_nwchem = {
-            'del_e':self._var['del_e'].get(),
-            'e_max':self._var['e_max'].get(),
-            'e_min': self._var['e_min'].get()
-            }
         
         if self.engine == 'gpaw':
             return td_dict_gp
         elif self.engine == 'nwchem':
+            td_dict_nwchem = {
+            'task': 'spectrum',
+            'del_e':self._var['del_e'].get(),
+            'e_max':self._var['e_max'].get(),
+            'e_min': self._var['e_min'].get()
+            }
             return td_dict_nwchem
         elif self.engine == 'octopus':
             return td_dict_oct            
