@@ -1016,24 +1016,41 @@ class LaserDesignPage(ttk.Frame):
         self.ns =  tk.IntVar()
         self.tin =  tk.DoubleVar()
         self.pol_var = tk.IntVar(value=0)
+        self.ksd_var = tk.IntVar()
+        self.popln_var = tk.IntVar()
+        self.output_freq = tk.IntVar()
 
         self.frame_title = ttk.Frame(self)
         self.frame_title.grid(row=0, column=0, sticky='nsew')
 
-        self.Frame1 = ttk.Frame(self)
-        self.Frame1.grid(row=1, column=0)
-        self.Frame1.configure(relief='groove',borderwidth="2", cursor="fleur")
+        self.SubFrame1 = ttk.Frame(self)
+        self.SubFrame1.grid(row=1, column=0)
+        self.SubFrame1.configure(relief='groove',borderwidth="2", cursor="fleur")
 
-        self.Frame_button = ttk.Frame(self)
-        self.Frame_button.grid(row=2, column=0, sticky='nsew')
-        self.Frame_button.configure(relief='groove',borderwidth="2", cursor="fleur")        
+        self.SubFrame2 = ttk.Frame(self)
+        self.SubFrame2.grid(row=1, column=1, sticky='nswe')
+        self.SubFrame2.configure(relief='groove',borderwidth="2", cursor="fleur")
 
-        self.Frame2 = ttk.Frame(self.Frame1)
+        self.SubFrame3 = ttk.Frame(self)
+        self.SubFrame3.grid(row=1, column=2, sticky='nsew')
+        self.SubFrame3.configure(relief='groove',borderwidth="2", cursor="fleur")
+
+        self.Frame_button1 = ttk.Frame(self)
+        self.Frame_button1.grid(row=2, column=0, sticky='nsew')
+        self.Frame_button1.configure(relief='groove',borderwidth="2", cursor="fleur") 
+
+        self.Frame_button2 = ttk.Frame(self)
+        self.Frame_button2.grid(row=2, column=1, sticky='nsew')
+        self.Frame_button2.configure(relief='groove',borderwidth="2", cursor="fleur")           
+
+        self.Frame2 = ttk.Frame(self.SubFrame1)
         self.Frame2.grid(row=0, column=0)
 
-        self.frame_pol = ttk.Frame(self.Frame1)
+        self.frame_pol = ttk.Frame(self.SubFrame1)
         self.frame_pol.grid(row=1, column=0, sticky='w')
-   
+
+        ################################################################################
+
         self.Frame1_label_path = tk.Label(self.Frame2,text="LITESOPH Input for Laser Design", fg='blue')
         self.Frame1_label_path['font'] = myFont
         self.Frame1_label_path.grid(row=0, column=0, padx=5, pady=10)
@@ -1102,15 +1119,15 @@ class LaserDesignPage(ttk.Frame):
         self.ns.set(2000)
         self.entry_ns.grid(row=7, column=1)
  
-        Back_Button1 = tk.Button(self.Frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
+        Back_Button1 = tk.Button(self.Frame_button1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Back_Button1['font'] = myFont
         Back_Button1.grid(row=0, column=0, sticky='nsew', padx=10, pady=5)
 
-        Laser_button = tk.Button(self.Frame_button,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
+        Laser_button = tk.Button(self.Frame_button1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
         Laser_button['font'] = myFont
         Laser_button.grid(row=0, column=1, sticky='nsew', padx=30, pady=5)
 
-        Next_button = tk.Button(self.Frame_button,text="Next",activebackground="#78d6ff",command=lambda:[self.choose_laser()])
+        Next_button = tk.Button(self.Frame_button1,text="Next",activebackground="#78d6ff",command=lambda:[self.choose_laser()])
         Next_button['font'] = myFont
         Next_button.grid(row=0, column=2, sticky='nsew', padx=5, pady=5)
 
@@ -1123,29 +1140,69 @@ class LaserDesignPage(ttk.Frame):
             tk.Radiobutton(self.frame_pol, text=text, variable=self.pol_var, font=myfont2(),
              justify='left',value=value).grid(row=0, column=value+1, sticky='w')
 
-        # self.Frame2_Button1 = tk.Button(self.Frame2, state='disabled', text="Save Input",activebackground="#78d6ff", command=lambda:[self.save_button()])
-        # self.Frame2_Button1['font'] = myFont
-        # self.Frame2_Button1.place(x=10,y=380)
+        ################################################################################################
+       
+        frame_property = ttk.Frame(self.SubFrame2)
+        frame_property.grid(row=0, column=0)
 
-        # self.label_msg = tk.Label(self.Frame2,text="")
-        # self.label_msg['font'] = myFont
-        # self.label_msg.place(x=10,y=350)
- 
-        # self.Frame2_Button2 = tk.Button(self.Frame2, state='disabled', text="View Input",activebackground="#78d6ff", command=lambda:[self.view_button()])
-        # self.Frame2_Button2['font'] = myFont
-        # self.Frame2_Button2.place(x=170,y=380)
+        self.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
+        self.property_note['font'] = myFont
+        self.property_note.grid(row=0, column=0)
+
+        # self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['spectra'], font=myFont, onvalue=1)
+        # self.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
         
-        # self.Frame2_Button3 = tk.Button(self.Frame2, state='disabled', text="Run Job",activebackground="#78d6ff",command=lambda:self.run_job_button())
-        # self.Frame2_Button3['font'] = myFont
-        # self.Frame2_Button3.place(x=350,y=380)
-        # self.Frame3 = None
+        # frame_spec_option = ttk.Frame(frame_property)
+        # frame_spec_option.grid(row=2, column=0, sticky='w')            
+       
+        self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self.ksd_var, font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
+       
+        self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self.popln_var, font=myFont, onvalue=1, offvalue=0)
+        self.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
 
+        frame_output_freq = ttk.Frame(frame_property)
+        frame_output_freq.grid(row=5, column=0, sticky='w')
+
+        self.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
+        self.Frame2_lab['font'] = myFont
+        self.Frame2_lab.grid(row=0, column=0,sticky='w')
+
+        self.entry_out_frq = Onlydigits(frame_output_freq, textvariable=self.output_freq, width=5)
+        self.entry_out_frq['font'] = myFont
+        self.entry_out_frq.grid(row=0, column=1,sticky='w')
+
+        Generate_button = tk.Button(self.Frame_button2,text="Generate Input",activebackground="#78d6ff")
+        Generate_button['font'] = myFont
+        Generate_button.grid(row=0, column=1, sticky='nsew', padx=30, pady=5)
+
+        Save_button = tk.Button(self.Frame_button2,text="Save Input",activebackground="#78d6ff")
+        Save_button['font'] = myFont
+        Save_button.grid(row=0, column=2, sticky='nsew', padx=5, pady=5)
+
+        #######################################################################################################
+
+        self.add_job_frame(self.SubFrame3, row_val=0, column_val=0, task_name="RT_TDDFT_LASER")
+        
+      
+    def add_job_frame(self, parent, row_val:int, column_val:int,task_name):  
+        """  Adds submit job buttons """
+
+        submit_frame = ttk.Frame(parent,borderwidth=2, relief='groove')
+        submit_frame.grid(row=row_val, column=column_val, sticky='nswe')
+
+        self.sublocal_Button = tk.Button(submit_frame, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.sublocal_Button['font'] = myfont()
+        self.sublocal_Button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
+        
+        self.subnet_Button = tk.Button(submit_frame, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.subnet_Button['font'] = myfont()
+        self.subnet_Button.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
 
     def show_laser_plot(self, figure):
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
         self.Frame3 = ttk.Frame(self)
         self.Frame3.grid(row=1, column=1)
-        # self.Frame3.place(relx=0.480, rely=0.01, relheight=0.99, relwidth=0.492)
 
         self.Frame3.configure(relief='groove')
         self.Frame3.configure(borderwidth="2")
