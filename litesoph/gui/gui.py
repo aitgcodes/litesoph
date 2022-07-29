@@ -314,15 +314,6 @@ class GUIAPP:
                 messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
                 return
 
-        if sub_task  == "Ground State":
-            path = pathlib.Path(self.directory) / "coordinate.xyz"
-            if path.exists() is True:
-                self.main_window.event_generate('<<ShowGroundStatePage>>')
-            else:
-                messagebox.showerror(title = 'Error', message= "Upload geometry file")
-                return
-            return
-
         if task == "Simulations":
 
             if w.get_value('dynamics') == '--dynamics type--' or w.get_value('laser') == '-- laser type--':
@@ -336,6 +327,15 @@ class GUIAPP:
                         return
                     else:
                         self.main_window.event_generate(event)
+            return
+
+        if sub_task  == "Ground State":
+            path = pathlib.Path(self.directory) / "coordinate.xyz"
+            if path.exists() is True:
+                self.main_window.event_generate('<<ShowGroundStatePage>>')
+            else:
+                messagebox.showerror(title = 'Error', message= "Upload geometry file")
+                return
             return
 
         if sub_task in ["Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]:
