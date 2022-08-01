@@ -1311,10 +1311,16 @@ class PlotSpectraPage(ttk.Frame):
             'e_min': self._var['e_min'].get()       
         }
         
+        # td_dict_oct = {
+        #     'del_e':self._var['del_e'].get(),
+        #     'e_max':self._var['e_max'].get(),
+        #     'e_min': self._var['e_min'].get()
+        #   }
+        
         td_dict_oct = {
-            'del_e':self._var['del_e'].get(),
-            'e_max':self._var['e_max'].get(),
-            'e_min': self._var['e_min'].get()
+            "PropagationSpectrumEnergyStep":self._var['del_e'].get(),
+            "PropagationSpectrumMaxEnergy":self._var['e_max'].get(),
+            "PropagationSpectrumMinEnergy": self._var['e_min'].get()
           }
         
         if self.engine == 'gpaw':
