@@ -870,14 +870,14 @@ class TimeDependentPage(View):
             self.checkbox_ksd.config(state='disabled')
 
 
-class LaserDesignPage(ttk.Frame):
+class LaserDesignPage(View):
 
-    def __init__(self, parent, engine, *args, **kwargs):
+    def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.engine = engine
-        
-        self.job = None
+        self.task_name = task_name
+
         self.tdpulse_dict = {}
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
@@ -892,40 +892,25 @@ class LaserDesignPage(ttk.Frame):
         self.ns =  tk.IntVar()
         self.tin =  tk.DoubleVar()
         self.pol_var = tk.IntVar(value=0)
+        self.spec_var = tk.IntVar()
         self.ksd_var = tk.IntVar()
         self.popln_var = tk.IntVar()
         self.output_freq = tk.IntVar()
 
-        self.frame_title = ttk.Frame(self)
-        self.frame_title.grid(row=0, column=0, sticky='nsew')
 
-        self.SubFrame1 = ttk.Frame(self)
-        self.SubFrame1.grid(row=1, column=0)
-        self.SubFrame1.configure(relief='groove',borderwidth="2", cursor="fleur")
+        self.SubFrame1 = self.input_param_frame 
 
-        self.SubFrame2 = ttk.Frame(self)
-        self.SubFrame2.grid(row=1, column=1, sticky='nswe')
-        self.SubFrame2.configure(relief='groove',borderwidth="2", cursor="fleur")
+        self.SubFrame2 = self.property_frame 
 
-        self.SubFrame3 = ttk.Frame(self)
-        self.SubFrame3.grid(row=1, column=2, sticky='nsew')
-        self.SubFrame3.configure(relief='groove',borderwidth="2", cursor="fleur")
+        self.SubFrame3 = self.submit_button_frame 
 
-        self.Frame_button1 = ttk.Frame(self)
-        self.Frame_button1.grid(row=2, column=0, sticky='nsew')
-        self.Frame_button1.configure(relief='groove',borderwidth="2", cursor="fleur") 
-
-        self.Frame_button2 = ttk.Frame(self)
-        self.Frame_button2.grid(row=2, column=1, sticky='nsew')
-        self.Frame_button2.configure(relief='groove',borderwidth="2", cursor="fleur")           
+        self.Frame_button1 = self.save_button_frame 
 
         self.Frame2 = ttk.Frame(self.SubFrame1)
         self.Frame2.grid(row=0, column=0)
 
         self.frame_pol = ttk.Frame(self.SubFrame1)
         self.frame_pol.grid(row=1, column=0, sticky='w')
-
-        ################################################################################
 
         self.Frame1_label_path = tk.Label(self.Frame2,text="LITESOPH Input for Laser Design", fg='blue')
         self.Frame1_label_path['font'] = myFont
@@ -1008,105 +993,46 @@ class LaserDesignPage(ttk.Frame):
             tk.Radiobutton(self.frame_pol, text=text, variable=self.pol_var, font=myfont2(),
              justify='left',value=value).grid(row=0, column=value+1, sticky='w')
 
-        ################################################################################################
-       
-        frame_property = ttk.Frame(self.SubFrame2)
-        frame_property.grid(row=0, column=0)
-
-        self.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
-        self.property_note['font'] = myFont
-        self.property_note.grid(row=0, column=0)
-
-        # self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['spectra'], font=myFont, onvalue=1)
-        # self.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
+        property_frame(self, self.property_frame, myFont, spectra_var= self.spec_var,
+                                ksd_var=self.ksd_var, pop_var=self.popln_var,
+                                output_freq_var=self.output_freq)
         
-        # frame_spec_option = ttk.Frame(frame_property)
-        # frame_spec_option.grid(row=2, column=0, sticky='w')            
-       
-        self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self.ksd_var, font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
-       
-        self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self.popln_var, font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
+        Back_Button1 = tk.Button(self.Frame_button1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
+        Back_Button1['font'] = myFont
+        Back_Button1.grid(row=0, column=0, sticky='nsew', padx=10, pady=5)
 
-        frame_output_freq = ttk.Frame(frame_property)
-        frame_output_freq.grid(row=5, column=0, sticky='w')
-
-        self.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
-        self.Frame2_lab['font'] = myFont
-        self.Frame2_lab.grid(row=0, column=0,sticky='w')
-
-        self.entry_out_frq = Onlydigits(frame_output_freq, textvariable=self.output_freq, width=5)
-        self.entry_out_frq['font'] = myFont
-        self.entry_out_frq.grid(row=0, column=1,sticky='w')
-
-        Generate_button = tk.Button(self.Frame_button2,text="Generate Input",activebackground="#78d6ff")
+        Generate_button = tk.Button(self.Frame_button1,text="Generate Input",activebackground="#78d6ff", command= self.generate_input)
         Generate_button['font'] = myFont
         Generate_button.grid(row=0, column=1, sticky='nsew', padx=30, pady=5)
 
-        Save_button = tk.Button(self.Frame_button2,text="Save Input",activebackground="#78d6ff")
+        Save_button = tk.Button(self.Frame_button1,text="Save Input",activebackground="#78d6ff", command=self.save_input)
         Save_button['font'] = myFont
         Save_button.grid(row=0, column=2, sticky='nsew', padx=5, pady=5)
 
-        #######################################################################################################
 
-        self.add_job_frame(self.SubFrame3, row_val=0, column_val=0, task_name="RT_TDDFT_LASER")
+        add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=0)
         
       
-    def add_job_frame(self, parent, row_val:int, column_val:int,task_name):  
-        """  Adds submit job buttons """
-
-        submit_frame = ttk.Frame(parent,borderwidth=2, relief='groove')
-        submit_frame.grid(row=row_val, column=column_val, sticky='nswe')
-
-        self.sublocal_Button = tk.Button(submit_frame, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
-        self.sublocal_Button['font'] = myfont()
-        self.sublocal_Button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
-        
-        self.subnet_Button = tk.Button(submit_frame, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
-        self.subnet_Button['font'] = myfont()
-        self.subnet_Button.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
-
-    def show_laser_plot(self, figure):
-        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
-        self.Frame3 = ttk.Frame(self)
-        self.Frame3.grid(row=1, column=1)
-
-        self.Frame3.configure(relief='groove')
-        self.Frame3.configure(borderwidth="2")
-        self.Frame3.configure(relief="groove")
-        self.Frame3.configure(cursor="fleur")
-
-        self.Frame3.canvas = FigureCanvasTkAgg(figure, master=self.Frame3)
-        self.Frame3.canvas.draw()
-        self.Frame3.canvas.get_tk_widget().pack(side =tk.LEFT,fill='both', expand=True)
-        self.Frame3.toolbar = NavigationToolbar2Tk(self.Frame3.canvas, self.Frame3)
-        self.Frame3.toolbar.update()
-        self.Frame3.canvas._tkcanvas.pack(side= tk.TOP,fill ='both')
-    
     def laser_button(self):
         self.event_generate('<<DesignLaser>>')
    
-    # def activate_td_frame(self):
-    #     self.Frame2.tkraise() 
-    #     self.Frame2_Button1.config(state='active') 
-    #     self.Frame2_Button2.config(state='active') 
-    #     self.Frame2_Button3.config(state='active') 
-               
-    def destroy_plot(self):
-        self.Frame3.destroy()
+    def generate_input(self):
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
 
-    def choose_laser(self):
-        self.event_generate('<<ChooseLaser>>')
+    def save_input(self):
+        self.event_generate(f'<<Save{self.task_name}Script>>')
 
     def get_pol_list(self): 
         if self.pol_var.get() == 0:
-            pol_list = [1,0,0]         
+            pol_list = [1,0,0]
+            pol = 'x'        
         elif self.pol_var.get() == 1:
-            pol_list = [0,1,0] 
+            pol_list = [0,1,0]
+            pol = 'y' 
         elif self.pol_var.get() == 2:
-            pol_list = [0,0,1]                
-        return pol_list
+            pol_list = [0,0,1]
+            pol = 'z'                
+        return pol_list, pol
 
     def get_laser_pulse(self):
         from litesoph.utilities.units import as_to_au
@@ -1131,15 +1057,20 @@ class LaserDesignPage(ttk.Frame):
         
         from litesoph.utilities.units import au_to_fs,autime_to_eV
         laser_param = self.laser_design_dict 
-        self.pol_list = self.get_pol_list()              
+        self.pol_list, pol = self.get_pol_list()              
         # epol_list = [int(self.pol_x.get()),int(self.pol_y.get()),int(self.pol_z.get())]
        
         if self.engine == 'gpaw':
-            abs_x = float(self.strength.get())*float(self.pol_x.get())
-            abs_y = float(self.strength.get())*float(self.pol_y.get())
-            abs_z = float(self.strength.get())*float(self.pol_z.get())
+            abs_x = float(self.strength.get())*float(self.pol_list[0])
+            abs_y = float(self.strength.get())*float(self.pol_list[1])
+            abs_z = float(self.strength.get())*float(self.pol_list[2])
             abs_list = [abs_x, abs_y, abs_z]
             inp_list = [float(self.ts.get()),int(self.ns.get())]
+            analysis_tools= ['dipole']
+            if self.ksd_var.get() == 1:
+                analysis_tools.append('wavefunction')
+            if self.popln_var.get() == 1:
+                analysis_tools.append('population')
 
             l_dict ={
                 'frequency':self.frequency.get(),
@@ -1153,7 +1084,9 @@ class LaserDesignPage(ttk.Frame):
                         'propagate': tuple(inp_list),
                         'electric_pol': self.pol_list,             
                         'td_potential' : True,                     
-                        'laser': laser_param}
+                        'laser': laser_param,
+                        'analysis_tools': analysis_tools,
+                        'output_freq': self.output_freq.get()}
             # print(td_gpaw)            
             return td_gpaw
             
@@ -1170,15 +1103,20 @@ class LaserDesignPage(ttk.Frame):
             return td_oct        
                       
         elif self.engine == 'nwchem':
-            td_nwchem = { 'e_pol' :self.pol_list,
-                          'tmax' : self.ns.get() * self.ts.get(),
-                          'dt': self.ts.get(),
-                          'max' : self.strength.get(),
-                          'center' :laser_param['time0'],
-                          'width' : laser_param['sigma'],
-                          'freq': self.frequency.get()   
-                        }
-            # print(td_nwchem)
+            from litesoph.utilities.units import as_to_au
+            
+            td_nwchem = {
+            'task':'rt_tddft_delta',
+            'rt_tddft':{'tmax': round(self.ns.get() * self.ts.get() * as_to_au,2),
+                        'dt': round(self.ts.get() * as_to_au, 2),
+                        'field':{'name': 'gpulse_' + pol,
+                                'type': 'gaussian',
+                                'frequency' : self.frequency.get(),
+                                'center': laser_param['time0'],
+                                'width': laser_param['sigma'],
+                                'polarization':pol,
+                                'max':self.strength.get()},
+            'print': ['dipole', 'moocc' if self.popln_var.get() == 1 else '']}}
             return td_nwchem
 
     def save_button(self):
@@ -1193,8 +1131,8 @@ class LaserDesignPage(ttk.Frame):
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')
 
-    def set_label_msg(self,msg):
-        show_message(self.label_msg, msg) 
+    # def set_label_msg(self,msg):
+    #     show_message(self.label_msg, msg) 
 
    
 
