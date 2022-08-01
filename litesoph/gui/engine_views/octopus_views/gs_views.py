@@ -223,14 +223,6 @@ class OctGSPage(EngineViews):
         self.subheading = tk.Label(self.oct_simb,text="Simulation Box",fg='blue')
         self.subheading['font'] =  myFont
         self.subheading.grid(row=0, column=0, sticky='w')
-  
-        # self.label_sp = tk.Label(self.oct_simb,text="Spacing (in Ang)",bg=label_design['bg'], fg=label_design['fg'])
-        # self.label_sp['font'] = label_design['font']
-        # self.label_sp.grid(row=2, column=0, sticky='w', padx=2, pady=4)
-
-        # self.entry_sp = Decimalentry(self.oct_simb,textvariable= self._var['h'])  
-        # self.entry_sp['font'] = label_design['font']
-        # self.entry_sp.grid(row=2, column=1, sticky= 'w', padx=8, pady=2)
 
         self.boxlabel = tk.Label(self.oct_simb,text="Simulation box unit",bg=label_design['bg'], fg=label_design['fg'])
         self.boxlabel['font'] = label_design['font']
