@@ -473,19 +473,14 @@ class GUIAPP:
         self.main_window.bind_all('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
         self.main_window.bind_all('<<ShowSpectrumPlot>>', lambda _:self._on_spectra_plot_button())
 
-    def _validate_spectra_input(self):
+    def _on_spectra_run_local_button(self, *_):
+        
         inp_dict = self.spectra_view.get_parameters()
         self.spectra_task = get_engine_task(self.engine, 'spectrum', self.status, self.directory, self.lsconfig, inp_dict)
-
-    def _spectra_create_input(self, template=None):     
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
 
-    def _on_spectra_run_local_button(self, *_):
-        
-        self._validate_spectra_input()
-        self._spectra_create_input()
         if self.engine == 'nwchem':
             self.spectra_task.create_job_script()
         else:
@@ -494,19 +489,7 @@ class GUIAPP:
         
 
     def _on_spectra_run_network_button(self, *_):
-        
-        return
-        try:
-            getattr(self.spectra_task.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-        else:
-            self.job_sub_page = v.JobSubPage(self.input_frame, 'Spectrum', 'Network')
-            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+        pass
 
     def _on_spectra_plot_button(self, *_):
         """ Selects engine specific plot function"""
@@ -533,42 +516,21 @@ class GUIAPP:
         self.main_window.bind_all('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
         self.main_window.bind_all('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
 
-    def _validate_tcm_input(self):
+    def _on_tcm_run_local_button(self, *_):
+        
         inp_dict = self.tcm_view.get_parameters()
         self.tcm_task = get_engine_task(self.engine, 'tcm', self.status, self.directory, self.lsconfig, inp_dict)
         self.tcm_task.create_template()
-
-
-    def _tcm_create_input(self, template=None):     
-        self.tcm_task.write_input(template)
+        self.tcm_task.write_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
-        #self.rt_tddft_laser_view.set_label_msg('saved')
-        self.check = False
-
-    def _on_tcm_run_local_button(self, *_):
-        
-        self._validate_tcm_input()
-        self._tcm_create_input()
 
         self._run_local(self.tcm_task,np=1 )
         
 
     def _on_tcm_run_network_button(self, *_):
-
-        return
-        try:
-            getattr(self.spectra_task.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-        else:
-            self.job_sub_page = v.JobSubPage(self.input_frame, 'TCM', 'Network')
-            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.bind('<<RunTCMNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<ViewTCMNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<CreateTCMRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+        pass
 
     def _on_tcm_plot_button(self, *_):
         """ Selects engine specific plot function"""
