@@ -1,6 +1,7 @@
 from litesoph.simulations.esmd import Task
 from litesoph.simulations.gpaw import gpaw_template as gp
 from litesoph.simulations.nwchem.nwchem_task import NwchemTask
+from litesoph.simulations.octopus.octopus_task import OctopusTask
 from litesoph.simulations.octopus import octopus_template as ot
 from litesoph.simulations import gpaw as g
 from litesoph.simulations import nwchem as n
@@ -25,10 +26,10 @@ task_dict = {
     },
 
     'octopus' : {
-        'ground_state' : [ot.OctGroundState, o.pre_condition_ground_state],
-        'rt_tddft_delta' : [ot.OctTimedependentState, o.pre_condition_rt_tddft_delta],
-        'rt_tddft_laser' : [ot.OctTimedependentLaser, o.pre_condition_rt_tddft_laser],
-        'spectrum' : [ot.OctSpectrum, o.pre_condition_spectrum],
+        'ground_state' : [OctopusTask, o.pre_condition_ground_state],
+        'rt_tddft_delta' : [OctopusTask, o.pre_condition_rt_tddft_delta],
+        'rt_tddft_laser' : [OctopusTask, o.pre_condition_rt_tddft_laser],
+        'spectrum' : [OctopusTask, o.pre_condition_spectrum],
         'tcm' : [ot.OctKSD, o.pre_condition_tcm]
 
     }
