@@ -792,15 +792,25 @@ class TimeDependentPage(View):
             'output_freq': self._var['output_freq'].get()
         }
 
+        # td_dict_oct = {
+        #     'max_step' : self._var['Nt'].get() ,
+        #     'time_step' : self._var['dt'].get(),
+        #     'td_propagator' : 'aetrs',
+        #     'strength': self._var['strength'].get(),
+        #     'e_pol': self.pol_list,
+        #     'pol_dir': self.read_pol_dir(),
+        #     'output_freq': self._var['output_freq'].get(),
+        #     'analysis_tools': self.get_property_list()
+        #   }
         td_dict_oct = {
-            'max_step' : self._var['Nt'].get() ,
-            'time_step' : self._var['dt'].get(),
-            'td_propagator' : 'aetrs',
-            'strength': self._var['strength'].get(),
-            'e_pol': self.pol_list,
-            'pol_dir': self.read_pol_dir(),
-            'output_freq': self._var['output_freq'].get(),
-            'analysis_tools': self.get_property_list()
+            "CalculationMode": 'td',
+            "TDMaxSteps" : self._var['Nt'].get() ,
+            "TDTimeStep" : round(self._var['dt'].get()*as_to_au, 2),
+            "TDPropagator" : 'aetrs',
+            "TDDeltaStrength": self._var['strength'].get(),
+            "TDPolarizationDirection": self._var['pol_var'].get(),
+            "TDOutputComputeInterval": self._var['output_freq'].get(),
+            "TDOutput": self.get_td_out()
           }
 
         if self.engine == 'gpaw':
@@ -821,11 +831,23 @@ class TimeDependentPage(View):
 
     def get_property_list(self):
         prop_list = []
+               
         if self._var['ksd'].get() == 1:
             prop_list.append("ksd")
         if self._var['popln'].get() == 1:
             prop_list.append("population_correlation")    
-        return prop_list       
+        return prop_list   
+
+    def get_td_out(self):
+
+        ksd = (self._var['ksd'].get() == 1)
+        population = (self._var['popln'].get() == 1)
+        td_occup = [ksd, population]
+
+        td_out_list = []
+        if any(td_occup):
+            td_out_list.append(["td_occup"])
+        return td_out_list
         
     def out_print(self):
         p_list = ['dipole'] 
