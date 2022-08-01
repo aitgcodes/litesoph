@@ -446,33 +446,39 @@ class OctGSPage(EngineViews):
         from litesoph.utilities.units import au_to_eV
 
         inp_dict_oct = {
-            'mode': self._var['mode'].get(),
-            'exp' : self._var['expt'].get(),
-            'xc': {'option':1,'x':self._var['x'].get(),'c':self._var['c'].get()},
-            'pseudo' : self._var['pseudo'].get(),
-            'energy': self._var['energy'].get(),
-            'dimension' : self._var['dxc'].get(),
-            'spacing': self._var['h'].get(),
-            'spin_pol': self._var['spinpol'].get(),
-            'charge': self._var['charge'].get(),
-            'e_conv': self._var['energy'].get(),
-            'max_iter': self._var['maxiter'].get(),
-            'eigensolver':self._var['eigen'].get(),
-            'smearing':self._var['smear'].get(),
-            'smearing_func':self._var['smearfn'].get(),
-            'mixing':self._var['mix'].get(),
-            'box':{'shape':self._var['shape'].get()},
-            'unit_box' : self._var['unit_box'].get(),
-            'extra_states' : self._var['extra_states'].get(),
-            'engine':'octopus'
-                    }      
+            "engine": "octopus",
+            "CalculationMode": "gs",
+            "ExperimentalFeatures": self._var['expt'].get(),
+            "XCFunctional": [self._var['x'].get(),self._var['c'].get()],
+            "PseudopotentialSet" : self._var['pseudo'].get(),
+            "Spacing": str(self._var['h'].get())+ '*angstrom',
+            "SpinComponents": self._var['spinpol'].get(),
+            "ExcessCharge": self._var['charge'].get(),
+            "MaximumIter": self._var['maxiter'].get(),
+            "ConvEnergy": self._var['conv_energy'].get(),
+            "ConvAbsDens": self._var['abs_density'].get(),
+            "ConvAbsEv": self._var['abs_eigen'].get(),
+            "ConvRelDens": self._var['rel_density'].get(),
+            "ConvRelEv": self._var['rel_eigen'].get(),
+            "Eigensolver":self._var['eigen'].get(),
+            "Smearing":self._var['smear'].get(),
+            "SmearingFunction":self._var['smearfn'].get(),
+            "Mixing":self._var['mixing'].get(),
+            "ExtraStates" : self._var['extra_states'].get()
+                    }                  
+
 
         if self._var['shape'].get() in ['minimum','sphere']:
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get()}
-        if self._var['shape'].get() == 'cylinder':
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get(),'xlength':self._var['l'].get()}
-        if self._var['shape'].get() == 'parallelepiped':
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'sizex':self._var['lx'].get(), 'sizey':self._var['ly'].get(), 'sizez':self._var['lz'].get()}
-        
-
+            inp_dict_oct["BoxShape"]={"name":self._var['shape'].get(),
+                        "param":{'Radius':str(self._var['r'].get())+'*angstrom'}}
+        elif self._var['shape'].get() == 'cylinder':
+            inp_dict_oct["BoxShape"]={"name":self._var['shape'].get(),
+                        "param":{'Radius':str(self._var['r'].get())+'*angstrom',
+                        'Xlength':str(self._var['l'].get()/2)+'*angstrom'}}
+        elif self._var['shape'].get() == 'parallelepiped':
+            inp_dict_oct["BoxShape"]={"name":self._var['shape'].get(),
+                        "param":{'LSize':[[
+                            str(self._var['lx'].get()/2)+'*angstrom',
+                            str(self._var['ly'].get()/2)+'*angstrom',
+                            str(self._var['lz'].get()/2)+'*angstrom']]}}       
         return inp_dict_oct
