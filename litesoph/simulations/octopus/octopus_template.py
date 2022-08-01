@@ -688,15 +688,21 @@ DMAT
 
         # self.unocc = self.status.get_status('octopus.ground_state.param.unocc')
         
-        self.unocc = self.status.get_status('octopus.ground_state.param.extra_states')
-        e_pol = self.status.get_status('octopus.rt_tddft_delta.param.e_pol')
-        max_step = self.status.get_status('octopus.rt_tddft_delta.param.max_step')
-        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.output_freq') 
+        self.unocc = self.status.get_status('octopus.ground_state.param.ExtraStates')
+        e_pol = self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+        max_step = self.status.get_status('octopus.rt_tddft_delta.param.TDMaxSteps')
+        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
         nt = int(max_step/output_freq) 
+
+        assign_pol_list ={
+            1 : [1,0,0],
+            2 : [0,1,0],
+            3 : [0,0,1]
+        }
 
         dict_to_update = {
             'unocc': self.unocc,
-            'e_pol': e_pol,
+            'e_pol': assign_pol_list.get(e_pol),
             'nt': nt
         }
         # print(dict_to_update)
