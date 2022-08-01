@@ -655,7 +655,7 @@ class TimeDependentPage(View):
           
         self._default_var = {
             'strength': ['float', 1e-5],
-            'pol_var' : ['int', 0],
+            'pol_var' : ['int', 1],
             'dt': ['float'],
             'Nt': ['int'],
             'spectra': ['int', 1],
@@ -733,7 +733,7 @@ class TimeDependentPage(View):
         frame_pol = ttk.Frame(frame_additional, borderwidth=2)
         frame_pol.grid(row=1, column=0, sticky='w')
 
-        values = {"X": 0, "Y": 1, "Z": 2}
+        values = {"X": 1, "Y": 2, "Z": 3}
         for (text, value) in values.items():
             tk.Radiobutton(frame_pol, text=text, variable=self._var['pol_var'], font=myfont2(),
              justify='left',value=value).grid(row=0, column=value, ipady=5, sticky='w')
@@ -757,11 +757,11 @@ class TimeDependentPage(View):
         add_job_frame(self, self.submit_button_frame, task_name, row=1, column=9)
 
     def get_pol_list(self): 
-        if self._var['pol_var'].get() == 0:
+        if self._var['pol_var'].get() == 1:
             pol_list = [1,0,0]         
-        elif self._var['pol_var'].get() == 1:
-            pol_list = [0,1,0] 
         elif self._var['pol_var'].get() == 2:
+            pol_list = [0,1,0] 
+        elif self._var['pol_var'].get() == 3:
             pol_list = [0,0,1]                
         return pol_list
 
