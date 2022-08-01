@@ -383,75 +383,79 @@ def define_tk_var(var_dict:dict):
 
     return var_def_dict
         
-
-class View_note(ttk.Frame):
+class View(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+
         self.parent = parent
         self.job = None
 
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        self.input_param_frame= ttk.Frame(self, borderwidth=2, relief='groove')
+        self.property_frame = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.submit_button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.save_button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
+
+        self.input_param_frame.pack(fill=tk.BOTH, anchor='n', expand=True)
+        self.property_frame.pack(fill=tk.BOTH, anchor='n', expand=True)
+        self.save_button_frame.pack( fill=tk.BOTH, anchor='n',  expand=True)
+        self.submit_button_frame.pack(side=tk.BOTTOM, anchor='e')
+
+    def set_sub_button_state(self,state):
+        self.sublocal_Button.config(state=state)
+        self.subnet_Button.config(state=state)
+
+def add_job_frame(obj, parent, task_name, row:int=0, column:int=0):  
+    """  Adds submit job buttons """
+
+    submit_frame = ttk.Frame(parent,borderwidth=2, relief='groove')
+    submit_frame.grid(row=row, column=column, sticky='nswe')
+
+    obj.sublocal_Button = tk.Button(submit_frame, text="Submit Local", activebackground="#78d6ff", command=lambda: obj.event_generate('<<SubLocal'+task_name+'>>'))
+    obj.sublocal_Button['font'] = myfont()
+    obj.sublocal_Button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
+    
+    obj.subnet_Button = tk.Button(submit_frame, text="Submit Network", activebackground="#78d6ff", command=lambda: obj.event_generate('<<SubNetwork'+task_name+'>>'))
+    obj.subnet_Button['font'] = myfont()
+    obj.subnet_Button.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
+
+class GroundStatePage(View):
+    
+    def __init__(self, parent,engine, task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        
+        self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
         style = ttk.Style()
-        notebook = ttk.Notebook(self)
-        notebook.grid()
+        notebook = ttk.Notebook(self.input_param_frame)
+        notebook.pack(fill=tk.BOTH)
         style.configure("TNotebook.Tab", font=('Helvetica','10'))
         #style.map("TNotebook.Tab", background=[('selected')])
         
-        self.Frame1 = ttk.Frame(notebook, borderwidth=2, relief='groove')
-        self.Frame2 = ttk.Frame(notebook, borderwidth=2, relief='groove')
-        self.Frame3 = ttk.Frame(notebook, borderwidth=2, relief='groove')
+        self.system_frame = ttk.Frame(notebook)
+        self.calculation_frame = ttk.Frame(notebook)
+        self.advanced_info_frame = ttk.Frame(notebook)
 
-        self.Frame1.grid(row=0, column=0)
-        self.Frame2.grid(row=0, column=0)
-        self.Frame3.grid(row=0, column=0)
+        notebook.add(self.system_frame, text='System')
+        notebook.add(self.calculation_frame, text='Calculation Details')
+        notebook.add(self.advanced_info_frame, text='Advanced Info')
 
-        notebook.add(self.Frame1, text='System')
-        notebook.add(self.Frame2, text='Calculation Details')
-        notebook.add(self.Frame3, text='Advanced Info')
-
-        self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button.grid(row=10, column=0,columnspan=10, sticky='nswe')
-
-    def add_jobsub(self):
-        """ Adds Job Sub buttons to View_note"""
-
-        self.frame_run = ttk.Frame(self,borderwidth=2, relief='groove')
-        self.frame_run.grid(row=0, column=1, sticky='nsew')
-
-        self.sublocal_Button2 = tk.Button(self.frame_run, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocalGroundState>>'))
-        self.sublocal_Button2['font'] = myfont()
-        self.sublocal_Button2.grid(row=1, column=2,padx=2, pady=6, sticky='nsew')
-        
-        self.subnet_Button3 = tk.Button(self.frame_run, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetworkGroundState>>'))
-        self.subnet_Button3['font'] = myfont()
-        self.subnet_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
-        
-    def set_sub_button_state(self,state):
-        self.sublocal_Button2.config(state=state)
-        self.subnet_Button3.config(state=state)
-
-
-class GroundStatePage(View_note):
-  
-    
-    def __init__(self, parent,engine,*args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        
         self.parent = parent
+        self.task_name = task_name
         self.engine = tk.StringVar(value=engine)
         self.engine.trace_add('write', self.on_engine_change)
         self.job = None
 
-        self.add_jobsub()
-        self.frame_collection()
+        add_job_frame(self, self.submit_button_frame, task_name, column=1)
+        self.add_save_button_frame()
         self.on_engine_change()
         
     def on_engine_change(self, *_):
     
-        f_list = [self.Frame1_sub.winfo_children, 
-                self.Frame2_sub.winfo_children,
-                self.Frame3_sub.winfo_children]
+        f_list = [self.system_frame.winfo_children, 
+                self.calculation_frame.winfo_children,
+                self.advanced_info_frame.winfo_children]
 
         for frame in f_list:
             for widget in frame():
@@ -460,7 +464,7 @@ class GroundStatePage(View_note):
         if self.engine.get() == 'auto-mode':
             self.gs_dict = AutoModeModel.ground_state
             self._var = define_tk_var(self.gs_dict)
-            self.show_system_tab(self.Frame1_sub)
+            self.show_system_tab(self.system_frame)
             return
 
         self.engine_page = get_gs_engine_page(self.engine.get(), self)
@@ -468,24 +472,22 @@ class GroundStatePage(View_note):
         self._var = self.engine_page._var = define_tk_var(self.gs_dict)
         self.engine_page.create_input_widgets()
 
-    def tab1_button_frame(self):
 
+    def add_save_button_frame(self):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.Frame1_Button1 = tk.Button(self.frame_button, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.Frame1_Button1 = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.Frame1_Button1['font'] = myFont
         self.Frame1_Button1.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
-    def tab2_button_frame(self):
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.view_Button2 = tk.Button(self.frame_button, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
+        self.view_Button2 = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.view_Button2['font'] = myFont
         self.view_Button2.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
-        self.save_Button3 = tk.Button(self.frame_button, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
+        self.save_Button3 = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.save_Button3['font'] = myFont
         self.save_Button3.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
-        self.label_msg = tk.Label(self.frame_button,text="")
+        self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
 
@@ -495,7 +497,6 @@ class GroundStatePage(View_note):
         for widget in parent.winfo_children():
             widget.destroy()
 
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
         mode_frame = ttk.Frame(parent)
         mode_frame.grid(row=0, column=0)      
 
@@ -514,9 +515,9 @@ class GroundStatePage(View_note):
             elif task.get() == "gaussian":
                 self.engine.set('nwchem')
             elif task.get() == "fd":
-                for widget in self.Frame2_sub.winfo_children():
+                for widget in self.calculation_frame.winfo_children():
                     widget.destroy()
-                self.show_auto_mode_calc_tab(self.Frame2_sub) 
+                self.show_auto_mode_calc_tab(self.calculation_frame) 
 
         task = ttk.Combobox(mode_frame, textvariable = self._var['mode'], values= self.gs_dict['mode']['values'])
         task['font'] = label_design['font']
@@ -584,17 +585,6 @@ class GroundStatePage(View_note):
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')              
 
-    def frame_collection(self):
-        self.Frame1_sub = ttk.Frame(self.Frame1, borderwidth=2)
-        self.Frame1_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky='we')
-        self.Frame2_sub = ttk.Frame(self.Frame2, borderwidth=2)
-        self.Frame2_sub.grid(row=0, column=0, rowspan=11, columnspan=10, sticky= 'we') 
-        self.Frame3_sub = ttk.Frame(self.Frame3, borderwidth=2)
-        self.Frame3_sub.grid(row=0, column=0, rowspan=11, columnspan= 10, sticky='we')
-        
-        self.tab1_button_frame()
-        self.tab2_button_frame()
-
     def get_parameters(self):
 
         if self.engine.get() == "auto-mode":
@@ -621,73 +611,47 @@ class GroundStatePage(View_note):
             except KeyError:
                 self._var[key].set('')     
 
-    def read_atoms(self, geom_xyz):
-        from ase.io import read
-        atoms = read(geom_xyz)
-        atom_list = list(atoms.symbols)
-        return atom_list
+def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_freq_var, row=0, column=0):
 
-class View1(ttk.Frame):
+    frame_property = ttk.Frame(parent)
+    frame_property.grid(row=0, column=0)
 
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        #self.controller = controller
-        self.parent = parent
-        self.job = None
+    obj.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
+    obj.property_note['font'] = myFont
+    obj.property_note.grid(row=0, column=0)
 
-        self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
+    obj.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable= spectra_var, font=myFont, onvalue=1)
+    obj.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
+    
+    frame_spec_option = ttk.Frame(frame_property)
+    frame_spec_option.grid(row=2, column=0, sticky='w')
 
-        self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame2 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
-        # layout all of the main containers
-        #self.grid_rowconfigure(0, weight=1)
-        #self.grid_rowconfigure(0, weight=1)
-        #self.grid_rowconfigure(1, weight=8)
-        self.grid_columnconfigure(9, weight=3)
-        self.grid_rowconfigure(1, weight=2)
-        self.grid_columnconfigure(5, weight=5)
-        #self.grid_rowconfigure(2, weight=3)
-        #self.grid_columnconfigure(8, weight=1)
+    obj.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=ksd_var, font=myFont, onvalue=1, offvalue=0)
+    obj.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
+    
+    obj.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=pop_var, font=myFont, onvalue=1, offvalue=0)
+    obj.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
 
-        self.Frame1.grid(row=1,column=0, columnspan=4, rowspan=100, sticky='nsew')
-        self.Frame2.grid(row=1, column=5, rowspan=100,columnspan=2, sticky='nsew')
-        self.Frame3.grid(row=0, column=5,columnspan=5, sticky='nswe')
-        #self.Frame2.grid(row=4,  sticky="nsew")
-        # btm_frame.grid(row=3, sticky="ew")
-        # btm_frame2.grid(row=4, sticky="ew")
-        
-        self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
+    frame_output_freq = ttk.Frame(frame_property)
+    frame_output_freq.grid(row=5, column=0, sticky='w')
 
-    def add_job_frame(self, task_name):  
-        """  Adds submit job buttons to View1"""
+    obj.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
+    obj.Frame2_lab['font'] = myFont
+    obj.Frame2_lab.grid(row=0, column=0,sticky='w')
 
-        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame3.grid(row=1, column=9, sticky='nswe')
-        # View_Button1 = tk.Button(self.Frame3, text="View Output", activebackground="#78d6ff", command=lambda: [self.view_button()])
-        # View_Button1['font'] = self.myFont
-        # View_Button1.grid(row=2, column=1, sticky='nsew')
+    obj.entry_out_frq = Onlydigits(frame_output_freq, textvariable=output_freq_var, width=5)
+    obj.entry_out_frq['font'] = myFont
+    obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
-        self.sublocal_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
-        self.sublocal_Button2['font'] = myfont()
-        self.sublocal_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
-        
-        self.subnet_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
-        self.subnet_Button3['font'] = myfont()
-        self.subnet_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
 
-    def set_sub_button_state(self,state):
-        self.sublocal_Button2.config(state=state)
-        self.subnet_Button3.config(state=state)
+class TimeDependentPage(View):
 
-class TimeDependentPage(View1):
-
-    def __init__(self, parent, engine, *args, **kwargs):
+    def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
 
         self.parent = parent
         self.engine = engine
+        self.task_name = task_name
         self.job = None
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
@@ -1118,18 +1082,10 @@ class LaserDesignPage(ttk.Frame):
         self.entry_ns['font'] = myFont
         self.ns.set(2000)
         self.entry_ns.grid(row=7, column=1)
- 
-        Back_Button1 = tk.Button(self.Frame_button1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
-        Back_Button1['font'] = myFont
-        Back_Button1.grid(row=0, column=0, sticky='nsew', padx=10, pady=5)
 
-        Laser_button = tk.Button(self.Frame_button1,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
+        Laser_button = tk.Button(self.Frame2,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
         Laser_button['font'] = myFont
-        Laser_button.grid(row=0, column=1, sticky='nsew', padx=30, pady=5)
-
-        Next_button = tk.Button(self.Frame_button1,text="Next",activebackground="#78d6ff",command=lambda:[self.choose_laser()])
-        Next_button['font'] = myFont
-        Next_button.grid(row=0, column=2, sticky='nsew', padx=5, pady=5)
+        Laser_button.grid(row=8, column=10, sticky='nsew', padx=30, pady=5)
 
         self.label_pol = tk.Label(self.frame_pol,text="Polarization Direction:",bg="gray",fg="black")
         self.label_pol['font'] = myFont

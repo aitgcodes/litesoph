@@ -144,9 +144,9 @@ class NWGSPage(EngineViews):
         self.entry_grd.grid(row=8, column=1, sticky='w', padx=2, pady=2)
 
     def create_input_widgets(self) -> None:
-        self.show_system_tab(self.gspage.Frame1_sub)
-        self.show_cal_tab(self.gspage.Frame2_sub)
-        self.show_advance_tab(self.gspage.Frame3_sub)
+        self.show_system_tab(self.gspage.system_frame)
+        self.show_cal_tab(self.gspage.calculation_frame)
+        self.show_advance_tab(self.gspage.advanced_info_frame)
 
     def get_parameters(self) -> dict:
         inp_dict_nw = {
