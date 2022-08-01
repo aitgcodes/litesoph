@@ -596,13 +596,10 @@ class GroundStatePage(View):
         show_message(self.label_msg, msg)
             
     def save_button(self):
-        self.event_generate('<<SaveGroundStateScript>>')          
+        self.event_generate(f'<<Save{self.task_name}Script>>')          
 
     def generate_input_button(self):
-        self.event_generate('<<GenerateGroundStateScript>>')
-
-    def run_job_button(self):
-        self.event_generate('<<SubGroundState>>')
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def refresh_var(self):
         for key, value in self.gs_dict.items():
@@ -922,13 +919,10 @@ class TimeDependentPage(View):
         show_message(self.label_msg, msg)
 
     def save_button(self):
-        self.event_generate('<<SaveRT_TDDFT_DELTAScript>>')
+        self.event_generate(f'<<Save{self.task_name}Script>>')
 
     def generate_input_button(self):
-        self.event_generate('<<GenerateRT_TDDFT_DELTAScript>>')
-
-    def run_job_button(self):
-        self.event_generate('<<SubRT_TDDFT_DELTA>>')
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')
