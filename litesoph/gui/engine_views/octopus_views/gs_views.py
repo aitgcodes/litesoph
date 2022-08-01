@@ -330,108 +330,110 @@ class OctGSPage(EngineViews):
 
 
     def show_advance_tab(self, parent):
+        """ Creates the widgets for Advanced info tab"""
+
         oct_conv = ttk.Frame(parent, borderwidth=2)
         oct_conv.grid(row=0, column=0, sticky = 'w')
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.label_pol_z = tk.Label(oct_conv, text="SCF Convergence for Octopus    ", fg="blue")
-        self.label_pol_z['font'] =  myFont
-        self.label_pol_z.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+        self.label_title = tk.Label(oct_conv, text="SCF Convergence for Octopus    ", fg="blue")
+        self.label_title['font'] =  myFont
+        self.label_title.grid(row=0, column=0, sticky='w', padx=2, pady=4)
       
-        self.label_pol_z = tk.Label(oct_conv, text="Maximum SCF iteration",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_pol_z['font'] = label_design['font']
-        self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_maxiter = tk.Label(oct_conv, text="Maximum SCF iteration",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_maxiter['font'] = label_design['font']
+        self.label_maxiter.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        entry = Onlydigits(oct_conv,textvariable= self._var['maxiter'])
-        entry['font'] = label_design['font']
-        entry.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+        self.entry_maxiter = Onlydigits(oct_conv,textvariable= self._var['maxiter'])
+        self.entry_maxiter['font'] = label_design['font']
+        self.entry_maxiter.grid(row=2, column=1, sticky='w', padx=2, pady=2)
 
-        self.Frame2_note = tk.Label(oct_conv,text="Energy(in au)",bg=label_design['bg'], fg=label_design['fg'])
-        self.Frame2_note['font'] = label_design['font']
-        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.label_conv_en = tk.Label(oct_conv,text="Energy(in au)",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_conv_en['font'] = label_design['font']
+        self.label_conv_en.grid(row=4, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_ener = tk.Entry(oct_conv, textvariable= self._var['energy'])
-        self.entry_ener['font'] = label_design['font']
-        self.entry_ener.grid(row=4, column=1, sticky='w', padx=2, pady=2)
-
-        self.label_proj = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
-
-        self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['density'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"1.0e-4")
-        self.entry_proj.grid(row=6, column=1, sticky='w', padx=2, pady=2)
+        self.entry_conv_en = tk.Entry(oct_conv, textvariable= self._var['conv_energy'])
+        self.entry_conv_en['font'] = label_design['font']
+        self.entry_conv_en.grid(row=4, column=1, sticky='w', padx=2, pady=2)
  
-        self.label_proj = tk.Label(oct_conv,text="Absolute Convergence",fg="blue")
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+        self.label_absconv = tk.Label(oct_conv,text="Absolute Convergence",fg="blue")
+        self.label_absconv['font'] = label_design['font']
+        self.label_absconv.grid(row=8, column=0, sticky='w', padx=2, pady=4)
 
-        self.label_proj = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+        self.label_absden = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_absden['font'] = label_design['font']
+        self.label_absden.grid(row=10, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['absdensity'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"0.0")
-        self.entry_proj.grid(row=10, column=1, sticky='w', padx=2, pady=2)
+        self.entry_absden = tk.Entry(oct_conv,textvariable= self._var['abs_density'])
+        self.entry_absden['font'] = label_design['font']
+        self.entry_absden.delete(0,tk.END)
+        self.entry_absden.insert(0,"0.0")
+        self.entry_absden.grid(row=10, column=1, sticky='w', padx=2, pady=2)
      
-        self.label_proj = tk.Label(oct_conv,text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+        self.label_absev = tk.Label(oct_conv,text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_absev['font'] = label_design['font']
+        self.label_absev.grid(row=12, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['abseigen'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"0.0")
-        self.entry_proj.grid(row=12, column=1, sticky='w', padx=2, pady=2)
+        self.entry_absev = tk.Entry(oct_conv,textvariable= self._var['abs_eigen'])
+        self.entry_absev['font'] = label_design['font']
+        self.entry_absev.delete(0,tk.END)
+        self.entry_absev.insert(0,"0.0")
+        self.entry_absev.grid(row=12, column=1, sticky='w', padx=2, pady=2)
     
-        self.label_proj = tk.Label(oct_conv,text="Relative Convergence",fg="blue")
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=14, column=0, sticky='w', padx=2, pady=4)
+        self.label_relconv = tk.Label(oct_conv,text="Relative Convergence",fg="blue")
+        self.label_relconv['font'] = label_design['font']
+        self.label_relconv.grid(row=14, column=0, sticky='w', padx=2, pady=4)
+
+        self.label_relden = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_relden['font'] = label_design['font']
+        self.label_relden.grid(row=16, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_relden = tk.Entry(oct_conv,textvariable= self._var['rel_density'])
+        self.entry_relden['font'] = label_design['font']
+        self.entry_relden.delete(0,tk.END)
+        self.entry_relden.insert(0,"1.0e-4")
+        self.entry_relden.grid(row=16, column=1, sticky='w', padx=2, pady=2)
         
-        self.label_proj = tk.Label(oct_conv, text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=16, column=0, sticky='w', padx=2, pady=4)
+        self.label_relev = tk.Label(oct_conv, text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_relev['font'] = label_design['font']
+        self.label_relev.grid(row=18, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(oct_conv, textvariable= self._var['rlteigen'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"0.0")
-        self.entry_proj.grid(row=16, column=1, sticky='w', padx=2, pady=2)
+        self.entry_relev = tk.Entry(oct_conv, textvariable= self._var['rel_eigen'])
+        self.entry_relev['font'] = label_design['font']
+        self.entry_relev.delete(0,tk.END)
+        self.entry_relev.insert(0,"0.0")
+        self.entry_relev.grid(row=18, column=1, sticky='w', padx=2, pady=2)
 
-        self.lb = tk.Label(oct_conv,text="Other Scf Parameters",fg="blue")
-        self.lb['font'] = label_design['font']
-        self.lb.grid(row=18, column=0, sticky='w', padx=2, pady=4)
+        self.other_scf = tk.Label(oct_conv,text="Other Scf Parameters",fg="blue")
+        self.other_scf['font'] = label_design['font']
+        self.other_scf.grid(row=19, column=0, sticky='w', padx=2, pady=4)
 
-        self.lb2 = tk.Label(oct_conv,text="Mixing",bg=label_design['bg'], fg=label_design['fg'])
-        self.lb2['font'] = label_design['font']
-        self.lb2.grid(row=20, column=0, sticky='w', padx=2, pady=4)
+        self.label_mixing = tk.Label(oct_conv,text="Mixing",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_mixing['font'] = label_design['font']
+        self.label_mixing.grid(row=20, column=0, sticky='w', padx=2, pady=4)
 
-        self.en1 = Decimalentry(oct_conv, textvariable= self._var['mix'])
-        self.en1['font'] = label_design['font']
-        self.en1.grid(row=20, column=1, sticky='w',padx=2, pady=2)
+        self.entry_mixing = Decimalentry(oct_conv, textvariable= self._var['mixing'])
+        self.entry_mixing['font'] = label_design['font']
+        self.entry_mixing.grid(row=20, column=1, sticky='w',padx=2, pady=2)
 
-        self.label_proj = tk.Label(oct_conv, text="Smearing (eV)",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=22, column=0, sticky='w', padx=2, pady=4)
+        self.label_smear = tk.Label(oct_conv, text="Smearing (eV)",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_smear['font'] = label_design['font']
+        self.label_smear.grid(row=22, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_sm = Decimalentry(oct_conv, textvariable= self._var['smear']) 
-        self.entry_sm['font'] = label_design['font']
-        self.entry_sm.grid(row=22, column=1, sticky='w', padx=2, pady=2)
+        self.entry_smear = Decimalentry(oct_conv, textvariable= self._var['smear']) 
+        self.entry_smear['font'] = label_design['font']
+        self.entry_smear.grid(row=22, column=1, sticky='w', padx=2, pady=2)
 
-        self.lb2 = tk.Label(oct_conv,text="Smearing Function",bg=label_design['bg'], fg=label_design['fg'])
-        self.lb2['font'] = label_design['font']
-        self.lb2.grid(row=24, column=0, sticky='w', padx=2, pady=4)
+        self.label_smearfunc = tk.Label(oct_conv,text="Smearing Function",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_smearfunc['font'] = label_design['font']
+        self.label_smearfunc.grid(row=24, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_pol_x = ttk.Combobox(oct_conv, textvariable= self._var['smearfn'], value = self.default_para['smearfn']['values'])
-        self.entry_pol_x.current(0)
-        self.entry_pol_x['font'] = label_design['font']
-        self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=24, column=1, sticky='w', padx=2, pady=2)
+        self.entry_smearfunc = ttk.Combobox(oct_conv, textvariable= self._var['smearfn'], value = self.default_para['smearfn']['values'])
+        self.entry_smearfunc.current(0)
+        self.entry_smearfunc['font'] = label_design['font']
+        self.entry_smearfunc['state'] = 'readonly'
+        self.entry_smearfunc.grid(row=24, column=1, sticky='w', padx=2, pady=2)
 
 
     def create_input_widgets(self) -> None:
