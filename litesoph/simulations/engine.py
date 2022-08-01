@@ -13,11 +13,9 @@ from litesoph import config
 class EngineStrategy(ABC):
     """Abstract base class for the different engine."""
 
-    @abstractmethod
     def create_script(self, template: str) -> None:
         pass
 
-    @abstractmethod
     def create_command(self) -> list:
         pass
 
@@ -163,76 +161,5 @@ class EngineOctopus(EngineStrategy):
         
 class EngineNwchem(EngineStrategy):
 
-    NAME = 'nwchem'
-
-    ground_state = nwchem_data.ground_state
-    
-    rt_tddft_delta = nwchem_data.rt_tddft_delta
-
-    rt_tddft_laser = nwchem_data.rt_tddft_laser
-
-    spectrum =  nwchem_data.spectrum
-
-    restart = nwchem_data.restart
-
-    task_dirs = nwchem_data.task_dirs
-
-
     def __init__(self, project_dir, lsconfig, status=None) -> None:
-        self.project_dir = project_dir
-        self.status = status
-        self.lsconfig = lsconfig
-        self.restart = pathlib.Path(self.project_dir.name) / self.restart
-
-    def create_dir(self, directory, task):
-
-        self.restart_dir = self.project_dir.parent /  self.restart
-        self.create_directory(self.restart_dir)
-
-        task_dir = self.get_dir_name(task)
-        directory = pathlib.Path(directory) / self.NAME / task_dir
-        self.create_directory(directory)
-        return directory
-
-    def create_script(self,directory,template: str,filename) -> None:
-        """creates the input scripts for nwchem"""
-        if not filename:
-            raise Exception('input filename not given')
-        self.directory = directory
-        self.filename = filename 
-        write2file(self.directory,self.filename,template)
-    
-    def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
-
-        filename = pathlib.Path(self.directory) / self.filename
-        ofilename = pathlib.Path(filename).stem + '.nwo'
-        command = self.lsconfig.get('engine', 'nwchem')
-
-        if remote:
-            job_script.append(self.get_engine_network_job_cmd())
-            job_script.append(f"cd {str(path)}")
-            job_script.append(f"mpirun -np {np:d}  nwchem {filename} > {ofilename}")
-        else:
-            job_script.append(f"cd {str(path)}")
-
-            path_nwchem = self.lsconfig.get('engine', 'nwchem')
-            if not path_nwchem:
-                path_nwchem = 'nwchem'
-            command = path_nwchem + ' ' + str(filename) + ' ' + '>' + ' ' + str(ofilename)
-            if np > 1:
-                cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
-                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
-            job_script.append(command)
-        return job_script
-
-    @staticmethod
-    def get_engine_network_job_cmd():
-
-        job_script = """
-##### Please Provide the Excutable Path or environment of NWCHEM or load the module
-
-#eval "$(conda shell.bash hook)"
-#conda activate <environment name>
-
-#module load nwchem"""
-        return job_script
+        pass
