@@ -684,87 +684,47 @@ class TimeDependentPage(View):
         self._var = var_define(self._default_var)
         
         self.Frame1_label_path = tk.Label(
-            self, text="LITESOPH input for Delta Kick", fg='blue')
+            self.input_param_frame, text="LITESOPH input for Delta Kick", fg='blue')
         self.Frame1_label_path['font'] = myFont
-        self.Frame1_label_path.grid(row=0, column=3)
-        # self.Frame1_label_path.place(x=150,y=10)
+        self.Frame1_label_path.grid(row=0, column=0)
 
         self.label_proj = tk.Label(
-            self.Frame1, text="Laser strength in a.u", bg="gray", fg="black", justify='left')
+            self.input_param_frame, text="Laser strength in a.u", bg="gray", fg="black", justify='left')
         self.label_proj['font'] = myFont
         self.label_proj.grid(row=2, column=0, sticky='w', padx=5, pady=5)
-        # self.label_proj.place(x=10,y=60)
 
         inval = ["1e-5", "1e-4", "1e-3"]
         self.entry_inv = ttk.Combobox(
-            self.Frame1, textvariable=self._var['strength'], value=inval)
+            self.input_param_frame, textvariable=self._var['strength'], value=inval)
         self.entry_inv['font'] = myFont
-        # self.entry_inv.place(x=280,y=60)
         self.entry_inv.grid(row=2, column=1)
         self.entry_inv['state'] = 'readonly'
 
         self.label_proj = tk.Label(
-            self.Frame1, text="Propagation time step (in attosecond)", bg="gray", fg="black")
+            self.input_param_frame, text="Propagation time step (in attosecond)", bg="gray", fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.grid(row=3, column=0, sticky='w', padx=2, pady=4)
 
-        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['dt'])
-        self.entry_dt = Decimalentry(self.Frame1, textvariable=self._var['dt'])
+        self.entry_dt = Decimalentry(self.input_param_frame, textvariable=self._var['dt'])
         self.entry_dt['font'] = myFont
         self.entry_dt.grid(row=3, column=1, ipadx=2, ipady=2)
 
         self.label_proj = tk.Label(
-            self.Frame1, text="Total time steps", bg="gray", fg="black")
+            self.input_param_frame, text="Total time steps", bg="gray", fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.grid(row=4, column=0, sticky='w', padx=2, pady=4)
 
-        #self.entry_proj = tk.Entry(self.Frame1,textvariable= self._var['Nt'])
-        self.entry_nt = Onlydigits(self.Frame1, textvariable=self._var['Nt'])
+        self.entry_nt = Onlydigits(self.input_param_frame, textvariable=self._var['Nt'])
         self.entry_nt['font'] = myFont
         self.entry_nt.grid(row=4, column=1, ipadx=2, ipady=2)
 
-        #################################################################################################
+        property_frame(self, self.property_frame, myFont, spectra_var= self._var['spectra'],
+                                ksd_var=self._var['ksd'], pop_var=self._var['popln'],
+                                output_freq_var=self._var['output_freq'],
+                                row=1)
 
-        frame_property = ttk.Frame(self.Frame2)
-        frame_property.grid(row=0, column=0)
-
-        frame_additional = ttk.Frame(self.Frame1)
+        frame_additional = ttk.Frame(self.input_param_frame)
         frame_additional.grid(row=8, column=0, pady=10)
-
-        self.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
-        self.property_note['font'] = myFont
-        self.property_note.grid(row=0, column=0)
-
-        self.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable=self._var['spectra'], font=myFont, onvalue=1)
-        self.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
-        
-        frame_spec_option = ttk.Frame(frame_property)
-        frame_spec_option.grid(row=2, column=0, sticky='w')
-
-        # self.checkbox_specific_spectra = tk.Checkbutton(frame_spec_option, text="Specific Polarisation", font=myFont, onvalue=1, offvalue=0)
-        # self.checkbox_specific_spectra.grid(row=0, column=0, ipady=5, sticky='w')
-
-        # self.checkbox_avg_spectra = tk.Checkbutton(frame_spec_option, text="Averaged over (X,Y,Z) direction", variable=self._var['avg_spectra'], font=myFont, onvalue=1, offvalue=0)
-        # self.checkbox_avg_spectra.grid(row=0, column=0, sticky='w', padx=20)                  
-       
-        self.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=self._var['ksd'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
-       
-        self.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=self._var['popln'], font=myFont, onvalue=1, offvalue=0)
-        self.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
-
-        frame_output_freq = ttk.Frame(frame_property)
-        frame_output_freq.grid(row=5, column=0, sticky='w')
-
-        self.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
-        self.Frame2_lab['font'] = myFont
-        self.Frame2_lab.grid(row=0, column=0,sticky='w')
-
-        self.entry_out_frq = Onlydigits(frame_output_freq, textvariable=self._var['output_freq'], width=5)
-        self.entry_out_frq['font'] = myFont
-        self.entry_out_frq.grid(row=0, column=1,sticky='w')
-
-        #######################################################################################################
 
         self.label_select = tk.Label(frame_additional, text="Please select polarization direction:",  bg="gray", fg="black")
         self.label_select['font'] = myFont
@@ -778,65 +738,23 @@ class TimeDependentPage(View):
             tk.Radiobutton(frame_pol, text=text, variable=self._var['pol_var'], font=myfont2(),
              justify='left',value=value).grid(row=0, column=value, ipady=5, sticky='w')
         
-        # label_add = tk.Label(frame_pol, text="Please add polarization vectors:", bg="gray", fg="black")
-        # label_add['font'] = myFont
-        # label_add.grid(row=0, column=1, sticky='w', padx=2, pady=4)
-
-        #######################################################################################################
-        
-        # label_E = tk.Label(frame_pol, text="E:",  fg="black", font=myFont)
-        # label_E.grid(row=1, column =0, sticky='nsew')
-
-        # pol_list = [0, 1]
-        # self.entry_pol_x = ttk.Combobox(frame_pol, textvariable=self._var['ex'], value=pol_list, width=3)
-        # self.entry_pol_x['font'] = myFont
-        # self.entry_pol_x.grid(row=1, column=1, padx=2, pady=2)
-        # self.entry_pol_x['state'] = 'readonly'
-
-        # self.entry_pol_y = ttk.Combobox(frame_pol, textvariable=self._var['ey'], value=pol_list, width=3)
-        # self.entry_pol_y['font'] = myFont
-        # self.entry_pol_y.grid(row=1, column=2, padx=2, pady=2)
-        # self.entry_pol_y['state'] = 'readonly'
-
-        # self.entry_pol_z = ttk.Combobox(frame_pol, textvariable=self._var['ez'], value=pol_list, width=3)
-        # self.entry_pol_z['font'] = myFont
-        # self.entry_pol_z.grid(row=1, column=3, padx=2, pady=2)
-        # self.entry_pol_z['state'] = 'readonly'
-
-        ##########################################################################################################    
-
-        # values = {"Specific polarization direction": 2}
-        # for (text, value) in values.items():
-        #     tk.Radiobutton(self.Frame1, text=text, variable=self._var['var1'], font=myFont, justify='left',
-        #                    value=value).grid(row=value+5, column=0, ipady=5, sticky='w')
-
-        # Frame1_Button3 = tk.Button(frame_pol, text="Add",activebackground="#78d6ff",command=lambda:self.add_button())
-        # Frame1_Button3['font'] = myFont
-        # Frame1_Button3.grid(row =1, column=4, padx =5, pady=2)
-
-        # options = [1,2,3,4]
-        # options.append([self._var['ex'].get(),self._var['ez'].get()])
-        # E_list = tk.Listbox(frame_pol)
-        # E_list.grid(row=2, column=1)
-        # for i in range(len(options)):
-        #     E_list.insert(i,options[i])
-
-        self.Frame1_Button1 = tk.Button(self.frame_button, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.Frame1_Button1 = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.Frame1_Button1['font'] = myFont
         self.Frame1_Button1.grid(row=0, column=1, sticky='nsew', padx=3, pady=3)
-        self.frame_button.grid_columnconfigure(2, weight=1)
-        self.frame_button.grid_columnconfigure(4, weight=1)
-        self.Frame1_Button2 = tk.Button(self.frame_button, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
+        self.save_button_frame.grid_columnconfigure(2, weight=1)
+        self.save_button_frame.grid_columnconfigure(4, weight=1)
+        self.Frame1_Button2 = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.Frame1_Button2['font'] = myFont
         self.Frame1_Button2.grid(row=0, column=3, sticky='nsew', padx=3, pady=3)
         
-        self.Frame1_Button3 = tk.Button(self.frame_button, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
+        self.Frame1_Button3 = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.Frame1_Button3['font'] = myFont
         self.Frame1_Button3.grid(row=0, column=5, sticky='nswe', padx=3, pady=3)
 
-        self.label_msg = tk.Label(self.frame_button,text="")
+        self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=4)
+        add_job_frame(self, self.submit_button_frame, task_name, row=1, column=9)
 
     def get_pol_list(self): 
         if self._var['pol_var'].get() == 0:
