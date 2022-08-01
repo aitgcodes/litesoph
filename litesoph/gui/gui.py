@@ -72,8 +72,6 @@ class GUIAPP:
         
         self.builder.connect_callbacks(self)
 
-        self.ground_state_view = None
-        self.ground_state_task = None
         
         self.laser_design = None
 
@@ -208,8 +206,6 @@ class GUIAPP:
         self._change_directory(path)
         self.set_title(path.name)
         self.update_summary_of_project()
-        #self.navigation.populate(self.directory)
-        #self._get_engine()
         update_proj_list(path)
         self._get_engine()
         return True
@@ -314,15 +310,6 @@ class GUIAPP:
                 messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
                 return
 
-        if sub_task  == "Ground State":
-            path = pathlib.Path(self.directory) / "coordinate.xyz"
-            if path.exists() is True:
-                self.main_window.event_generate('<<ShowGroundStatePage>>')
-            else:
-                messagebox.showerror(title = 'Error', message= "Upload geometry file")
-                return
-            return
-
         if task == "Simulations":
 
             if w.get_value('dynamics') == '--dynamics type--' or w.get_value('laser') == '-- laser type--':
@@ -336,6 +323,15 @@ class GUIAPP:
                         return
                     else:
                         self.main_window.event_generate(event)
+            return
+
+        if sub_task  == "Ground State":
+            path = pathlib.Path(self.directory) / "coordinate.xyz"
+            if path.exists() is True:
+                self.main_window.event_generate('<<ShowGroundStatePage>>')
+            else:
+                messagebox.showerror(title = 'Error', message= "Upload geometry file")
+                return
             return
 
         if sub_task in ["Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]:
@@ -363,8 +359,9 @@ class GUIAPP:
 ##----------------------Ground_State_task---------------------------------
 
     def _on_ground_state_task(self, *_):
+        task_name = 'ground_state'
         self._frames[v.WorkManagerPage].refresh_var()
-        self._show_frame(v.GroundStatePage, self.engine)
+        self._show_frame(v.GroundStatePage, self.engine, task_name)
         self.ground_state_view = self._frames[v.GroundStatePage]
         if self.ground_state_view.engine.get() != self.engine:
             self.ground_state_view.engine.set(self.engine)
@@ -372,162 +369,67 @@ class GUIAPP:
         self.ground_state_view.refresh_var()
         self.ground_state_view.set_label_msg('')
         self.view_panel.insert_text('')
-        self.main_window.bind_all('<<SaveGroundStateScript>>', lambda _ : self._on_gs_save_button())
-        self.main_window.bind_all('<<GenerateGroundStateScript>>', lambda _ : self._generate_gs_input())
-        self.main_window.bind_all('<<SubLocalGroundState>>',  self._on_gs_run_local_button)
-        self.main_window.bind_all('<<SubNetworkGroundState>>', self._on_gs_run_network_button)
+        self.main_window.bind_all(f'<<Generate{task_name}Script>>', lambda _ : self._generate_gs_input(task_name, self.ground_state_view))
 
-    def _on_gs_save_button(self, *_):
-        template = self.view_panel.get_text()
-        self.ground_state_task.write_input(template)
-        self.status.set_new_task(self.engine, self.ground_state_task.task_name)
-        self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.script', 1)
-        self.status.update_status(f'{self.engine}.{self.ground_state_task.task_name}.param',self.ground_state_task.user_input)
-        self.status_engine.set(self.engine)
-        self.ground_state_view.set_sub_button_state('active')
-        self.ground_state_view.set_label_msg('saved')
-            
-    def _generate_gs_input(self):
-        inp_dict = self.ground_state_view.get_parameters()
+    def _generate_gs_input(self, task_name, view):
+        inp_dict = view.get_parameters()
         if not inp_dict:
             return
         self.engine = inp_dict.pop('engine')
-        self.ground_state_task = get_engine_task(self.engine, 'ground_state', self.status, self.directory, self.lsconfig, inp_dict)
+        self.ground_state_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
         self.ground_state_task.create_template()
         self.view_panel.insert_text(text=self.ground_state_task.template, state='normal')
-        
-
-    def _on_gs_run_local_button(self, *_):
-        if not self._check_task_run_condition(self.ground_state_task):
-            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
-            return
-
-        self.ground_state_view.refresh_var()
-        self.job_sub_page = v.JobSubPage(self.input_frame, 'GroundState', 'Local')
-        self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
-        self.job_sub_page.activate_run_button()
-        self.job_sub_page.bind('<<RunGroundStateLocal>>', lambda _: self._run_local(self.ground_state_task))
-        self.job_sub_page.bind('<<ViewGroundStateLocalOutfile>>', lambda _: self._on_out_local_view_button(self.ground_state_task))
-        self.job_sub_page.bind('<<SaveGroundStateLocal>>',lambda _: self._on_save_job_script(self.ground_state_task))
-        self.job_sub_page.bind('<<CreateGroundStateLocalScript>>', lambda _: self._on_create_local_job_script(self.ground_state_task,'GroundStateLocal'))
-
-    def _on_gs_run_network_button(self, *_):
-
-        if not self._check_task_run_condition(self.ground_state_task):
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-            return
-
-        self.ground_state_view.refresh_var()
-        self.job_sub_page = v.JobSubPage(self.input_frame, 'GroundState', 'Network')
-        self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
-        self.job_sub_page.activate_run_button()
-        remote = get_remote_profile()
-        if remote:
-            self.job_sub_page.set_network_profile(remote)
-        self.job_sub_page.bind('<<RunGroundStateNetwork>>', lambda _: self._run_network(self.ground_state_task))
-        self.job_sub_page.bind('<<ViewGroundStateNetworkOutfile>>', lambda _: self. _on_out_remote_view_button(self.ground_state_task))
-        self.job_sub_page.bind('<<SaveGroundStateNetwork>>',lambda _: self._on_save_job_script(self.ground_state_task))
-        self.job_sub_page.bind('<<CreateGroundStateNetworkScript>>', lambda _: self._on_create_remote_job_script(self.ground_state_task,'GroundStateNetwork'))
+        self.bind_task_events(task_name, self.ground_state_task, view)
 
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
-        
-        check = check_task_pre_conditon(self.engine, 'rt_tddft_delta', self.status)
+        task_name = 'rt_tddft_delta'
+        check = check_task_pre_conditon(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._show_frame(v.TimeDependentPage, self.engine)
+        self._show_frame(v.TimeDependentPage, self.engine, task_name)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
-        self.rt_tddft_delta_view.add_job_frame('RT_TDDFT_DELTA')
         self.rt_tddft_delta_view.set_sub_button_state('disabled')
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
+        self.main_window.bind_all(f'<<Generate{task_name}Script>>', lambda _ : self._generate_td_input(task_name, self.rt_tddft_delta_view))
 
-        self.main_window.bind_all('<<SaveRT_TDDFT_DELTAScript>>', lambda _ : self._on_td_save_button())
-        self.main_window.bind_all('<<GenerateRT_TDDFT_DELTAScript>>', lambda _ : self._generate_td_input())
-        self.main_window.bind_all('<<SubLocalRT_TDDFT_DELTA>>',  self._on_td_run_local_button)
-        self.main_window.bind_all('<<SubNetworkRT_TDDFT_DELTA>>',  self._on_td_run_network_button)
-
-    def _on_td_save_button(self, *_):
-        template = self.view_panel.get_text()
-        self.rt_tddft_delta_task.write_input(template)
-        self.status.set_new_task(self.engine, self.rt_tddft_delta_task.task_name)
-        self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.script', 1)
-        self.status.update_status(f'{self.engine}.{self.rt_tddft_delta_task.task_name}.param',self.rt_tddft_delta_task.user_input)
-        self.rt_tddft_delta_view.set_sub_button_state('active')
-        self.rt_tddft_delta_view.set_label_msg('saved')
-
-    def _generate_td_input(self):
-        inp_dict = self.rt_tddft_delta_view.get_parameters()
-        self.rt_tddft_delta_task = get_engine_task(self.engine, 'rt_tddft_delta', self.status, self.directory, self.lsconfig, inp_dict)
+    def _generate_td_input(self, task_name, view):
+        inp_dict = view.get_parameters()
+        self.rt_tddft_delta_task = get_engine_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
         self.rt_tddft_delta_task.create_template()
         self.view_panel.insert_text(text=self.rt_tddft_delta_task.template, state='normal')
-        self.rt_tddft_delta_view.set_label_msg('saved')
-
-    def _on_td_run_local_button(self, *_):
-
-        if not self._check_task_run_condition(self.rt_tddft_delta_task):
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-            return
-        self.job_sub_page = v.JobSubPage(self.input_frame, 'RT_TDDFT_DELTA', 'Local')
-        self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
-        self.job_sub_page.activate_run_button()
-        
-        self.job_sub_page.bind('<<RunRT_TDDFT_DELTALocal>>', lambda _: self._run_local(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTALocalOutfile>>', lambda _: self._on_out_local_view_button(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<SaveRT_TDDFT_DELTALocal>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTALocalScript>>', lambda _: self._on_create_local_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTALocal'))
-
-    def _on_td_run_network_button(self, *_):
-
-        if not self._check_task_run_condition(self.rt_tddft_delta_task):
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-            return
-        self.job_sub_page = v.JobSubPage(self.input_frame, 'RT_TDDFT_DELTA', 'Network')
-        self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
-        remote = get_remote_profile()
-        if remote:
-            self.job_sub_page.set_network_profile(remote)
-        self.job_sub_page.activate_run_button()
-        self.job_sub_page.bind('<<RunRT_TDDFT_DELTANetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<ViewRT_TDDFT_DELTANetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<SaveRT_TDDFT_DELTANetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-        self.job_sub_page.bind('<<CreateRT_TDDFT_DELTANetworkScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+        self.bind_task_events(task_name, self.rt_tddft_delta_task, view)
 
 ##----------------------Time_dependent_task_laser---------------------------------
 
     def _on_rt_tddft_laser_task(self, *_):
+        task_name = 'rt_tddft_laser'
 
-        check = check_task_pre_conditon(self.engine, 'rt_tddft_laser', self.status)
+        check = check_task_pre_conditon(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._show_frame(v.LaserDesignPage, self.engine)
+        self._show_frame(v.LaserDesignPage, self.engine, task_name)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
+        self.rt_tddft_laser_view.set_sub_button_state('disabled')
         self.rt_tddft_laser_view.engine = self.engine
 
-        self.main_window.bind_all('<<SaveRT_TDDFT_LASERScript>>', self._on_td_laser_save_button)
-        self.main_window.bind_all('<<ViewRT_TDDFT_LASERScript>>',  self._on_td_laser_view_button)
-        self.main_window.bind_all('<<SubRT_TDDFT_LASER>>',  self._on_td_laser_run_job_button)
+        self.main_window.bind_all(f'<<Generate{task_name}Script>>', lambda _ :  self._generate_td_laser_input(task_name, self.rt_tddft_laser_view))
         self.main_window.bind_all('<<DesignLaser>>', self._on_design_laser)
-        self.main_window.bind_all('<<ChooseLaser>>', self._on_choose_laser)
 
-    def _on_td_laser_save_button(self, *_):
-        self._validate_td_laser_input()
-        self._td_laser_create_input()
-    
     def _on_design_laser(self, *_):
         laser_desgin_inp = self.rt_tddft_laser_view.get_laser_pulse()
         self.laser_design = m.LaserDesignModel(laser_desgin_inp)
         self.laser_design.create_pulse()
         self.laser_design.plot_time_strength()
-        # self.rt_tddft_laser_view.show_laser_plot(self.laser_design.plot_time_strength())
 
     def _on_choose_laser(self, *_):
         if not self.laser_design:
@@ -535,49 +437,22 @@ class GUIAPP:
             return
         check = messagebox.askokcancel(message= "Do you want to proceed with this laser set up?")
         if check is True:
-            # self.rt_tddft_laser_view.destroy_plot()
-            # self.rt_tddft_laser_view.activate_td_frame()
             self.laser_design.write_laser("laser.dat")
+            return True
         else:
             self.laser_design = None 
             self._on_rt_tddft_laser_task()
 
-    def _on_td_laser_view_button(self, *_):
-        template = self._validate_td_laser_input()
-        text_view = self._init_text_viewer('RT_TDDFT_LASER', template)
-        text_view.bind('<<SaveRT_TDDFT_LASER>>', lambda _: self._td_laser_create_input(text_view.save_txt))
-        text_view.bind('<<ViewRT_TDDFT_LASERPage>>', lambda _: self._show_frame(v.LaserDesignPage))
+    def _generate_td_laser_input(self, task_name, view):
 
-    def _validate_td_laser_input(self):
-        self.rt_tddft_laser_view.set_laser_design_dict(self.laser_design.l_design)
-        inp_dict = self.rt_tddft_laser_view.get_parameters()
-        inp_dict['laser'] = self.laser_design.pulse.dict
-        self.rt_tddft_laser_task = get_engine_task(self.engine, 'rt_tddft_laser', self.status, self.directory, self.lsconfig, inp_dict)
-        self.rt_tddft_laser_task.create_template()
-        return self.rt_tddft_laser_task.template
-
-    def _td_laser_create_input(self, template=None):     
-        self.rt_tddft_laser_task.write_input(template)
-        self.status.set_new_task(self.engine, self.rt_tddft_laser_task.task_name)
-        self.status.update_status(f'{self.engine}.{self.rt_tddft_laser_task.task_name}.script', 1)
-        self.status.update_status(f'{self.engine}.{self.rt_tddft_laser_task.task_name}.param',self.rt_tddft_laser_task.user_input)
-        self.rt_tddft_laser_view.set_label_msg('saved')
-        self.check = False
-
-    def _on_td_laser_run_job_button(self, *_):
-        try:
-            getattr(self.rt_tddft_laser_task.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(title = 'Error', message="Input not saved. Please save the input before job submission")
+        if not self._on_choose_laser():
             return
-        else:
-            self.job_sub_page = v.JobSubPage(self.input_frame, 'RT_TDDFT_LASER')
-            self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
-            self.job_sub_page.activate_run_button()
-            self.job_sub_page.show_output_button('View Output','RT_TDDFT_LASER')
-            self.job_sub_page.bind('<<RunRT_TDDFT_LASERLocal>>', lambda _: self._run_local(self.rt_tddft_laser_task))
-            self.job_sub_page.bind('<<RunRT_TDDFT_LASERNetwork>>', lambda _: self._run_network(self.rt_tddft_laser_task))
-        
+        view.set_laser_design_dict(self.laser_design.l_design)
+        inp_dict = view.get_parameters()
+        self.rt_tddft_laser_task = get_engine_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
+        self.rt_tddft_laser_task.create_template()
+        self.view_panel.insert_text(text=self.rt_tddft_laser_task.template)
+        self.bind_task_events(task_name, self.rt_tddft_laser_task, view)
 ##----------------------plot_delta_spec_task---------------------------------
     
     def _on_spectra_task(self, *_):
@@ -598,19 +473,14 @@ class GUIAPP:
         self.main_window.bind_all('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
         self.main_window.bind_all('<<ShowSpectrumPlot>>', lambda _:self._on_spectra_plot_button())
 
-    def _validate_spectra_input(self):
+    def _on_spectra_run_local_button(self, *_):
+        
         inp_dict = self.spectra_view.get_parameters()
         self.spectra_task = get_engine_task(self.engine, 'spectrum', self.status, self.directory, self.lsconfig, inp_dict)
-
-    def _spectra_create_input(self, template=None):     
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
 
-    def _on_spectra_run_local_button(self, *_):
-        
-        self._validate_spectra_input()
-        self._spectra_create_input()
         if self.engine == 'nwchem':
             self.spectra_task.create_job_script()
         else:
@@ -619,19 +489,7 @@ class GUIAPP:
         
 
     def _on_spectra_run_network_button(self, *_):
-        
-        return
-        try:
-            getattr(self.spectra_task.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-        else:
-            self.job_sub_page = v.JobSubPage(self.input_frame, 'Spectrum', 'Network')
-            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.bind('<<RunSpectrumNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<ViewSpectrumNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveSpectrumNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<CreateSpectrumRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+        pass
 
     def _on_spectra_plot_button(self, *_):
         """ Selects engine specific plot function"""
@@ -658,42 +516,21 @@ class GUIAPP:
         self.main_window.bind_all('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
         self.main_window.bind_all('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
 
-    def _validate_tcm_input(self):
+    def _on_tcm_run_local_button(self, *_):
+        
         inp_dict = self.tcm_view.get_parameters()
         self.tcm_task = get_engine_task(self.engine, 'tcm', self.status, self.directory, self.lsconfig, inp_dict)
         self.tcm_task.create_template()
-
-
-    def _tcm_create_input(self, template=None):     
-        self.tcm_task.write_input(template)
+        self.tcm_task.write_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
-        #self.rt_tddft_laser_view.set_label_msg('saved')
-        self.check = False
-
-    def _on_tcm_run_local_button(self, *_):
-        
-        self._validate_tcm_input()
-        self._tcm_create_input()
 
         self._run_local(self.tcm_task,np=1 )
         
 
     def _on_tcm_run_network_button(self, *_):
-
-        return
-        try:
-            getattr(self.spectra_task.engine,'directory')           
-        except AttributeError:
-            messagebox.showerror(message="Input not saved. Please save the input before job submission")
-        else:
-            self.job_sub_page = v.JobSubPage(self.input_frame, 'TCM', 'Network')
-            self.job_sub_page.grid(row=0, column=1, sticky ="nsew")
-            self.job_sub_page.bind('<<RunTCMNetwork>>', lambda _: self._run_network(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<ViewTCMNetworkOutfile>>', lambda _: self._on_out_remote_view_button(self.rt_tddft_delta_task))
-            self.job_sub_page.text_view.bind('<<SaveTCMNetwork>>',lambda _: self._on_save_job_script(self.rt_tddft_delta_task))
-            self.job_sub_page.bind('<<CreateTCMRemoteScript>>', lambda _: self._on_create_remote_job_script(self.rt_tddft_delta_task,'RT_TDDFT_DELTANetwork'))
+        pass
 
     def _on_tcm_plot_button(self, *_):
         """ Selects engine specific plot function"""
@@ -706,8 +543,53 @@ class GUIAPP:
 
     def view_input_file(self, task:Task):
         self.view_panel.insert_text(task.template)
+    
+    def bind_task_events(self, task_name, task , view):
+        self.main_window.bind_all(f'<<Save{task_name}Script>>', lambda _ : self._on_save_button(task, view))
+        self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _ : self._on_run_local_button(task))
+        self.main_window.bind_all(f'<<SubNetworkt{task_name}>>', lambda _ : self._on_run_network_button(task))
+    
+    def _on_save_button(self, task:Task, view, *_):
+        template = self.view_panel.get_text()
+        task.write_input(template)
+        self.status.set_new_task(self.engine, task.task_name)
+        self.status.update_status(f'{self.engine}.{task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{task.task_name}.param',task.user_input)
+        if task.task_name == 'ground_state':
+            self.status_engine.set(self.engine)
+        view.set_sub_button_state('active')
+        view.set_label_msg('saved')
+    
+    def _on_run_network_button(self, task:Task, *_):
 
+        if not self._check_task_run_condition(task):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            return
+        self.job_sub_page = v.JobSubPage(self.input_frame, task.task_name , 'Network')
+        self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
+        remote = get_remote_profile()
+        if remote:
+            self.job_sub_page.set_network_profile(remote)
+        self.job_sub_page.activate_run_button()
+        self.job_sub_page.bind(f'<<Run{task.task_name}Network>>', lambda _: self._run_network(task))
+        self.job_sub_page.bind(f'<<View{task.task_name}NetworkOutfile>>', lambda _: self._on_out_remote_view_button(task))
+        self.job_sub_page.bind(f'<<Save{task.task_name}Network>>',lambda _: self._on_save_job_script(task))
+        self.job_sub_page.bind(f'<<Create{task.task_name}NetworkScript>>', lambda _: self._on_create_remote_job_script(task, task.task_name + 'Network'))
+    
+    def _on_run_local_button(self, task:Task, *_):
 
+        if not self._check_task_run_condition(task):
+            messagebox.showerror(message="Input not saved. Please save the input before job submission")
+            return
+        self.job_sub_page = v.JobSubPage(self.input_frame, task.task_name, 'Local')
+        self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
+        self.job_sub_page.activate_run_button()
+        
+        self.job_sub_page.bind(f'<<Run{task.task_name}Local>>', lambda _: self._run_local(task))
+        self.job_sub_page.bind(f'<<View{task.task_name}LocalOutfile>>', lambda _: self._on_out_local_view_button(task))
+        self.job_sub_page.bind(f'<<Save{task.task_name}Local>>',lambda _: self._on_save_job_script(task))
+        self.job_sub_page.bind(f'<<Create{task.task_name}LocalScript>>', lambda _: self._on_create_local_job_script(task, task.task_name + 'Local'))
+    
     def _run_local(self, task: Task, np=None):
 
         if np:

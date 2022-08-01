@@ -18,8 +18,12 @@ class NWChem:
         self.results = {}
 
     def create_input(self):
-        self.template = nwchem_create_input(**self.parameters) 
-        return self.template
+
+        if self.parameters:
+            self.template = nwchem_create_input(**self.parameters) 
+            return self.template
+        else:
+            raise Exception("sufficient input is not given.")
 
     def write_input(self, template=None):
 
@@ -49,7 +53,7 @@ class NWChem:
         if not self.cmd:
             self.cmd = 'nwchem'
 
-        command = f"{self.cmd} {self.infile} > {self.outfile}"
+        command = f"{self.cmd} {self.infile} > {str(self.outfile)}"
         stdout, stderr = subprocess.Popen(command,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
@@ -61,7 +65,7 @@ class NWChem:
     def read_results():
         pass
 
-    def get_timedependent_dipole(self,filename=None):
+    def get_timedependent_dipole(self, filename=None):
 
         pass
     
