@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from litesoph.simulations.esmd import Task
 from litesoph.simulations.octopus.octopus import Octopus
-from litesoph.simulations.octopus.input import get_task
+from litesoph.simulations.octopus.octopus_input import get_task
 from litesoph import config
 
 engine_dir = 'octopus'
