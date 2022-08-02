@@ -203,8 +203,6 @@ def generate_input(inp_dict:dict, check = True):
         
     # gets task_name from inp_dict
     task = get_task(inp_dict)
-    print(task)
-
 
     validate_func ={
         "ground_state": validate_gs_input,
@@ -221,7 +219,6 @@ def generate_input(inp_dict:dict, check = True):
     if check:
         for block in list_of_blocks:
             block_dict = get_block_dict(inp_dict, block)
-            print(block_dict)
             _lines = format_lines(block_dict)
             lines.extend(_lines)
     else:

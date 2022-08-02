@@ -95,7 +95,6 @@ class OctopusTask(Task):
         self.template = self.octopus.create_input()
 
     def create_job_script(self, np=1, remote_path=None) -> list:
-        print("writing job script")
         
         job_script = super().create_job_script()
 
