@@ -1,4 +1,5 @@
 from litesoph.simulations.nwchem.nwchem_input import nwchem_create_input
+from litesoph.simulations.nwchem.nwchem_read_rt import nwchem_rt_parser
 import subprocess
 import pathlib
 import os
@@ -65,7 +66,27 @@ class NWChem:
     def read_results():
         pass
 
-    def get_timedependent_dipole(self, filename=None):
+    def get_td_dipole(self, dipole_file,
+                                td_out_file=None, 
+                                tag='<rt_tddft>', 
+                                spin="closedshell", 
+                                geometry= 'system',
+                                polarization = None ):
 
-        pass
+        if not td_out_file:
+            td_out_file = str(self.directory / self.infile)
     
+        nwchem_rt_parser(td_out_file, outfile=dipole_file,
+                            tag=tag, target='dipole',
+                            spin= spin, geometry=geometry,
+                            polarization=polarization)
+
+    def get_td_mooc(self, popl_file,
+                        td_out_file=None, 
+                        tag='<rt_tddft>'):
+
+        if not td_out_file:
+            td_out_file = str(self.directory / self.infile)
+    
+        nwchem_rt_parser(td_out_file, outfile=popl_file,
+                            tag=tag, target='moocc')
