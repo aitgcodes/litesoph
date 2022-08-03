@@ -440,6 +440,7 @@ class OctGSPage(EngineViews):
         inp_dict_oct = {
             "engine": "octopus",
             "CalculationMode": "gs",
+            "UnitsOutput": "ev_angstrom",
             "ExperimentalFeatures": self._var['expt'].get(),
             "XCFunctional": [self._var['x'].get(),self._var['c'].get()],
             "PseudopotentialSet" : self._var['pseudo'].get(),

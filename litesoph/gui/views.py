@@ -1318,9 +1318,9 @@ class PlotSpectraPage(ttk.Frame):
         #   }
         
         td_dict_oct = {
-            "PropagationSpectrumEnergyStep":self._var['del_e'].get(),
-            "PropagationSpectrumMaxEnergy":self._var['e_max'].get(),
-            "PropagationSpectrumMinEnergy": self._var['e_min'].get()
+            "PropagationSpectrumEnergyStep": str(self._var['del_e'].get())+"*eV",
+            "PropagationSpectrumMaxEnergy": str(self._var['e_max'].get())+"*eV",
+            "PropagationSpectrumMinEnergy": str(self._var['e_min'].get())+"*eV"
           }
         
         if self.engine == 'gpaw':
