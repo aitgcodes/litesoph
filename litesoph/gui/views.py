@@ -446,6 +446,7 @@ class GroundStatePage(View):
         self.engine = tk.StringVar(value=engine)
         self.engine.trace_add('write', self.on_engine_change)
         self.job = None
+        self.property_frame.destroy()
 
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
         self.add_save_button_frame()
