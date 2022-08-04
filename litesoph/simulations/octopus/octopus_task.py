@@ -73,6 +73,7 @@ class OctopusTask(Task):
                 os.makedirs(dir)
 
         param['XYZCoordinates'] = str(self.project_dir / 'coordinate.xyz')
+        param['FromScratch'] = 'yes'
         
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
             gs_from_status = self.status.get_status('octopus.ground_state.param')
