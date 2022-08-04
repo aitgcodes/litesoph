@@ -400,8 +400,18 @@ class View(ttk.Frame):
 
         self.input_param_frame.pack(fill=tk.BOTH, anchor='n', expand=True)
         self.property_frame.pack(fill=tk.BOTH, anchor='n', expand=True)
-        self.save_button_frame.pack( fill=tk.BOTH, anchor='n',  expand=True)
+        self.save_button_frame.pack( fill=tk.BOTH, anchor='n')
         self.submit_button_frame.pack(side=tk.BOTTOM, anchor='e')
+
+    def clear_widgets(self):
+        f_list = [self.input_param_frame.winfo_children, 
+                self.property_frame.winfo_children,
+                self.submit_button_frame.winfo_children,
+                self.save_button_frame.winfo_children]
+
+        for frame in f_list:
+            for widget in frame():
+                widget.destroy()
 
     def set_sub_button_state(self,state):
         self.sublocal_Button.config(state=state)
@@ -425,11 +435,11 @@ class GroundStatePage(View):
     
     def __init__(self, parent,engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        
+        self.clear_widgets()
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
         style = ttk.Style()
         notebook = ttk.Notebook(self.input_param_frame)
-        notebook.pack(fill=tk.BOTH)
+        notebook.pack(fill=tk.BOTH, expand=True)
         style.configure("TNotebook.Tab", font=('Helvetica','10'))
         #style.map("TNotebook.Tab", background=[('selected')])
         
