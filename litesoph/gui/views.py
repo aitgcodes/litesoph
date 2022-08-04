@@ -1318,6 +1318,7 @@ class PlotSpectraPage(ttk.Frame):
         #   }
         
         td_dict_oct = {
+            "UnitsOutput": 'eV_angstrom',
             "PropagationSpectrumEnergyStep": str(self._var['del_e'].get())+"*eV",
             "PropagationSpectrumMaxEnergy": str(self._var['e_max'].get())+"*eV",
             "PropagationSpectrumMinEnergy": str(self._var['e_min'].get())+"*eV"
