@@ -1077,7 +1077,7 @@ class LaserDesignPage(View):
 
     def get_parameters(self):
         
-        from litesoph.utilities.units import au_to_fs,autime_to_eV
+        from litesoph.utilities.units import au_to_fs,autime_to_eV, as_to_au
         laser_param = self.laser_design_dict 
         self.pol_list, pol = self.get_pol_list()              
         # epol_list = [int(self.pol_x.get()),int(self.pol_y.get()),int(self.pol_z.get())]
@@ -1113,13 +1113,28 @@ class LaserDesignPage(View):
             return td_gpaw
             
         elif self.engine == 'octopus':
-            td_oct = {  'e_pol' :self.pol_list,
-                        'max_step' : self.ns.get(),
-                        'time_step': self.ts.get(),
-                        'strength' : self.strength.get(),
-                        'time0' :laser_param['time0'],
-                        'sigma' : laser_param['sigma'],
-                        'frequency': self.frequency.get()
+            # td_oct = {  'e_pol' :self.pol_list,
+            #             'max_step' : self.ns.get(),
+            #             'time_step': self.ts.get(),
+            #             'strength' : self.strength.get(),
+            #             'time0' :laser_param['time0'],
+            #             'sigma' : laser_param['sigma'],
+            #             'frequency': self.frequency.get()
+            #         }
+            td_oct = { 
+                'CalculationMode': 'td', 
+                'TDPropagator': 'aetrs',
+                'TDMaxSteps' : self.ns.get(),
+                'TDTimeStep': round(self.ts.get()*as_to_au, 2),
+                'TDFunctions': [[str('"'+"envelope_gauss"+'"'),'tdf_gaussian',
+                                self.strength.get(),
+                                laser_param['sigma'],laser_param['time0']
+                                ]],                
+                'TDExternalFields': [['electric_field',
+                                    self.pol_list[0],self.pol_list[1],self.pol_list[2],
+                                    str(self.frequency.get())+"*eV",
+                                    str('"'+"envelope_gauss"+'"')
+                                    ]]
                     }
             # print(td_oct)            
             return td_oct        
