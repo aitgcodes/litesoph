@@ -508,7 +508,7 @@ class GUIAPP:
             messagebox.showinfo(title= "Info", message=check[1])
             return
 
-        self._show_frame(v.TcmPage, self.input_frame)
+        self._show_frame(v.TcmPage)
         self.tcm_view = self._frames[v.TcmPage]
         self.tcm_view.engine_name.set(self.engine)
         

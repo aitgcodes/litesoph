@@ -666,7 +666,7 @@ class TimeDependentPage(View):
           
         self._default_var = {
             'strength': ['float', 1e-5],
-            'pol_var' : ['int', 0],
+            'pol_var' : ['int', 1],
             'dt': ['float'],
             'Nt': ['int'],
             'spectra': ['int', 1],
@@ -744,7 +744,7 @@ class TimeDependentPage(View):
         frame_pol = ttk.Frame(frame_additional, borderwidth=2)
         frame_pol.grid(row=1, column=0, sticky='w')
 
-        values = {"X": 0, "Y": 1, "Z": 2}
+        values = {"X": 1, "Y": 2, "Z": 3}
         for (text, value) in values.items():
             tk.Radiobutton(frame_pol, text=text, variable=self._var['pol_var'], font=myfont2(),
              justify='left',value=value).grid(row=0, column=value, ipady=5, sticky='w')
@@ -768,11 +768,11 @@ class TimeDependentPage(View):
         add_job_frame(self, self.submit_button_frame, task_name, row=1, column=9)
 
     def get_pol_list(self): 
-        if self._var['pol_var'].get() == 0:
+        if self._var['pol_var'].get() == 1:
             pol_list = [1,0,0]         
-        elif self._var['pol_var'].get() == 1:
-            pol_list = [0,1,0] 
         elif self._var['pol_var'].get() == 2:
+            pol_list = [0,1,0] 
+        elif self._var['pol_var'].get() == 3:
             pol_list = [0,0,1]                
         return pol_list
 
@@ -803,15 +803,25 @@ class TimeDependentPage(View):
             'output_freq': self._var['output_freq'].get()
         }
 
+        # td_dict_oct = {
+        #     'max_step' : self._var['Nt'].get() ,
+        #     'time_step' : self._var['dt'].get(),
+        #     'td_propagator' : 'aetrs',
+        #     'strength': self._var['strength'].get(),
+        #     'e_pol': self.pol_list,
+        #     'pol_dir': self.read_pol_dir(),
+        #     'output_freq': self._var['output_freq'].get(),
+        #     'analysis_tools': self.get_property_list()
+        #   }
         td_dict_oct = {
-            'max_step' : self._var['Nt'].get() ,
-            'time_step' : self._var['dt'].get(),
-            'td_propagator' : 'aetrs',
-            'strength': self._var['strength'].get(),
-            'e_pol': self.pol_list,
-            'pol_dir': self.read_pol_dir(),
-            'output_freq': self._var['output_freq'].get(),
-            'analysis_tools': self.get_property_list()
+            "CalculationMode": 'td',
+            "TDMaxSteps" : self._var['Nt'].get() ,
+            "TDTimeStep" : round(self._var['dt'].get()*as_to_au, 2),
+            "TDPropagator" : 'aetrs',
+            "TDDeltaStrength": self._var['strength'].get(),
+            "TDPolarizationDirection": self._var['pol_var'].get(),
+            "TDOutputComputeInterval": self._var['output_freq'].get(),
+            "TDOutput": self.get_td_out()
           }
 
         if self.engine == 'gpaw':
@@ -832,11 +842,23 @@ class TimeDependentPage(View):
 
     def get_property_list(self):
         prop_list = []
+               
         if self._var['ksd'].get() == 1:
             prop_list.append("ksd")
         if self._var['popln'].get() == 1:
             prop_list.append("population_correlation")    
-        return prop_list       
+        return prop_list   
+
+    def get_td_out(self):
+
+        ksd = (self._var['ksd'].get() == 1)
+        population = (self._var['popln'].get() == 1)
+        td_occup = [ksd, population]
+
+        td_out_list = []
+        if any(td_occup):
+            td_out_list.append(["td_occup"])
+        return td_out_list
         
     def out_print(self):
         p_list = ['dipole'] 
@@ -1020,6 +1042,9 @@ class LaserDesignPage(View):
         Save_button['font'] = myFont
         Save_button.grid(row=0, column=2, sticky='nsew', padx=5, pady=5)
 
+        self.label_msg = tk.Label(self.Frame_button1,text="",fg="black")
+        self.label_msg['font'] = myFont
+        self.label_msg.grid(row=0, column=3, sticky='nsew', padx=5, pady=5)
 
         add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=0)
         
@@ -1066,7 +1091,7 @@ class LaserDesignPage(View):
 
     def get_parameters(self):
         
-        from litesoph.utilities.units import au_to_fs,autime_to_eV
+        from litesoph.utilities.units import au_to_fs,autime_to_eV, as_to_au
         laser_param = self.laser_design_dict 
         self.pol_list, pol = self.get_pol_list()              
         # epol_list = [int(self.pol_x.get()),int(self.pol_y.get()),int(self.pol_z.get())]
@@ -1102,13 +1127,28 @@ class LaserDesignPage(View):
             return td_gpaw
             
         elif self.engine == 'octopus':
-            td_oct = {  'e_pol' :self.pol_list,
-                        'max_step' : self.ns.get(),
-                        'time_step': self.ts.get(),
-                        'strength' : self.strength.get(),
-                        'time0' :laser_param['time0'],
-                        'sigma' : laser_param['sigma'],
-                        'frequency': self.frequency.get()
+            # td_oct = {  'e_pol' :self.pol_list,
+            #             'max_step' : self.ns.get(),
+            #             'time_step': self.ts.get(),
+            #             'strength' : self.strength.get(),
+            #             'time0' :laser_param['time0'],
+            #             'sigma' : laser_param['sigma'],
+            #             'frequency': self.frequency.get()
+            #         }
+            td_oct = { 
+                'CalculationMode': 'td', 
+                'TDPropagator': 'aetrs',
+                'TDMaxSteps' : self.ns.get(),
+                'TDTimeStep': round(self.ts.get()*as_to_au, 2),
+                'TDFunctions': [[str('"'+"envelope_gauss"+'"'),'tdf_gaussian',
+                                self.strength.get(),
+                                laser_param['sigma'],laser_param['time0']
+                                ]],                
+                'TDExternalFields': [['electric_field',
+                                    self.pol_list[0],self.pol_list[1],self.pol_list[2],
+                                    str(self.frequency.get())+"*eV",
+                                    str('"'+"envelope_gauss"+'"')
+                                    ]]
                     }
             # print(td_oct)            
             return td_oct        
@@ -1142,8 +1182,8 @@ class LaserDesignPage(View):
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')
 
-    # def set_label_msg(self,msg):
-    #     show_message(self.label_msg, msg) 
+    def set_label_msg(self,msg):
+        show_message(self.label_msg, msg) 
 
    
 
@@ -1300,10 +1340,17 @@ class PlotSpectraPage(ttk.Frame):
             'e_min': self._var['e_min'].get()       
         }
         
+        # td_dict_oct = {
+        #     'del_e':self._var['del_e'].get(),
+        #     'e_max':self._var['e_max'].get(),
+        #     'e_min': self._var['e_min'].get()
+        #   }
+        
         td_dict_oct = {
-            'del_e':self._var['del_e'].get(),
-            'e_max':self._var['e_max'].get(),
-            'e_min': self._var['e_min'].get()
+            "UnitsOutput": 'eV_angstrom',
+            "PropagationSpectrumEnergyStep": str(self._var['del_e'].get())+"*eV",
+            "PropagationSpectrumMaxEnergy": str(self._var['e_max'].get())+"*eV",
+            "PropagationSpectrumMinEnergy": str(self._var['e_min'].get())+"*eV"
           }
         
         if self.engine == 'gpaw':
