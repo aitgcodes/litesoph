@@ -1031,6 +1031,9 @@ class LaserDesignPage(View):
         Save_button['font'] = myFont
         Save_button.grid(row=0, column=2, sticky='nsew', padx=5, pady=5)
 
+        self.label_msg = tk.Label(self.Frame_button1,text="",fg="black")
+        self.label_msg['font'] = myFont
+        self.label_msg.grid(row=0, column=3, sticky='nsew', padx=5, pady=5)
 
         add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=0)
         
@@ -1168,8 +1171,8 @@ class LaserDesignPage(View):
     def back_button(self):
         self.event_generate('<<ShowWorkManagerPage>>')
 
-    # def set_label_msg(self,msg):
-    #     show_message(self.label_msg, msg) 
+    def set_label_msg(self,msg):
+        show_message(self.label_msg, msg) 
 
    
 
