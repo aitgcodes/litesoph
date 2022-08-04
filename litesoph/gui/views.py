@@ -1652,27 +1652,22 @@ class JobSubPage(ttk.Frame):
         self.processors.set(1)
         self.port.set(22)
         self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame1.grid(row=1,column=0, columnspan=4, rowspan=100, sticky='nsew')
+        self.Frame1.pack(fill=tk.BOTH)
         self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button.grid(row=101, column=0,columnspan=5, sticky='nswe')
-        self.sub_job_frame = ttk.Frame(self.Frame1)
-        self.sub_job_frame.grid(row=0, column=0, sticky='nsew')
+        self.frame_button.pack(fill=tk.BOTH)
 
-        view_option_frame = ttk.Frame(self.Frame1, borderwidth=2 ,relief='groove')
-        view_option_frame.grid(row=1,column=0, sticky='nsew', pady=15)
+        self.sub_job_frame = ttk.Frame(self.Frame1)
+        self.sub_job_frame.grid(row=1, column=0, sticky='nsew')
+
         self.show_job_frame()
 
-        self.Frame_label = tk.Label(self, text="LITESOPH Job Submission", fg='blue')
+        self.Frame_label = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
         self.Frame_label['font'] = myfont1()
-        self.Frame_label.grid(row=0, column=3)       
+        self.Frame_label.grid(row=0, column=0)       
 
-        view_btn = tk.Button(view_option_frame, text="View Output",activebackground="#78d6ff",command=lambda:[self.view_outfile(self.task)])
+        view_btn = tk.Button(self.Frame1, text="View Output",activebackground="#78d6ff",command=lambda:[self.view_outfile(self.task)])
         view_btn['font'] = myfont()
-        view_btn.grid(row=10, column=1)
-
-        self.Frame_label = tk.Label(self, text="LITESOPH Job Submission", fg='blue')
-        self.Frame_label['font'] = myfont1()
-        self.Frame_label.grid(row=0, column=3)         
+        view_btn.grid(row=2, column=0, sticky='e', pady=5)
 
         back = tk.Button(self.frame_button, text="Back ",activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Show{self.task}Page>>')])
         back['font'] = myfont()
@@ -1729,11 +1724,11 @@ class JobSubPage(ttk.Frame):
 
         save_job_script = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = self.save_job_script)
         save_job_script['font'] = myfont()
-        save_job_script.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
+        save_job_script.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=4, column=1, pady=5)        
+        self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)        
 
     def show_run_network(self):
         """ Creates Network JobSub input widgets""" 
@@ -1805,11 +1800,11 @@ class JobSubPage(ttk.Frame):
 
         save_job_script = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = self.save_job_script)
         save_job_script['font'] = myfont()
-        save_job_script.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)
+        save_job_script.grid(row=9,column=1,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=9,column=1,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)    
 
     def _sub_command_option(self, *_):
         if self.sub_job_type.get() == 0:
