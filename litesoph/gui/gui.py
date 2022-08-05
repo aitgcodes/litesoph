@@ -175,6 +175,7 @@ class GUIAPP:
             '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
             '<<ShowDmLdPage>>' : lambda _: self._show_frame(v.DmLdPage, self),
             '<<ShowTcmPage>>' : self._on_tcm_task,
+            '<<ShowPopulationPage>>' : self._on_population_task
         }
         for event, callback in event_show_page.items():
             self.main_window.bind_all(event, callback)  
@@ -343,7 +344,9 @@ class GUIAPP:
         elif sub_task == "Dipole Moment and Laser Pulse":
             self.main_window.event_generate('<<ShowDmLdPage>>')
         elif sub_task == "Kohn Sham Decomposition":
-               self.main_window.event_generate('<<ShowTcmPage>>')    
+               self.main_window.event_generate('<<ShowTcmPage>>') 
+        elif sub_task == "Population Correlation":
+               self.main_window.event_generate('<<ShowPopulationPage>>') 
 
         w.refresh_var()
 
@@ -539,6 +542,13 @@ class GUIAPP:
         except Exception as e:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
+##-------------------------------population task-------------------------------------------------------------
+
+    def _on_population_task(self, *_): 
+        task_name = 'population correlation'      
+        self._show_frame(v.PopulationPage,self.engine, task_name)
+        self.population_view = self._frames[v.PopulationPage]
+       
 ##-----------------------------------------------------------------------------------------------------------##
 
     def view_input_file(self, task:Task):

@@ -104,7 +104,7 @@ class WorkManagerPage(ttk.Frame):
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
     Pre_task = ["Ground State"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
-    Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
+    Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Correlation","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
     def __init__(self, parent, *args, **kwargs):
@@ -1624,7 +1624,100 @@ class TcmPage(ttk.Frame):
         } 
 
             return oct_ksd_dict                
-       
+
+class PopulationPage(View):
+    def __init__(self, parent, engine,task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.engine = engine
+        self.task_name = task_name
+        
+        self.bandpass = tk.IntVar(value=100)
+        self.hanning = tk.IntVar(value= 50)
+        self.ni = tk.IntVar()
+        self.na = tk.IntVar()
+        self.ngrid = tk.IntVar(value=100)
+        self.broadening = tk.DoubleVar(value= 0.5)
+
+        self.SubFrame1 = self.input_param_frame 
+
+        self.SubFrame2 = self.property_frame 
+
+        self.SubFrame3 = self.submit_button_frame 
+
+        self.Frame_button1 = self.save_button_frame 
+
+        self.Frame1_label_path = tk.Label(self.SubFrame1,text="LITESOPH Input for Population Correlation", fg='blue')
+        self.Frame1_label_path['font'] = myfont()
+        self.Frame1_label_path.grid(row=0, column=0, padx=5, pady=10)
+
+        self.Label_ni = tk.Label(self.SubFrame1,text="Number of occupied states(HOMO & below)",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.Label_ni['font'] = myfont()
+        self.Label_ni.grid(row=1, column=0, sticky='w', padx=5, pady=5)        
+        
+        self.entry_ni = Onlydigits(self.SubFrame1, textvariable= self.ni, width=5)
+        self.entry_ni['font'] = myfont()
+        self.entry_ni.grid(row=1, column=1)
+
+        self.Label_na = tk.Label(self.SubFrame1,text="Number of unoccupied states(LUMO & above)",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.Label_na['font'] = myfont()
+        self.Label_na.grid(row=2, column=0, sticky='w', padx=5, pady=5)        
+        
+        self.entry_na = Onlydigits(self.SubFrame1, textvariable= self.na, width=5)
+        self.entry_na['font'] = myfont()
+        self.entry_na.grid(row=2, column=1)
+
+        self.label_bandpass = tk.Label(self.SubFrame1,text="Bandpass",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.label_bandpass['font'] = myfont()
+        self.label_bandpass.grid(row=3, column=0, sticky='w', padx=5, pady=5)
+
+        self.entry_bandpass = Onlydigits(self.SubFrame1, textvariable= self.bandpass, width=5)
+        self.entry_bandpass['font'] = myfont()
+        self.entry_bandpass.grid(row=3, column=1)
+        
+        self.label_hanning = tk.Label(self.SubFrame1,text="Hanning",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.label_hanning['font'] = myfont()
+        self.label_hanning.grid(row=4, column=0, sticky='w', padx=5, pady=5)
+
+        self.entry_hanning = Onlydigits(self.SubFrame1, textvariable= self.hanning, width=5)
+        self.entry_hanning['font'] = myfont()
+        self.entry_hanning.grid(row=4, column=1)
+
+        self.label_plot = tk.Label(self.SubFrame2,text="Plotting Parameters", fg='blue')
+        self.label_plot['font'] = myfont()
+        self.label_plot.grid(row=0, column=0, padx=5, pady=10)
+
+        self.Label_grid = tk.Label(self.SubFrame2,text="Number of mesh grids",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.Label_grid['font'] = myfont()
+        self.Label_grid.grid(row=1, column=0, sticky='w', padx=5, pady=5)        
+        
+        self.entry_grid = Onlydigits(self.SubFrame2, textvariable= self.ngrid, width=5)
+        self.entry_grid['font'] = myfont()
+        self.entry_grid.grid(row=1, column=1, sticky='w', padx=5, pady=5)
+        
+        self.Label_width = tk.Label(self.SubFrame2,text="Broadening width",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.Label_width['font'] = myfont()
+        self.Label_width.grid(row=2, column=0, sticky='w', padx=5, pady=5)        
+        
+        self.entry_width = Onlydigits(self.SubFrame2, textvariable= self.broadening, width=5)
+        self.entry_width['font'] = myfont()
+        self.entry_width.grid(row=2, column=1, sticky='w', padx=5, pady=5)
+
+        self.submit_button = tk.Button(self.SubFrame1, text="Submit",activebackground="#78d6ff")
+        self.submit_button['font'] = myfont()
+        self.submit_button.grid(row=4, column=2, sticky='we', padx=5)
+
+        self.plot_button = tk.Button(self.SubFrame2, text="Plot",activebackground="#78d6ff")
+        self.plot_button['font'] = myfont()
+        self.plot_button.grid(row=2, column=2, sticky='we', padx=25)
+
+        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff")
+        self.back_button['font'] = myfont()
+        self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
+
+        # add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=1)
+
+
 class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
 
