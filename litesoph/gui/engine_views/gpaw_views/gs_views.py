@@ -7,6 +7,11 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 
 from litesoph.gui.engine_views import EngineViews
 from litesoph.simulations.models import GpawModel
+from litesoph.simulations.models import GpawModel as GPM
+
+
+from litesoph.gui.hovertooltip import CreateToolTip 
+from litesoph.gui.hovertooltip import *
 
 
 class GpawGSPage(EngineViews):
@@ -31,6 +36,8 @@ class GpawGSPage(EngineViews):
         self.label_proj = tk.Label(mode_frame,text="Mode",bg=label_design['bg'], fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, GPM.ground_state['mode']['tooltip'])
+
 
         def pick_box(e):
 
@@ -51,6 +58,8 @@ class GpawGSPage(EngineViews):
         self.basis = tk.Label(mode_frame, text="Basis",bg=label_design['bg'], fg=label_design['fg'])
         self.basis['font'] = label_design['font']
         self.basis.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.basis= CreateToolTip(self.basis, GPM.ground_state['basis']['tooltip'])
+
 
         sub_task = ttk.Combobox(mode_frame, textvariable= self._var['basis'], value = self.default_para['basis']['values'])
         sub_task['font'] = label_design['font']
@@ -60,14 +69,18 @@ class GpawGSPage(EngineViews):
         self.charge = tk.Label(mode_frame, text="Charge",bg=label_design['bg'], fg=label_design['fg'])
         self.charge['font'] = label_design['font']
         self.charge.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.charge= CreateToolTip(self.charge, GPM.ground_state['charge']['tooltip'])
+
 
         self.entry_chrg = Onlydigits(mode_frame,textvariable=self._var['charge'])
         self.entry_chrg['font'] = label_design['font']
         self.entry_chrg.grid(row=6, column=1, sticky='w', padx=2, pady=2)
 
-        multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
-        multiplicity_label['font'] = label_design['font']
-        multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        self.multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
+        self.multiplicity_label['font'] = label_design['font']
+        self.multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        self.multiplicity_label= CreateToolTip(self.multiplicity_label, GPM.ground_state['multip']['tooltip'])
+
 
         multiplicity_entry = Onlydigits(mode_frame,textvariable= self._var['multip'])
         multiplicity_entry['font'] =label_design['font']
@@ -87,6 +100,8 @@ class GpawGSPage(EngineViews):
         self.Frame2_note = tk.Label(gp_frame,text="Exchange Correlation",bg=label_design['bg'], fg=label_design['fg'])
         self.Frame2_note['font'] = label_design['font']
         self.Frame2_note.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.Frame2_label_1= CreateToolTip(self.Frame2_note, GPM.ground_state['xc']['tooltip'])
+
 
         self.gpxc = ttk.Combobox(gp_frame, textvariable= self._var['xc'], value = self.default_para['xc']['values'])
         self.gpxc.current(0)
@@ -97,6 +112,8 @@ class GpawGSPage(EngineViews):
         self.spin = tk.Label(gp_frame,text="Spin Polarisation",bg=label_design['bg'], fg=label_design['fg'])
         self.spin['font'] = label_design['font']
         self.spin.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.spin= CreateToolTip(self.spin, GPM.ground_state['spinpol']['tooltip'])
+
    
         self.spinpol = ttk.Combobox(gp_frame, textvariable= self._var['spinpol'], value = self.default_para['spinpol']['values'])
         self.spinpol.current(0)
@@ -107,6 +124,8 @@ class GpawGSPage(EngineViews):
         self.nb = tk.Label(gp_frame,text="Number of Bands",bg=label_design['bg'], fg=label_design['fg'])
         self.nb['font'] = label_design['font']
         self.nb.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.nb= CreateToolTip(self.nb, GPM.ground_state['nbands']['tooltip'])
+
 
         self.entry_bands = Onlydigits(gp_frame,textvariable= self._var['nbands'])
         self.entry_bands['font'] = label_design['font']
@@ -123,6 +142,8 @@ class GpawGSPage(EngineViews):
         self.Frame2_note = tk.Label(gp_frame,text="Vacuum size (in Ang)",bg=label_design['bg'], fg=label_design['fg'])
         self.Frame2_note['font'] = label_design['font']
         self.Frame2_note.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+        self.Frame2_note= CreateToolTip(self.Frame2_note, GPM.ground_state['vacuum']['tooltip'])
+
 
         self.entry_vac = Decimalentry(gp_frame,textvariable= self._var['vacuum'])
         self.entry_vac['font'] = label_design['font']
@@ -138,10 +159,13 @@ class GpawGSPage(EngineViews):
         self.label_pol_z = tk.Label(gp_conv, text="SCF Convergence for Gpaw       ", fg="blue")
         self.label_pol_z['font'] =  myFont
         self.label_pol_z.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+
  
         self.label_pol_z = tk.Label(gp_conv, text="Maximum SCF iteration",bg=label_design['bg'], fg=label_design['fg'])
         self.label_pol_z['font'] =label_design['font']
         self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_pol_z= CreateToolTip(self.label_pol_z, GPM.ground_state['maxiter']['tooltip'])
+
 
         #entry = ttk.Entry(self.Frame1,textvariable= self._var['maxiter'])
         entry = Onlydigits(gp_conv,textvariable= self._var['maxiter'])
@@ -151,6 +175,8 @@ class GpawGSPage(EngineViews):
         self.Frame2_note = tk.Label(gp_conv,text="Energy(in au)",bg=label_design['bg'], fg=label_design['fg'])
         self.Frame2_note['font'] = label_design['font']
         self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.Frame2_note= CreateToolTip(self.Frame2_note, GPM.ground_state['energy']['tooltip'])
+
 
         self.entry_ener = tk.Entry(gp_conv, textvariable= self._var['energy'])
         #self.entry_ener = Validatedconv(self.Frame1)
@@ -161,6 +187,9 @@ class GpawGSPage(EngineViews):
         self.label_proj['font'] = label_design['font']
         #self.label_proj.place(x=10,y=10)
         self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, GPM.ground_state['density']['tooltip'])
+
+        
 
         self.entry_proj = tk.Entry(gp_conv,textvariable= self._var['density'])
         self.entry_proj['font'] = label_design['font']
@@ -173,6 +202,8 @@ class GpawGSPage(EngineViews):
         self.label_proj['font'] = label_design['font']
         #self.label_proj.place(x=10,y=10)
         self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, GPM.ground_state['eigenstate']['tooltip'])
+
 
         self.entry_proj = tk.Entry(gp_conv,textvariable= self._var['eigenstate'])
         self.entry_proj['font'] = label_design['font']
@@ -185,6 +216,8 @@ class GpawGSPage(EngineViews):
         self.bdocc['font'] = label_design['font']
         #self.bdocc.place(x=10,y=310)
         self.bdocc.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+        self.bdocc= CreateToolTip(self.bdocc, GPM.ground_state['bands']['tooltip'])
+
 
         self.occ = ttk.Combobox(gp_conv, textvariable= self._var['bands'], value = self.default_para['bands']['values'])
         self.occ.current(0)
@@ -197,6 +230,8 @@ class GpawGSPage(EngineViews):
         self.lb2['font'] = label_design['font']
         #self.lb2.place(x=10,y=110)
         self.lb2.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+        self.lb2= CreateToolTip(self.lb2, GPM.ground_state['smearfn']['tooltip'])
+
 
         self.entry_pol_x = ttk.Combobox(gp_conv, textvariable= self._var['smearfn'], value = self.default_para['smearfn']['values'])
         self.entry_pol_x.current(0)
@@ -209,6 +244,8 @@ class GpawGSPage(EngineViews):
         self.label_proj['font'] = label_design['font']
         #self.label_proj.place(x=260,y=60)
         self.label_proj.grid(row=14, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, GPM.ground_state['smear']['tooltip'])
+
 
         #self.entry_proj = tk.Entry(self.Frame2, width= 7,textvariable= self._var['smear'])
         self.entry_sm = Decimalentry(gp_conv, width= 7, textvariable= self._var['smear']) 

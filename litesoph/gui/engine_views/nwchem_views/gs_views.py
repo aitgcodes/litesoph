@@ -7,6 +7,11 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 
 from litesoph.gui.engine_views import EngineViews
 from litesoph.simulations.models import NWchemModel
+from litesoph.simulations.models import NWchemModel as NCM
+
+from litesoph.gui.hovertooltip import CreateToolTip 
+from litesoph.gui.hovertooltip import *
+
 
 
 class NWGSPage(EngineViews):
@@ -29,6 +34,8 @@ class NWGSPage(EngineViews):
         self.label_proj = tk.Label(mode_frame,text="Mode",bg=label_design['bg'], fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, NCM.ground_state['mode']['tooltip'])
+
 
         task = ttk.Combobox(mode_frame, textvariable = self._var['mode'], values= self.default_para['mode']['values'])
         task['font'] = label_design['font']
@@ -38,6 +45,8 @@ class NWGSPage(EngineViews):
         self.basis = tk.Label(mode_frame, text="Basis",bg=label_design['bg'], fg=label_design['fg'])
         self.basis['font'] = label_design['font']
         self.basis.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.basis= CreateToolTip(self.basis, NCM.ground_state['basis']['tooltip'])
+
 
         sub_task = ttk.Combobox(mode_frame, textvariable= self._var['basis'], value = self.default_para['basis']['values'])
         sub_task['font'] = label_design['font']
@@ -48,14 +57,18 @@ class NWGSPage(EngineViews):
         self.charge = tk.Label(mode_frame, text="Charge",bg=label_design['bg'], fg=label_design['fg'])
         self.charge['font'] = label_design['font']
         self.charge.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.charge= CreateToolTip(self.charge, NCM.ground_state['charge']['tooltip'])
+
 
         self.entry_chrg = Onlydigits(mode_frame,textvariable=self._var['charge'])
         self.entry_chrg['font'] = label_design['font']
         self.entry_chrg.grid(row=6, column=1, sticky='w', padx=2, pady=2)
 
-        multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
-        multiplicity_label['font'] = label_design['font']
-        multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        self.multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
+        self.multiplicity_label['font'] = label_design['font']
+        self.multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        self.multiplicity_label= CreateToolTip(self.multiplicity_label, NCM.ground_state['multip']['tooltip'])
+
 
         multiplicity_entry = Onlydigits(mode_frame,textvariable= self._var['multip'])
         multiplicity_entry['font'] =label_design['font']
@@ -75,6 +88,8 @@ class NWGSPage(EngineViews):
         self.nwxc = tk.Label(nw_frame,text="Exchange Correlation",bg=label_design['bg'], fg=label_design['fg'])
         self.nwxc['font'] = label_design['font']
         self.nwxc.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.nwxc= CreateToolTip(self.nwxc, NCM.ground_state['xc']['tooltip'])
+
 
         self.entry_pol_x = ttk.Combobox(nw_frame, textvariable= self._var['xc'], value = self.default_para['xc']['values'])
         self.entry_pol_x['font'] = label_design['font']
@@ -104,6 +119,8 @@ class NWGSPage(EngineViews):
         self.label_pol_z = tk.Label(nwchem_conv, text="Maximum SCF iteration", bg=label_design['bg'], fg=label_design['fg'])
         self.label_pol_z['font'] = label_design['font']
         self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_pol_z= CreateToolTip(self.label_pol_z, NCM.ground_state['maxiter']['tooltip'])
+
 
         #entry = ttk.Entry(self.Frame1,textvariable= self._var['maxiter'])
         entry = Onlydigits(nwchem_conv,textvariable= self._var['maxiter'])
@@ -113,6 +130,9 @@ class NWGSPage(EngineViews):
         self.Frame2_note = tk.Label(nwchem_conv,text="Energy(in au)",bg=label_design['bg'], fg=label_design['fg'])
         self.Frame2_note['font'] = label_design['font']
         self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.Frame2_note= CreateToolTip(self.Frame2_note, NCM.ground_state['energy']['tooltip'])
+
+        
 
         self.entry_ener = tk.Entry(nwchem_conv, textvariable= self._var['energy'])
         #self.entry_ener = Validatedconv(self.Frame1)
@@ -123,6 +143,8 @@ class NWGSPage(EngineViews):
         self.label_proj['font'] = label_design['font']
         #self.label_proj.place(x=10,y=10)
         self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, NCM.ground_state['density']['tooltip'])
+
 
         self.entry_proj = tk.Entry(nwchem_conv,textvariable= self._var['density'])
         self.entry_proj['font'] = label_design['font']
@@ -135,6 +157,10 @@ class NWGSPage(EngineViews):
         self.label_proj['font'] = label_design['font']
         #self.label_proj.place(x=10,y=10)
         self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, NCM.ground_state['gradient']['tooltip'])
+
+        
+        
 
         self.entry_grd = tk.Entry(nwchem_conv,textvariable= self._var['gradient'])
         self.entry_grd['font'] = label_design['font']

@@ -15,9 +15,7 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 from litesoph.simulations.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
 
-from litesoph.gui.hovertooltip import CreateToolTip 
-from litesoph.gui.hovertooltip import *
-
+from litesoph.gui.hovertooltip import CreateToolTip as Createtooltip
 
 
 class StartPage(ttk.Frame):
@@ -170,17 +168,16 @@ class WorkManagerPage(ttk.Frame):
         common_frame = ttk.Frame(self.Frame2)
         common_frame.grid(row=0, column=0, sticky='w')
 
-        self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry File", bg=label_design['bg'],fg=label_design['fg'])  
+        self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
         self.Frame2_label_1['font'] = myfont()
         self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4,  pady=10)  
-        self.Frame2_label_1= CreateToolTip(self.Frame2_label_1, hoverdict['geometryfile'])
+        self.Frame2_label_1= hover.CreateToolTip(self.Frame2_label_1, 'hello')
    
 
 
         self.Frame2_Button_1 = tk.Button(common_frame,text="Select",activebackground="#78d6ff",command=self._get_geometry_file)
         self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=1, row= 0, padx=10,  pady=10)  
-     
+        self.Frame2_Button_1.grid(column=1, row= 0, padx=10,  pady=10)       
 
         self.message_label = tk.Label(common_frame, text='', foreground='red')
         self.message_label['font'] = myfont()
@@ -193,10 +190,7 @@ class WorkManagerPage(ttk.Frame):
         self.engine_source_label = tk.Label(common_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.engine_source_label['font'] = myfont()
         self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
-        self.engine_source_label= CreateToolTip(self.engine_source_label, hoverdict['engine_source_doc'])
-
-
-
+            
         self.engine_source = ttk.Combobox(common_frame,width=20, textvariable= self.engine, values= self.engine_list)
         self.engine_source['font'] = myfont()
         self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
@@ -204,10 +198,7 @@ class WorkManagerPage(ttk.Frame):
 
         self.label_proj = tk.Label(common_frame,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.label_proj['font'] = myfont()
-        self.label_proj.grid(row= 2, column=0,  sticky='w', padx=4, pady=10)  
-        self.label_proj= CreateToolTip(self.label_proj, hoverdict['jobtype_doc'])
-
-             
+        self.label_proj.grid(row= 2, column=0,  sticky='w', padx=4, pady=10)       
             
         self.entry_task = ttk.Combobox(common_frame,width=20, textvariable= self._var['task'], values= self.MainTask)
         self.entry_task['font'] = myfont()
@@ -248,9 +239,6 @@ class WorkManagerPage(ttk.Frame):
         self.Frame2_label_3 = tk.Label(common_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.Frame2_label_3['font'] = myfont()
         self.Frame2_label_3.grid( row= 0,column=0, sticky='nswe', padx=4, pady=10) 
-        self.Frame2_label_3= CreateToolTip(self.Frame2_label_3, hoverdict['subtask_doc'])
-
-        
         
         self.entry_sub_task = ttk.Combobox(common_sub_task_frame, width= 20, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myfont()
@@ -535,8 +523,6 @@ class GroundStatePage(View):
         self.label_proj = tk.Label(mode_frame,text="Mode",bg=label_design['bg'], fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
-        self.label_proj= CreateToolTip(self.label_proj, self.gs_dict['mode']['tooltip'])
-
 
         def pick_box(e):
             if task.get() == "nao" or task.get() == 'pw':
@@ -559,8 +545,6 @@ class GroundStatePage(View):
         self.basis = tk.Label(mode_frame, text="Basis",bg=label_design['bg'], fg=label_design['fg'])
         self.basis['font'] = label_design['font']
         self.basis.grid(row=4, column=0, sticky='w', padx=2, pady=4)
-        self.basis= CreateToolTip(self.basis, self.gs_dict['basis']['tooltip'])
-
 
         sub_task = ttk.Combobox(mode_frame, textvariable= self._var['basis'], value = self.gs_dict['basis']['values'])
         sub_task['font'] = label_design['font']
@@ -570,18 +554,14 @@ class GroundStatePage(View):
         self.charge = tk.Label(mode_frame, text="Charge",bg=label_design['bg'], fg=label_design['fg'])
         self.charge['font'] = label_design['font']
         self.charge.grid(row=6, column=0, sticky='w', padx=2, pady=4)
-        self.charge= CreateToolTip(self.charge, self.gs_dict['charge']['tooltip'])
-
 
         self.entry_chrg = Onlydigits(mode_frame,textvariable=self._var['charge'])
         self.entry_chrg['font'] = label_design['font']
         self.entry_chrg.grid(row=6, column=1, sticky='w', padx=2, pady=2)
 
-        self.multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
-        self.multiplicity_label['font'] = label_design['font']
-        self.multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
-        self.multiplicity_label= CreateToolTip(self.multiplicity_label, self.gs_dict['multip']['tooltip'])
-
+        multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
+        multiplicity_label['font'] = label_design['font']
+        multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
 
         multiplicity_entry = Onlydigits(mode_frame,textvariable= self._var['multip'])
         multiplicity_entry['font'] =label_design['font']

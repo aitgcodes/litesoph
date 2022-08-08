@@ -331,7 +331,7 @@ class GUIAPP:
             if path.exists() is True:
                 self.main_window.event_generate('<<ShowGroundStatePage>>')
             else:
-                messagebox.showerror(title = 'Error', message= "Upload geometry file")
+                messagebox.showerror(title = 'Error', message= "Upload file")
                 return
             return
 

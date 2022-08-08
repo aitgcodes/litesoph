@@ -108,11 +108,11 @@ def get_engine_model(engine):
 class AutoModeModel:
     
     ground_state = {
-            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw', 'gaussian'], 'default_value': '--choose mode--'},
-            'shape' : {'type':DT.string, 'values':["parallelepiped","minimum", "sphere", "cylinder"], 'default_value':"--choose box--"},
-            'basis' : {'type':DT.string, 'values':[], 'default_value': ''},
-            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0},
-            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1},
+            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw', 'gaussian'], 'default_value': '--choose mode--','tooltip':'label'},
+            'shape' : {'type':DT.string, 'values':["parallelepiped","minimum", "sphere", "cylinder"], 'default_value':"--choose box--",'tooltip':'label'},
+            'basis' : {'type':DT.string, 'values':[], 'default_value': '','tooltip':'label'},
+            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0,'tooltip':'label'},
+            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1,'tooltip':'label'},
         }
 
 
@@ -120,82 +120,82 @@ class AutoModeModel:
 class GpawModel:
     
    ground_state = {
-            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw'], 'default_value': 'nao'},
-            'xc' : {'type':DT.string, 'values':["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"], 'default_value': 'LDA'},
-            'basis' : {'type':DT.string, 'values':["dzp","sz","dz","szp","pvalence.dz"], 'default_value': 'dzp'},
-            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0},
-            'maxiter' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 300},
+            'mode' : {'type':DT.string, 'values':['nao', 'fd', 'pw'], 'default_value': 'nao', 'tooltip':'label'},
+            'xc' : {'type':DT.string, 'values':["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"], 'default_value': 'LDA','tooltip':'label'},
+            'basis' : {'type':DT.string, 'values':["dzp","sz","dz","szp","pvalence.dz"], 'default_value': 'dzp', 'tooltip':'label'},
+            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0,'tooltip':'label'},
+            'maxiter' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 300,'tooltip':'label'},
             'shape' : {'type':DT.string, 'values':['parallelepiped'], 'default_value':'parallelepiped'},
-            'spinpol' : {'type':DT.string, 'values':['None', 'True'], 'default_value':'None'},
-            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1},
+            'spinpol' : {'type':DT.string, 'values':['None', 'True'], 'default_value':'None', 'tooltip':'label'},
+            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1,'tooltip':'label'},
             'h' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},
-            'nbands' :{'type':DT.string, 'min': None, 'max': None, 'default_value': ''},
-            'vacuum' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6},
-            'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7},
-            'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6},
-            'bands' : {'type':DT.string, 'values':['occupied', 'unoccupied'], 'default_value': 'occupied'},
+            'nbands' :{'type':DT.string, 'min': None, 'max': None, 'default_value': '', 'tooltip':'label'},
+            'vacuum' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6, 'tooltip':'label'},
+            'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7,'tooltip':'label'},
+            'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6,'tooltip':'label'},
+            'bands' : {'type':DT.string, 'values':['occupied', 'unoccupied'], 'default_value': 'occupied','tooltip':'label'},
             'lx' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'ly' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'lz' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
-            'smear' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.0},    
-            'smearfn' :{'type':DT.string, 'values':["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"], 'default_value': ''},
-            'eigenstate': {'type': DT.decimal , 'min': None, 'max': None, 'default_value': 4e-8}
+            'smear' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.0,'tooltip':'label'},    
+            'smearfn' :{'type':DT.string, 'values':["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"], 'default_value': '','tooltip':'label'},
+            'eigenstate': {'type': DT.decimal , 'min': None, 'max': None, 'default_value': 4e-8,'tooltip':'label'}
         }
 
 @dataclass
 class NWchemModel:
     
     ground_state = {
-            'mode' : {'type':DT.string, 'values':['gaussian'], 'default_value': 'gaussian'},
-            'xc' : {'type':DT.string, 'values':["PBE96","PBE0","B3LYP","PW91", "BP86", "BP91","BHLYP","M05","M05-2X","M06-HF","M08-SO","M011","CAM-B3LYP","LC-BLYP","LC-PBE","LC-wPBE","HSE03","HSE06"], 'default_value': "PBE0"},
-            'basis' : {'type':DT.string, 'values':["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"], 'default_value': "6-31G"},
-            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0},
-            'maxiter' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 300},
-            'multip' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 1},
-            'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7},
-            'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6},
+            'mode' : {'type':DT.string, 'values':['gaussian'], 'default_value': 'gaussian','tooltip':'label'},
+            'xc' : {'type':DT.string, 'values':["PBE96","PBE0","B3LYP","PW91", "BP86", "BP91","BHLYP","M05","M05-2X","M06-HF","M08-SO","M011","CAM-B3LYP","LC-BLYP","LC-PBE","LC-wPBE","HSE03","HSE06"], 'default_value': "PBE0",'tooltip':'label'},
+            'basis' : {'type':DT.string, 'values':["6-31G","STO-2G","STO-3G","STO-6G","3-21G","3-21G*","6-31G*","6-31G**","6-311G","6-311G*","6-311G**","cc-pVDZ","aug-cc-pvtz"], 'default_value': "6-31G",'tooltip':'label'},
+            'charge':  {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0,'tooltip':'label'},
+            'maxiter' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 300,'tooltip':'label'},
+            'multip' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 1,'tooltip':'label'},
+            'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7,'tooltip':'label'},
+            'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6,'tooltip':'label'},
             #'tolerances' : ['str','tight'],
-            'gradient' :  {'type':DT.decimal, 'min': None, 'max': None, 'default_value':1.0e-4}
+            'gradient' :  {'type':DT.decimal, 'min': None, 'max': None, 'default_value':1.0e-4,'tooltip':'label'}
         }
 
 @dataclass
 class OctopusModel:
     
     ground_state = {
-            'mode' : {'type':DT.string, 'values':['fd'], 'default_value': 'fd'},
-            'var_oct_xc' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 1},
+            'mode' : {'type':DT.string, 'values':['fd'], 'default_value': 'fd','tooltip':'label'},
+            'var_oct_xc' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 1,'tooltip':'label'},
             #'oct_xc' : ['str',''],
             'x' :  {'type':DT.string, 'values':{'lda_x' : ["lda_x","lda_x_rel","lda_x_erf","lda_x_rae"],
                                                     'pbe_x':["gga_x_pbe","gga_x_pbe_r","gga_x_b86","gga_x_herman","gga_x_b86_mgc","gga_x_b88","gga_x_pbe_sol"]}, 'default_value':''},
             'c' :  {'type':DT.string, 'values':{'lda_c' : ["lda_c_pz_mod","lda_c_ob_pz","lda_c_pw","lda_c_ob_pw","lda_c_2d_amgb"],
                                                     'pbe_c':["gga_c_pbe","gga_c_tca","gga_c_lyp","gga_c_p86","gga_c_pbe_sol"]}, 'default_value':''},
             'pseudo' : {'type':DT.string, 'values':{'expt_yes' :[["pseudodojo_lda","hscv_lda","pseudodojo_lda_stringent"],["pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_pbe"]],
-                                                    'expt_no':["standard", "hgh_lda_sc","hgh_lda"]}, 'default_value':''},
-            'expt' : {'type':DT.string, 'values':['yes','no'], 'default_value':'no'},
-            'charge': {'type':DT.integer,'min': None, 'max': None, 'default_value': 0},
-            'maxiter' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 300},
-            'shape' :{'type':DT.string, 'values':["parallelepiped","minimum", "sphere", "cylinder"], 'default_value':'parallelepiped'},
-            'spinpol' :{'type':DT.string, 'values':['unpolarized', 'polarized'], 'default_value':'unpolarized'},
-            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1},
-            'h' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},            
-            'lx' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
-            'ly' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
-            'lz' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
-            'r' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6},
-            'l' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
-            'dxc' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 3},
-            'mixing' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},
-            'eigen' : {'type':DT.string, 'values':["rmmdiis","plan","cg","cg_new"], 'default_value':'rmmdiis'},
-            'smear' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.1},
-            'smearfn' : {'type':DT.string, 'values':["semiconducting","fermi_dirac","cold_smearing","methfessel_paxton","spline_smearing"], 'default_value':'semiconducting'},
+                                                    'expt_no':["standard", "hgh_lda_sc","hgh_lda"]}, 'default_value':'','tooltip':'label'},
+            'expt' : {'type':DT.string, 'values':['yes','no'], 'default_value':'no','tooltip':'label'},
+            'charge': {'type':DT.integer,'min': None, 'max': None, 'default_value': 0,'tooltip':'label'},
+            'maxiter' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 300,'tooltip':'label'},
+            'shape' :{'type':DT.string, 'values':["parallelepiped","minimum", "sphere", "cylinder"], 'default_value':'parallelepiped','tooltip':'label'},
+            'spinpol' :{'type':DT.string, 'values':['unpolarized', 'polarized'], 'default_value':'unpolarized','tooltip':'label'},
+            'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1,'tooltip':'label'},
+            'h' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3,'tooltip':'label'},            
+            'lx' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12,'tooltip':'label'},
+            'ly' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12,'tooltip':'label'},
+            'lz' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12,'tooltip':'label'},
+            'r' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6,'tooltip':'label'},
+            'l' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12,'tooltip':'label'},
+            'dxc' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 3,'tooltip':'label'},
+            'mixing' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3,'tooltip':'label'},
+            'eigen' : {'type':DT.string, 'values':["rmmdiis","plan","cg","cg_new"], 'default_value':'rmmdiis','tooltip':'label'},
+            'smear' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.1,'tooltip':'label'},
+            'smearfn' : {'type':DT.string, 'values':["semiconducting","fermi_dirac","cold_smearing","methfessel_paxton","spline_smearing"], 'default_value':'semiconducting','tooltip':'label'},
             'unitconv' : {'type':DT.string, 'values':[], 'default_value':''},
-            'unit_box' : {'type':DT.string, 'values':['angstrom'], 'default_value':'angstrom'},
-            'conv_energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7},
-            'abs_density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6},
-            'abs_eigen' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0},
-            'rel_density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0},
-            'rel_eigen' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0},
-            'extra_states' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 0}
+            'unit_box' : {'type':DT.string, 'values':['angstrom'], 'default_value':'angstrom','tooltip':'label'},
+            'conv_energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7,'tooltip':'label'},
+            'abs_density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6,'tooltip':'label'},
+            'abs_eigen' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0,'tooltip':'label'},
+            'rel_density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0,'tooltip':'label'},
+            'rel_eigen' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0,'tooltip':'label'},
+            'extra_states' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 0,'tooltip':'label'}
         }
     
 

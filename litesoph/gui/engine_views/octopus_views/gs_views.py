@@ -7,6 +7,11 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 
 from litesoph.gui.engine_views import EngineViews
 from litesoph.simulations.models import OctopusModel
+from litesoph.simulations.models import OctopusModel as OM
+
+from litesoph.gui.hovertooltip import CreateToolTip 
+from litesoph.gui.hovertooltip import *
+
 
 
 class OctGSPage(EngineViews):
@@ -30,6 +35,8 @@ class OctGSPage(EngineViews):
         self.label_proj = tk.Label(mode_frame,text="Mode",bg=label_design['bg'], fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_proj= CreateToolTip(self.label_proj, OM.ground_state['mode']['tooltip'])
+
 
         task = ttk.Combobox(mode_frame, textvariable = self._var['mode'], values= self.default_para['mode']['values'])
         task['font'] = label_design['font']
@@ -40,14 +47,18 @@ class OctGSPage(EngineViews):
         self.charge = tk.Label(mode_frame, text="Charge",bg=label_design['bg'], fg=label_design['fg'])
         self.charge['font'] = label_design['font']
         self.charge.grid(row=6, column=0, sticky='w', padx=2, pady=4)
+        self.charge= CreateToolTip(self.charge, OM.ground_state['charge']['tooltip'])
+
 
         self.entry_chrg = Onlydigits(mode_frame,textvariable=self._var['charge'])
         self.entry_chrg['font'] = label_design['font']
         self.entry_chrg.grid(row=6, column=1, sticky='w', padx=2, pady=2)
 
-        multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
-        multiplicity_label['font'] = label_design['font']
-        multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        self.multiplicity_label = tk.Label(mode_frame, text='Multiplicity',bg=label_design['bg'], fg=label_design['fg'])
+        self.multiplicity_label['font'] = label_design['font']
+        self.multiplicity_label.grid(row=7, column=0, sticky='w', padx=2, pady=4)
+        self.multiplicity_label= CreateToolTip(self.multiplicity_label, OM.ground_state['multip']['tooltip'])
+
 
         multiplicity_entry = Onlydigits(mode_frame,textvariable= self._var['multip'])
         multiplicity_entry['font'] =label_design['font']
@@ -65,6 +76,8 @@ class OctGSPage(EngineViews):
         self.shape = tk.Label(common_frame,text="Box Shape", justify='left', bg=label_design['bg'], fg=label_design['fg'])
         self.shape['font'] = label_design['font']
         self.shape.grid(row=0, column=0, sticky='nsew', padx=10, pady=4)
+        self.shape= CreateToolTip(self.shape, OM.ground_state['shape']['tooltip'])
+
 
         def pick_frame(*_):
             for widget in sub_frame.winfo_children():
@@ -81,6 +94,8 @@ class OctGSPage(EngineViews):
         self.label_sp = tk.Label(common_frame,text="Spacing (in Ang)",bg=label_design['bg'], fg=label_design['fg'])
         self.label_sp['font'] = label_design['font']
         self.label_sp.grid(row=1, column=0,  sticky='nsew', padx=6, pady=4)
+        self.label_sp= CreateToolTip(self.label_sp, 'label')
+
 
         self.entry_sp = Decimalentry(common_frame,textvariable= self._var['h'])  
         self.entry_sp['font'] = label_design['font']
@@ -89,6 +104,8 @@ class OctGSPage(EngineViews):
         self.spin = tk.Label(common_frame,text="Spin Polarisation",bg=label_design['bg'], fg=label_design['fg'])
         self.spin['font'] = label_design['font']
         self.spin.grid(row=2, column=0, sticky='nsew', padx=6, pady=4)
+        self.spin= CreateToolTip(self.spin, OM.ground_state['spinpol']['tooltip'])
+
    
         self.spinpol = ttk.Combobox(common_frame, textvariable= self._var['spinpol'], value = self.default_para['spinpol']['values'])
         #self.spinpol.current(0)
@@ -108,6 +125,8 @@ class OctGSPage(EngineViews):
         self.expt_label = tk.Label(oct_frame,text="Experimental Features",bg=label_design['bg'], fg=label_design['fg'])
         self.expt_label['font'] = label_design['font']
         self.expt_label.grid(row=2, column=0, sticky='w', padx=2, pady=6)
+        self.expt_label= CreateToolTip(self.expt_label, OM.ground_state['expt']['tooltip'])
+
        
 
         def pick_expt(*_):
@@ -127,6 +146,8 @@ class OctGSPage(EngineViews):
         self.lb1 = tk.Label(oct_frame,text="Pseudo Potential",bg=label_design['bg'], fg=label_design['fg'])
         self.lb1['font'] = label_design['font']
         self.lb1.grid(row=3, column=0, sticky='w', padx=2, pady=6)
+        self.lb1= CreateToolTip(self.lb1, OM.ground_state['pseudo']['tooltip'])
+
 
     
         def pick_xc(*_):
@@ -170,6 +191,8 @@ class OctGSPage(EngineViews):
         self.Frame2_note = tk.Label(oct_frame,text="Exchange Correlation",bg=label_design['bg'], fg=label_design['fg'])
         self.Frame2_note['font'] = label_design['font']
         self.Frame2_note.grid(row=4, column=0, sticky='w', padx=4, pady=6)
+        self.Frame2_note= CreateToolTip(self.Frame2_note, 'label')
+
         
         x_label = tk.Label(oct_xc_frame,text="x",fg="black")
         x_label['font'] = label_design['font']
@@ -193,6 +216,8 @@ class OctGSPage(EngineViews):
         self.Frame2_note = tk.Label(oct_frame,text="Eigen Solver",bg=label_design['bg'], fg=label_design['fg'])
         self.Frame2_note['font'] = label_design['font']
         self.Frame2_note.grid(row=7, column=0, sticky='w', padx=2, pady=6)
+        self.Frame2_note= CreateToolTip(self.Frame2_note, OM.ground_state['eigen']['tooltip'])
+
 
         self.entry_pol_x = ttk.Combobox(oct_frame, textvariable= self._var['eigen'], value = self.default_para['eigen']['values'])
         self.entry_pol_x.current(0)
@@ -203,6 +228,8 @@ class OctGSPage(EngineViews):
         self.label_extra_states = tk.Label(oct_frame,text="Number of Extra States",bg=label_design['bg'], fg=label_design['fg'])
         self.label_extra_states['font'] = label_design['font']
         self.label_extra_states.grid(row=8, column=0, sticky='w', padx=2, pady=6)
+        self.label_extra_states= CreateToolTip(self.label_extra_states, OM.ground_state['extra_states']['tooltip'])
+
 
         self.entry_extra_states = Onlydigits(oct_frame, textvariable= self._var['extra_states'])
         # self.entry_extra_states.current(0)
@@ -226,7 +253,9 @@ class OctGSPage(EngineViews):
 
         self.boxlabel = tk.Label(self.oct_simb,text="Simulation box unit",bg=label_design['bg'], fg=label_design['fg'])
         self.boxlabel['font'] = label_design['font']
-        self.boxlabel.grid(row=1, column=0, sticky='w', padx=2, pady=4)        
+        self.boxlabel.grid(row=1, column=0, sticky='w', padx=2, pady=4)     
+        self.boxlabel= CreateToolTip(self.boxlabel, 'label')
+   
         
         unit = ttk.Combobox(self.oct_simb, width=8, textvariable= self._var['unit_box'], value = self.default_para['unit_box']['values'])
         unit.current(0)
@@ -262,6 +291,8 @@ class OctGSPage(EngineViews):
         self.note['font'] = label_design['font']
         #self.note.place(x=10,y=40)
         self.note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.note= CreateToolTip(self.note, OM.ground_state['lx']['tooltip'])
+
 
         #self.entry1 = tk.Entry(self.Frame3,width= 5, textvariable= self._var['lx'])
         self.entry1 = Decimalentry(oct_ppd_frame, width =5, textvariable = self._var['lx'])
@@ -336,6 +367,8 @@ class OctGSPage(EngineViews):
         self.label_maxiter = tk.Label(oct_conv, text="Maximum SCF iteration",bg=label_design['bg'], fg=label_design['fg'])
         self.label_maxiter['font'] = label_design['font']
         self.label_maxiter.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_maxiter= CreateToolTip(self.label_maxiter, OM.ground_state['maxiter']['tooltip'])
+
 
         self.entry_maxiter = Onlydigits(oct_conv,textvariable= self._var['maxiter'])
         self.entry_maxiter['font'] = label_design['font']
@@ -344,6 +377,8 @@ class OctGSPage(EngineViews):
         self.label_conv_en = tk.Label(oct_conv,text="Energy(in au)",bg=label_design['bg'], fg=label_design['fg'])
         self.label_conv_en['font'] = label_design['font']
         self.label_conv_en.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.label_conv_en= CreateToolTip(self.label_conv_en, 'label')
+
 
         self.entry_conv_en = tk.Entry(oct_conv, textvariable= self._var['conv_energy'])
         self.entry_conv_en['font'] = label_design['font']
@@ -353,9 +388,12 @@ class OctGSPage(EngineViews):
         self.label_absconv['font'] = label_design['font']
         self.label_absconv.grid(row=8, column=0, sticky='w', padx=2, pady=4)
 
+
         self.label_absden = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
         self.label_absden['font'] = label_design['font']
         self.label_absden.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+        self.label_absden= CreateToolTip(self.label_absden, OM.ground_state['rel_density']['tooltip'])
+
 
         self.entry_absden = tk.Entry(oct_conv,textvariable= self._var['abs_density'])
         self.entry_absden['font'] = label_design['font']
@@ -366,6 +404,9 @@ class OctGSPage(EngineViews):
         self.label_absev = tk.Label(oct_conv,text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
         self.label_absev['font'] = label_design['font']
         self.label_absev.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+        self.label_absev= CreateToolTip(self.label_absev, 'label')
+
+        
 
         self.entry_absev = tk.Entry(oct_conv,textvariable= self._var['abs_eigen'])
         self.entry_absev['font'] = label_design['font']
@@ -380,6 +421,8 @@ class OctGSPage(EngineViews):
         self.label_relden = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
         self.label_relden['font'] = label_design['font']
         self.label_relden.grid(row=16, column=0, sticky='w', padx=2, pady=4)
+        self.label_relden= CreateToolTip(self.label_relden, OM.ground_state['rel_density']['tooltip'])
+
 
         self.entry_relden = tk.Entry(oct_conv,textvariable= self._var['rel_density'])
         self.entry_relden['font'] = label_design['font']
@@ -390,6 +433,8 @@ class OctGSPage(EngineViews):
         self.label_relev = tk.Label(oct_conv, text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
         self.label_relev['font'] = label_design['font']
         self.label_relev.grid(row=18, column=0, sticky='w', padx=2, pady=4)
+        self.label_relev= CreateToolTip(self.label_relev, 'label')
+
 
         self.entry_relev = tk.Entry(oct_conv, textvariable= self._var['rel_eigen'])
         self.entry_relev['font'] = label_design['font']
@@ -404,6 +449,8 @@ class OctGSPage(EngineViews):
         self.label_mixing = tk.Label(oct_conv,text="Mixing",bg=label_design['bg'], fg=label_design['fg'])
         self.label_mixing['font'] = label_design['font']
         self.label_mixing.grid(row=20, column=0, sticky='w', padx=2, pady=4)
+        self.label_mixing= CreateToolTip(self.label_mixing, OM.ground_state['mixing']['tooltip'])
+
 
         self.entry_mixing = Decimalentry(oct_conv, textvariable= self._var['mixing'])
         self.entry_mixing['font'] = label_design['font']
@@ -412,6 +459,8 @@ class OctGSPage(EngineViews):
         self.label_smear = tk.Label(oct_conv, text="Smearing (eV)",bg=label_design['bg'], fg=label_design['fg'])
         self.label_smear['font'] = label_design['font']
         self.label_smear.grid(row=22, column=0, sticky='w', padx=2, pady=4)
+        self.label_smear= CreateToolTip(self.label_smear, OM.ground_state['smear']['tooltip'])
+
 
         self.entry_smear = Decimalentry(oct_conv, textvariable= self._var['smear']) 
         self.entry_smear['font'] = label_design['font']
@@ -420,6 +469,8 @@ class OctGSPage(EngineViews):
         self.label_smearfunc = tk.Label(oct_conv,text="Smearing Function",bg=label_design['bg'], fg=label_design['fg'])
         self.label_smearfunc['font'] = label_design['font']
         self.label_smearfunc.grid(row=24, column=0, sticky='w', padx=2, pady=4)
+        self.label_smearfunc= CreateToolTip(self.label_smearfunc, OM.ground_state['smearfn']['tooltip'])
+
 
         self.entry_smearfunc = ttk.Combobox(oct_conv, textvariable= self._var['smearfn'], value = self.default_para['smearfn']['values'])
         self.entry_smearfunc.current(0)
