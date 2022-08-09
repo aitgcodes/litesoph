@@ -91,6 +91,8 @@ class GenericMainMenu(tk.Menu, v.WorkManagerPage):
 
 
 
+
+
   accelerators = {
     'file_open': 'Ctrl+O',
     'quit': 'Ctrl+Q',
@@ -123,149 +125,86 @@ class GenericMainMenu(tk.Menu, v.WorkManagerPage):
 
   
  
-  
+  def get_value(self, key):
+    return super().get_value(key)
   
   def _add_new_project(self, menu):
-    
-    
-    # path = tk.StringVar()   # Receiving user's file_path selection
-    # folder = tk.StringVar() # Receiving user's folder_name selection
-    
-    # # Dir select
-    # def selectPath():   
-    #   path_ = askdirectory()
-    #   path.set(path_)
 
-    # def create_file():  
-
-    #   print("folder_name: ", folder.get())
-    #   print("path_name: ", path.get())
-    #   dirs = os.path.join(path.get(), folder.get())
-    #   if not os.path.exists(dirs):
-    #       os.makedirs(dirs)
-    #       tkinter.messagebox.showinfo('Tips:','Folder name created successfully!')
-    #   else:
-    #       tkinter.messagebox.showerror('Tips','The folder name exists, please change it')
-
-      
-
-
-
-    # def donothing():
-    #   print('Do Nothing ....')
-
-    def create_project():
-
-      
-      # Create widget
-      # root = tk.Menu()
-      # root.title("Root Window")
-      # root.geometry("450x300")
-    
-    # Create widget
-      top1 = Toplevel(self)
-      
-      # Define title for window
-      top1.title("Create New Project")
-      
-      # specify size
-      top1.geometry("550x200")
-
-      
-      self.label_proj = Label(top1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
-      self.label_proj['font'] = label_design['font']
-      self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)        
-      
-      self.entry_proj = Entry(top1,textvariable=  self._var['proj_name'])
-      self.entry_proj['font'] = myfont()
-      self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
-      self.entry_proj.delete(0, tk.END)
+      self._default_var = {
+              'proj_path' : ['str'],
+              'proj_name' : ['str'],
               
-      self.button_project = Button(top1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
-      self.button_project['font'] = myfont()
-      self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)        
-        
-      
-      # Create label
-      # label = Label(top1, text="Project Name")
-      # name_entry = Entry(top1,textvariable = 'x', font=('calibre',10,'normal'))
-      # submit_button = Button(top1, text = "Create New Project", command = donothing)
+          }
 
-      # label_path = Label(top1,text = "Target path:")
-      # name_entry_path = Entry(top1, textvariable = path, font=('calibre',10,'normal'))
-      # submit_button_path = Button(top1, text = "Path select: ", command = selectPath)
+      self._var = v.var_define(self._default_var)
 
-      # label_fname=Label(top1,text = "Folder name:")
-      # name_entry_fname=Entry(top1,textvariable = folder)
-      # submit_button_fname=Button(top1, text = "Submit: ", command = self._create_project)
+  
 
+      def create_project():
 
-      # label.pack()
-      # name_entry.pack()
-      # submit_button.pack()
+        top1 = Toplevel(self)
+        top1.title("Create New Project")
+        top1.geometry("550x200")
 
       
-      # label_path.grid(row=0,column=0)
-      # name_entry_path.grid(row=0,column=1)
-      # submit_button_path.grid(row=0,column=2)
-
-
-      # label_fname.grid(row=1,column=0)
-      # name_entry_fname.grid(row=1,column=1)
-      # submit_button_fname.grid(row=1,column=2)
-
-
-
-
-     
-
+        self.label_proj = Label(top1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_proj['font'] = label_design['font']
+        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)        
       
-      
+        self.entry_proj = Entry(top1,textvariable=self._var['proj_name'])
+        self.entry_proj['font'] = myfont()
+        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+        self.entry_proj.delete(0, tk.END)
+                
+        self.button_project = Button(top1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
+        self.button_project['font'] = myfont()
+        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)        
+                
 
-    def open_project():
+      def open_project():
 	
-      # Create widget
-      root = Tk()
-      root.title("Root Window")
-      root.geometry("450x300")
-      top1 = Toplevel(root)
-      
-      # Define title for window
-      top1.title("Toplevel1")
-      
-      # specify size
-      top1.geometry("200x200")
-      
-      # Create label
-      label = Label(top1,
-            text = "This is a Toplevel1 window")
+        # Create widget
+        root = Tk()
+        root.title("Root Window")
+        root.geometry("450x300")
+        top1 = Toplevel(root)
         
+        # Define title for window
+        top1.title("Toplevel1")
         
-        # entry widget
+        # specify size
+        top1.geometry("200x200")
         
+        # Create label
+        label = Label(top1,
+              text = "This is a Toplevel1 window")
+          
+          
+          # entry widget
+          
+          
+          
+        name_entry = Entry(top1,textvariable = 'x', font=('calibre',10,'normal'))
+        # Create Exit button
+        button1 = Button(top1, text = "Exit", command = top1.destroy)
         
-        
-      name_entry = Entry(top1,textvariable = 'x', font=('calibre',10,'normal'))
-      # Create Exit button
-      button1 = Button(top1, text = "Exit", command = top1.destroy)
-      
-      # create button to open toplevel2
-      # button2 = Button(top1, text = "open toplevel2",
-      # 				command = open_Toplevel2)
-      label.pack()
-      name_entry.pack()
-      button1.pack()
-        
-      name_entry.place(x = 100, y = 50)
+        # create button to open toplevel2
+        # button2 = Button(top1, text = "open toplevel2",
+        # 				command = open_Toplevel2)
+        label.pack()
+        name_entry.pack()
+        button1.pack()
+          
+        name_entry.place(x = 100, y = 50)
 
-      # Display until closed manually
-      top1.mainloop()
+        # Display until closed manually
+        top1.mainloop()
 
 
-    menu.add_command(
-      label='New Project…', command= create_project,
-      #image=self.icons.get('file'), compound=tk.LEFT
-      )
+      menu.add_command(
+        label='New Project…', command= create_project,
+        #image=self.icons.get('file'), compound=tk.LEFT
+        )
 
 
   

@@ -18,6 +18,7 @@ from configparser import ConfigParser, NoSectionError
 from litesoph.config import check_config, read_config
 from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
+from litesoph.gui import menubar as mb 
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.gui.viewpanel import ViewPanelManager
 from litesoph.lsio.IO import read_file
@@ -49,8 +50,8 @@ class GUIAPP:
         self.main_window = self.builder.get_object('mainwindow')
 
         menu_class = get_main_menu_for_os('Linux')
-        menu = menu_class(self.main_window)
-        self.main_window.config(menu=menu)
+        self.menu = menu_class(self.main_window)
+        self.main_window.config(menu=self.menu)
 
         self.treeview = self.builder.get_object('treeview1')
 
@@ -218,14 +219,20 @@ class GUIAPP:
             return
         self._init_project(project_path)
         if self.engine:
+            # self._frames[v.WorkManagerPage].engine.set(self.engine)
             self._frames[v.WorkManagerPage].engine.set(self.engine)
+
         
        
         
     def _on_create_project(self, *_):
+
         """Creates a new litesoph project"""
        
-        project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
+        # project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
+        project_name = self.menu.get_value('proj_name')
+        # project_name= str(foldername)
+
         
         if not project_name:
             messagebox.showerror(title='Error', message='Please set the project name.')
