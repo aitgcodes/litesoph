@@ -557,7 +557,7 @@ class GUIAPP:
     def bind_task_events(self, task_name, task , view):
         self.main_window.bind_all(f'<<Save{task_name}Script>>', lambda _ : self._on_save_button(task, view))
         self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _ : self._on_run_local_button(task))
-        self.main_window.bind_all(f'<<SubNetworkt{task_name}>>', lambda _ : self._on_run_network_button(task))
+        self.main_window.bind_all(f'<<SubNetwork{task_name}>>', lambda _ : self._on_run_network_button(task))
     
     def _on_save_button(self, task:Task, view, *_):
         template = self.view_panel.get_text()
