@@ -459,27 +459,27 @@ class GUIAPP:
 ##----------------------plot_delta_spec_task---------------------------------
     
     def _on_spectra_task(self, *_):
-
-        check = check_task_pre_conditon(self.engine, 'spectrum', self.status)
+        task_name = actions.SPECTRUM
+        check = check_task_pre_conditon(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._show_frame(v.PlotSpectraPage, self.engine)
+        self._show_frame(v.PlotSpectraPage, self.engine, task_name)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
         self.spectra_view.Frame1_Button2.config(state='active')
         self.spectra_view.Frame1_Button3.config(state='active')
-        self.main_window.bind_all('<<SubLocalSpectrum>>', lambda _: self._on_spectra_run_local_button())
-        self.main_window.bind_all('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
-        self.main_window.bind_all('<<ShowSpectrumPlot>>', lambda _:self._on_spectra_plot_button())
+        self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_spectra_run_local_button(task_name))
+        self.main_window.bind_all(f'<<RunNetwork{task_name}>>', lambda _: self._on_spectra_run_network_button())
+        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _:self._on_spectra_plot_button())
 
-    def _on_spectra_run_local_button(self, *_):
+    def _on_spectra_run_local_button(self, task_name, *_):
         
         inp_dict = self.spectra_view.get_parameters()
-        self.spectra_task = get_engine_task(self.engine, 'spectrum', self.status, self.directory, self.lsconfig, inp_dict)
+        self.spectra_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
@@ -502,8 +502,8 @@ class GUIAPP:
 ##----------------------compute---tcm---------------------------------
 
     def _on_tcm_task(self, *_):
-
-        check = check_task_pre_conditon(self.engine, 'tcm', self.status)
+        task_name = actions.TCM
+        check = check_task_pre_conditon(self.engine, task_name , self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
@@ -515,14 +515,14 @@ class GUIAPP:
         self.tcm_view = self._frames[v.TcmPage]
         self.tcm_view.engine_name.set(self.engine)
         
-        self.main_window.bind_all('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
-        self.main_window.bind_all('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
-        self.main_window.bind_all('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
+        self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_tcm_run_local_button(task_name))
+        self.main_window.bind_all(f'<<RunNetwork{task_name}>>', lambda _: self._on_tcm_run_network_button())
+        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _:self._on_tcm_plot_button())
 
-    def _on_tcm_run_local_button(self, *_):
+    def _on_tcm_run_local_button(self, task_name, *_):
         
         inp_dict = self.tcm_view.get_parameters()
-        self.tcm_task = get_engine_task(self.engine, 'tcm', self.status, self.directory, self.lsconfig, inp_dict)
+        self.tcm_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
         self.tcm_task.create_template()
         self.tcm_task.write_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)

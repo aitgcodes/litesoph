@@ -1189,9 +1189,10 @@ class LaserDesignPage(View):
 
 class PlotSpectraPage(ttk.Frame):
 
-    def __init__(self, parent, engine, *args, **kwargs):
+    def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.engine = engine
+        self.task_name = task_name
         
         self._default_var = {
             'del_e' : ['float', 0.05],
@@ -1225,7 +1226,7 @@ class PlotSpectraPage(ttk.Frame):
 
         self.Frame1.grid(row=0,column=0, sticky='nsew')
 
-        self.add_job_frame(self, "Spectrum", r=0, c=1)        
+        self.add_job_frame(self, self.task_name, r=0, c=1)        
 
         self.heading = tk.Label(self.Frame1,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
         self.heading['font'] = myfont()
@@ -1330,7 +1331,7 @@ class PlotSpectraPage(ttk.Frame):
             
 
     def show_plot(self):
-        self.event_generate("<<ShowSpectrumPlot>>")
+        self.event_generate(f"<<Show{self.task_name}Plot>>")
 
 
     def get_parameters(self):
@@ -1365,95 +1366,16 @@ class PlotSpectraPage(ttk.Frame):
             return td_dict_nwchem
         elif self.engine == 'octopus':
             return td_dict_oct            
-    
-  
 
-class DmLdPage(ttk.Frame):
-
-    def __init__(self, parent, controller, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        self.controller = controller
-        
-        from litesoph.utilities.units import au_to_fs
-        self.plot_task = tk.StringVar()
-        self.compo = tk.StringVar()
-
-        myFont = font.Font(family='Helvetica', size=10, weight='bold')
-
-        j=font.Font(family ='Courier', size=20,weight='bold')
-        k=font.Font(family ='Courier', size=40,weight='bold')
-        l=font.Font(family ='Courier', size=15,weight='bold')
-        
-        self.Frame = ttk.Frame(self) 
-        
-        self.Frame.place(relx=0.01, rely=0.01, relheight=0.98, relwidth=0.978)
-        self.Frame.configure(relief='groove')
-        self.Frame.configure(borderwidth="2")
-        self.Frame.configure(relief="groove")
-        self.Frame.configure(cursor="fleur")
-        
-        self.heading = tk.Label(self.Frame,text="LITESOPH Dipole Moment and laser Design", fg='blue')
-        self.heading['font'] = myFont
-        self.heading.place(x=350,y=10)
-        
-        self.label_pol = tk.Label(self.Frame, text= "Plot:",bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=60)
-
-        plot_list = ["Dipole Moment", "Dipole Moment and Laser"]
-        self.entry_pol_x = ttk.Combobox(self.Frame,textvariable=self.plot_task, value = plot_list, width = 25)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"Dipole Moment")
-        self.entry_pol_x.place(x=280,y=60)
-        self.entry_pol_x['state'] = 'readonly'
-
-        #self.label_pol = Label(self.Frame, text= "Axis of Electric polarization:",fg="black")
-        #self.label_pol['font'] = myFont
-        #self.label_pol.place(x=10,y=110)
-
-        self.label_pol = tk.Label(self.Frame, text="Select the axis", bg= "grey",fg="black")
-        self.label_pol['font'] = myFont
-        self.label_pol.place(x=10,y=110)
-
-        com_pol = ["x component","y component","z component"]
-        self.entry_pol_x = ttk.Combobox(self.Frame, textvariable= self.compo, value = com_pol, width= 25)
-        self.entry_pol_x['font'] = myFont
-        self.entry_pol_x.insert(0,"x component")
-        self.entry_pol_x.place(x=280,y=110)
-        self.entry_pol_x['state'] = 'readonly'
-
-        self.Frame2_Button_1 = tk.Button(self.Frame,text="Plot",activebackground="#78d6ff", command=lambda:[self.plot_button()])
-        self.Frame2_Button_1['font'] = myFont
-        self.Frame2_Button_1.place(x=250,y=380)
-    
-        Frame_Button1 = tk.Button(self.Frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
-        Frame_Button1['font'] = myFont
-        Frame_Button1.place(x=10,y=380)
-        
-    def returnaxis(self):
-        if self.compo.get() == "x component":
-            axis = 2
-        if self.compo.get() == "y component":
-            axis = 3
-        if self.compo.get() == "z component":
-            axis = 4
-        return axis
-
-    def plot_button(self):
-        from litesoph.utilities.units import au_to_fs
-        if self.plot_task.get() == "Dipole Moment":
-            plot_spectra(self.returnaxis(),str(self.controller.directory)+'/TD_Laser/dmlaser.dat',str(self.controller.directory)+'/TD_Laser/dmlaser.png',"Time (fs)","Dipole moment (au)", au_to_fs)
-        if self.plot_task.get() == "Dipole Moment and Laser":
-            plot_files(str(self.controller.directory)+'/laser.dat',str(self.controller.directory)+'/TD_Laser/dmlaser.dat',1, self.returnaxis())
-   
 class TcmPage(ttk.Frame):
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
         self.parent = parent
         self.job = None
-        
+        self.task_name = task_name
+
         self.engine_name = tk.StringVar()
         self.min = tk.DoubleVar()
         self.max = tk.DoubleVar()
@@ -1484,12 +1406,12 @@ class TcmPage(ttk.Frame):
         self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
         self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
-        Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+        Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         Frame_Button1['font'] = myfont()
         Frame_Button1.grid(row=0, column=0)
 
         self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
-        self.add_job_frame("TCM")
+        self.add_job_frame(task_name)
 
     def add_gpaw_ksd_frame(self, parent):
         """ Creates widgets for gpaw ksd calculation"""    
