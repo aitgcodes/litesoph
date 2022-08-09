@@ -68,9 +68,9 @@ class CreateToolTip(object):
 #     btn2 = tk.Button(root, text="button 2")
 #     btn2.pack(padx=10, pady=5)
 #     button2_ttp = CreateToolTip(btn2, \
-#     "First thing's first, I'm the realest. Drop this and let the whole world "
-#     "feel it. And I'm still in the Murda Bizness. I could hold you down, like "
-#     "I'm givin' lessons in  physics. You should want a bad Vic like this.")
+#     "Hello, this is hover tooltip sample"
+#     "Hello, this is hover tooltip sample"
+#     "Hello, this is hover tooltip sample")
 #     root.mainloop()
 
 # dictionary for keyword explanation
@@ -88,18 +88,3 @@ hoverdict={
 
 
 
-multiplicity_gs=' enter label'
-# exchange_correlation_doc='enter label'
-# spin_polarisation_doc='enter label'
-# number_band_doc = 'enter label'
-# spacing_doc ='enter label'
-# vacuum_size_doc='enter label'
-# max_scf_iter_doc='enter label'
-# energy_doc='enter label'
-# density_doc='enter label'
-# eigenstates_doc='enter label'
-# band_occupany_doc='enter label'
-# smearing_func_doc='enter label'
-# smearing_doc=''
-# generate_input_doc='enter label'
-# saveinput_doc='enter label'
