@@ -580,11 +580,11 @@ class GUIAPP:
         remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
-        self.job_sub_page.activate_run_button()
+        self.job_sub_page.set_run_button_state('disable')
         self.job_sub_page.bind(f'<<Run{task.task_name}Network>>', lambda _: self._run_network(task))
         self.job_sub_page.bind(f'<<View{task.task_name}NetworkOutfile>>', lambda _: self._on_out_remote_view_button(task))
-        self.job_sub_page.bind(f'<<Save{task.task_name}Network>>',lambda _: self._on_save_job_script(task))
-        self.job_sub_page.bind(f'<<Create{task.task_name}NetworkScript>>', lambda _: self._on_create_remote_job_script(task, task.task_name + 'Network'))
+        self.job_sub_page.bind(f'<<Save{task.task_name}Network>>',lambda _: self._on_save_job_script(task, self.job_sub_page))
+        self.job_sub_page.bind(f'<<Create{task.task_name}NetworkScript>>', lambda _: self._on_create_remote_job_script(task, task.task_name))
     
     def _on_run_local_button(self, task:Task, *_):
 
@@ -593,12 +593,12 @@ class GUIAPP:
             return
         self.job_sub_page = v.JobSubPage(self.input_frame, task.task_name, 'Local')
         self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
-        self.job_sub_page.activate_run_button()
+        self.job_sub_page.set_run_button_state('disable')
         
         self.job_sub_page.bind(f'<<Run{task.task_name}Local>>', lambda _: self._run_local(task))
         self.job_sub_page.bind(f'<<View{task.task_name}LocalOutfile>>', lambda _: self._on_out_local_view_button(task))
-        self.job_sub_page.bind(f'<<Save{task.task_name}Local>>',lambda _: self._on_save_job_script(task))
-        self.job_sub_page.bind(f'<<Create{task.task_name}LocalScript>>', lambda _: self._on_create_local_job_script(task, task.task_name + 'Local'))
+        self.job_sub_page.bind(f'<<Save{task.task_name}Local>>',lambda _: self._on_save_job_script(task, self.job_sub_page))
+        self.job_sub_page.bind(f'<<Create{task.task_name}LocalScript>>', lambda _: self._on_create_local_job_script(task, task.task_name))
     
     def _run_local(self, task: Task, np=None):
 
@@ -615,12 +615,12 @@ class GUIAPP:
             
             if not cmd:
                 messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
-                self.job_sub_page.activate_run_button()
+                self.job_sub_page.set_run_button_state('active')
                 return
         else:
            if cmd != 'bash':
                 messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
-                self.job_sub_page.activate_run_button()
+                self.job_sub_page.set_run_button_state('active')
                 return
 
         task.set_submit_local(np)
@@ -667,7 +667,7 @@ class GUIAPP:
             task.check_prerequisite(network = True)
         except FileNotFoundError as e:
             messagebox.showerror(title = "Error", message = e)
-            self.job_sub_page.activate_run_button()
+            self.job_sub_page.set_run_button_state('active')
             return
 
         sub_job_type = self.job_sub_page.sub_job_type.get()
@@ -677,12 +677,12 @@ class GUIAPP:
             
             if not cmd:
                 messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
-                self.job_sub_page.activate_run_button()
+                self.job_sub_page.set_run_button_state('active')
                 return
         else:
            if cmd != 'bash':
                 messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
-                self.job_sub_page.activate_run_button()
+                self.job_sub_page.set_run_button_state('active')
                 return
 
         
@@ -701,13 +701,13 @@ class GUIAPP:
                                         )
         except Exception as e:
             messagebox.showerror(title = "Error", message = e)
-            self.job_sub_page.activate_run_button()
+            self.job_sub_page.set_run_button_state('active')
             return
         try:
             self.submit_network.run_job(cmd)
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
-            self.job_sub_page.activate_run_button()
+            self.job_sub_page.set_run_button_state('active')
             return
         else:
             if task.net_cmd_out[0] != 0:
@@ -722,12 +722,12 @@ class GUIAPP:
         self.submit_network.download_output_files()
         self.status.update_status(f'{self.engine}.{self.submit_network.task.task_name}.done', True)
 
-    def _on_create_local_job_script(self, task: Task, event: str, *_):
+    def _on_create_local_job_script(self, task: Task, *_):
         np = self.job_sub_page.processors.get()
         b_file =  task.create_job_script(np)
         self.view_panel.insert_text(b_file, 'normal')
 
-    def _on_create_remote_job_script(self, task: Task, event: str, *_):
+    def _on_create_remote_job_script(self, task: Task, *_):
         np = self.job_sub_page.processors.get()
         rpath = self.job_sub_page.rpath.get()
         if rpath:
@@ -737,7 +737,8 @@ class GUIAPP:
             return
         self.view_panel.insert_text(b_file, 'normal')
        
-    def _on_save_job_script(self,task :Task, *_):
+    def _on_save_job_script(self,task :Task,view, *_):
+        view.set_run_button_state('active')
         txt = self.view_panel.get_text()
         task.write_job_script(txt)
 

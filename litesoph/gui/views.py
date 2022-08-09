@@ -1916,11 +1916,8 @@ class JobSubPage(ttk.Frame):
         event = '<<Run'+self.task+'Local>>'
         self.event_generate(event)
 
-    def disable_run_button(self):
-        self.run_button.config(state='disabled')
-
-    def activate_run_button(self):
-        self.run_button.config(state='active')
+    def set_run_button_state(self, state):
+        self.run_button.config(state=state)
 
     def create_job_script(self):
         event = '<<Create'+self.task+self.job_type+'Script>>'
