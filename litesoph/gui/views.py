@@ -8,7 +8,7 @@ import pathlib
 
 from numpy import append
 
-from litesoph.gui import images
+from litesoph.gui import actions, images
 from litesoph.simulations.project_status import show_message
 from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
@@ -90,7 +90,7 @@ class StartPage(ttk.Frame):
         canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
         canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
 
-        button_create_project = tk.Button(mainframe,text="Start LITESOPH Project", activebackground="#78d6ff",command=lambda: self.event_generate('<<ShowWorkManagerPage>>'))
+        button_create_project = tk.Button(mainframe,text="Start LITESOPH Project", activebackground="#78d6ff",command=lambda: self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         button_create_project['font'] = myFont
         button_create_project.place(x=80,y=200)
 
@@ -306,21 +306,21 @@ class WorkManagerPage(ttk.Frame):
         self.entry_proj.config(textvariable=self._var['proj_name'])
 
     def _open_project(self):
-        self.event_generate('<<OpenExistingProject>>')
+        self.event_generate(actions.OPEN_PROJECT)
 
     def _create_project(self):
-        self.event_generate('<<CreateNewProject>>')
+        self.event_generate(actions.CREATE_NEW_PROJECT)
 
     def _get_geometry_file(self):
-        self.event_generate('<<GetMolecule>>')
+        self.event_generate(actions.GET_MOLECULE)
         
     def _geom_visual(self):
-        self.event_generate('<<VisualizeMolecule>>')
+        self.event_generate(actions.VISUALIZE_MOLECULE)
 
     def proceed_button(self):
         """ event generate on proceed button"""
 
-        self.event_generate('<<SelectProceed>>')   
+        self.event_generate(actions.ON_PROCEED)   
 
     def show_upload_label(self):
         show_message(self.message_label,"Uploaded")
@@ -594,7 +594,7 @@ class GroundStatePage(View):
         self.box_shape.grid(row=0, column=1, sticky='w', padx=10, pady=2) 
 
     def back_button(self):
-        self.event_generate('<<ShowWorkManagerPage>>')              
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)              
 
     def get_parameters(self):
 
@@ -876,7 +876,7 @@ class TimeDependentPage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def back_button(self):
-        self.event_generate('<<ShowWorkManagerPage>>')
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
 
     def update_var(self, default_dict:dict):
         for key, value in default_dict.items():
@@ -1170,17 +1170,8 @@ class LaserDesignPage(View):
             'print': ['dipole', 'moocc' if self.popln_var.get() == 1 else '']}}
             return td_nwchem
 
-    def save_button(self):
-        self.event_generate('<<SaveRT_TDDFT_LASERScript>>')          
-
-    def view_button(self):
-        self.event_generate('<<ViewRT_TDDFT_LASERScript>>')
-
-    def run_job_button(self):
-        self.event_generate('<<SubRT_TDDFT_LASER>>')
-
     def back_button(self):
-        self.event_generate('<<ShowWorkManagerPage>>')
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg) 
@@ -1264,7 +1255,7 @@ class PlotSpectraPage(ttk.Frame):
         self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
         self.button_frame.grid(row=1, column=0, sticky='nsew')
 
-        Frame_Button1 = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate('<<ShowWorkManagerPage>>'))
+        Frame_Button1 = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         Frame_Button1['font'] = myfont()
         Frame_Button1.grid(row=0, column=0, padx=3, pady=6)
 
@@ -1505,7 +1496,7 @@ class TcmPage(ttk.Frame):
         self.Frame1_Button3['font'] = myfont()
         self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')    
 
-        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate("<<ShowTCMPlot>>"))
+        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate(f"<<Show{task_name}Plot>>"))
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
 
@@ -1688,7 +1679,7 @@ class JobSubPage(ttk.Frame):
         back['font'] = myfont()
         back.pack(side= tk.LEFT)
 
-        back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate('<<ShowWorkManagerPage>>')])
+        back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)])
         back2main['font'] = myfont()
         back2main.pack(side= tk.RIGHT)
 

@@ -23,7 +23,7 @@ from litesoph.gui.viewpanel import ViewPanelManager
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
 from litesoph.gui import views as v
-
+from litesoph.gui import actions
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.project_status import Status
@@ -152,13 +152,13 @@ class GUIAPP:
     def _bind_event_callbacks(self):
         """binds events and specific callback functions"""
         event_callbacks = {
-            '<<GetMolecule>>' : self._on_get_geometry_file,
-            '<<VisualizeMolecule>>': self._on_visualize,
-            '<<CreateNewProject>>' : self._on_create_project,
-            '<<OpenExistingProject>>' : self._on_open_project,
-            '<<SelectProceed>>' : self._on_proceed,
-            '<<ClickBackButton>>' : self._on_back_button,
-            '<<RefreshConfig>>': self._refresh_config,
+            actions.GET_MOLECULE : self._on_get_geometry_file,
+            actions.VISUALIZE_MOLECULE: self._on_visualize,
+            actions.CREATE_NEW_PROJECT: self._on_create_project,
+            actions.OPEN_PROJECT : self._on_open_project,
+            actions.ON_PROCEED : self._on_proceed,
+            actions.ON_BACK_BUTTON : self._on_back_button,
+            actions.REFRESH_CONFIG : self._refresh_config,
         }
 
         for event, callback in event_callbacks.items():
@@ -167,15 +167,13 @@ class GUIAPP:
     def _show_page_events(self):
         
         event_show_page= {
-            '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage),
-            '<<ShowWorkManagerPage>>' : self._show_workmanager_page,
-            '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
-            '<<ShowRT_TDDFT_DELTAPage>>' : self._on_rt_tddft_delta_task,
-            '<<ShowRT_TDDFT_LASERPage>>' : self._on_rt_tddft_laser_task,
-            '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
-            '<<ShowDmLdPage>>' : lambda _: self._show_frame(v.DmLdPage, self),
-            '<<ShowTcmPage>>' : self._on_tcm_task,
-            '<<ShowPopulationPage>>' : self._on_population_task
+            actions.SHOW_WORK_MANAGER_PAGE : self._show_workmanager_page,
+            actions.SHOW_GROUND_STATE_PAGE: self. _on_ground_state_task,
+            actions.SHOW_RT_TDDFT_DELTA_PAGE : self._on_rt_tddft_delta_task,
+            actions.SHOW_RT_TDDFT_LASER_PAGE: self._on_rt_tddft_laser_task,
+            actions.SHOW_SPECTRUM_PAGE : self._on_spectra_task,
+            actions.SHOW_TCM_PAGE : self._on_tcm_task,
+            actions.SHOW_MO_POPULATION_CORRELATION_PAGE : self._on_population_task
         }
         for event, callback in event_show_page.items():
             self.main_window.bind_all(event, callback)  
@@ -280,8 +278,8 @@ class GUIAPP:
     def _on_proceed(self, *_):
 
         simulation_type = [('electrons', 'None', '<<event>>'),
-                        ('electrons', 'Delta Pulse', '<<ShowRT_TDDFT_DELTAPage>>'),
-                        ('electrons', 'Gaussian Pulse', '<<ShowRT_TDDFT_LASERPage>>'),
+                        ('electrons', 'Delta Pulse',actions.SHOW_RT_TDDFT_DELTA_PAGE),
+                        ('electrons', 'Gaussian Pulse', actions.SHOW_RT_TDDFT_LASER_PAGE),
                         ('electrons', 'Customised Pulse', '<<event>>'),
                         ('electron+ion', 'None', '<<event>>'),
                         ('electron+ion', 'Delta Pulse', '<<event>>'),
@@ -329,7 +327,7 @@ class GUIAPP:
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
             if path.exists() is True:
-                self.main_window.event_generate('<<ShowGroundStatePage>>')
+                self.main_window.event_generate(actions.SHOW_GROUND_STATE_PAGE)
             else:
                 messagebox.showerror(title = 'Error', message= "Upload geometry file")
                 return
@@ -340,13 +338,13 @@ class GUIAPP:
             return
         
         elif sub_task == "Compute Spectrum":
-            self.main_window.event_generate('<<ShowPlotSpectraPage>>')   
+            self.main_window.event_generate(actions.SHOW_SPECTRUM_PAGE)   
         elif sub_task == "Dipole Moment and Laser Pulse":
-            self.main_window.event_generate('<<ShowDmLdPage>>')
+            self.main_window.event_generate('')
         elif sub_task == "Kohn Sham Decomposition":
-               self.main_window.event_generate('<<ShowTcmPage>>') 
+               self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
         elif sub_task == "Population Correlation":
-               self.main_window.event_generate('<<ShowPopulationPage>>') 
+               self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE) 
 
         w.refresh_var()
 
@@ -362,7 +360,7 @@ class GUIAPP:
 ##----------------------Ground_State_task---------------------------------
 
     def _on_ground_state_task(self, *_):
-        task_name = 'ground_state'
+        task_name = actions.GROUND_STATE
         self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.GroundStatePage, self.engine, task_name)
         self.ground_state_view = self._frames[v.GroundStatePage]
@@ -387,7 +385,7 @@ class GUIAPP:
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
-        task_name = 'rt_tddft_delta'
+        task_name = actions.RT_TDDFT_DELTA
         check = check_task_pre_conditon(self.engine, task_name, self.status)
         
         if check[0]:
@@ -411,7 +409,7 @@ class GUIAPP:
 ##----------------------Time_dependent_task_laser---------------------------------
 
     def _on_rt_tddft_laser_task(self, *_):
-        task_name = 'rt_tddft_laser'
+        task_name = actions.RT_TDDFT_LASER
 
         check = check_task_pre_conditon(self.engine, task_name, self.status)
         
