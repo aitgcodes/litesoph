@@ -43,6 +43,8 @@ class Task:
         self.prepend_project_name()
 
     def prepend_project_name(self):
+        
+        # Remove this method, and use add_proper_path method for inserting proper path into file.
 
         self.filename = pathlib.Path(f"{self.project_dir.name}/{self.task_data['inp']}")
         for item in self.task_data['req']:
@@ -115,7 +117,7 @@ class Task:
     def create_task_dir(self):
         self.task_dir = self.engine.create_dir(self.project_dir, type(self).__name__)
 
-    def prepare_input(self, path):
+    def add_proper_path(self, path):
         """this adds in the proper path to the data file required for the job"""
         
         if str(self.project_dir.parent) in self.template:
@@ -128,7 +130,7 @@ class Task:
 
     def run_job_local(self,cmd):
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.prepare_input()
+        self.sumbit_local.add_proper_path()
         self.sumbit_local.run_job(cmd)
         
 def pbs_job_script(name):

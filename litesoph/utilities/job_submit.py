@@ -62,7 +62,8 @@ class SubmitLocal:
         task.create_job_script(self.np)
                    
 
-    def prepare_input(self):
+    def add_proper_path(self):
+        # Remove this method.
         """this adds in the proper path to the data file required for the job"""
         filename = self.project_dir.parent / self.task.filename
 
@@ -104,16 +105,17 @@ class SubmitNetwork:
         self.network_sub = NetworkJobSubmission(hostname, self.port)
         self.network_sub.ssh_connect(username, password)
         if self.network_sub.check_file(self.remote_path):
-            self.prepare_input(self.remote_path)
+            self.add_proper_path(self.remote_path)
             self.upload_files()
         else:
             raise Exception(f"Remote path: {self.remote_path} not found.")
     
-    def prepare_input(self, path):
+    def add_proper_path(self, path):
         """this adds in the proper path to the data file required for the job"""
         
+        #Remove if statement, by using add_proper_path method in all engine 
         if "NwchemTask" == type(self.task).__name__:
-            self.task.prepare_input(self.remote_path)
+            self.task.add_proper_path(self.remote_path)
             return
 
         filename = self.task.project_dir.parent / self.task.filename
