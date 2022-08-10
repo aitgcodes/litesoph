@@ -130,79 +130,42 @@ class GenericMainMenu(tk.Menu, v.WorkManagerPage):
   
   def _add_new_project(self, menu):
 
-      self._default_var = {
-              'proj_path' : ['str'],
-              'proj_name' : ['str'],
+      # self._default_var = {
+      #         'proj_path' : ['str'],
+      #         'proj_name' : ['str'],
               
-          }
+      #     }
 
-      self._var = v.var_define(self._default_var)
+      # self._var = v.var_define(self._default_var)
 
   
 
-      def create_project():
+      # def create_project():
 
-        top1 = Toplevel(self)
-        top1.title("Create New Project")
-        top1.geometry("550x200")
+      #   top1 = Toplevel(self)
+      #   top1.title("Create New Project")
+      #   top1.geometry("550x200")
 
       
-        self.label_proj = Label(top1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)        
+      #   self.label_proj = Label(top1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
+      #   self.label_proj['font'] = label_design['font']
+      #   self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)        
       
-        self.entry_proj = Entry(top1,textvariable=self._var['proj_name'])
-        self.entry_proj['font'] = myfont()
-        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
-        self.entry_proj.delete(0, tk.END)
+      #   self.entry_proj = Entry(top1,textvariable=self._var['proj_name'])
+      #   self.entry_proj['font'] = myfont()
+      #   self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+      #   self.entry_proj.delete(0, tk.END)
                 
-        self.button_project = Button(top1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
-        self.button_project['font'] = myfont()
-        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)        
+        # self.button_project = Button(top1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
+      #   self.button_project['font'] = myfont()
+      #   self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)        
                 
 
-      def open_project():
-	
-        # Create widget
-        root = Tk()
-        root.title("Root Window")
-        root.geometry("450x300")
-        top1 = Toplevel(root)
-        
-        # Define title for window
-        top1.title("Toplevel1")
-        
-        # specify size
-        top1.geometry("200x200")
-        
-        # Create label
-        label = Label(top1,
-              text = "This is a Toplevel1 window")
-          
-          
-          # entry widget
-          
-          
-          
-        name_entry = Entry(top1,textvariable = 'x', font=('calibre',10,'normal'))
-        # Create Exit button
-        button1 = Button(top1, text = "Exit", command = top1.destroy)
-        
-        # create button to open toplevel2
-        # button2 = Button(top1, text = "open toplevel2",
-        # 				command = open_Toplevel2)
-        label.pack()
-        name_entry.pack()
-        button1.pack()
-          
-        name_entry.place(x = 100, y = 50)
-
-        # Display until closed manually
-        top1.mainloop()
-
-
+      
       menu.add_command(
-        label='New Project…', command= create_project,
+        label='New Project…', command= self._event('<<create_filemenu_project>>'),
+        # label='New Project…', command= create_project,
+
         #image=self.icons.get('file'), compound=tk.LEFT
         )
 

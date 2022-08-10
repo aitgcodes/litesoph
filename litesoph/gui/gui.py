@@ -29,6 +29,9 @@ from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.project_status import Status
 
+from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
+
+
 home = pathlib.Path.home()
 
 TITLE_FONT = ("Helvetica", 18, "bold")
@@ -156,6 +159,8 @@ class GUIAPP:
             '<<GetMolecule>>' : self._on_get_geometry_file,
             '<<VisualizeMolecule>>': self._on_visualize,
             '<<CreateNewProject>>' : self._on_create_project,
+            '<<create_filemenu_project>>' : self.create_project_window,
+
             '<<OpenExistingProject>>' : self._on_open_project,
             '<<SelectProceed>>' : self._on_proceed,
             '<<ClickBackButton>>' : self._on_back_button,
@@ -222,7 +227,42 @@ class GUIAPP:
             # self._frames[v.WorkManagerPage].engine.set(self.engine)
             self._frames[v.WorkManagerPage].engine.set(self.engine)
 
-        
+  
+
+    # def create_filemenu_project(self,*_):
+
+    #     self._default_var = {
+    #           'proj_path' : ['str'],
+    #           'proj_name' : ['str'],
+              
+    #       }
+
+    #     self._var = v.var_define(self._default_var)
+
+    #     # print("do nothing...")
+    #     top1 = Toplevel(self.main_window)
+    #     top1.title("Create New Project")
+    #     top1.geometry("550x200")
+
+    #     self.label_proj = Label(top1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
+    #     self.label_proj['font'] = label_design['font']
+    #     self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+    #     self.entry_proj = Entry(top1,textvariable=self._var['proj_name'])
+    #     self.entry_proj['font'] = myfont()
+    #     self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+    #     self.entry_proj.delete(0, tk.END)
+
+    #     self.button_project = Button(top1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._on_create_project)
+    #     self.button_project['font'] = myfont()
+    #     self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)      
+            
+      
+
+
+    def create_project_window(self, *_):
+        self.project_window = v.CreateProjectPage(self.main_window)
+    
        
         
     def _on_create_project(self, *_):
@@ -230,9 +270,9 @@ class GUIAPP:
         """Creates a new litesoph project"""
        
         # project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
-        project_name = self.menu.get_value('proj_name')
+        project_name = self.project_window.get_value('proj_name')
         # project_name= str(foldername)
-
+        # print('hello')
         
         if not project_name:
             messagebox.showerror(title='Error', message='Please set the project name.')

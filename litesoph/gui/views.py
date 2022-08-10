@@ -1,4 +1,6 @@
 import tkinter as tk
+from tkinter import *                    # importing tkinter, a standart python interface for GUI.
+
 from tkinter import ttk
 from tkinter import messagebox
 from  PIL import Image,ImageTk
@@ -17,6 +19,8 @@ from litesoph.gui.engine_views import get_gs_engine_page
 
 from litesoph.gui.hovertooltip import CreateToolTip 
 from litesoph.gui.hovertooltip import *
+from litesoph.gui import menubar as mb 
+
 
 
 
@@ -237,6 +241,29 @@ class WorkManagerPage(ttk.Frame):
         self.Frame_status.grid(row=0, column=1, rowspan=2, sticky='nsew') 
         self.Frame_status.configure(relief='groove', borderwidth="2", cursor="fleur" )
 
+
+    # def create_filemenu_project(self, *_):
+
+    #     top1 = Toplevel(self)
+    #     top1.title("Create New Project")
+    #     top1.geometry("550x200")
+
+      
+    #     self.label_proj = Label(top1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
+    #     self.label_proj['font'] = label_design['font']
+    #     self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)        
+      
+
+    #     self.entry_proj = Entry(top1,textvariable=self._var['proj_name'])
+    #     self.entry_proj['font'] = myfont()
+    #     self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+    #     self.entry_proj.delete(0, tk.END)
+                
+    #     self.button_project = Button(top1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
+    #     self.button_project['font'] = myfont()
+    #     self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)        
+      
+
     def show_sub_task_frame(self,parent):
 
         for widget in parent.winfo_children():
@@ -327,6 +354,10 @@ class WorkManagerPage(ttk.Frame):
 
     def _create_project(self):
         self.event_generate('<<CreateNewProject>>')
+
+    def create_project_window(self):
+        self.event_generate('<<create_filemenu_project>>')
+
 
     def _get_geometry_file(self):
         self.event_generate('<<GetMolecule>>')
@@ -1969,3 +2000,40 @@ class JobSubPage(ttk.Frame):
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
+
+class CreateProjectPage(Toplevel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        
+
+
+        self._default_var = {
+              'proj_path' : ['str'],
+              'proj_name' : ['str'],
+              
+          }
+
+        self._var = var_define(self._default_var)
+
+        # print("do nothing...")
+        self.title("Create New Project")
+        self.geometry("550x200")
+
+        self.label_proj = Label(self,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_proj['font'] = label_design['font']
+        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+        self.entry_proj = Entry(self,textvariable=self._var['proj_name'])
+        self.entry_proj['font'] = myfont()
+        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+        self.entry_proj.delete(0, tk.END)
+
+        self.button_project = Button(self,text="Create New Project",width=18, activebackground="#78d6ff",command= lambda :self.event_generate('<<CreateNewProject>>'))
+        self.button_project['font'] = myfont()
+        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)      
+            
+    def get_value(self, key):
+        return self._var[key].get()
+        # print("hello_get_value")
