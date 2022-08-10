@@ -223,14 +223,6 @@ class OctGSPage(EngineViews):
         self.subheading = tk.Label(self.oct_simb,text="Simulation Box",fg='blue')
         self.subheading['font'] =  myFont
         self.subheading.grid(row=0, column=0, sticky='w')
-  
-        # self.label_sp = tk.Label(self.oct_simb,text="Spacing (in Ang)",bg=label_design['bg'], fg=label_design['fg'])
-        # self.label_sp['font'] = label_design['font']
-        # self.label_sp.grid(row=2, column=0, sticky='w', padx=2, pady=4)
-
-        # self.entry_sp = Decimalentry(self.oct_simb,textvariable= self._var['h'])  
-        # self.entry_sp['font'] = label_design['font']
-        # self.entry_sp.grid(row=2, column=1, sticky= 'w', padx=8, pady=2)
 
         self.boxlabel = tk.Label(self.oct_simb,text="Simulation box unit",bg=label_design['bg'], fg=label_design['fg'])
         self.boxlabel['font'] = label_design['font']
@@ -330,147 +322,156 @@ class OctGSPage(EngineViews):
 
 
     def show_advance_tab(self, parent):
+        """ Creates the widgets for Advanced info tab"""
+
         oct_conv = ttk.Frame(parent, borderwidth=2)
         oct_conv.grid(row=0, column=0, sticky = 'w')
         
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.label_pol_z = tk.Label(oct_conv, text="SCF Convergence for Octopus    ", fg="blue")
-        self.label_pol_z['font'] =  myFont
-        self.label_pol_z.grid(row=0, column=0, sticky='w', padx=2, pady=4)
+        self.label_title = tk.Label(oct_conv, text="SCF Convergence for Octopus    ", fg="blue")
+        self.label_title['font'] =  myFont
+        self.label_title.grid(row=0, column=0, sticky='w', padx=2, pady=4)
       
-        self.label_pol_z = tk.Label(oct_conv, text="Maximum SCF iteration",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_pol_z['font'] = label_design['font']
-        self.label_pol_z.grid(row=2, column=0, sticky='w', padx=2, pady=4)
+        self.label_maxiter = tk.Label(oct_conv, text="Maximum SCF iteration",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_maxiter['font'] = label_design['font']
+        self.label_maxiter.grid(row=2, column=0, sticky='w', padx=2, pady=4)
 
-        entry = Onlydigits(oct_conv,textvariable= self._var['maxiter'])
-        entry['font'] = label_design['font']
-        entry.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+        self.entry_maxiter = Onlydigits(oct_conv,textvariable= self._var['maxiter'])
+        self.entry_maxiter['font'] = label_design['font']
+        self.entry_maxiter.grid(row=2, column=1, sticky='w', padx=2, pady=2)
 
-        self.Frame2_note = tk.Label(oct_conv,text="Energy(in au)",bg=label_design['bg'], fg=label_design['fg'])
-        self.Frame2_note['font'] = label_design['font']
-        self.Frame2_note.grid(row=4, column=0, sticky='w', padx=2, pady=4)
+        self.label_conv_en = tk.Label(oct_conv,text="Energy(in au)",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_conv_en['font'] = label_design['font']
+        self.label_conv_en.grid(row=4, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_ener = tk.Entry(oct_conv, textvariable= self._var['energy'])
-        self.entry_ener['font'] = label_design['font']
-        self.entry_ener.grid(row=4, column=1, sticky='w', padx=2, pady=2)
-
-        self.label_proj = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=6, column=0, sticky='w', padx=2, pady=4)
-
-        self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['density'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"1.0e-4")
-        self.entry_proj.grid(row=6, column=1, sticky='w', padx=2, pady=2)
+        self.entry_conv_en = tk.Entry(oct_conv, textvariable= self._var['conv_energy'])
+        self.entry_conv_en['font'] = label_design['font']
+        self.entry_conv_en.grid(row=4, column=1, sticky='w', padx=2, pady=2)
  
-        self.label_proj = tk.Label(oct_conv,text="Absolute Convergence",fg="blue")
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=8, column=0, sticky='w', padx=2, pady=4)
+        self.label_absconv = tk.Label(oct_conv,text="Absolute Convergence",fg="blue")
+        self.label_absconv['font'] = label_design['font']
+        self.label_absconv.grid(row=8, column=0, sticky='w', padx=2, pady=4)
 
-        self.label_proj = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=10, column=0, sticky='w', padx=2, pady=4)
+        self.label_absden = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_absden['font'] = label_design['font']
+        self.label_absden.grid(row=10, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['absdensity'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"0.0")
-        self.entry_proj.grid(row=10, column=1, sticky='w', padx=2, pady=2)
+        self.entry_absden = tk.Entry(oct_conv,textvariable= self._var['abs_density'])
+        self.entry_absden['font'] = label_design['font']
+        self.entry_absden.delete(0,tk.END)
+        self.entry_absden.insert(0,"0.0")
+        self.entry_absden.grid(row=10, column=1, sticky='w', padx=2, pady=2)
      
-        self.label_proj = tk.Label(oct_conv,text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=12, column=0, sticky='w', padx=2, pady=4)
+        self.label_absev = tk.Label(oct_conv,text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_absev['font'] = label_design['font']
+        self.label_absev.grid(row=12, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(oct_conv,textvariable= self._var['abseigen'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"0.0")
-        self.entry_proj.grid(row=12, column=1, sticky='w', padx=2, pady=2)
+        self.entry_absev = tk.Entry(oct_conv,textvariable= self._var['abs_eigen'])
+        self.entry_absev['font'] = label_design['font']
+        self.entry_absev.delete(0,tk.END)
+        self.entry_absev.insert(0,"0.0")
+        self.entry_absev.grid(row=12, column=1, sticky='w', padx=2, pady=2)
     
-        self.label_proj = tk.Label(oct_conv,text="Relative Convergence",fg="blue")
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=14, column=0, sticky='w', padx=2, pady=4)
+        self.label_relconv = tk.Label(oct_conv,text="Relative Convergence",fg="blue")
+        self.label_relconv['font'] = label_design['font']
+        self.label_relconv.grid(row=14, column=0, sticky='w', padx=2, pady=4)
+
+        self.label_relden = tk.Label(oct_conv,text="Density",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_relden['font'] = label_design['font']
+        self.label_relden.grid(row=16, column=0, sticky='w', padx=2, pady=4)
+
+        self.entry_relden = tk.Entry(oct_conv,textvariable= self._var['rel_density'])
+        self.entry_relden['font'] = label_design['font']
+        self.entry_relden.delete(0,tk.END)
+        self.entry_relden.insert(0,"1.0e-4")
+        self.entry_relden.grid(row=16, column=1, sticky='w', padx=2, pady=2)
         
-        self.label_proj = tk.Label(oct_conv, text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=16, column=0, sticky='w', padx=2, pady=4)
+        self.label_relev = tk.Label(oct_conv, text="Sum of eigen values",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_relev['font'] = label_design['font']
+        self.label_relev.grid(row=18, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_proj = tk.Entry(oct_conv, textvariable= self._var['rlteigen'])
-        self.entry_proj['font'] = label_design['font']
-        self.entry_proj.delete(0,tk.END)
-        self.entry_proj.insert(0,"0.0")
-        self.entry_proj.grid(row=16, column=1, sticky='w', padx=2, pady=2)
+        self.entry_relev = tk.Entry(oct_conv, textvariable= self._var['rel_eigen'])
+        self.entry_relev['font'] = label_design['font']
+        self.entry_relev.delete(0,tk.END)
+        self.entry_relev.insert(0,"0.0")
+        self.entry_relev.grid(row=18, column=1, sticky='w', padx=2, pady=2)
 
-        self.lb = tk.Label(oct_conv,text="Other Scf Parameters",fg="blue")
-        self.lb['font'] = label_design['font']
-        self.lb.grid(row=18, column=0, sticky='w', padx=2, pady=4)
+        self.other_scf = tk.Label(oct_conv,text="Other Scf Parameters",fg="blue")
+        self.other_scf['font'] = label_design['font']
+        self.other_scf.grid(row=19, column=0, sticky='w', padx=2, pady=4)
 
-        self.lb2 = tk.Label(oct_conv,text="Mixing",bg=label_design['bg'], fg=label_design['fg'])
-        self.lb2['font'] = label_design['font']
-        self.lb2.grid(row=20, column=0, sticky='w', padx=2, pady=4)
+        self.label_mixing = tk.Label(oct_conv,text="Mixing",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_mixing['font'] = label_design['font']
+        self.label_mixing.grid(row=20, column=0, sticky='w', padx=2, pady=4)
 
-        self.en1 = Decimalentry(oct_conv, textvariable= self._var['mix'])
-        self.en1['font'] = label_design['font']
-        self.en1.grid(row=20, column=1, sticky='w',padx=2, pady=2)
+        self.entry_mixing = Decimalentry(oct_conv, textvariable= self._var['mixing'])
+        self.entry_mixing['font'] = label_design['font']
+        self.entry_mixing.grid(row=20, column=1, sticky='w',padx=2, pady=2)
 
-        self.label_proj = tk.Label(oct_conv, text="Smearing (eV)",bg=label_design['bg'], fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(row=22, column=0, sticky='w', padx=2, pady=4)
+        self.label_smear = tk.Label(oct_conv, text="Smearing (eV)",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_smear['font'] = label_design['font']
+        self.label_smear.grid(row=22, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_sm = Decimalentry(oct_conv, textvariable= self._var['smear']) 
-        self.entry_sm['font'] = label_design['font']
-        self.entry_sm.grid(row=22, column=1, sticky='w', padx=2, pady=2)
+        self.entry_smear = Decimalentry(oct_conv, textvariable= self._var['smear']) 
+        self.entry_smear['font'] = label_design['font']
+        self.entry_smear.grid(row=22, column=1, sticky='w', padx=2, pady=2)
 
-        self.lb2 = tk.Label(oct_conv,text="Smearing Function",bg=label_design['bg'], fg=label_design['fg'])
-        self.lb2['font'] = label_design['font']
-        self.lb2.grid(row=24, column=0, sticky='w', padx=2, pady=4)
+        self.label_smearfunc = tk.Label(oct_conv,text="Smearing Function",bg=label_design['bg'], fg=label_design['fg'])
+        self.label_smearfunc['font'] = label_design['font']
+        self.label_smearfunc.grid(row=24, column=0, sticky='w', padx=2, pady=4)
 
-        self.entry_pol_x = ttk.Combobox(oct_conv, textvariable= self._var['smearfn'], value = self.default_para['smearfn']['values'])
-        self.entry_pol_x.current(0)
-        self.entry_pol_x['font'] = label_design['font']
-        self.entry_pol_x['state'] = 'readonly'
-        self.entry_pol_x.grid(row=24, column=1, sticky='w', padx=2, pady=2)
+        self.entry_smearfunc = ttk.Combobox(oct_conv, textvariable= self._var['smearfn'], value = self.default_para['smearfn']['values'])
+        self.entry_smearfunc.current(0)
+        self.entry_smearfunc['font'] = label_design['font']
+        self.entry_smearfunc['state'] = 'readonly'
+        self.entry_smearfunc.grid(row=24, column=1, sticky='w', padx=2, pady=2)
 
 
     def create_input_widgets(self) -> None:
-        self.show_system_tab(self.gspage.Frame1_sub)
-        self.show_cal_tab(self.gspage.Frame2_sub)
-        self.show_advance_tab(self.gspage.Frame3_sub)
+        self.show_system_tab(self.gspage.system_frame)
+        self.show_cal_tab(self.gspage.calculation_frame)
+        self.show_advance_tab(self.gspage.advanced_info_frame)
 
     def get_parameters(self) -> dict:
 
         from litesoph.utilities.units import au_to_eV
 
         inp_dict_oct = {
-            'mode': self._var['mode'].get(),
-            'exp' : self._var['expt'].get(),
-            'xc': {'option':1,'x':self._var['x'].get(),'c':self._var['c'].get()},
-            'pseudo' : self._var['pseudo'].get(),
-            'energy': self._var['energy'].get(),
-            'dimension' : self._var['dxc'].get(),
-            'spacing': self._var['h'].get(),
-            'spin_pol': self._var['spinpol'].get(),
-            'charge': self._var['charge'].get(),
-            'e_conv': self._var['energy'].get(),
-            'max_iter': self._var['maxiter'].get(),
-            'eigensolver':self._var['eigen'].get(),
-            'smearing':self._var['smear'].get(),
-            'smearing_func':self._var['smearfn'].get(),
-            'mixing':self._var['mix'].get(),
-            'box':{'shape':self._var['shape'].get()},
-            'unit_box' : self._var['unit_box'].get(),
-            'extra_states' : self._var['extra_states'].get(),
-            'engine':'octopus'
-                    }      
+            "engine": "octopus",
+            "CalculationMode": "gs",
+            "UnitsOutput": "ev_angstrom",
+            "ExperimentalFeatures": self._var['expt'].get(),
+            "XCFunctional": [self._var['x'].get(),self._var['c'].get()],
+            "PseudopotentialSet" : self._var['pseudo'].get(),
+            "Spacing": str(self._var['h'].get())+ '*angstrom',
+            "SpinComponents": self._var['spinpol'].get(),
+            "ExcessCharge": self._var['charge'].get(),
+            "MaximumIter": self._var['maxiter'].get(),
+            "ConvEnergy": self._var['conv_energy'].get(),
+            "ConvAbsDens": self._var['abs_density'].get(),
+            "ConvAbsEv": self._var['abs_eigen'].get(),
+            "ConvRelDens": self._var['rel_density'].get(),
+            "ConvRelEv": self._var['rel_eigen'].get(),
+            "Eigensolver":self._var['eigen'].get(),
+            "Smearing":self._var['smear'].get(),
+            "SmearingFunction":self._var['smearfn'].get(),
+            "Mixing":self._var['mixing'].get(),
+            "ExtraStates" : self._var['extra_states'].get()
+                    }                  
+
 
         if self._var['shape'].get() in ['minimum','sphere']:
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get()}
-        if self._var['shape'].get() == 'cylinder':
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'radius':self._var['r'].get(),'xlength':self._var['l'].get()}
-        if self._var['shape'].get() == 'parallelepiped':
-            inp_dict_oct['box']={'shape':self._var['shape'].get(),'sizex':self._var['lx'].get(), 'sizey':self._var['ly'].get(), 'sizez':self._var['lz'].get()}
-        
-
+            inp_dict_oct["BoxShape"]={"name":self._var['shape'].get(),
+                        "param":{'Radius':str(self._var['r'].get())+'*angstrom'}}
+        elif self._var['shape'].get() == 'cylinder':
+            inp_dict_oct["BoxShape"]={"name":self._var['shape'].get(),
+                        "param":{'Radius':str(self._var['r'].get())+'*angstrom',
+                        'Xlength':str(self._var['l'].get()/2)+'*angstrom'}}
+        elif self._var['shape'].get() == 'parallelepiped':
+            inp_dict_oct["BoxShape"]={"name":self._var['shape'].get(),
+                        "param":{'LSize':[[
+                            str(self._var['lx'].get()/2)+'*angstrom',
+                            str(self._var['ly'].get()/2)+'*angstrom',
+                            str(self._var['lz'].get()/2)+'*angstrom']]}}       
         return inp_dict_oct
