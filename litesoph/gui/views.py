@@ -2016,9 +2016,10 @@ class CreateProjectPage(Toplevel):
           }
 
         self._var = var_define(self._default_var)
-
-        # print("do nothing...")
-        self.title("Create New Project")
+        self.attributes("-topmost", True)
+        self.grab_set()
+        self.lift()
+        self.title("Create New Project")     
         self.geometry("550x200")
 
         self.label_proj = Label(self,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
@@ -2032,8 +2033,10 @@ class CreateProjectPage(Toplevel):
 
         self.button_project = Button(self,text="Create New Project",width=18, activebackground="#78d6ff",command= lambda :self.event_generate('<<CreateNewProject>>'))
         self.button_project['font'] = myfont()
-        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)      
+        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
             
     def get_value(self, key):
         return self._var[key].get()
         # print("hello_get_value")
+
+    

@@ -263,6 +263,8 @@ class GUIAPP:
     def create_project_window(self, *_):
         self.project_window = v.CreateProjectPage(self.main_window)
     
+ 
+    
        
         
     def _on_create_project(self, *_):
@@ -295,6 +297,11 @@ class GUIAPP:
             self._init_project(project_path)
             self.engine = None
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
+            self.project_window.destroy()
+
+            
+            
+
             
         
     def _on_get_geometry_file(self, *_):
