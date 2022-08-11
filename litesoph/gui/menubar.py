@@ -14,9 +14,6 @@ from tkinter import filedialog
 from litesoph.gui.viewpanel import ViewPanelManager
 from litesoph.gui import views as v
 from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
-
-from tkinter.filedialog import askdirectory
-import tkinter as tk
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
 from litesoph.gui import actions
