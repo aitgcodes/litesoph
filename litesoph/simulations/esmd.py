@@ -15,6 +15,53 @@ def get_engine_obj(engine, *args, **kwargs)-> EngineStrategy:
     elif engine == 'nwchem':
         return EngineNwchem(*args, **kwargs)
 
+class TaskError(RuntimeError):
+    """Base class of error types related to any TASK."""
+
+
+class TaskSetupError(TaskError):
+    """Calculation cannot be performed with the given parameters.
+
+    Typically raised before a calculation."""
+
+
+
+class InputError(TaskSetupError):
+    """Raised if inputs given to the calculator were incorrect.
+
+    Bad input keywords or values, or missing pseudopotentials.
+
+    This may be raised before or during calculation, depending on
+    when the problem is detected."""
+
+
+class TaskFailed(TaskError):
+    """Calculation failed unexpectedly.
+
+    Reasons to raise this error are:
+      * Calculation did not converge
+      * Calculation ran out of memory
+      * Segmentation fault or other abnormal termination
+      * Arithmetic trouble (singular matrices, NaN, ...)
+
+    Typically raised during calculation."""
+
+
+class ReadError(TaskError):
+    """Unexpected irrecoverable error while reading calculation results."""
+
+
+class TaskNotImplementedError(NotImplementedError):
+    """Raised if a calculator does not implement the requested property."""
+
+
+class PropertyNotPresent(TaskError):
+    """Requested property is missing.
+
+    Maybe it was never calculated, or for some reason was not extracted
+    with the rest of the results, without being a fatal ReadError."""
+
+
 class Task:
 
     """It takes in the user input dictionary as input."""
