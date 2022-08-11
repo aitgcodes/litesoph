@@ -58,9 +58,7 @@ class SubmitLocal:
         self.engine = self.task.engine
         self.project_dir = self.task.project_dir
         self.np = nprocessors
-        self.command = None
-        task.create_job_script(self.np)
-                   
+        self.command = None                   
 
     def add_proper_path(self):
         # Remove this method.
