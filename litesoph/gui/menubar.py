@@ -100,10 +100,6 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 
-  def get_value(self, key):
-    return super().get_value(key)
-
-
   def _add_new_project(self, menu):
 
     menu.add_command(
