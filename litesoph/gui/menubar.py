@@ -129,42 +129,9 @@ class GenericMainMenu(tk.Menu, v.WorkManagerPage):
     return super().get_value(key)
   
   def _add_new_project(self, menu):
-
-      # self._default_var = {
-      #         'proj_path' : ['str'],
-      #         'proj_name' : ['str'],
-              
-      #     }
-
-      # self._var = v.var_define(self._default_var)
-
-  
-
-      # def create_project():
-
-      #   top1 = Toplevel(self)
-      #   top1.title("Create New Project")
-      #   top1.geometry("550x200")
-
-      
-      #   self.label_proj = Label(top1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
-      #   self.label_proj['font'] = label_design['font']
-      #   self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)        
-      
-      #   self.entry_proj = Entry(top1,textvariable=self._var['proj_name'])
-      #   self.entry_proj['font'] = myfont()
-      #   self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
-      #   self.entry_proj.delete(0, tk.END)
-                
-        # self.button_project = Button(top1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
-      #   self.button_project['font'] = myfont()
-      #   self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)        
-                
-
       
       menu.add_command(
         label='New Project…', command= self._event('<<create_filemenu_project>>'),
-        # label='New Project…', command= create_project,
 
         #image=self.icons.get('file'), compound=tk.LEFT
         )

@@ -2000,14 +2000,13 @@ class JobSubPage(ttk.Frame):
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
+        
+####### popup filemenu #########
 
 class CreateProjectPage(Toplevel):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-
-        
-
 
         self._default_var = {
               'proj_path' : ['str'],
@@ -2037,6 +2036,5 @@ class CreateProjectPage(Toplevel):
             
     def get_value(self, key):
         return self._var[key].get()
-        # print("hello_get_value")
 
     
