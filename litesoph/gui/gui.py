@@ -18,15 +18,19 @@ from configparser import ConfigParser, NoSectionError
 from litesoph.config import check_config, read_config
 from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
+from litesoph.gui import menubar as mb 
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.gui.viewpanel import ViewPanelManager
 from litesoph.lsio.IO import read_file
 from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
 from litesoph.gui import views as v
-from litesoph.gui import actions
+
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.project_status import Status
+
+from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
+
 
 home = pathlib.Path.home()
 
@@ -49,8 +53,8 @@ class GUIAPP:
         self.main_window = self.builder.get_object('mainwindow')
 
         menu_class = get_main_menu_for_os('Linux')
-        menu = menu_class(self.main_window)
-        self.main_window.config(menu=menu)
+        self.menu = menu_class(self.main_window)
+        self.main_window.config(menu=self.menu)
 
         self.treeview = self.builder.get_object('treeview1')
 
@@ -152,13 +156,15 @@ class GUIAPP:
     def _bind_event_callbacks(self):
         """binds events and specific callback functions"""
         event_callbacks = {
-            actions.GET_MOLECULE : self._on_get_geometry_file,
-            actions.VISUALIZE_MOLECULE: self._on_visualize,
-            actions.CREATE_NEW_PROJECT: self._on_create_project,
-            actions.OPEN_PROJECT : self._on_open_project,
-            actions.ON_PROCEED : self._on_proceed,
-            actions.ON_BACK_BUTTON : self._on_back_button,
-            actions.REFRESH_CONFIG : self._refresh_config,
+            '<<GetMolecule>>' : self._on_get_geometry_file,
+            '<<VisualizeMolecule>>': self._on_visualize,
+            '<<CreateNewProject>>' : self._on_create_project,
+            '<<create_filemenu_project>>' : self.create_project_window,
+
+            '<<OpenExistingProject>>' : self._on_open_project,
+            '<<SelectProceed>>' : self._on_proceed,
+            '<<ClickBackButton>>' : self._on_back_button,
+            '<<RefreshConfig>>': self._refresh_config,
         }
 
         for event, callback in event_callbacks.items():
@@ -167,13 +173,15 @@ class GUIAPP:
     def _show_page_events(self):
         
         event_show_page= {
-            actions.SHOW_WORK_MANAGER_PAGE : self._show_workmanager_page,
-            actions.SHOW_GROUND_STATE_PAGE: self. _on_ground_state_task,
-            actions.SHOW_RT_TDDFT_DELTA_PAGE : self._on_rt_tddft_delta_task,
-            actions.SHOW_RT_TDDFT_LASER_PAGE: self._on_rt_tddft_laser_task,
-            actions.SHOW_SPECTRUM_PAGE : self._on_spectra_task,
-            actions.SHOW_TCM_PAGE : self._on_tcm_task,
-            actions.SHOW_MO_POPULATION_CORRELATION_PAGE : self._on_population_task
+            '<<ShowStartPage>>' : lambda _: self._show_frame(v.StartPage),
+            '<<ShowWorkManagerPage>>' : self._show_workmanager_page,
+            '<<ShowGroundStatePage>>' : self. _on_ground_state_task,
+            '<<ShowRT_TDDFT_DELTAPage>>' : self._on_rt_tddft_delta_task,
+            '<<ShowRT_TDDFT_LASERPage>>' : self._on_rt_tddft_laser_task,
+            '<<ShowPlotSpectraPage>>' : self._on_spectra_task,
+            '<<ShowDmLdPage>>' : lambda _: self._show_frame(v.DmLdPage, self),
+            '<<ShowTcmPage>>' : self._on_tcm_task,
+            '<<ShowPopulationPage>>' : self._on_population_task
         }
         for event, callback in event_show_page.items():
             self.main_window.bind_all(event, callback)  
@@ -216,14 +224,18 @@ class GUIAPP:
             return
         self._init_project(project_path)
         if self.engine:
+            # self._frames[v.WorkManagerPage].engine.set(self.engine)
             self._frames[v.WorkManagerPage].engine.set(self.engine)
-        
-       
-        
+
+              
+    def create_project_window(self, *_):
+        self.project_window = v.CreateProjectPage(self.main_window)
+            
     def _on_create_project(self, *_):
+
         """Creates a new litesoph project"""
        
-        project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
+        project_name = self.project_window.get_value('proj_name')
         
         if not project_name:
             messagebox.showerror(title='Error', message='Please set the project name.')
@@ -246,7 +258,8 @@ class GUIAPP:
             self._init_project(project_path)
             self.engine = None
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
-            
+            self.project_window.destroy()
+  
         
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
@@ -278,8 +291,8 @@ class GUIAPP:
     def _on_proceed(self, *_):
 
         simulation_type = [('electrons', 'None', '<<event>>'),
-                        ('electrons', 'Delta Pulse',actions.SHOW_RT_TDDFT_DELTA_PAGE),
-                        ('electrons', 'Gaussian Pulse', actions.SHOW_RT_TDDFT_LASER_PAGE),
+                        ('electrons', 'Delta Pulse', '<<ShowRT_TDDFT_DELTAPage>>'),
+                        ('electrons', 'Gaussian Pulse', '<<ShowRT_TDDFT_LASERPage>>'),
                         ('electrons', 'Customised Pulse', '<<event>>'),
                         ('electron+ion', 'None', '<<event>>'),
                         ('electron+ion', 'Delta Pulse', '<<event>>'),
@@ -327,9 +340,9 @@ class GUIAPP:
         if sub_task  == "Ground State":
             path = pathlib.Path(self.directory) / "coordinate.xyz"
             if path.exists() is True:
-                self.main_window.event_generate(actions.SHOW_GROUND_STATE_PAGE)
+                self.main_window.event_generate('<<ShowGroundStatePage>>')
             else:
-                messagebox.showerror(title = 'Error', message= "Upload geometry file")
+                messagebox.showerror(title = 'Error', message= "Upload file")
                 return
             return
 
@@ -338,13 +351,13 @@ class GUIAPP:
             return
         
         elif sub_task == "Compute Spectrum":
-            self.main_window.event_generate(actions.SHOW_SPECTRUM_PAGE)   
+            self.main_window.event_generate('<<ShowPlotSpectraPage>>')   
         elif sub_task == "Dipole Moment and Laser Pulse":
-            self.main_window.event_generate('')
+            self.main_window.event_generate('<<ShowDmLdPage>>')
         elif sub_task == "Kohn Sham Decomposition":
-               self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
+               self.main_window.event_generate('<<ShowTcmPage>>') 
         elif sub_task == "Population Correlation":
-               self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE) 
+               self.main_window.event_generate('<<ShowPopulationPage>>') 
 
         w.refresh_var()
 
@@ -360,7 +373,7 @@ class GUIAPP:
 ##----------------------Ground_State_task---------------------------------
 
     def _on_ground_state_task(self, *_):
-        task_name = actions.GROUND_STATE
+        task_name = 'ground_state'
         self._frames[v.WorkManagerPage].refresh_var()
         self._show_frame(v.GroundStatePage, self.engine, task_name)
         self.ground_state_view = self._frames[v.GroundStatePage]
@@ -385,7 +398,7 @@ class GUIAPP:
 ##----------------------Time_dependent_task_delta---------------------------------
 
     def _on_rt_tddft_delta_task(self, *_):
-        task_name = actions.RT_TDDFT_DELTA
+        task_name = 'rt_tddft_delta'
         check = check_task_pre_conditon(self.engine, task_name, self.status)
         
         if check[0]:
@@ -409,7 +422,7 @@ class GUIAPP:
 ##----------------------Time_dependent_task_laser---------------------------------
 
     def _on_rt_tddft_laser_task(self, *_):
-        task_name = actions.RT_TDDFT_LASER
+        task_name = 'rt_tddft_laser'
 
         check = check_task_pre_conditon(self.engine, task_name, self.status)
         
@@ -457,27 +470,27 @@ class GUIAPP:
 ##----------------------plot_delta_spec_task---------------------------------
     
     def _on_spectra_task(self, *_):
-        task_name = actions.SPECTRUM
-        check = check_task_pre_conditon(self.engine, task_name, self.status)
+
+        check = check_task_pre_conditon(self.engine, 'spectrum', self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._show_frame(v.PlotSpectraPage, self.engine, task_name)
+        self._show_frame(v.PlotSpectraPage, self.engine)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
         self.spectra_view.Frame1_Button2.config(state='active')
         self.spectra_view.Frame1_Button3.config(state='active')
-        self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_spectra_run_local_button(task_name))
-        self.main_window.bind_all(f'<<RunNetwork{task_name}>>', lambda _: self._on_spectra_run_network_button())
-        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _:self._on_spectra_plot_button())
+        self.main_window.bind_all('<<SubLocalSpectrum>>', lambda _: self._on_spectra_run_local_button())
+        self.main_window.bind_all('<<RunNetworkSpectrum>>', lambda _: self._on_spectra_run_network_button())
+        self.main_window.bind_all('<<ShowSpectrumPlot>>', lambda _:self._on_spectra_plot_button())
 
-    def _on_spectra_run_local_button(self, task_name, *_):
+    def _on_spectra_run_local_button(self, *_):
         
         inp_dict = self.spectra_view.get_parameters()
-        self.spectra_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.spectra_task = get_engine_task(self.engine, 'spectrum', self.status, self.directory, self.lsconfig, inp_dict)
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
@@ -500,8 +513,8 @@ class GUIAPP:
 ##----------------------compute---tcm---------------------------------
 
     def _on_tcm_task(self, *_):
-        task_name = actions.TCM
-        check = check_task_pre_conditon(self.engine, task_name , self.status)
+
+        check = check_task_pre_conditon(self.engine, 'tcm', self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
@@ -513,14 +526,14 @@ class GUIAPP:
         self.tcm_view = self._frames[v.TcmPage]
         self.tcm_view.engine_name.set(self.engine)
         
-        self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_tcm_run_local_button(task_name))
-        self.main_window.bind_all(f'<<RunNetwork{task_name}>>', lambda _: self._on_tcm_run_network_button())
-        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _:self._on_tcm_plot_button())
+        self.main_window.bind_all('<<SubLocalTCM>>', lambda _: self._on_tcm_run_local_button())
+        self.main_window.bind_all('<<RunNetworkTCM>>', lambda _: self._on_tcm_run_network_button())
+        self.main_window.bind_all('<<ShowTCMPlot>>', lambda _:self._on_tcm_plot_button())
 
-    def _on_tcm_run_local_button(self, task_name, *_):
+    def _on_tcm_run_local_button(self, *_):
         
         inp_dict = self.tcm_view.get_parameters()
-        self.tcm_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.tcm_task = get_engine_task(self.engine, 'tcm', self.status, self.directory, self.lsconfig, inp_dict)
         self.tcm_task.create_template()
         self.tcm_task.write_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
@@ -555,7 +568,7 @@ class GUIAPP:
     def bind_task_events(self, task_name, task , view):
         self.main_window.bind_all(f'<<Save{task_name}Script>>', lambda _ : self._on_save_button(task, view))
         self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _ : self._on_run_local_button(task))
-        self.main_window.bind_all(f'<<SubNetwork{task_name}>>', lambda _ : self._on_run_network_button(task))
+        self.main_window.bind_all(f'<<SubNetworkt{task_name}>>', lambda _ : self._on_run_network_button(task))
     
     def _on_save_button(self, task:Task, view, *_):
         template = self.view_panel.get_text()
@@ -578,11 +591,11 @@ class GUIAPP:
         remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
-        self.job_sub_page.set_run_button_state('disable')
+        self.job_sub_page.activate_run_button()
         self.job_sub_page.bind(f'<<Run{task.task_name}Network>>', lambda _: self._run_network(task))
         self.job_sub_page.bind(f'<<View{task.task_name}NetworkOutfile>>', lambda _: self._on_out_remote_view_button(task))
-        self.job_sub_page.bind(f'<<Save{task.task_name}Network>>',lambda _: self._on_save_job_script(task, self.job_sub_page))
-        self.job_sub_page.bind(f'<<Create{task.task_name}NetworkScript>>', lambda _: self._on_create_remote_job_script(task, task.task_name))
+        self.job_sub_page.bind(f'<<Save{task.task_name}Network>>',lambda _: self._on_save_job_script(task))
+        self.job_sub_page.bind(f'<<Create{task.task_name}NetworkScript>>', lambda _: self._on_create_remote_job_script(task, task.task_name + 'Network'))
     
     def _on_run_local_button(self, task:Task, *_):
 
@@ -591,12 +604,12 @@ class GUIAPP:
             return
         self.job_sub_page = v.JobSubPage(self.input_frame, task.task_name, 'Local')
         self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
-        self.job_sub_page.set_run_button_state('disable')
+        self.job_sub_page.activate_run_button()
         
         self.job_sub_page.bind(f'<<Run{task.task_name}Local>>', lambda _: self._run_local(task))
         self.job_sub_page.bind(f'<<View{task.task_name}LocalOutfile>>', lambda _: self._on_out_local_view_button(task))
-        self.job_sub_page.bind(f'<<Save{task.task_name}Local>>',lambda _: self._on_save_job_script(task, self.job_sub_page))
-        self.job_sub_page.bind(f'<<Create{task.task_name}LocalScript>>', lambda _: self._on_create_local_job_script(task, task.task_name))
+        self.job_sub_page.bind(f'<<Save{task.task_name}Local>>',lambda _: self._on_save_job_script(task))
+        self.job_sub_page.bind(f'<<Create{task.task_name}LocalScript>>', lambda _: self._on_create_local_job_script(task, task.task_name + 'Local'))
     
     def _run_local(self, task: Task, np=None):
 
@@ -613,12 +626,12 @@ class GUIAPP:
             
             if not cmd:
                 messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
-                self.job_sub_page.set_run_button_state('active')
+                self.job_sub_page.activate_run_button()
                 return
         else:
            if cmd != 'bash':
                 messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
-                self.job_sub_page.set_run_button_state('active')
+                self.job_sub_page.activate_run_button()
                 return
 
         task.set_submit_local(np)
@@ -665,7 +678,7 @@ class GUIAPP:
             task.check_prerequisite(network = True)
         except FileNotFoundError as e:
             messagebox.showerror(title = "Error", message = e)
-            self.job_sub_page.set_run_button_state('active')
+            self.job_sub_page.activate_run_button()
             return
 
         sub_job_type = self.job_sub_page.sub_job_type.get()
@@ -675,12 +688,12 @@ class GUIAPP:
             
             if not cmd:
                 messagebox.showerror(title="Error", message=" Please provide submit command for queue submission")
-                self.job_sub_page.set_run_button_state('active')
+                self.job_sub_page.activate_run_button()
                 return
         else:
            if cmd != 'bash':
                 messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
-                self.job_sub_page.set_run_button_state('active')
+                self.job_sub_page.activate_run_button()
                 return
 
         
@@ -699,13 +712,13 @@ class GUIAPP:
                                         )
         except Exception as e:
             messagebox.showerror(title = "Error", message = e)
-            self.job_sub_page.set_run_button_state('active')
+            self.job_sub_page.activate_run_button()
             return
         try:
             self.submit_network.run_job(cmd)
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
-            self.job_sub_page.set_run_button_state('active')
+            self.job_sub_page.activate_run_button()
             return
         else:
             if task.net_cmd_out[0] != 0:
@@ -720,12 +733,12 @@ class GUIAPP:
         self.submit_network.download_output_files()
         self.status.update_status(f'{self.engine}.{self.submit_network.task.task_name}.done', True)
 
-    def _on_create_local_job_script(self, task: Task, *_):
+    def _on_create_local_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
         b_file =  task.create_job_script(np)
         self.view_panel.insert_text(b_file, 'normal')
 
-    def _on_create_remote_job_script(self, task: Task, *_):
+    def _on_create_remote_job_script(self, task: Task, event: str, *_):
         np = self.job_sub_page.processors.get()
         rpath = self.job_sub_page.rpath.get()
         if rpath:
@@ -735,8 +748,7 @@ class GUIAPP:
             return
         self.view_panel.insert_text(b_file, 'normal')
        
-    def _on_save_job_script(self,task :Task,view, *_):
-        view.set_run_button_state('active')
+    def _on_save_job_script(self,task :Task, *_):
         txt = self.view_panel.get_text()
         task.write_job_script(txt)
 

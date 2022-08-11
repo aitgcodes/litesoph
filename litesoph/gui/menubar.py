@@ -9,6 +9,17 @@ import tkinter as tk
 import sys
 import os
 
+import pathlib 
+from tkinter import filedialog 
+from litesoph.gui.viewpanel import ViewPanelManager
+from litesoph.gui import views as v
+from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
+
+from tkinter.filedialog import askdirectory
+import tkinter.messagebox
+import tkinter as tk
+from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
+
 
 # class MainMenu(tk.Menu):
 #     """The Application's main menu"""
@@ -69,10 +80,18 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
 
 
-class GenericMainMenu(tk.Menu):
+
+
+
+class GenericMainMenu(tk.Menu, v.WorkManagerPage):
   """The Application's main menu"""
+
+
+
+
 
   accelerators = {
     'file_open': 'Ctrl+O',
@@ -104,13 +123,21 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 
+  
+ 
+  def get_value(self, key):
+    return super().get_value(key)
+  
   def _add_new_project(self, menu):
+      
+      menu.add_command(
+        label='New Project…', command= self._event('<<create_filemenu_project>>'),
 
-    menu.add_command(
-      label='New Project…', command=self._event('<<CreateNewProject>>'),
-      #image=self.icons.get('file'), compound=tk.LEFT
-  )
+        #image=self.icons.get('file'), compound=tk.LEFT
+        )
 
+
+  
   def _add_open_project(self, menu):
 
     menu.add_command(
