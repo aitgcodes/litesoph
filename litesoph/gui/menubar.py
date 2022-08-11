@@ -19,6 +19,8 @@ from tkinter.filedialog import askdirectory
 import tkinter as tk
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
+from litesoph.gui import actions
+
 
 
 
@@ -123,7 +125,7 @@ class GenericMainMenu(tk.Menu):
   def _add_new_project(self, menu):
 
     menu.add_command(
-      label='New Project…', command=self._event('<<create_filemenu_project>>'),
+      label='New Project…', command=self._event(actions.CREATE_PROJECT_WINDOW),
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 
