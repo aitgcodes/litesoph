@@ -11,8 +11,8 @@ def compute_fft(ifname: str,
     
     ## Read in raw data t, f(t) from file (1st command line arg)
     data = np.loadtxt(ifname)
-    t = data [:,0]
-    f = data [:,1]
+    t = data[:,0]
+    f = data[:,1]
 
     ##
     ## Optional preprocessing of time signal
@@ -88,7 +88,7 @@ def rotate_spectrum (data):
         yield [w, re_out, im_out, ab]
 
         
-def Photoabsorption_spectrum(dipole_file, spectrum_file,  process_zero, damping,padding):
+def photoabsorption_spectrum(dipole_file, spectrum_file,  process_zero=False, damping=None,padding=None):
 
     data = compute_fft(dipole_file, process_zero, damping,padding)
     data_rot = rotate_spectrum (data)
@@ -106,7 +106,7 @@ def main():
     parser.add_argument("-p",'--padding', help='add this many points to time signal before FFT', type=int)
     args = parser.parse_args()
 
-    Photoabsorption_spectrum(args.ifile, args.ofile, args.process_zero, args.damping, args.padding)
+    photoabsorption_spectrum(args.ifile, args.ofile, args.process_zero, args.damping, args.padding)
 
 
 if __name__ == '__main__':
