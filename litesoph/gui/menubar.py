@@ -1,21 +1,6 @@
 from tkinter import *                    # importing tkinter, a standart python interface for GUI.
 from tkinter import ttk                  # importing ttk which is used for styling widgets.     
 from tkinter import messagebox
-from tkinter import scrolledtext
-import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
-import subprocess                        # importing subprocess to run command line jobs as in terminal.
-from  PIL import Image,ImageTk
-import tkinter as tk
-import sys
-import os
-
-import pathlib 
-from tkinter import filedialog 
-from litesoph.gui.viewpanel import ViewPanelManager
-from litesoph.gui import views as v
-from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
-from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
-from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
 from litesoph.gui import actions
 
 
