@@ -27,6 +27,8 @@ from litesoph.gui import actions
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.project_status import Status
+from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
+
 
 home = pathlib.Path.home()
 
@@ -155,6 +157,7 @@ class GUIAPP:
             actions.GET_MOLECULE : self._on_get_geometry_file,
             actions.VISUALIZE_MOLECULE: self._on_visualize,
             actions.CREATE_NEW_PROJECT: self._on_create_project,
+            actions.CREATE_PROJECT_WINDOW:self.create_project_window,
             actions.OPEN_PROJECT : self._on_open_project,
             actions.ON_PROCEED : self._on_proceed,
             actions.ON_BACK_BUTTON : self._on_back_button,
@@ -218,12 +221,13 @@ class GUIAPP:
         if self.engine:
             self._frames[v.WorkManagerPage].engine.set(self.engine)
         
-       
+    def create_project_window(self, *_):
+        self.project_window = v.CreateProjectPage(self.main_window)   
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
        
-        project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
+        project_name = self.project_window.get_value('proj_name')
         
         if not project_name:
             messagebox.showerror(title='Error', message='Please set the project name.')
@@ -246,6 +250,8 @@ class GUIAPP:
             self._init_project(project_path)
             self.engine = None
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
+            self.project_window.destroy()
+
             
         
     def _on_get_geometry_file(self, *_):
