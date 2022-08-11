@@ -9,6 +9,18 @@ import tkinter as tk
 import sys
 import os
 
+import pathlib 
+from tkinter import filedialog 
+from litesoph.gui.viewpanel import ViewPanelManager
+from litesoph.gui import views as v
+from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
+
+from tkinter.filedialog import askdirectory
+import tkinter as tk
+from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
+from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
+
+
 
 # class MainMenu(tk.Menu):
 #     """The Application's main menu"""
@@ -104,10 +116,14 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 
+  def get_value(self, key):
+    return super().get_value(key)
+
+
   def _add_new_project(self, menu):
 
     menu.add_command(
-      label='New Project…', command=self._event('<<CreateNewProject>>'),
+      label='New Project…', command=self._event('<<create_filemenu_project>>'),
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 

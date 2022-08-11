@@ -1,4 +1,6 @@
 import tkinter as tk
+from tkinter import *                    # importing tkinter, a standart python interface for GUI.
+
 from tkinter import ttk
 from tkinter import messagebox
 from  PIL import Image,ImageTk
@@ -14,6 +16,7 @@ from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.simulations.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
+from litesoph.gui import menubar as mb 
 
 
 class StartPage(ttk.Frame):
@@ -1854,3 +1857,42 @@ class JobSubPage(ttk.Frame):
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
+
+
+####### popup filemenu #########
+
+class CreateProjectPage(Toplevel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self._default_var = {
+              'proj_path' : ['str'],
+              'proj_name' : ['str'],
+              
+          }
+
+        self._var = var_define(self._default_var)
+        self.attributes("-topmost", True)
+        self.grab_set()
+        self.lift()
+        self.title("Create New Project")     
+        self.geometry("550x200")
+
+        self.label_proj = Label(self,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_proj['font'] = label_design['font']
+        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+        self.entry_proj = Entry(self,textvariable=self._var['proj_name'])
+        self.entry_proj['font'] = myfont()
+        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+        self.entry_proj.delete(0, tk.END)
+
+        self.button_project = Button(self,text="Create New Project",width=18, activebackground="#78d6ff",command= lambda :self.event_generate('<<CreateNewProject>>'))
+        self.button_project['font'] = myfont()
+        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
+            
+    def get_value(self, key):
+        return self._var[key].get()
+
+    
