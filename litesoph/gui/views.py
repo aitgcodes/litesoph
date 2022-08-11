@@ -10,7 +10,7 @@ from numpy import append
 
 from litesoph.gui import actions, images
 from litesoph.simulations.project_status import show_message
-from litesoph.gui.input_validation import Onlydigits, Decimalentry
+from litesoph.gui.input_validation import EntryPattern, Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.simulations.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
@@ -665,7 +665,7 @@ class TimeDependentPage(View):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
           
         self._default_var = {
-            'strength': ['float', 1e-5],
+            'strength': ['float'],
             'pol_var' : ['int', 1],
             'dt': ['float'],
             'Nt': ['int'],
@@ -704,12 +704,17 @@ class TimeDependentPage(View):
         self.label_proj['font'] = myFont
         self.label_proj.grid(row=2, column=0, sticky='w', padx=5, pady=5)
 
-        inval = ["1e-5", "1e-4", "1e-3"]
-        self.entry_inv = ttk.Combobox(
-            self.input_param_frame, textvariable=self._var['strength'], value=inval)
-        self.entry_inv['font'] = myFont
-        self.entry_inv.grid(row=2, column=1)
-        self.entry_inv['state'] = 'readonly'
+        self.entry_strength = EntryPattern(self.input_param_frame, textvariable=self._var['strength'])
+        self.entry_strength['font'] = myFont
+        self.entry_strength.grid(row=2, column=1)
+        self._var['strength'].set('01e-05')
+
+        # inval = ["1e-5", "1e-4", "1e-3"]
+        # self.entry_inv = ttk.Combobox(
+        #     self.input_param_frame, textvariable=self._var['strength'], value=inval)
+        # self.entry_inv['font'] = myFont
+        # self.entry_inv.grid(row=2, column=1)
+        # self.entry_inv['state'] = 'readonly'
 
         self.label_proj = tk.Label(
             self.input_param_frame, text="Propagation time step (in attosecond)", bg="gray", fg="black")
@@ -970,13 +975,21 @@ class LaserDesignPage(View):
         self.label_strength = tk.Label(self.Frame2,text="Laser Strength in a.u (Eo)",bg="gray",fg="black")
         self.label_strength['font'] = myFont
         self.label_strength.grid(row=3, column=0, sticky='w', padx=5, pady=5)
-    
-        instr = ["1e-5","1e-4","1e-3"]
-        self.entry_strength = ttk.Combobox(self.Frame2,textvariable= self.strength, value = instr)
+
+        self.entry_strength = EntryPattern(self.Frame2,textvariable= self.strength)
         self.entry_strength['font'] = myFont
-        self.entry_strength.current(0)
         self.entry_strength.grid(row=3, column=1)
-        self.entry_strength['state'] = 'readonly'
+        self.strength.set('01e-05')
+        
+        # print(self.strength.get())
+        # self.entry_strength['state'] = 'readonly'
+    
+        # instr = ["1e-5","1e-4","1e-3"]
+        # self.entry_strength = ttk.Combobox(self.Frame2,textvariable= self.strength, value = instr)
+        # self.entry_strength['font'] = myFont
+        # self.entry_strength.current(0)
+        # self.entry_strength.grid(row=3, column=1)
+        # self.entry_strength['state'] = 'readonly'
 
         self.label_fwhm = tk.Label(self.Frame2,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
         self.label_fwhm['font'] = myFont
