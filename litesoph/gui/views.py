@@ -16,7 +16,6 @@ from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.simulations.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
-from litesoph.gui import menubar as mb 
 
 
 class StartPage(ttk.Frame):
