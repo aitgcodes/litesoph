@@ -1,13 +1,9 @@
 from tkinter import *                    # importing tkinter, a standart python interface for GUI.
 from tkinter import ttk                  # importing ttk which is used for styling widgets.     
 from tkinter import messagebox
-from tkinter import scrolledtext
-import tkinter.font as font              # importing tkinter fonts to give sizes to the fonts used in the widgets.
-import subprocess                        # importing subprocess to run command line jobs as in terminal.
-from  PIL import Image,ImageTk
-import tkinter as tk
-import sys
-import os
+from litesoph.gui import actions
+
+
 
 
 # class MainMenu(tk.Menu):
@@ -107,7 +103,7 @@ class GenericMainMenu(tk.Menu):
   def _add_new_project(self, menu):
 
     menu.add_command(
-      label='New Project…', command=self._event('<<CreateNewProject>>'),
+      label='New Project…', command=self._event(actions.CREATE_PROJECT_WINDOW),
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 
