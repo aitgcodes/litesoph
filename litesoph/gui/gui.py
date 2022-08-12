@@ -226,8 +226,10 @@ class GUIAPP:
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
-       
-        project_name = self.project_window.get_value('proj_name')
+        if hasattr(self, 'self.project_window'):
+            project_name = self.project_window.get_value('proj_name')
+        else:
+            project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
         
         if not project_name:
             messagebox.showerror(title='Error', message='Please set the project name.')
@@ -250,7 +252,8 @@ class GUIAPP:
             self._init_project(project_path)
             self.engine = None
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
-            self.project_window.destroy()
+            if hasattr(self, 'self.project_window'):
+                self.project_window.destroy()
 
             
         
