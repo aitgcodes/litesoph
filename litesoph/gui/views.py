@@ -1639,7 +1639,7 @@ class PopulationPage(View):
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=2, column=2, sticky='we', padx=25)
 
-        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command = lambda _: self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
 
