@@ -1,8 +1,10 @@
 from litesoph.simulations.nwchem.nwchem_input import nwchem_create_input
 from litesoph.simulations.nwchem.nwchem_read_rt import nwchem_rt_parser
+from litesoph.post_processing.mo_population import extract_pop_window
 import subprocess
 import pathlib
 import os
+import numpy as np
 
 class NWChem:
 
@@ -74,19 +76,57 @@ class NWChem:
                                 polarization = None ):
 
         if not td_out_file:
-            td_out_file = str(self.directory / self.infile)
+            td_out_file = str(self.directory / self.outfile)
     
         nwchem_rt_parser(td_out_file, outfile=dipole_file,
                             tag=tag, target='dipole',
                             spin= spin, geometry=geometry,
                             polarization=polarization)
 
-    def get_td_mooc(self, popl_file,
-                        td_out_file=None, 
-                        tag='<rt_tddft>'):
+    
+    def get_eigen_energy(self, td_out_file=None):
 
         if not td_out_file:
-            td_out_file = str(self.directory / self.infile)
-    
-        nwchem_rt_parser(td_out_file, outfile=popl_file,
+            td_out_file = str(self.directory / self.outfile)
+
+        labels = ['Vector','Occupation', 'Eigenvalue']
+        with open(td_out_file, 'r') as f:
+            lines = f.readlines()
+
+        data = []
+        check = False
+        for line in lines:
+
+            if all([tag in line for tag in labels]):
+                check = True
+                continue
+
+            if check:
+                if '------' in line:
+                    continue
+
+                vals = line.strip().split()
+                if not vals:
+                    break
+                data.append([float(val) for val in vals])
+        return data
+
+    def get_td_moocc(self, popl_file,
+                        td_out_file=None, 
+                        tag='<rt_tddft>',
+                        homo_index=None, below_homo=None,
+                        above_lumo=None):
+
+        if not td_out_file:
+            td_out_file = str(self.directory / self.outfile)
+
+        if homo_index:
+            pop_data = nwchem_rt_parser(td_out_file, outfile=popl_file,
+                            tag=tag, target='moocc', retrun_data=True)
+            print(np.shape(pop_data))
+            
+            extract_pop_window(pop_data, popl_file, homo_index, below_homo, above_lumo)
+        else:
+            nwchem_rt_parser(td_out_file, outfile=popl_file,
                             tag=tag, target='moocc')
+

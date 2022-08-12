@@ -1,10 +1,14 @@
-from pathlib import Path
 import pathlib
+from pathlib import Path
 
-from litesoph.simulations.esmd import Task
-from litesoph.simulations.nwchem.nwchem import NWChem
 from litesoph import config
-
+from litesoph.post_processing.mo_population import get_energy_window, get_occ_unocc
+from litesoph.simulations.esmd import InputError, Task, TaskFailed, TaskNotImplementedError
+from litesoph.simulations.nwchem.nwchem import NWChem
+from litesoph.simulations.nwchem.spectrum import photoabsorption_spectrum
+from litesoph.post_processing.mo_population_correlation.moocc_correlation_plot import plot_mo_population_correlations
+from litesoph.post_processing import mo_population_correlation
+from litesoph.utilities.plot_spectrum import plot_spectrum
 
 xc = {
             'B3LYP'     :'xc b3lyp',
@@ -61,6 +65,10 @@ nwchem_data = {
         'spec_dir_path' : 'nwchem/Spectrum',
         'check_list':['Converged', 'Fermi level:','Total:']},
 
+'mo_population_correlation':{'inp':'nwchem/TD_Delta/td.nwi',
+                            'out_log' : 'nwchem/TD_Delta/td.nwo',
+                             'req' : ['nwchem/TD_Delta/td.nwo'],
+                            'dir': 'mo_population'},
 'restart': 'nwchem/restart'
 }
 
@@ -68,8 +76,9 @@ nwchem_data = {
 class NwchemTask(Task):
 
     NAME = 'nwchem'
-
-    implemented_task = ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser', 'spectrum']
+    simulation_task =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
+    post_processing_task = ['spectrum', 'mo_population_correlation']
+    implemented_task = simulation_task + post_processing_task
 
     def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:
         
@@ -78,35 +87,45 @@ class NwchemTask(Task):
         
         
         if not self.task_name in nwchem_data.keys(): 
-            raise Exception(f'{self.task_name} is not implemented.')
+            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
 
         self.task_data = nwchem_data.get(self.task_name)
         super().__init__('nwchem',status, project_dir, lsconfig)
-        self.param = kwargs
-        self.create_engine(self.param)
+        self.user_input = kwargs
+        self.create_engine(self.user_input)
     
     def create_engine(self, param):
+
         infile_ext = '.nwi'
         outfile_ext = '.nwo'
         self.task_dir = self.project_dir / 'nwchem' / self.task_data.get('dir')
+        label = str(self.project_dir.name)
+        file_name = self.task_data.get('file_name')
         
+        if self.task_name in self.post_processing_task:
+            completed_task = self.status.get_status('nwchem').keys()
+            if 'rt_tddft_laser' in completed_task:
+                td_out = nwchem_data['rt_tddft_laser'].get('out_log')
+            else:
+                td_out = nwchem_data['rt_tddft_delta'].get('out_log')
+
+            self.outfile = self.project_dir / td_out 
+            
+
+            self.nwchem = NWChem(outfile=str(self.outfile), 
+                            label=label, directory=self.task_dir)
+            return
+
         param['perm'] = str(self.task_dir.parent / 'restart')
         param['geometry'] = str(self.project_dir / 'coordinate.xyz')
         
         if 'rt_tddft' in self.task_name:
             param['restart_kw'] = 'restart'
             param['basis'] = self.status.get_status('nwchem.ground_state.param').get('basis')
-        self.user_input = param
-
-        if 'spectrum' == self.task_name:
-            file_name = nwchem_data['rt_tddft_delta'].get('file_name')
-        else:   
-            file_name = self.task_data.get('file_name')
-
+        
+        file_name = self.task_data.get('file_name')
         self.infile = file_name + infile_ext
         self.outfile = file_name + outfile_ext
-        label = str(self.project_dir.name)
-
         self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
                             label=label, directory=self.task_dir, **param)
 
@@ -117,11 +136,10 @@ class NwchemTask(Task):
     def create_template(self):
         self.template = self.nwchem.create_input()
 
-    def create_spectrum_cmd(self, remote=False ):
+    def _create_spectrum_cmd(self, remote=False ):
 
-        td_out = self.task_data['out_log']
+        td_out = self.outfile
 
-        td_out = self.project_dir / td_out
         self.pol, tag = get_pol_and_tag(self.status)
 
         if  not td_out.exists():
@@ -139,29 +157,89 @@ class NwchemTask(Task):
         
         dm_cmd = f'{path_python} {nw_rtparse} -x dipole -p {self.pol} -t {tag} {td_out} > {self.pol}.dat'
 
-        spec_cmd = f'{path_python} {spectrum_file} {self.pol}.dat spec_{self.pol}.dat'
+        spec_cmd = f'{path_python} {spectrum_file} dipole.dat spec_{self.pol}.dat'
         
-        return [dm_cmd, spec_cmd]
+        return [spec_cmd]
+
+    def compute_spectrum(self):
+        self.create_directory(self.task_dir)
+        
+        td_out = self.outfile
+
+        self.pol, tag = get_pol_and_tag(self.status)
+        self.dipole_file = self.task_dir / 'dipole.dat'
+        self.spectra_file = self.task_dir / f'spec_{self.pol}.dat'
+        try:
+            self.nwchem.get_td_dipole(self.dipole_file, td_out, tag, polarization=self.pol)
+        except Exception:
+            raise
+        #else:
+        #    photoabsorption_spectrum(self.dipole_file, self.spectra_file,)
+
+    def compute_mo_population_correlation(self):
+        
+        self.below_homo = below_homo = self.user_input['num_occupied_mo']
+        self.above_lumo = above_lumo = self.user_input['num_unoccpied_mo']
+        bandpass_window = self.user_input['bandpass_window']
+        hanning_window = self.user_input['hanning_window']
+
+        self.create_directory(self.task_dir)
+        td_out = self.outfile
+
+        energy_file = self.task_dir / 'energy_format.dat'
+        eigen_data = self.nwchem.get_eigen_energy(td_out)
+        occ, unocc = get_occ_unocc(eigen_data)
+        if (len(occ) < below_homo) or (len(unocc) < above_lumo):
+            raise InputError(f'The selected MO is out of range. Number of MO: below HOMO = {len(occ)}, above_LUMO = {len(unocc)}')
+        mo_population_file = self.task_dir / 'mo_population.dat'
+        self.nwchem.get_td_moocc(str(mo_population_file), td_out, homo_index=len(occ),
+                                     below_homo=below_homo, above_lumo=above_lumo)
+        get_energy_window(eigen_data, energy_file, below_homo, above_lumo)
+    
+        path = pathlib.Path(mo_population_correlation.__file__)
+        
+        pop_py = str(path.parent /'population_correlation.py')
+        pop_cmd = f'python {pop_py} {below_homo} {energy_file}'    
+        
+        band_py = str(path.parent / 'bandpass.py')
+        band_cmd = f'python {band_py} {mo_population_file} {bandpass_window}'       
+        
+        hann_py = str(path.parent / 'test.py')
+        hann_cmd = f'python {hann_py} frest.dat hanning {hanning_window}'
+        
+        dft_mod_py = str(path.parent /'dft-mod.py')
+        dft_mod_cmd = f'python {dft_mod_py} fn_rest.dat'
+
+        return [band_cmd, hann_cmd, dft_mod_cmd, pop_cmd]
 
     def create_job_script(self, np=1, remote_path=None, remote=None) -> list:
-
-        ifilename =  self.infile
-        ofilename = self.outfile
-        command = self.lsconfig.get('engine', 'nwchem')
 
         job_script = super().create_job_script()
 
         if 'spectrum' in self.task_name:
             
-            self.create_directory(self.task_dir)
+           # self.create_directory(self.task_dir)
             path = self.task_dir
-            if remote_path:
-                path = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
+            #if remote_path:
+            #    path = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
+            self.compute_spectrum()
             job_script.append(f"cd {str(path)}")
-            job_script.extend(self.create_spectrum_cmd(bool(remote_path)))
+            job_script.extend(self._create_spectrum_cmd(bool(remote_path)))
             self.job_script = "\n".join(job_script)
             self.write_job_script()
-            return self.job_script
+            return 
+
+        if self.task_name == 'mo_population_correlation':
+            print('here')
+            job_script.append(f"cd {str(self.task_dir)}")
+            job_script.extend(self.compute_mo_population_correlation())
+            self.job_script = "\n".join(job_script)
+            self.write_job_script()
+            return 
+
+        ifilename =  self.infile
+        ofilename = self.outfile
+        command = self.lsconfig.get('engine', 'nwchem')
 
         if remote_path:
             path = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
@@ -183,17 +261,46 @@ class NwchemTask(Task):
 
         self.job_script = "\n".join(job_script)
         return self.job_script
+    
+    def prepare_input(self):
+
+        if self.task_name in self.simulation_task:
+            self.create_template()
+            self.write_input()
+        
+        self.create_job_script()
+            
 
     def run_job_local(self, cmd):
         super().run_job_local(cmd)
 
-    def plot(self):
-        from litesoph.utilities.plot_spectrum import plot_spectrum
+    def get_engine_log(self):
 
-        file = self.task_dir / f"spec_{self.pol}.dat"
-        img = file.parent / f"spec_{self.pol}.png"
-        plot_spectrum(file,img,0, 1, "Energy(eV)","Strength")
+        if self.read_output():
+            with open(self.task_dir / self.outfile, 'r') as f:
+                text = f.read()      
+            return text
 
+    def read_output(self):
+        try:
+            exist_status, stdout, stderr = self.local_cmd_out
+        except AttributeError:
+            TaskFailed("Job not completed.")
+            return
+        else:
+            return True
+
+    def plot(self,**kwargs):
+
+        if self.task_name == 'spectrum':
+            img = self.spectra_file.parent / f"spec_{self.pol}.png"
+            plot_spectrum(self.spectra_file,img,0, 1, "Energy(eV)","Strength",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
+
+        elif self.task_name == 'mo_population_correlation':
+            pop_corr_file = self.task_dir / 'amp_file.dat'
+            plot_mo_population_correlations(pop_corr_file,self.below_homo, self.above_lumo,
+                                            divisions=kwargs['ngrid'], sigma=kwargs['broadening'])
+    
     @staticmethod
     def get_engine_network_job_cmd():
 
