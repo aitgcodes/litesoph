@@ -481,7 +481,7 @@ class GUIAPP:
         self.spectra_view.Frame1_Button3.config(state='active')
         self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_spectra_run_local_button(task_name))
         self.main_window.bind_all(f'<<RunNetwork{task_name}>>', lambda _: self._on_spectra_run_network_button())
-        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _:self._on_spectra_plot_button())
+        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _:self._on_plot_button(self.spectra_view ,self.spectra_task))
 
     def _on_spectra_run_local_button(self, task_name, *_):
         
@@ -491,21 +491,13 @@ class GUIAPP:
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
 
-        if self.engine == 'nwchem':
-            self.spectra_task.create_job_script()
-        else:
-            self.spectra_task.prepare_input()
+        self.spectra_task.prepare_input()
         self._run_local(self.spectra_task, np=1)
         
 
     def _on_spectra_run_network_button(self, *_):
         pass
 
-    def _on_spectra_plot_button(self, *_):
-        """ Selects engine specific plot function"""
-        self.spectra_task.plot()
-    
-        
 ##----------------------compute---tcm---------------------------------
 
     def _on_tcm_task(self, *_):
@@ -524,7 +516,7 @@ class GUIAPP:
         
         self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_tcm_run_local_button(task_name))
         self.main_window.bind_all(f'<<RunNetwork{task_name}>>', lambda _: self._on_tcm_run_network_button())
-        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _:self._on_tcm_plot_button())
+        self.main_window.bind_all(f'<<Show{task_name}Plot>>', lambda _: self._on_plot_button(self.tcm_view, self.tcm_task))
 
     def _on_tcm_run_local_button(self, task_name, *_):
         
@@ -607,6 +599,24 @@ class GUIAPP:
         self.job_sub_page.bind(f'<<Save{task.task_name}Local>>',lambda _: self._on_save_job_script(task, self.job_sub_page))
         self.job_sub_page.bind(f'<<Create{task.task_name}LocalScript>>', lambda _: self._on_create_local_job_script(task, task.task_name))
     
+    def _on_plot_button(self,view, task: Task, *_):
+        
+        try:
+            get_param_func = getattr(view, 'get_plot_parameters')
+        except AttributeError:
+            pass
+        else:
+            param = get_param_func()
+        
+        try:
+            # Remove this 'if' after generalizing plot function
+            if self.engine == 'nwchem':
+                task.plot(**param)
+            else:
+                task.plot()
+        except Exception as e:
+            messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
+
     def _run_local(self, task: Task, np=None):
 
         if np:
