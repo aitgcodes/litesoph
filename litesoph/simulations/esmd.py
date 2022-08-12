@@ -5,6 +5,13 @@ import os
 
 from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
 
+GROUND_STATE = 'ground_state'
+RT_TDDFT_DELTA = 'rt_tddft_delta'
+RT_TDDFT_LASER = 'rt_tddft_laser'
+SPECTRUM = 'spectrum'
+TCM = 'tcm'
+MO_POPULATION_CORRELATION = 'mo_population_correlation'
+
 def get_engine_obj(engine, *args, **kwargs)-> EngineStrategy:
     """ It takes engine name and returns coresponding EngineStrategy class"""
 
