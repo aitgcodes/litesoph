@@ -152,7 +152,7 @@ def p(txt):
 def nwchem_rt_parser(td_out_file, outfile=None, tag='<rt_tddft>',
                     geometry='system', 
                     target='dipole', spin='closedshell', 
-                    polarization=None, zero=False):
+                    polarization=None, zero=False, retrun_data=False):
     
     td_dict = dict(tag=tag,
                     geometry=geometry,
@@ -169,6 +169,17 @@ def nwchem_rt_parser(td_out_file, outfile=None, tag='<rt_tddft>',
 
     td_dict = check_args_determine_labels(td_dict)
 
+    try:
+        with open(td_out_file, 'r') as f:
+            lines = f.readlines()
+    except:
+        raise Exception(f'Failed to read in data from file: {td_out_file}')
+    
+    data = parse_input(td_dict, lines)
+
+    if retrun_data:
+        return data
+
     write("#======================================\n")
     write("#  NWChem Real-time TDDFT output parser\n")
     write("#======================================\n")
@@ -178,15 +189,9 @@ def nwchem_rt_parser(td_out_file, outfile=None, tag='<rt_tddft>',
     write('# Filename: "{0}"\n'.format(td_out_file))
     write("#-------\n")
 
-    try:
-        with open(td_out_file, 'r') as f:
-            lines = f.readlines()
-    except:
-        raise Exception (f'Failed to read in data from file: {td_out_file}')
-
-    data = parse_input(td_dict, lines)
     write("# Number of data points: {0}\n".format(len(data)))
     write("# Time range: [{0}: {1}]\n".format(data[0][0], data[-1][0]))
+
     write_td_output(write, data, td_dict)
 
     if outfile:
