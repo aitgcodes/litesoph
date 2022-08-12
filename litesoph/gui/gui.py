@@ -176,7 +176,7 @@ class GUIAPP:
             actions.SHOW_RT_TDDFT_LASER_PAGE: self._on_rt_tddft_laser_task,
             actions.SHOW_SPECTRUM_PAGE : self._on_spectra_task,
             actions.SHOW_TCM_PAGE : self._on_tcm_task,
-            actions.SHOW_MO_POPULATION_CORRELATION_PAGE : self._on_population_task
+            actions.SHOW_MO_POPULATION_CORRELATION_PAGE : self._on_mo_population_task
         }
         for event, callback in event_show_page.items():
             self.main_window.bind_all(event, callback)  
@@ -534,20 +534,26 @@ class GUIAPP:
     def _on_tcm_run_network_button(self, *_):
         pass
 
-    def _on_tcm_plot_button(self, *_):
-        """ Selects engine specific plot function"""
-        try:
-            self.tcm_task.plot()
-        except Exception as e:
-            messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
-
 ##-------------------------------population task-------------------------------------------------------------
 
-    def _on_population_task(self, *_): 
-        task_name = 'population correlation'      
+    def _on_mo_population_task(self, *_): 
+        task_name = actions.MO_POPULATION_CORRELATION      
         self._show_frame(v.PopulationPage,self.engine, task_name)
-        self.population_view = self._frames[v.PopulationPage]
-       
+        self.mo_population_view = self._frames[v.PopulationPage]
+        self.mo_population_view.engine = self.engine
+        self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_mo_population_run_local_button(task_name))
+        self.main_window.bind_all(f'<<Plot{task_name}>>', lambda _:self._on_plot_button(self.mo_population_view,self.mo_population_task))
+
+    def _on_mo_population_run_local_button(self, task_name, *_):
+        
+        inp_dict = self.mo_population_view.get_parameters()
+        self.mo_population_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.status.set_new_task(self.engine, self.mo_population_task.task_name)
+        self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.script', 1)
+        self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.param',self.mo_population_task.user_input)
+
+        self.mo_population_task.prepare_input()
+        self._run_local(self.mo_population_task, np=1)
 ##-----------------------------------------------------------------------------------------------------------##
 
     def view_input_file(self, task:Task):

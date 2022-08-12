@@ -1549,8 +1549,8 @@ class PopulationPage(View):
         
         self.bandpass = tk.IntVar(value=100)
         self.hanning = tk.IntVar(value= 50)
-        self.ni = tk.IntVar()
-        self.na = tk.IntVar()
+        self.occupied_mo = tk.IntVar()
+        self.unoccupied_mo = tk.IntVar()
         self.ngrid = tk.IntVar(value=100)
         self.broadening = tk.DoubleVar(value= 0.5)
 
@@ -1570,7 +1570,7 @@ class PopulationPage(View):
         self.Label_ni['font'] = myfont()
         self.Label_ni.grid(row=1, column=0, sticky='w', padx=5, pady=5)        
         
-        self.entry_ni = Onlydigits(self.SubFrame1, textvariable= self.ni, width=5)
+        self.entry_ni = Onlydigits(self.SubFrame1, textvariable= self.occupied_mo, width=5)
         self.entry_ni['font'] = myfont()
         self.entry_ni.grid(row=1, column=1)
 
@@ -1578,7 +1578,7 @@ class PopulationPage(View):
         self.Label_na['font'] = myfont()
         self.Label_na.grid(row=2, column=0, sticky='w', padx=5, pady=5)        
         
-        self.entry_na = Onlydigits(self.SubFrame1, textvariable= self.na, width=5)
+        self.entry_na = Onlydigits(self.SubFrame1, textvariable= self.unoccupied_mo, width=5)
         self.entry_na['font'] = myfont()
         self.entry_na.grid(row=2, column=1)
 
@@ -1618,20 +1618,42 @@ class PopulationPage(View):
         self.entry_width['font'] = myfont()
         self.entry_width.grid(row=2, column=1, sticky='w', padx=5, pady=5)
 
-        self.submit_button = tk.Button(self.SubFrame1, text="Submit",activebackground="#78d6ff")
+        self.submit_button = tk.Button(self.SubFrame1, text="Submit",activebackground="#78d6ff", command=self._on_submit)
         self.submit_button['font'] = myfont()
         self.submit_button.grid(row=4, column=2, sticky='we', padx=5)
 
-        self.plot_button = tk.Button(self.SubFrame2, text="Plot",activebackground="#78d6ff")
+        self.plot_button = tk.Button(self.SubFrame2, text="Plot",activebackground="#78d6ff", command=self._on_plot)
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=2, column=2, sticky='we', padx=25)
 
-        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff")
+        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command = lambda _: self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
 
         # add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=1)
+    def _on_submit(self):
+        self.event_generate(f"<<SubLocal{self.task_name}>>")
 
+    def _on_plot(self):
+        self.event_generate(f"<<Plot{self.task_name}>>")
+
+    def get_parameters(self):
+        pop_dict = {
+            'task': self.task_name,
+            'num_occupied_mo': self.occupied_mo.get(),
+            'num_unoccpied_mo': self.unoccupied_mo.get(),
+            'bandpass_window': self.bandpass.get(),
+            'hanning_window' : self.hanning.get()
+        }
+
+        return pop_dict
+
+    def get_plot_parameters(self):
+        plot_param = {
+            'ngrid' : self.ngrid.get(),
+            'broadening' : self.broadening.get()
+        }
+        return plot_param
 
 class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
