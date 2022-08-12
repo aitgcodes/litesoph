@@ -377,8 +377,9 @@ photoabsorption_spectrum('{moment_file}', '{spectrum_file}',folding='{folding}',
     def prepare_input(self):
         self.create_template()
         self.write_input()
+        self.create_job_script()
 
-    def create_job_script(self, np, remote_path = None, remote=False) -> str:
+    def create_job_script(self, np=1, remote_path = None, remote=False) -> str:
         """Create the bash script to run the job and "touch Done" command to it, to know when the 
         command is completed."""
         job_script = super().create_job_script()
