@@ -186,7 +186,45 @@ class Task:
         cmd = cmd + ' ' + self.BASH_filename
         self.sumbit_local.add_proper_path()
         self.sumbit_local.run_job(cmd)
-        
+
+def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
+                        mpi_path: str = None,
+                        remote : bool = False,
+                        scheduler_block : str = None,
+                        module_load_block : str = None,
+                        extra_block : str = None) -> str:
+    job_script_first_line = "#!/bin/bash"
+    remote_job_script_last_line = "touch Done"
+    
+    job_script = [job_script_first_line]
+    
+    if remote:
+        if scheduler_block:
+            job_script.append(scheduler_block)
+        if module_load_block:
+            job_script.append(module_load_block)
+
+    if cd_path:
+        job_script.append(f'cd {cd_path}')
+    
+    if engine_cmd:
+        if np > 1:
+            if not mpi_path:
+                mpi_path = 'mpirun'
+            job_script.append(f'{mpi_path} -np {np:d} {engine_cmd}')
+        else:
+            job_script.append(engine_cmd)
+
+    if extra_block:
+        job_script.append(extra_block)
+
+    if remote:
+        job_script.append[remote_job_script_last_line]
+
+    job_script = '\n'.join(job_script)
+    return job_script
+
+
 def pbs_job_script(name):
 
     head_job_script = f"""
