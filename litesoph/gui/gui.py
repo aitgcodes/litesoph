@@ -689,8 +689,6 @@ class GUIAPP:
 
     def _run_network(self, task):
 
-        self.job_sub_page.disable_run_button()
-
         try:
             task.check_prerequisite(network = True)
         except FileNotFoundError as e:
