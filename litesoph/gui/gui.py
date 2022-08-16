@@ -607,6 +607,7 @@ class GUIAPP:
     
     def _on_plot_button(self,view, task: Task, *_):
         
+        param = {}
         try:
             get_param_func = getattr(view, 'get_plot_parameters')
         except AttributeError:
