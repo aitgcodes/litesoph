@@ -671,15 +671,19 @@ class GUIAPP:
 
     def _on_out_local_view_button(self,task: Task, *_):
 
-        log_file = self.directory.parent / task.output_log_file
+        # Remove this 'if' after generalizing get_engine_log to all the task class
+        if 'NwchemTask' == type(task).__name__:
+            log_txt = task.get_engine_log()
+        else:
+            log_file = self.directory.parent / task.output_log_file
 
-        try:
-            exist_status, stdout, stderr = task.local_cmd_out
-        except AttributeError:
-            messagebox.showinfo(title='Info', message="Job not completed.")
-            return
+            try:
+                exist_status, stdout, stderr = task.local_cmd_out
+            except AttributeError:
+                messagebox.showinfo(title='Info', message="Job not completed.")
+                return
 
-        log_txt = read_file(log_file)
+            log_txt = read_file(log_file)
         self.view_panel.insert_text(log_txt, 'disabled')
 
 
