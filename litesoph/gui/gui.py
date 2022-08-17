@@ -84,6 +84,8 @@ class GUIAPP:
         self._show_frame(v.WorkManagerPage)
         self.main_window.after(1000, self.update_project_dir_tree)
 
+        
+
     def run(self):
         self.main_window.protocol("WM_DELETE_WINDOW", self.__on_window_close)
         self.main_window.mainloop()
@@ -158,6 +160,7 @@ class GUIAPP:
             actions.VISUALIZE_MOLECULE: self._on_visualize,
             actions.CREATE_NEW_PROJECT: self._on_create_project,
             actions.CREATE_PROJECT_WINDOW:self.create_project_window,
+            actions.CREATE_NEW_JOB:self.create_new_job,
             actions.OPEN_PROJECT : self._on_open_project,
             actions.ON_PROCEED : self._on_proceed,
             actions.ON_BACK_BUTTON : self._on_back_button,
@@ -222,8 +225,49 @@ class GUIAPP:
             self._frames[v.WorkManagerPage].engine.set(self.engine)
         
     def create_project_window(self, *_):
-        self.project_window = v.CreateProjectPage(self.main_window)   
+        self.project_window = v.CreateProjectPage(self.main_window) 
+
+    ########################################## 
+    
+
+    def create_new_job(self,*_):
+        print("new job working")  
+
+        self.project_window = v.StartPage(self.main_window) 
+        self.newFileName = StringVar(self.project_window, "File.dot", 'new_name')
+        self.currentPath = StringVar(self.project_window, name='currentPath', value=pathlib.Path.cwd())
+
+        global top
+        top = Toplevel(self.project_window)
+        top.geometry("250x150")
+        top.resizable(False, False)
+        top.title("Child Window")
+        top.columnconfigure(0, weight=1)
+        Label(top, text='Enter File or Folder name').grid()
+        Entry(top, textvariable=self.newFileName).grid(column=0, pady=10, sticky='NSEW')
+        Button(top, text="Create", command=self.newFileOrFolder).grid(pady=10, sticky='NSEW')
+
+    def newFileOrFolder(self,*_):
+    # check if it is a file name or a folder
+        # self.project_window = v.StartPage(self.main_window) 
+        # newFileName = StringVar(self.project_window, "File.dot", 'new_name')
+        currentPath = StringVar(self.project_window, name='currentPath', value=pathlib.Path.cwd())
+
+
+        if len(self.newFileName.get().split('.')) != 1:
+            open(os.path.join(self.currentPath.get(), self.newFileName.get()), 'w').close()
+        else:
+            os.mkdir(os.path.join(self.currentPath.get(), self.newFileName.get()))
+        # destroy the top
+        top.destroy()
+        # pathChange()
+
+
+      
+#######################################################
         
+
+            
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
         if hasattr(self, 'project_window'):

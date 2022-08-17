@@ -15,6 +15,8 @@ SHOW_MO_POPULATION_CORRELATION_PAGE = SHOW_PAGE_EVENT.format(MO_POPULATION_CORRE
 GET_MOLECULE = '<<GetMolecule>>'
 VISUALIZE_MOLECULE = '<<VisualizeMolecule>>'
 CREATE_NEW_PROJECT = '<<CreateNewProject>>' 
+CREATE_NEW_JOB = '<<CreateNewJob>>' 
+
 CREATE_PROJECT_WINDOW = '<<create_filemenu_project>>'
 
 OPEN_PROJECT = '<<OpenExistingProject>>'

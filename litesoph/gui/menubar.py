@@ -107,6 +107,14 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('file'), compound=tk.LEFT
   )
 
+
+  def _add_new_job(self, menu):
+
+    menu.add_command(
+      label='New Job…', command=self._event(actions.CREATE_NEW_JOB),
+      #image=self.icons.get('file'), compound=tk.LEFT
+  )
+
   def _add_open_project(self, menu):
 
     menu.add_command(
@@ -144,6 +152,7 @@ class GenericMainMenu(tk.Menu):
     self._menus['File'] = tk.Menu(self, tearoff=False, **self.styles)
     #self._add_file_open(self._menus['File'])
     self._add_new_project(self._menus['File'])
+    self._add_new_job(self._menus['File'])
     self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
     self._add_quit(self._menus['File'])
@@ -225,6 +234,7 @@ class LinuxMainMenu(GenericMainMenu):
     self._menus['File'] = tk.Menu(self, tearoff=False, **self.styles)
 #    self._add_file_open(self._menus['File'])
     self._add_new_project(self._menus['File'])
+    self._add_new_job(self._menus['File'])
     self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
     self._add_quit(self._menus['File'])

@@ -2,6 +2,10 @@ from pathlib import Path
 import tkinter as tk
 import tkinter.ttk as ttk
 import collections
+from tkinter import *
+import os
+import ctypes
+import pathlib
 
 class ProjectList:
 
@@ -12,6 +16,19 @@ class ProjectList:
         self.treeview = app.treeview
         
         self.treeview.bind('<<TreeviewOpen>>', self.open_node)
+
+
+    def pathChange(self, project_path: Path):
+        # Get all Files and Folders from the given Directory
+
+        currentPath = StringVar(self, name='currentPath',value=pathlib.Path.cwd())
+
+        directory = os.listdir(currentPath.get())
+        # Clearing the list
+        list.delete(0, END)
+        # Inserting the files and directories into the list
+        for file in directory:
+            list.insert(0, file)
         
     def populate(self, project_path: Path):
         
@@ -73,3 +90,42 @@ def summary_of_current_project(status):
     state = "\n".join(state)
 
     return state
+
+
+# class navsidebar:
+
+#     def __init__(self, app):
+        
+#         self.newFileName = StringVar(self, "File.dot", 'new_name')
+#         self.currentPath = StringVar(self, name='currentPath', value=pathlib.Path.cwd())
+        
+
+#     def create_new_job(self,*_):
+#         print("new job working") 
+
+#         global top
+#         top = Toplevel(self)
+#         top.geometry("250x150")
+#         top.resizable(False, False)
+#         top.title("Child Window")
+#         top.columnconfigure(0, weight=1)
+#         Label(top, text='Enter File or Folder name').grid()
+#         Entry(top, textvariable=self.newFileName).grid(column=0, pady=10, sticky='NSEW')
+#         Button(top, text="Create", command=self.newFileOrFolder).grid(pady=10, sticky='NSEW')
+
+#     def newFileOrFolder(self,*_):
+#     # check if it is a file name or a folder
+#         # self.project_window = v.StartPage(self.main_window) 
+#         # newFileName = StringVar(self.project_window, "File.dot", 'new_name')
+#         self.currentPath = StringVar(self.project_window, name='currentPath', value=pathlib.Path.cwd())
+
+
+#         if len(self.newFileName.get().split('.')) != 1:
+#             open(os.path.join(self.currentPath.get(), self.newFileName.get()), 'w').close()
+#         else:
+#             os.mkdir(os.path.join(self.currentPath.get(), self.newFileName.get()))
+#         # destroy the top
+#         top.destroy()
+#         # pathChange()
+
+
