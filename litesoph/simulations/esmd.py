@@ -223,7 +223,7 @@ def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None,
         job_script.append(extra_block)
 
     if remote:
-        job_script.append[remote_job_script_last_line]
+        job_script.append(remote_job_script_last_line)
 
     job_script = '\n'.join(job_script)
     return job_script
