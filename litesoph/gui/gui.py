@@ -687,7 +687,7 @@ class GUIAPP:
         self.view_panel.insert_text(log_txt, 'disabled')
 
 
-    def _run_network(self, task):
+    def _run_network(self, task: Task):
 
         try:
             task.check_prerequisite(network = True)
@@ -715,22 +715,18 @@ class GUIAPP:
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
         
-        from litesoph.utilities.job_submit import SubmitNetwork
-
         try:
-            self.submit_network = SubmitNetwork(task, 
-                                        hostname=login_dict['ip'],
-                                        username=login_dict['username'],
-                                        password=login_dict['password'],
-                                        port=login_dict['port'],
-                                        remote_path=login_dict['remote_path'],
-                                        )
+            task.connect_to_network(hostname=login_dict['ip'],
+                                    username=login_dict['username'],
+                                    password=login_dict['password'],
+                                    port=login_dict['port'],
+                                    remote_path=login_dict['remote_path'])
         except Exception as e:
-            messagebox.showerror(title = "Error", message = e)
+            messagebox.showerror(title = "Error", message = 'Unable to connect to the network', detail= e)
             self.job_sub_page.set_run_button_state('active')
             return
         try:
-            self.submit_network.run_job(cmd)
+            task.submit_network.run_job(cmd)
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.set_run_button_state('active')
@@ -744,9 +740,9 @@ class GUIAPP:
                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
 
 
-    def _get_remote_output(self):
-        self.submit_network.download_output_files()
-        self.status.update_status(f'{self.engine}.{self.submit_network.task.task_name}.done', True)
+    def _get_remote_output(self, task: Task):
+        task.submit_network.download_output_files()
+        self.status.update_status(f'{self.engine}.{task.task_name}.done', True)
 
     def _on_create_local_job_script(self, task: Task, *_):
         np = self.job_sub_page.processors.get()
@@ -784,12 +780,12 @@ class GUIAPP:
         # if exist_status != 0:
         #     return
         print("Checking for job completion..")
-        if self.submit_network.check_job_status():
+        if task.submit_network.check_job_status():
 
             # if self.network_type == 0:
             #     messagebox.showinfo(title='Info', message="Job commpleted.")
             print('job Done.')
-            self._get_remote_output()   
+            self._get_remote_output(task)   
             log_txt = read_file(log_file)
             #self.job_sub_page.text_view.clear_text()
             self.view_panel.insert_text(log_txt, 'disabled')
@@ -798,7 +794,7 @@ class GUIAPP:
             get = messagebox.askyesno(title='Info', message="Job not commpleted.", detail= "Do you what to download engine log file?")
 
             if get:
-                self.submit_network.get_output_log()
+                task.submit_network.get_output_log()
                 log_txt = read_file(log_file)
                 self.view_panel.insert_text(log_txt, 'disabled')
             else:

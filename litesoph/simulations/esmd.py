@@ -4,6 +4,7 @@ import re
 import os
 
 from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
+from ..utilities.job_submit import SubmitNetwork
 
 GROUND_STATE = 'ground_state'
 RT_TDDFT_DELTA = 'rt_tddft_delta'
@@ -186,6 +187,9 @@ class Task:
         cmd = cmd + ' ' + self.BASH_filename
         self.sumbit_local.add_proper_path()
         self.sumbit_local.run_job(cmd)
+
+    def connect_to_network(self, *args, **kwargs):
+        self.submit_network = SubmitNetwork(self, *args, **kwargs)
 
 def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
                         mpi_path: str = None,
