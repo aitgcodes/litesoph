@@ -215,26 +215,23 @@ class NwchemTask(Task):
         return '\n'.join([band_cmd, hann_cmd, dft_mod_cmd, pop_cmd])
 
     def create_job_script(self, np=1, remote_path=None) -> list:
-        print(self.task_name)
                 
         ofilename = self.outfile
-        path_nwchem = self.lsconfig.get('engine', 'nwchem')
-
-        if not path_nwchem or remote_path:
-            path_nwchem = 'nwchem'
+    
+        if remote_path:
+            self.engine_path = 'nwchem'
 
         if self.task_name in self.simulation_tasks:
             ifilename =  self.infile
-            engine_cmd = path_nwchem + ' ' + str(ifilename) + ' ' + '>' + ' ' + str(ofilename)
+            engine_cmd = self.engine_path + ' ' + str(ifilename) + ' ' + '>' + ' ' + str(ofilename)
 
             if remote_path:
                 rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
                 job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(rpath),
                                         remote=True, module_load_block=self.get_engine_network_job_cmd())
             else:
-                mpi_path = config.get_mpi_command(self.NAME, self.lsconfig)
                 job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(self.task_dir),
-                                                mpi_path=mpi_path)
+                                                mpi_path=self.mpi_path)
         if self.task_name == 'spectrum':    
             self.compute_spectrum()
             job_script = assemable_job_cmd(cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))

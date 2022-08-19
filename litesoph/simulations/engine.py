@@ -67,19 +67,18 @@ class EngineGpaw(EngineStrategy):
         return directory
 
     def create_command(self, job_script: list , np: int ,filename, path=None, remote=False) -> list:
-        
+        path_python = self.lsconfig['programs'].get('python', 'python')
+        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
+        mpi_path = self.lsconfig['mpi'].get('gpaw_mpi', mpi_path)
         if remote:
             job_script.append(self.get_engine_network_job_cmd())
             job_script.append(f"cd {str(path)}")
             job_script.append(f"mpirun -np {np:d}  python3 {filename}")
         else:
             job_script.append(f"cd {str(path)}")
-
-            path_python = self.lsconfig.get('programs', 'python')
             command = path_python + ' ' + str(filename) 
             if np > 1:
-                cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)
-                command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
+                command = mpi_path + ' ' + '-np' + ' ' + str(np) + ' ' + command
             job_script.append(command)
         
         return job_script
