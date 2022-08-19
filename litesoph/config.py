@@ -136,3 +136,30 @@ def get_mpi_command(engine_name: str, configs: ConfigParser):
             return mpi
     else:
         print(f"Please set path to mpi in {str(config_file)}")
+
+
+
+######### convert config file to dictionary #########
+
+def config_to_dict(infile):
+
+    """converts configparser to dictionary object """
+    from configparser import ConfigParser, NoSectionError
+    config = ConfigParser()
+    config.read(infile)
+    my_config_parser_dict = {s:dict(config.items(s)) for s in config.sections()}
+    return dict(my_config_parser_dict)
+
+
+################## convert dictionary to config file #############
+
+def dict_to_config(input_dict, configfilename):
+
+    """converts dictionary to configfile  object """
+    import configparser
+    parser = configparser.ConfigParser()
+    parser.read_dict(input_dict)
+
+    fp=open(configfilename,'w')
+    parser.write(fp)
+    fp.close()
