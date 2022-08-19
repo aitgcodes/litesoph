@@ -15,7 +15,7 @@ import shutil
 from configparser import ConfigParser, NoSectionError
 
 #---LITESOPH modules
-from litesoph.config import check_config, read_config
+from litesoph.config import config_file, config_to_dict, dict_to_config
 from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
@@ -27,7 +27,6 @@ from litesoph.gui import actions
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.project_status import Status
-from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 
 
 home = pathlib.Path.home()
@@ -38,10 +37,10 @@ DESINGER_DIR = pathlib.Path(__file__).parent
 
 class GUIAPP:
 
-    def __init__(self, lsconfig: ConfigParser, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.lsconfig = lsconfig
+        self.lsconfig = config_to_dict(config_file)
         self.directory = None 
 
         self.builder = pygubu.Builder()
@@ -135,7 +134,7 @@ class GUIAPP:
 
     def _refresh_config(self,*_):
         """reads and updates the lsconfig object from lsconfig.ini"""
-        self.lsconfig = read_config()
+        self.lsconfig.update(config_to_dict(config_file))
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -226,7 +225,7 @@ class GUIAPP:
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
-        if hasattr(self, 'self.project_window'):
+        if hasattr(self, 'project_window'):
             project_name = self.project_window.get_value('proj_name')
         else:
             project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
@@ -252,7 +251,7 @@ class GUIAPP:
             self._init_project(project_path)
             self.engine = None
             messagebox.showinfo("Message", f"project:{project_path} is created successfully")
-            if hasattr(self, 'self.project_window'):
+            if hasattr(self, 'project_window'):
                 self.project_window.destroy()
 
             
@@ -271,7 +270,12 @@ class GUIAPP:
 
     def _on_visualize(self, *_):
         """ Calls an user specified visualization tool """
-        cmd = check_config(self.lsconfig,"vis") + ' ' + "coordinate.xyz"
+        path = self.lsconfig['visualization_tools'].get('vmd', None)
+        if not path:
+            path = self.lsconfig['visualization_tools'].get('vesta', None)
+        if not path:
+            path = 'vmd'
+        cmd = path + ' ' + "coordinate.xyz"
         try:
            subprocess.run(cmd.split(),capture_output=True, cwd=self.directory)
         except:
@@ -510,7 +514,7 @@ class GUIAPP:
             messagebox.showinfo(title= "Info", message=check[1])
             return
 
-        self._show_frame(v.TcmPage)
+        self._show_frame(v.TcmPage, task_name)
         self.tcm_view = self._frames[v.TcmPage]
         self.tcm_view.engine_name.set(self.engine)
         
@@ -607,6 +611,7 @@ class GUIAPP:
     
     def _on_plot_button(self,view, task: Task, *_):
         
+        param = {}
         try:
             get_param_func = getattr(view, 'get_plot_parameters')
         except AttributeError:
@@ -670,21 +675,23 @@ class GUIAPP:
 
     def _on_out_local_view_button(self,task: Task, *_):
 
-        log_file = self.directory.parent / task.output_log_file
+        # Remove this 'if' after generalizing get_engine_log to all the task class
+        if 'NwchemTask' == type(task).__name__:
+            log_txt = task.get_engine_log()
+        else:
+            log_file = self.directory.parent / task.output_log_file
 
-        try:
-            exist_status, stdout, stderr = task.local_cmd_out
-        except AttributeError:
-            messagebox.showinfo(title='Info', message="Job not completed.")
-            return
+            try:
+                exist_status, stdout, stderr = task.local_cmd_out
+            except AttributeError:
+                messagebox.showinfo(title='Info', message="Job not completed.")
+                return
 
-        log_txt = read_file(log_file)
+            log_txt = read_file(log_file)
         self.view_panel.insert_text(log_txt, 'disabled')
 
 
-    def _run_network(self, task):
-
-        self.job_sub_page.disable_run_button()
+    def _run_network(self, task: Task):
 
         try:
             task.check_prerequisite(network = True)
@@ -712,22 +719,18 @@ class GUIAPP:
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
         
-        from litesoph.utilities.job_submit import SubmitNetwork
-
         try:
-            self.submit_network = SubmitNetwork(task, 
-                                        hostname=login_dict['ip'],
-                                        username=login_dict['username'],
-                                        password=login_dict['password'],
-                                        port=login_dict['port'],
-                                        remote_path=login_dict['remote_path'],
-                                        )
+            task.connect_to_network(hostname=login_dict['ip'],
+                                    username=login_dict['username'],
+                                    password=login_dict['password'],
+                                    port=login_dict['port'],
+                                    remote_path=login_dict['remote_path'])
         except Exception as e:
-            messagebox.showerror(title = "Error", message = e)
+            messagebox.showerror(title = "Error", message = 'Unable to connect to the network', detail= e)
             self.job_sub_page.set_run_button_state('active')
             return
         try:
-            self.submit_network.run_job(cmd)
+            task.submit_network.run_job(cmd)
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.set_run_button_state('active')
@@ -741,9 +744,9 @@ class GUIAPP:
                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
 
 
-    def _get_remote_output(self):
-        self.submit_network.download_output_files()
-        self.status.update_status(f'{self.engine}.{self.submit_network.task.task_name}.done', True)
+    def _get_remote_output(self, task: Task):
+        task.submit_network.download_output_files()
+        self.status.update_status(f'{self.engine}.{task.task_name}.done', True)
 
     def _on_create_local_job_script(self, task: Task, *_):
         np = self.job_sub_page.processors.get()
@@ -754,7 +757,11 @@ class GUIAPP:
         np = self.job_sub_page.processors.get()
         rpath = self.job_sub_page.rpath.get()
         if rpath:
-            b_file =  task.create_job_script(np, remote_path=rpath, remote=True)
+            # Remove this "if" after implementing task class in gpaw
+            if self.engine == 'gpaw':
+                b_file =  task.create_job_script(np, remote_path=rpath, remote=True)
+            else:
+                b_file = task.create_job_script(np, remote_path=rpath)
         else:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
@@ -777,12 +784,12 @@ class GUIAPP:
         # if exist_status != 0:
         #     return
         print("Checking for job completion..")
-        if self.submit_network.check_job_status():
+        if task.submit_network.check_job_status():
 
             # if self.network_type == 0:
             #     messagebox.showinfo(title='Info', message="Job commpleted.")
             print('job Done.')
-            self._get_remote_output()   
+            self._get_remote_output(task)   
             log_txt = read_file(log_file)
             #self.job_sub_page.text_view.clear_text()
             self.view_panel.insert_text(log_txt, 'disabled')
@@ -791,7 +798,7 @@ class GUIAPP:
             get = messagebox.askyesno(title='Info', message="Job not commpleted.", detail= "Do you what to download engine log file?")
 
             if get:
-                self.submit_network.get_output_log()
+                task.submit_network.get_output_log()
                 log_txt = read_file(log_file)
                 self.view_panel.insert_text(log_txt, 'disabled')
             else:
@@ -802,5 +809,5 @@ if __name__ == '__main__':
 
     from litesoph.config import read_config
     
-    app = GUIAPP(lsconfig=read_config())
+    app = GUIAPP()
     app.run()

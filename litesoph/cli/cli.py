@@ -2,7 +2,7 @@ import os
 import pathlib
 import subprocess
 import click
-from litesoph.config import config_file, read_config, write_config
+from litesoph.config import config_file, write_config
 import litesoph 
 
 
@@ -18,14 +18,11 @@ def cli():
 @cli.command()
 def gui():
     """Starts the gui."""
-
-    try:
-        lsconfig = read_config()
-    except FileNotFoundError as e:
+    
+    if not config_file.exists():
         print(f"{str(config_file)} doesn't exists.\n")
         print("creating  lsconfig with default value.\n")
         write_config()
-        lsconfig = read_config()
         print(" ")
         print("     litesoph config")
         print(" ")
@@ -33,7 +30,7 @@ def gui():
     
 
     from litesoph.gui.gui import GUIAPP
-    app = GUIAPP(lsconfig)
+    app = GUIAPP()
     app.run()
 
 

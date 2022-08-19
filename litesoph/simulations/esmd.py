@@ -4,6 +4,7 @@ import re
 import os
 
 from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
+from ..utilities.job_submit import SubmitNetwork
 
 GROUND_STATE = 'ground_state'
 RT_TDDFT_DELTA = 'rt_tddft_delta'
@@ -95,6 +96,10 @@ class Task:
         self.engine_name = engine_name
         self.engine = get_engine_obj(self.engine_name, project_dir = self.project_dir, lsconfig = self.lsconfig, status=self.status)
         self.prepend_project_name()
+        self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+
 
     def prepend_project_name(self):
         
@@ -112,6 +117,11 @@ class Task:
     def create_template(self):
         ...
     
+    def reset_lsconfig(self):
+        self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+
     @staticmethod
     def create_directory(directory):
         absdir = os.path.abspath(directory)
@@ -186,7 +196,48 @@ class Task:
         cmd = cmd + ' ' + self.BASH_filename
         self.sumbit_local.add_proper_path()
         self.sumbit_local.run_job(cmd)
-        
+
+    def connect_to_network(self, *args, **kwargs):
+        self.submit_network = SubmitNetwork(self, *args, **kwargs)
+
+def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
+                        mpi_path: str = None,
+                        remote : bool = False,
+                        scheduler_block : str = None,
+                        module_load_block : str = None,
+                        extra_block : str = None) -> str:
+    job_script_first_line = "#!/bin/bash"
+    remote_job_script_last_line = "touch Done"
+    
+    job_script = [job_script_first_line]
+    
+    if remote:
+        if scheduler_block:
+            job_script.append(scheduler_block)
+        if module_load_block:
+            job_script.append(module_load_block)
+
+    if cd_path:
+        job_script.append(f'cd {cd_path}')
+    
+    if engine_cmd:
+        if np > 1:
+            if not mpi_path:
+                mpi_path = 'mpirun'
+            job_script.append(f'{mpi_path} -np {np:d} {engine_cmd}')
+        else:
+            job_script.append(engine_cmd)
+
+    if extra_block:
+        job_script.append(extra_block)
+
+    if remote:
+        job_script.append(remote_job_script_last_line)
+
+    job_script = '\n'.join(job_script)
+    return job_script
+
+
 def pbs_job_script(name):
 
     head_job_script = f"""

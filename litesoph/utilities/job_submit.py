@@ -7,7 +7,6 @@ import pathlib
 import subprocess
 import re
 from scp import SCPClient
-from litesoph.simulations.esmd import Task
 import pexpect
 
 
@@ -53,7 +52,7 @@ def execute(command, directory):
     
 class SubmitLocal:
 
-    def __init__(self, task: Task , nprocessors:int) -> None:
+    def __init__(self, task, nprocessors:int) -> None:
         self.task = task
         self.engine = self.task.engine
         self.project_dir = self.task.project_dir
@@ -80,16 +79,16 @@ class SubmitLocal:
     def run_job(self, cmd):    
         result = execute(cmd, self.project_dir)
         self.task.local_cmd_out = (result[cmd]['returncode'], result[cmd]['output'], result[cmd]['error'])
-        print(result)
+        #print(result)
 
 class SubmitNetwork:
 
-    def __init__(self,task: Task,
-                        hostname: str,
-                        username: str,
-                        password: str,
-                        port: int,
-                        remote_path: str) -> None:
+    def __init__(self,task,
+                    hostname: str,
+                    username: str,
+                    password: str,
+                    port: int,
+                    remote_path: str) -> None:
 
         self.task = task
         self.project_dir = self.task.project_dir
@@ -106,8 +105,8 @@ class SubmitNetwork:
             self.add_proper_path(self.remote_path)
             self.upload_files()
         else:
-            raise Exception(f"Remote path: {self.remote_path} not found.")
-    
+            raise FileNotFoundError(f"Remote path: {self.remote_path} not found.")
+
     def add_proper_path(self, path):
         """this adds in the proper path to the data file required for the job"""
         
@@ -132,8 +131,10 @@ class SubmitNetwork:
     def upload_files(self):
         """uploads entire project directory to remote path"""
 
+        include = ['*/','*.xyz', '*.sh', f'{self.task.task_dir.parent.name}/**']
         (error, message) = rsync_upload_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
-                                                source_dir=str(self.project_dir), dst_dir=str(self.remote_path))
+                                                source_dir=str(self.project_dir), dst_dir=str(self.remote_path),
+                                                include=include, exclude='*')
         #self.network_sub.upload_files(str(self.project_dir), str(self.remote_path), recursive=True)
         if error != 0:
             raise Exception(message)
@@ -295,18 +296,37 @@ class NetworkJobSubmission:
 
         return exit_status, ssh_output, ssh_error
 
-def rsync_upload_files(ruser, rhost,port, password, source_dir, dst_dir):
-    
-    cmd = f'''rsync -av -e "ssh -p {port}" {source_dir} {ruser}@{rhost}:{dst_dir}'''
-    print(cmd)
-    (error, message) = execute_rsync(cmd, passwd=password)
-    return (error, message)
 
-def rsync_download_files(ruser, rhost,port, password, source_dir, dst_dir):
-    
-    cmd = f'''rsync -av -e "ssh -p {port}" {ruser}@{rhost}:{source_dir} {dst_dir}'''
+def rsync_upload_files(ruser, rhost,port, password, source_dir, dst_dir, include=None, exclude= None):
 
+    return rsync_cmd(ruser, rhost, port, password, source_dir, dst_dir, include=include, exclude=exclude)
+
+def rsync_download_files(ruser, rhost, port, password, source_dir, dst_dir, include=None, exclude=None):
+    
+    return rsync_cmd(ruser, rhost, port, password, source_dir, dst_dir, include=include, exclude=exclude,upload=False)
+
+def rsync_cmd(ruser, rhost, port, password, source_dir, dst_dir,include=None, exclude=None, upload=True):
+    
+    cmd = []
+    cmd.append(f'''rsync -av -e "ssh -p {port}"''') 
+
+    def append(name, option):
+        if type(option) == str:
+            option = [option]
+        cmd.append(((f"--{name}=" + "'{}' ") * len(option)).format(*option))
+
+    if bool(include) and bool(exclude):
+        for name, option in [('include', include), ('exclude', exclude)]:
+            append(name, option)
+   
+    if upload:
+        cmd.append(f"{source_dir} {ruser}@{rhost}:{dst_dir}")   
+    else:
+        cmd.append(f"{ruser}@{rhost}:{source_dir} {dst_dir}")
+    
+    cmd = ' '.join(cmd)
     (error, message) = execute_rsync(cmd, passwd=password)
+    
     return (error, message)
 
 def execute_rsync(cmd,passwd, timeout=3600):
@@ -332,6 +352,8 @@ def execute_rsync(cmd,passwd, timeout=3600):
         return (-4, "Error: Incorrect password.")
     else:
         output = str(ssh.before)
+        for text in ssh.before.decode(encoding='utf-8').split('\n'):
+            print(text)
         return (0, output)
     
         

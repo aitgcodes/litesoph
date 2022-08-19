@@ -100,9 +100,6 @@ class OctopusTask(Task):
         job_script = super().create_job_script()
 
         ofilename = Path(self.task_data['out_log']).relative_to('octopus')
-
-        cmd_mpi = config.get_mpi_command(self.NAME, self.lsconfig)    
-        path_octopus = self.lsconfig.get('engine', 'octopus')
        
         def create_default_job_script(cmd:str=None):
             """ Creates Octopus job script format"""
@@ -120,10 +117,10 @@ class OctopusTask(Task):
             else:
                 lpath = self.project_dir / engine_dir
                 job_script.append(f"cd {str(lpath)}")
-                path_cmd = Path(path_octopus).parent / cmd_suffix
+                path_cmd = Path(self.engine_path).parent / cmd_suffix
                 command = str(path_cmd) + ' ' + '&>' + ' ' + str(ofilename)
                 if np > 1:
-                    command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
+                    command = self.mpi_path + ' ' + '-np' + ' ' + str(np) + ' ' + command
                 job_script.append(command)  
 
             return job_script
@@ -131,8 +128,8 @@ class OctopusTask(Task):
         if self.task_name in ["ground_state"] and self.user_input['ExtraStates'] != 0:
                 unocc_ofilename = Path(octopus_data['unoccupied_task']['out_log']).relative_to(engine_dir)
                 extra_cmd = ["cp inp gs.inp","perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp"]
-                local_cmd = f"{str(cmd_mpi)} -np {np:d}  {str(path_octopus)} &> {str(unocc_ofilename)}"
-                remote_cmd = f"mpirun -np {np:d}  {str(path_octopus)} &> {str(unocc_ofilename)}"
+                local_cmd = f"{str(self.mpi_path)} -np {np:d}  {str(self.engine_path)} &> {str(unocc_ofilename)}"
+                remote_cmd = f"mpirun -np {np:d}  {str(self.engine_path)} &> {str(unocc_ofilename)}"
                 job_script_var = create_default_job_script()
                 job_script_var.extend(extra_cmd)
                 if remote_path:
