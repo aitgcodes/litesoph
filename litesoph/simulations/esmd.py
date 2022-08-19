@@ -96,6 +96,10 @@ class Task:
         self.engine_name = engine_name
         self.engine = get_engine_obj(self.engine_name, project_dir = self.project_dir, lsconfig = self.lsconfig, status=self.status)
         self.prepend_project_name()
+        self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+
 
     def prepend_project_name(self):
         
@@ -113,6 +117,11 @@ class Task:
     def create_template(self):
         ...
     
+    def reset_lsconfig(self):
+        self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+
     @staticmethod
     def create_directory(directory):
         absdir = os.path.abspath(directory)

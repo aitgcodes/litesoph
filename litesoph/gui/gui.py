@@ -15,7 +15,7 @@ import shutil
 from configparser import ConfigParser, NoSectionError
 
 #---LITESOPH modules
-from litesoph.config import check_config, read_config
+from litesoph.config import config_file, config_to_dict, dict_to_config
 from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
@@ -27,7 +27,6 @@ from litesoph.gui import actions
 from litesoph.simulations.esmd import Task
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.project_status import Status
-from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 
 
 home = pathlib.Path.home()
@@ -38,10 +37,10 @@ DESINGER_DIR = pathlib.Path(__file__).parent
 
 class GUIAPP:
 
-    def __init__(self, lsconfig: ConfigParser, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.lsconfig = lsconfig
+        self.lsconfig = config_to_dict(config_file)
         self.directory = None 
 
         self.builder = pygubu.Builder()
@@ -135,7 +134,7 @@ class GUIAPP:
 
     def _refresh_config(self,*_):
         """reads and updates the lsconfig object from lsconfig.ini"""
-        self.lsconfig = read_config()
+        self.lsconfig.update(config_to_dict(config_file))
     
     def _show_frame(self, frame,*args, **kwargs):
         
@@ -271,7 +270,12 @@ class GUIAPP:
 
     def _on_visualize(self, *_):
         """ Calls an user specified visualization tool """
-        cmd = check_config(self.lsconfig,"vis") + ' ' + "coordinate.xyz"
+        path = self.lsconfig['visualization_tools'].get('vmd', None)
+        if not path:
+            path = self.lsconfig['visualization_tools'].get('vesta', None)
+        if not path:
+            path = 'vmd'
+        cmd = path + ' ' + "coordinate.xyz"
         try:
            subprocess.run(cmd.split(),capture_output=True, cwd=self.directory)
         except:
@@ -805,5 +809,5 @@ if __name__ == '__main__':
 
     from litesoph.config import read_config
     
-    app = GUIAPP(lsconfig=read_config())
+    app = GUIAPP()
     app.run()
