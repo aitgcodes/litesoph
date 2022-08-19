@@ -163,12 +163,3 @@ def dict_to_config(input_dict, configfilename):
     fp=open(configfilename,'w')
     parser.write(fp)
     fp.close()
-    # print("config file created named: ", configfilename)
-   
-    
-
-# dic=config_to_dict('lsconfig_example.ini')
-# print(dic)
-# print("\n")
-# dict_to_config(dic,'config.ini')
-
