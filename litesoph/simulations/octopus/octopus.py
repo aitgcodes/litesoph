@@ -1,5 +1,5 @@
 import os
-import pathlib
+from pathlib import Path
 import subprocess
 from litesoph.simulations.octopus.octopus_input import generate_input
 
@@ -29,9 +29,9 @@ class Octopus:
         # self.outfolder = pathlib.Path(self.outfolder).parent()
         
         if self.directory == ".":
-            self.directory = pathlib.Path.cwd()
+            self.directory = Path.cwd()
 
-        if self.directory != pathlib.Path.cwd() and not pathlib.Path(self.directory).is_dir():
+        if self.directory != Path.cwd() and not Path(self.directory).is_dir():
             os.makedirs(self.directory)
 
         with open(self.infile_path, 'w+') as f:
