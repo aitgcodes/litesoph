@@ -1684,9 +1684,9 @@ class PopulationPage(View):
         pop_dict = {
             'task': self.task_name,
             'num_occupied_mo': self.occupied_mo.get(),
-            'num_unoccpied_mo': self.unoccupied_mo.get(),
-            'bandpass_window': self.bandpass.get(),
-            'hanning_window' : self.hanning.get()
+            'num_unoccupied_mo': self.unoccupied_mo.get(),
+            # 'bandpass_window': self.bandpass.get(),
+            # 'hanning_window' : self.hanning.get()
         }
 
         return pop_dict
