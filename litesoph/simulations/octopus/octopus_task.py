@@ -222,6 +222,42 @@ class OctopusTask(Task):
 #spack load octopus
 #module load octopus"""
         return job_script
-    
-    def create_ksd_input(self, user_input:dict):
-        pass
+
+    def run_job_local(self,cmd):
+        if self.task_name in ['tcm','mo_population_correlation']:
+            return
+        cmd = cmd + ' ' + self.BASH_filename
+        self.sumbit_local.add_proper_path()
+        self.sumbit_local.run_job(cmd)
+
+    def get_ksd_popln(self):        
+        _axis = self.get_pol_list(self.status)
+        max_step = self.status.get_status('octopus.rt_tddft_delta.param.TDMaxSteps')
+        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
+        nt = int(max_step/output_freq) 
+        below_homo = self.user_input['num_occupied_mo']
+        above_lumo = self.user_input['num_unoccupied_mo']
+
+        self.octopus.read_info()
+        proj_read = self.octopus.read_projections(time_end= nt,
+                                number_of_proj_occupied= below_homo,
+                                number_of_proj_unoccupied=above_lumo,
+                                axis=_axis)
+        try:            
+            if self.task_name == 'tcm':
+                self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
+            elif self.task_name == 'mo_population_correlation':
+                population_file = self.task_dir/self.task_data.get('population_file')
+                [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
+            self.local_cmd_out = [0]
+        except Exception:
+            self.local_cmd_out = [1]
+
+    def get_pol_list(self, status):
+        e_pol = status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+        assign_pol_list ={
+            1 : [1,0,0],
+            2 : [0,1,0],
+            3 : [0,0,1]
+        }
+        return(assign_pol_list.get(e_pol))
