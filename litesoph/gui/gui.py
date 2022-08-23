@@ -356,7 +356,7 @@ class GUIAPP:
             self.main_window.event_generate('')
         elif sub_task == "Kohn Sham Decomposition":
                self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
-        elif sub_task == "Population Correlation":
+        elif sub_task == "Population Tracking":
                self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE) 
 
         w.refresh_var()
