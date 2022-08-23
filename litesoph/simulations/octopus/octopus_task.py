@@ -34,6 +34,19 @@ octopus_data = {
                 'req' : ['coordinate.xyz'],
                 'spectra_file': [f'{engine_dir}/cross_section_vector']},
 
+    "tcm": {'inp': None,
+            'req':[f'{engine_dir}/static/info',
+            f'{engine_dir}/td.general/projections'],
+            'dir': 'ksd',
+            'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
+
+    "mo_population_correlation":{'inp': None,
+            'req':[f'{engine_dir}/static/info',
+            f'{engine_dir}/td.general/projections'],
+            'dir': 'population',
+            'population_file': 'population.dat'}
+
+
     # "ksd": {'inp': f'{engine_dir}/ksd/oct.inp',
     #     'req':[f'{engine_dir}/static/info',
     #     f'{engine_dir}/td.general/projections'],
@@ -43,37 +56,52 @@ octopus_data = {
 class OctopusTask(Task):
     """ Wrapper class to perform Octopus tasks """
     NAME = 'octopus'
+    engine_tasks = ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser','spectrum']
+    added_post_processing_tasks = ['tcm', 'mo_population_correlation']
 
     def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:        
-
-        self.task_name = get_task(kwargs)
+        
+        try:
+            self.task_name = kwargs.pop('task')
+        except KeyError:
+            self.task_name = get_task(kwargs)
+        # self.task_name = get_task(kwargs)
 
         if not self.task_name in octopus_data.keys(): 
             raise Exception(f'{self.task_name} is not implemented.')
 
         self.task_data = octopus_data.get(self.task_name)
         super().__init__('octopus',status, project_dir, lsconfig)
-        self.param = kwargs        
-        self.create_engine(self.param)
+        self.user_input = kwargs     
+        self.create_engine(self.user_input)
 
     def create_engine(self, param):
         """ Creates Octopus class object """
-
         oct_dir = self.project_dir / engine_dir
-        infile = self.task_data.get('inp')
-        outfile = self.task_data.get('out_log')
-        # self.infile = Path(infile).name
-        self.infile = Path(infile).relative_to(engine_dir)
-        self.outfile = Path(outfile).relative_to(engine_dir)
 
-        indir = oct_dir / self.infile.parent
-        outdir = oct_dir /self.outfile.parent
-        for dir in [indir, outdir]:
-            if not dir.is_dir():
-                os.makedirs(dir)
+        if self.task_name in self.added_post_processing_tasks:
+            print("here")
+            self.task_dir = self.project_dir/engine_dir/self.task_data.get('dir')
+            self.create_directory(self.task_dir)
+            self.octopus = Octopus(directory=oct_dir)  
+            return      
 
         param['XYZCoordinates'] = str(self.project_dir / 'coordinate.xyz')
         param['FromScratch'] = 'yes'
+
+        if self.task_name in self.engine_tasks:
+            infile = self.task_data.get('inp')
+            outfile = self.task_data.get('out_log')
+            # self.infile = Path(infile).name
+        
+            self.infile = Path(infile).relative_to(engine_dir)
+            self.outfile = Path(outfile).relative_to(engine_dir)
+
+            indir = oct_dir / self.infile.parent
+            outdir = oct_dir /self.outfile.parent
+            for dir in [indir, outdir]:
+                if not dir.is_dir():
+                    os.makedirs(dir)
         
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
             gs_from_status = self.status.get_status('octopus.ground_state.param')
