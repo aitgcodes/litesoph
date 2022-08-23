@@ -625,7 +625,7 @@ class GUIAPP:
         
         try:
             # Remove this 'if' after generalizing plot function
-            if self.engine == 'nwchem':
+            if self.engine in ['nwchem', 'octopus']:
                 task.plot(**param)
             else:
                 task.plot()
