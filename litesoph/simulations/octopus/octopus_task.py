@@ -174,6 +174,9 @@ class OctopusTask(Task):
         return self.job_script
 
     def prepare_input(self):
+        if self.task_name in self.added_post_processing_tasks:
+            self.get_ksd_popln()
+            return
         self.create_template()
         self.write_input(self.template)
         self.create_job_script()
