@@ -526,8 +526,12 @@ class GUIAPP:
         
         inp_dict = self.tcm_view.get_parameters()
         self.tcm_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
-        self.tcm_task.create_template()
-        self.tcm_task.write_input()
+        # remove if statement to maintain generic task
+        if self.engine == 'octopus':
+            self.tcm_task.prepare_input()
+        else:
+            self.tcm_task.create_template()
+            self.tcm_task.write_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
