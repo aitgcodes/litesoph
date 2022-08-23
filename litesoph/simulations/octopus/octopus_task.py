@@ -182,14 +182,36 @@ class OctopusTask(Task):
         self.create_job_script()
         self.write_job_script(self.job_script)
 
-    def plot(self):
+    def plot(self,**kwargs):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
-        pol =  self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
-        spec_file = self.task_data['spectra_file'][int(pol-1)]
-        file = Path(self.project_dir) / spec_file
-        img = file.parent / f"spec_{pol}.png"
-        plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+        if self.task_name == 'spectrum':
+            pol =  self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+            spec_file = self.task_data['spectra_file'][int(pol-1)]
+            file = Path(self.project_dir) / spec_file
+            img = file.parent / f"spec_{pol}.png"
+            plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+            return
+
+        if self.task_name == 'tcm': 
+            from litesoph.utilities.job_submit import execute
+
+            fmin = kwargs.get('fmin')
+            fmax = kwargs.get('fmax')
+            axis_limit = kwargs.get('axis_limit')
+
+            path = Path(__file__)
+            path_python = self.lsconfig.get('programs', 'python')['python']
+            path_plotdmat = str(path.parents[2]/ 'visualization/octopus/plotdmat.py')
+
+            ksd_file = self.project_dir / self.task_data['ksd_file']
+            cmd = f'{path_python} {path_plotdmat} {ksd_file} {fmin} {fmax} {axis_limit} -i'
+        
+            result = execute(cmd, self.task_dir)
+            
+            if result[cmd]['returncode'] != 0:
+                raise Exception(f"{result[cmd]['error']}")
+                
 
     @staticmethod
     def get_engine_network_job_cmd():
