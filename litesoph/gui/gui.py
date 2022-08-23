@@ -240,6 +240,8 @@ class GUIAPP:
         top.resizable(False, False)
         top.title("Create New Job")
         top.columnconfigure(0, weight=1)
+        top.attributes("-topmost", True)
+        top.grab_set()
         Label(top, text='Enter label',bg=label_design['bg'],font=myfont(), fg=label_design['fg']).grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)
         Entry(top, textvariable=self.newFileName, width=18,font=myfont()).grid(column=1, row= 3, sticky=tk.W)
         Button(top, text="Create New Job",font=myfont(), command=self.newFileOrFolder,width=18, activebackground="#78d6ff").grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
