@@ -1542,16 +1542,21 @@ class TcmPage(ttk.Frame):
             return gpaw_ksd_dict
 
         elif engine == 'octopus':
-
             oct_ksd_dict = {
-            'ni': self.ni.get(),
-            'na': self.na.get(),
-            'fmin': self.wmin.get(),
-            'fmax': self.wmax.get(),
-            'axis_limit': self.axis_limit.get()
+            'task': 'tcm',
+            'num_occupied_mo': self.ni.get(),
+            'num_unoccupied_mo': self.na.get(),            
+            'output': ['DMAT', 'POP']
         } 
-
             return oct_ksd_dict                
+
+    def get_plot_parameters(self):
+        oct_ksd_plot_dict ={
+        'fmin': self.wmin.get(),
+        'fmax': self.wmax.get(),
+        'axis_limit': self.axis_limit.get()}
+        return oct_ksd_plot_dict
+
 
 class PopulationPage(View):
     def __init__(self, parent, engine,task_name, *args, **kwargs):
