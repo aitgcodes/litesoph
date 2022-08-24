@@ -83,6 +83,8 @@ class GUIAPP:
         self._bind_event_callbacks()
         self._show_frame(v.WorkManagerPage)
         self.main_window.after(1000, self.update_project_dir_tree)
+        
+
 
         
 
@@ -228,33 +230,32 @@ class GUIAPP:
         self.project_window = v.CreateProjectPage(self.main_window) 
 
     def create_new_job(self,*_):
-        print("new job working")  
+
+
 
         self.project_window = v.StartPage(self.main_window) 
         self.newFileName = StringVar(self.project_window, "Enter label", 'new_name')
         self.currentPath = StringVar(self.project_window, name='currentPath', value=pathlib.Path.cwd())
-
-        global top
-        top = Toplevel(self.project_window)
-        top.geometry("500x150")
-        top.resizable(False, False)
-        top.title("Create New Job")
-        top.columnconfigure(0, weight=1)
-        top.attributes("-topmost", True)
-        top.grab_set()
-        Label(top, text='Enter label',bg=label_design['bg'],font=myfont(), fg=label_design['fg']).grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)
-        Entry(top, textvariable=self.newFileName, width=18,font=myfont()).grid(column=1, row= 3, sticky=tk.W)
-        Button(top, text="Create New Job",font=myfont(), command=self.newFileOrFolder,width=18, activebackground="#78d6ff").grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
+        
+        self.top = Toplevel(self.project_window)
+        self.top.geometry("500x150")
+        self.top.resizable(False, False)
+        self.top.title("Create New Job")
+        self.top.columnconfigure(0, weight=1)
+        self.top.attributes("-topmost", True)
+        self.top.grab_set()
+        Label(self.top, text='Enter label',bg=label_design['bg'],font=myfont(), fg=label_design['fg']).grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)
+        Entry(self.top, textvariable=self.newFileName, width=18,font=myfont()).grid(column=1, row= 3, sticky=tk.W)
+        Button(self.top, text="Create New Job",font=myfont(), command=self.newFileOrFolder,width=18, activebackground="#78d6ff").grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
 
     def newFileOrFolder(self,*_):
         currentPath = StringVar(self.project_window, name='currentPath', value=pathlib.Path.cwd())
-
 
         if len(self.newFileName.get().split('.')) != 1:
             open(os.path.join(self.currentPath.get(), self.newFileName.get()), 'w').close()
         else:
             os.mkdir(os.path.join(self.currentPath.get(), self.newFileName.get()))
-        top.destroy()
+        self.top.destroy()
 
   
         
