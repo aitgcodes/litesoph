@@ -356,7 +356,7 @@ class GUIAPP:
             self.main_window.event_generate('')
         elif sub_task == "Kohn Sham Decomposition":
                self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
-        elif sub_task == "Population Correlation":
+        elif sub_task == "Population Tracking":
                self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE) 
 
         w.refresh_var()
@@ -526,8 +526,12 @@ class GUIAPP:
         
         inp_dict = self.tcm_view.get_parameters()
         self.tcm_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
-        self.tcm_task.create_template()
-        self.tcm_task.write_input()
+        # remove if statement to maintain generic task
+        if self.engine == 'octopus':
+            self.tcm_task.prepare_input()
+        else:
+            self.tcm_task.create_template()
+            self.tcm_task.write_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
@@ -621,7 +625,7 @@ class GUIAPP:
         
         try:
             # Remove this 'if' after generalizing plot function
-            if self.engine == 'nwchem':
+            if self.engine in ['nwchem', 'octopus']:
                 task.plot(**param)
             else:
                 task.plot()

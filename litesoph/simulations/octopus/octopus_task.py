@@ -34,6 +34,19 @@ octopus_data = {
                 'req' : ['coordinate.xyz'],
                 'spectra_file': [f'{engine_dir}/cross_section_vector']},
 
+    "tcm": {'inp': None,
+            'req':[f'{engine_dir}/static/info',
+            f'{engine_dir}/td.general/projections'],
+            'dir': 'ksd',
+            'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
+
+    "mo_population_correlation":{'inp': None,
+            'req':[f'{engine_dir}/static/info',
+            f'{engine_dir}/td.general/projections'],
+            'dir': 'population',
+            'population_file': 'population.dat'}
+
+
     # "ksd": {'inp': f'{engine_dir}/ksd/oct.inp',
     #     'req':[f'{engine_dir}/static/info',
     #     f'{engine_dir}/td.general/projections'],
@@ -43,37 +56,52 @@ octopus_data = {
 class OctopusTask(Task):
     """ Wrapper class to perform Octopus tasks """
     NAME = 'octopus'
+    engine_tasks = ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser','spectrum']
+    added_post_processing_tasks = ['tcm', 'mo_population_correlation']
 
     def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:        
-
-        self.task_name = get_task(kwargs)
+        
+        try:
+            self.task_name = kwargs.pop('task')
+        except KeyError:
+            self.task_name = get_task(kwargs)
+        # self.task_name = get_task(kwargs)
 
         if not self.task_name in octopus_data.keys(): 
             raise Exception(f'{self.task_name} is not implemented.')
 
         self.task_data = octopus_data.get(self.task_name)
         super().__init__('octopus',status, project_dir, lsconfig)
-        self.param = kwargs        
-        self.create_engine(self.param)
+        self.user_input = kwargs     
+        self.create_engine(self.user_input)
 
     def create_engine(self, param):
         """ Creates Octopus class object """
-
         oct_dir = self.project_dir / engine_dir
-        infile = self.task_data.get('inp')
-        outfile = self.task_data.get('out_log')
-        # self.infile = Path(infile).name
-        self.infile = Path(infile).relative_to(engine_dir)
-        self.outfile = Path(outfile).relative_to(engine_dir)
 
-        indir = oct_dir / self.infile.parent
-        outdir = oct_dir /self.outfile.parent
-        for dir in [indir, outdir]:
-            if not dir.is_dir():
-                os.makedirs(dir)
+        if self.task_name in self.added_post_processing_tasks:
+            print("here")
+            self.task_dir = self.project_dir/engine_dir/self.task_data.get('dir')
+            self.create_directory(self.task_dir)
+            self.octopus = Octopus(directory=oct_dir)  
+            return      
 
         param['XYZCoordinates'] = str(self.project_dir / 'coordinate.xyz')
         param['FromScratch'] = 'yes'
+
+        if self.task_name in self.engine_tasks:
+            infile = self.task_data.get('inp')
+            outfile = self.task_data.get('out_log')
+            # self.infile = Path(infile).name
+        
+            self.infile = Path(infile).relative_to(engine_dir)
+            self.outfile = Path(outfile).relative_to(engine_dir)
+
+            indir = oct_dir / self.infile.parent
+            outdir = oct_dir /self.outfile.parent
+            for dir in [indir, outdir]:
+                if not dir.is_dir():
+                    os.makedirs(dir)
         
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
             gs_from_status = self.status.get_status('octopus.ground_state.param')
@@ -146,19 +174,44 @@ class OctopusTask(Task):
         return self.job_script
 
     def prepare_input(self):
+        if self.task_name in self.added_post_processing_tasks:
+            self.get_ksd_popln()
+            return
         self.create_template()
         self.write_input(self.template)
         self.create_job_script()
         self.write_job_script(self.job_script)
 
-    def plot(self):
+    def plot(self,**kwargs):
         from litesoph.utilities.plot_spectrum import plot_spectrum
 
-        pol =  self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
-        spec_file = self.task_data['spectra_file'][int(pol-1)]
-        file = Path(self.project_dir) / spec_file
-        img = file.parent / f"spec_{pol}.png"
-        plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+        if self.task_name == 'spectrum':
+            pol =  self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+            spec_file = self.task_data['spectra_file'][int(pol-1)]
+            file = Path(self.project_dir) / spec_file
+            img = file.parent / f"spec_{pol}.png"
+            plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+            return
+
+        if self.task_name == 'tcm': 
+            from litesoph.utilities.job_submit import execute
+
+            fmin = kwargs.get('fmin')
+            fmax = kwargs.get('fmax')
+            axis_limit = kwargs.get('axis_limit')
+
+            path = Path(__file__)
+            path_python = self.lsconfig.get('programs', 'python')['python']
+            path_plotdmat = str(path.parents[2]/ 'visualization/octopus/plotdmat.py')
+
+            ksd_file = self.project_dir / self.task_data['ksd_file']
+            cmd = f'{path_python} {path_plotdmat} {ksd_file} {fmin} {fmax} {axis_limit} -i'
+        
+            result = execute(cmd, self.task_dir)
+            
+            if result[cmd]['returncode'] != 0:
+                raise Exception(f"{result[cmd]['error']}")
+                
 
     @staticmethod
     def get_engine_network_job_cmd():
@@ -169,6 +222,45 @@ class OctopusTask(Task):
 #spack load octopus
 #module load octopus"""
         return job_script
-    
-    def create_ksd_input(self, user_input:dict):
-        pass
+
+    def run_job_local(self,cmd):
+        if self.task_name in ['tcm','mo_population_correlation']:
+            return
+        cmd = cmd + ' ' + self.BASH_filename
+        self.sumbit_local.add_proper_path()
+        self.sumbit_local.run_job(cmd)
+
+    def get_ksd_popln(self):        
+        _axis = self.get_pol_list(self.status)
+        max_step = self.status.get_status('octopus.rt_tddft_delta.param.TDMaxSteps')
+        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
+        nt = int(max_step/output_freq) 
+        below_homo = self.user_input['num_occupied_mo']
+        above_lumo = self.user_input['num_unoccupied_mo']
+
+        [occ,homo,lumo]=self.octopus.read_info()
+        proj_read = self.octopus.read_projections(time_end= nt,
+                                number_of_proj_occupied= below_homo,
+                                number_of_proj_unoccupied=above_lumo,
+                                axis=_axis)
+        try:            
+            if self.task_name == 'tcm':
+                self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
+            elif self.task_name == 'mo_population_correlation':
+                from litesoph.post_processing.mo_population import calc_population_diff
+                population_file = self.task_dir/self.task_data.get('population_file')
+                [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
+                population_diff_file = self.task_dir/'population_diff.dat'
+                calc_population_diff(homo_index=occ,infile=population_file, outfile=population_diff_file)
+            self.local_cmd_out = [0]
+        except Exception:
+            self.local_cmd_out = [1]
+
+    def get_pol_list(self, status):
+        e_pol = status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+        assign_pol_list ={
+            1 : [1,0,0],
+            2 : [0,1,0],
+            3 : [0,0,1]
+        }
+        return(assign_pol_list.get(e_pol))

@@ -32,3 +32,30 @@ def get_energy_window(data,energy_file, below_homo, above_lumo):
     with open(energy_file, 'w+') as f:
         for item in zip(r_occ, r_unocc):
             f.write("{:.6e}  {:.6e} \n".format(item[0]-occ[-1], item[1]-occ[-1]))
+
+def calc_population_diff(homo_index:int, infile, outfile=None, **kwargs):
+    """ Calculates and writes change in population of KS states from population file"""
+    
+    data = np.loadtxt(infile)
+    time_array = data[:,0]
+    for i in range(homo_index):
+        data[:,i+1] = data[:,i+1]-2
+    np.savetxt(outfile, data)
+
+def create_states_index(num_below_homo:int,num_above_lumo:int, homo_index:int):
+    """ Creates the states to index dictionary"""
+    
+    index_dict = {}
+    index_dict[homo_index] = "HOMO"
+    index_dict[homo_index+1] = "LUMO"
+
+    for i in range(num_below_homo-1):
+        occ_index = homo_index-i-1
+        index_dict[occ_index]="HOMO-{}".format(i+1)
+
+    index = 1
+    for unocc_index in range(homo_index+2, homo_index+num_above_lumo+1):        
+        index_dict[unocc_index]= "LUMO+{}".format(index)
+        index +=1
+     
+    return index_dict

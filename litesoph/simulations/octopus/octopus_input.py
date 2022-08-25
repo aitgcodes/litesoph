@@ -29,7 +29,7 @@ block_types = {
 task_types = {
 "ground_state": ["calc","common","scf","states","xc_pseudo"],
 "unocc": ["calc","common","scf","states","xc_pseudo"],
-"rt_tddft_delta": ["calc","common","states", "td", "td_delta", "td_out"],
+"rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out"],
 "rt_tddft_laser": ["calc","common", "td", "td_laser", "td_out"],
 "spectrum": ["spectrum"]
 }

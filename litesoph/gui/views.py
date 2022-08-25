@@ -106,7 +106,7 @@ class WorkManagerPage(ttk.Frame):
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
     Pre_task = ["Ground State"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
-    Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Correlation","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
+    Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Tracking","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
     def __init__(self, parent, *args, **kwargs):
@@ -1542,16 +1542,21 @@ class TcmPage(ttk.Frame):
             return gpaw_ksd_dict
 
         elif engine == 'octopus':
-
             oct_ksd_dict = {
-            'ni': self.ni.get(),
-            'na': self.na.get(),
-            'fmin': self.wmin.get(),
-            'fmax': self.wmax.get(),
-            'axis_limit': self.axis_limit.get()
+            'task': 'tcm',
+            'num_occupied_mo': self.ni.get(),
+            'num_unoccupied_mo': self.na.get(),            
+            'output': ['DMAT', 'POP']
         } 
-
             return oct_ksd_dict                
+
+    def get_plot_parameters(self):
+        oct_ksd_plot_dict ={
+        'fmin': self.wmin.get(),
+        'fmax': self.wmax.get(),
+        'axis_limit': self.axis_limit.get()}
+        return oct_ksd_plot_dict
+
 
 class PopulationPage(View):
     def __init__(self, parent, engine,task_name, *args, **kwargs):
@@ -1562,8 +1567,11 @@ class PopulationPage(View):
         
         self.bandpass = tk.IntVar(value=100)
         self.hanning = tk.IntVar(value= 50)
-        self.occupied_mo = tk.IntVar()
-        self.unoccupied_mo = tk.IntVar()
+        self.occupied_mo = tk.IntVar(value=1)
+        self.unoccupied_mo = tk.IntVar(value=1)
+        self.plot_option = tk.IntVar(value=1)
+        self.occupied_mo_plot = tk.IntVar(value=1)
+        self.unoccupied_mo_plot = tk.IntVar(value=1)
         self.ngrid = tk.IntVar(value=100)
         self.broadening = tk.DoubleVar(value= 0.5)
 
@@ -1575,7 +1583,7 @@ class PopulationPage(View):
 
         self.Frame_button1 = self.save_button_frame 
 
-        self.Frame1_label_path = tk.Label(self.SubFrame1,text="LITESOPH Input for Population Correlation", fg='blue')
+        self.Frame1_label_path = tk.Label(self.SubFrame1,text="LITESOPH Input for Population Tracking", fg='blue')
         self.Frame1_label_path['font'] = myfont()
         self.Frame1_label_path.grid(row=0, column=0, padx=5, pady=10)
 
@@ -1595,41 +1603,62 @@ class PopulationPage(View):
         self.entry_na['font'] = myfont()
         self.entry_na.grid(row=2, column=1)
 
-        self.label_bandpass = tk.Label(self.SubFrame1,text="Bandpass",bg= label_design['bg'],fg=label_design['fg'], justify='left')
-        self.label_bandpass['font'] = myfont()
-        self.label_bandpass.grid(row=3, column=0, sticky='w', padx=5, pady=5)
+        # self.label_bandpass = tk.Label(self.SubFrame1,text="Bandpass",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        # self.label_bandpass['font'] = myfont()
+        # self.label_bandpass.grid(row=3, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_bandpass = Onlydigits(self.SubFrame1, textvariable= self.bandpass, width=5)
-        self.entry_bandpass['font'] = myfont()
-        self.entry_bandpass.grid(row=3, column=1)
+        # self.entry_bandpass = Onlydigits(self.SubFrame1, textvariable= self.bandpass, width=5)
+        # self.entry_bandpass['font'] = myfont()
+        # self.entry_bandpass.grid(row=3, column=1)
         
-        self.label_hanning = tk.Label(self.SubFrame1,text="Hanning",bg= label_design['bg'],fg=label_design['fg'], justify='left')
-        self.label_hanning['font'] = myfont()
-        self.label_hanning.grid(row=4, column=0, sticky='w', padx=5, pady=5)
+        # self.label_hanning = tk.Label(self.SubFrame1,text="Hanning",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        # self.label_hanning['font'] = myfont()
+        # self.label_hanning.grid(row=4, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_hanning = Onlydigits(self.SubFrame1, textvariable= self.hanning, width=5)
-        self.entry_hanning['font'] = myfont()
-        self.entry_hanning.grid(row=4, column=1)
+        # self.entry_hanning = Onlydigits(self.SubFrame1, textvariable= self.hanning, width=5)
+        # self.entry_hanning['font'] = myfont()
+        # self.entry_hanning.grid(row=4, column=1)
 
         self.label_plot = tk.Label(self.SubFrame2,text="Plotting Parameters", fg='blue')
         self.label_plot['font'] = myfont()
         self.label_plot.grid(row=0, column=0, padx=5, pady=10)
 
-        self.Label_grid = tk.Label(self.SubFrame2,text="Number of mesh grids",bg= label_design['bg'],fg=label_design['fg'], justify='left')
-        self.Label_grid['font'] = myfont()
-        self.Label_grid.grid(row=1, column=0, sticky='w', padx=5, pady=5)        
+        # self.Label_grid = tk.Label(self.SubFrame2,text="Number of mesh grids",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        # self.Label_grid['font'] = myfont()
+        # self.Label_grid.grid(row=1, column=0, sticky='w', padx=5, pady=5)        
         
-        self.entry_grid = Onlydigits(self.SubFrame2, textvariable= self.ngrid, width=5)
-        self.entry_grid['font'] = myfont()
-        self.entry_grid.grid(row=1, column=1, sticky='w', padx=5, pady=5)
+        # self.entry_grid = Onlydigits(self.SubFrame2, textvariable= self.ngrid, width=5)
+        # self.entry_grid['font'] = myfont()
+        # self.entry_grid.grid(row=1, column=1, sticky='w', padx=5, pady=5)
         
-        self.Label_width = tk.Label(self.SubFrame2,text="Broadening width",bg= label_design['bg'],fg=label_design['fg'], justify='left')
-        self.Label_width['font'] = myfont()
-        self.Label_width.grid(row=2, column=0, sticky='w', padx=5, pady=5)        
+        # self.Label_width = tk.Label(self.SubFrame2,text="Broadening width",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        # self.Label_width['font'] = myfont()
+        # self.Label_width.grid(row=2, column=0, sticky='w', padx=5, pady=5)        
         
-        self.entry_width = Onlydigits(self.SubFrame2, textvariable= self.broadening, width=5)
-        self.entry_width['font'] = myfont()
-        self.entry_width.grid(row=2, column=1, sticky='w', padx=5, pady=5)
+        # self.entry_width = Onlydigits(self.SubFrame2, textvariable= self.broadening, width=5)
+        # self.entry_width['font'] = myfont()
+        # self.entry_width.grid(row=2, column=1, sticky='w', padx=5, pady=5)
+
+        values = {"All States": 0, "Select the states": 1}
+        for (text, value) in values.items():
+            tk.Radiobutton(self.SubFrame2, text=text, variable=self.plot_option, font=myfont2(),
+             justify='left',value=value).grid(row=value+1, column=0, ipady=5, sticky='w')   
+
+        self.Label_ni_to_plot = tk.Label(self.SubFrame2,text="Number of occupied states(HOMO & below)",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.Label_ni_to_plot['font'] = myfont()
+        self.Label_ni_to_plot.grid(row=3, column=0, sticky='w', padx=5, pady=5)        
+        
+        self.entry_ni_to_plot = Onlydigits(self.SubFrame2, textvariable= self.occupied_mo_plot, width=5)
+        self.entry_ni_to_plot['font'] = myfont()
+        self.entry_ni_to_plot.grid(row=3, column=1)
+
+        self.Label_na_to_plot = tk.Label(self.SubFrame2,text="Number of unoccupied states(LUMO & above)",bg= label_design['bg'],fg=label_design['fg'], justify='left')
+        self.Label_na_to_plot['font'] = myfont()
+        self.Label_na_to_plot.grid(row=4, column=0, sticky='w', padx=5, pady=5)        
+        
+        self.entry_na_to_plot = Onlydigits(self.SubFrame2, textvariable= self.unoccupied_mo_plot, width=5)
+        self.entry_na_to_plot['font'] = myfont()
+        self.entry_na_to_plot.grid(row=4, column=1)
 
         self.submit_button = tk.Button(self.SubFrame1, text="Submit",activebackground="#78d6ff", command=self._on_submit)
         self.submit_button['font'] = myfont()
@@ -1637,13 +1666,14 @@ class PopulationPage(View):
 
         self.plot_button = tk.Button(self.SubFrame2, text="Plot",activebackground="#78d6ff", command=self._on_plot)
         self.plot_button['font'] = myfont()
-        self.plot_button.grid(row=2, column=2, sticky='we', padx=25)
+        self.plot_button.grid(row=4, column=2, sticky='we', padx=25)
 
         self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
 
         # add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=1)
+
     def _on_submit(self):
         self.event_generate(f"<<SubLocal{self.task_name}>>")
 
@@ -1654,18 +1684,22 @@ class PopulationPage(View):
         pop_dict = {
             'task': self.task_name,
             'num_occupied_mo': self.occupied_mo.get(),
-            'num_unoccpied_mo': self.unoccupied_mo.get(),
-            'bandpass_window': self.bandpass.get(),
-            'hanning_window' : self.hanning.get()
+            'num_unoccupied_mo': self.unoccupied_mo.get(),
+            # 'bandpass_window': self.bandpass.get(),
+            # 'hanning_window' : self.hanning.get()
         }
 
         return pop_dict
 
     def get_plot_parameters(self):
+       
         plot_param = {
-            'ngrid' : self.ngrid.get(),
-            'broadening' : self.broadening.get()
-        }
+            'num_occupied_mo_plot': self.occupied_mo_plot.get(),
+            'num_unoccupied_mo_plot': self.unoccupied_mo_plot.get(),
+            # 'ngrid' : self.ngrid.get(),
+            # 'broadening' : self.broadening.get()
+        } 
+
         return plot_param
 
 class JobSubPage(ttk.Frame):
