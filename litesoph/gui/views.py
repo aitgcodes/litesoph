@@ -802,24 +802,15 @@ class TimeDependentPage(View):
                 float(self._var['strength'].get())*float(self.pol_list[2])]
         inp_list = [float(self._var['dt'].get()),int(self._var['Nt'].get())]
 
-        td_dict_gp = {
-            'absorption_kick':kick,
-            'analysis_tools':self.get_property_list(),
-            'propagate': tuple(inp_list),
-            'pol_dir': self.read_pol_dir(),
-            'output_freq': self._var['output_freq'].get()
+        td_dict = {
+            'strength': self._var['strength'].get(),
+            'polarization' : self.get_pol_list(),
+            'time_step' : self._var['dt'].get(),
+            'number_of_steps' : self._var['Nt'].get(),
+            'output_freq': self._var['output_freq'].get(),
+            'properties' : self.get_property_list()
         }
 
-        # td_dict_oct = {
-        #     'max_step' : self._var['Nt'].get() ,
-        #     'time_step' : self._var['dt'].get(),
-        #     'td_propagator' : 'aetrs',
-        #     'strength': self._var['strength'].get(),
-        #     'e_pol': self.pol_list,
-        #     'pol_dir': self.read_pol_dir(),
-        #     'output_freq': self._var['output_freq'].get(),
-        #     'analysis_tools': self.get_property_list()
-        #   }
         td_dict_oct = {
             "CalculationMode": 'td',
             "TDMaxSteps" : self._var['Nt'].get() ,
@@ -832,7 +823,7 @@ class TimeDependentPage(View):
           }
 
         if self.engine == 'gpaw':
-            return td_dict_gp
+            return td_dict
         elif self.engine == 'nwchem':
             td_dict_nwchem = {
             'task':'rt_tddft_delta',
@@ -848,12 +839,12 @@ class TimeDependentPage(View):
             return td_dict_oct
 
     def get_property_list(self):
-        prop_list = []
+        prop_list = ['spectrum']
                
         if self._var['ksd'].get() == 1:
             prop_list.append("ksd")
         if self._var['popln'].get() == 1:
-            prop_list.append("population_correlation")    
+            prop_list.append("mo_population")    
         return prop_list   
 
     def get_td_out(self):
@@ -897,12 +888,10 @@ class TimeDependentPage(View):
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
             self.checkbox_ksd.config(state= 'active')
-            self.checkbox_pc.config(state = 'disabled')
+            self.checkbox_pc.config(state = 'active')
 
         elif engn == 'octopus':
             self.update_var(self.oct_td_default)
-            # self._var['ksd'].set(0)
-            # self.checkbox_ksd.config(state = 'disabled')
             self.checkbox_pc.config(state = 'disabled')
 
         elif engn == 'nwchem':            
@@ -1342,7 +1331,7 @@ class PlotSpectraPage(ttk.Frame):
 
     def get_parameters(self):
         td_dict_gp = {
-            'del_e':self._var['del_e'].get(),
+            'delta_e':self._var['del_e'].get(),
             'e_max':self._var['e_max'].get(),
             'e_min': self._var['e_min'].get()       
         }
@@ -1364,7 +1353,6 @@ class PlotSpectraPage(ttk.Frame):
             return td_dict_gp
         elif self.engine == 'nwchem':
             td_dict_nwchem = {
-            'task': 'spectrum',
             'del_e':self._var['del_e'].get(),
             'e_max':self._var['e_max'].get(),
             'e_min': self._var['e_min'].get()

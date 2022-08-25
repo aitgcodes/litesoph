@@ -526,12 +526,7 @@ class GUIAPP:
         
         inp_dict = self.tcm_view.get_parameters()
         self.tcm_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
-        # remove if statement to maintain generic task
-        if self.engine == 'octopus':
-            self.tcm_task.prepare_input()
-        else:
-            self.tcm_task.create_template()
-            self.tcm_task.write_input()
+        self.tcm_task.prepare_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
@@ -624,11 +619,7 @@ class GUIAPP:
             param = get_param_func()
         
         try:
-            # Remove this 'if' after generalizing plot function
-            if self.engine in ['nwchem', 'octopus']:
-                task.plot(**param)
-            else:
-                task.plot()
+            task.plot(**param)
         except Exception as e:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
@@ -680,9 +671,7 @@ class GUIAPP:
     def _on_out_local_view_button(self,task: Task, *_):
 
         # Remove this 'if' after generalizing get_engine_log to all the task class
-        if 'NwchemTask' == type(task).__name__:
-            log_txt = task.get_engine_log()
-        else:
+        if 'OctopusTask' == type(task).__name__:
             log_file = self.directory.parent / task.output_log_file
 
             try:
@@ -692,6 +681,10 @@ class GUIAPP:
                 return
 
             log_txt = read_file(log_file)
+        
+        else:
+            log_txt = task.get_engine_log()
+            
         self.view_panel.insert_text(log_txt, 'disabled')
 
 

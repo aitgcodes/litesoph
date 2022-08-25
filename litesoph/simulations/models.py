@@ -133,12 +133,12 @@ class GpawModel:
             'vacuum' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6},
             'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7},
             'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6},
-            'bands' : {'type':DT.string, 'values':['occupied', 'unoccupied'], 'default_value': 'occupied'},
+            'bands' : {'type':DT.string, 'values':['occupied', 'unoccupied', 'all'], 'default_value': 'occupied'},
             'lx' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'ly' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'lz' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'smear' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.0},    
-            'smearfn' :{'type':DT.string, 'values':["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"], 'default_value': ''},
+            'smearfn' :{'type':DT.string, 'values':["","improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt",], 'default_value': ''},
             'eigenstate': {'type': DT.decimal , 'min': None, 'max': None, 'default_value': 4e-8}
         }
 
