@@ -238,7 +238,7 @@ class OctopusTask(Task):
         below_homo = self.user_input['num_occupied_mo']
         above_lumo = self.user_input['num_unoccupied_mo']
 
-        self.octopus.read_info()
+        [occ,homo,lumo]=self.octopus.read_info()
         proj_read = self.octopus.read_projections(time_end= nt,
                                 number_of_proj_occupied= below_homo,
                                 number_of_proj_unoccupied=above_lumo,
@@ -247,8 +247,11 @@ class OctopusTask(Task):
             if self.task_name == 'tcm':
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
             elif self.task_name == 'mo_population_correlation':
+                from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
+                population_diff_file = self.task_dir/'population_diff.dat'
+                calc_population_diff(homo_index=occ,infile=population_file, outfile=population_diff_file)
             self.local_cmd_out = [0]
         except Exception:
             self.local_cmd_out = [1]
