@@ -1567,11 +1567,11 @@ class PopulationPage(View):
         
         self.bandpass = tk.IntVar(value=100)
         self.hanning = tk.IntVar(value= 50)
-        self.occupied_mo = tk.IntVar()
-        self.unoccupied_mo = tk.IntVar()
-        self.plot_option = tk.IntVar(value=0)
-        self.occupied_mo_plot = tk.IntVar()
-        self.unoccupied_mo_plot = tk.IntVar()
+        self.occupied_mo = tk.IntVar(value=1)
+        self.unoccupied_mo = tk.IntVar(value=1)
+        self.plot_option = tk.IntVar(value=1)
+        self.occupied_mo_plot = tk.IntVar(value=1)
+        self.unoccupied_mo_plot = tk.IntVar(value=1)
         self.ngrid = tk.IntVar(value=100)
         self.broadening = tk.DoubleVar(value= 0.5)
 
@@ -1692,10 +1692,14 @@ class PopulationPage(View):
         return pop_dict
 
     def get_plot_parameters(self):
+       
         plot_param = {
-            'ngrid' : self.ngrid.get(),
-            'broadening' : self.broadening.get()
-        }
+            'num_occupied_mo_plot': self.occupied_mo_plot.get(),
+            'num_unoccupied_mo_plot': self.unoccupied_mo_plot.get(),
+            # 'ngrid' : self.ngrid.get(),
+            # 'broadening' : self.broadening.get()
+        } 
+
         return plot_param
 
 class JobSubPage(ttk.Frame):
