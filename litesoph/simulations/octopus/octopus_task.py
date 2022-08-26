@@ -40,7 +40,7 @@ octopus_data = {
             'dir': 'ksd',
             'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
 
-    "mo_population_correlation":{'inp': None,
+    "mo_population":{'inp': None,
             'req':[f'{engine_dir}/static/info',
             f'{engine_dir}/td.general/projections'],
             'dir': 'population',
@@ -57,7 +57,7 @@ class OctopusTask(Task):
     """ Wrapper class to perform Octopus tasks """
     NAME = 'octopus'
     engine_tasks = ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser','spectrum']
-    added_post_processing_tasks = ['tcm', 'mo_population_correlation']
+    added_post_processing_tasks = ['tcm', 'mo_population']
 
     def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:        
         
@@ -80,7 +80,6 @@ class OctopusTask(Task):
         oct_dir = self.project_dir / engine_dir
 
         if self.task_name in self.added_post_processing_tasks:
-            print("here")
             self.task_dir = self.project_dir/engine_dir/self.task_data.get('dir')
             self.create_directory(self.task_dir)
             self.octopus = Octopus(directory=oct_dir)  
@@ -97,6 +96,7 @@ class OctopusTask(Task):
             self.infile = Path(infile).relative_to(engine_dir)
             self.outfile = Path(outfile).relative_to(engine_dir)
 
+            ## update this creating of directory
             indir = oct_dir / self.infile.parent
             outdir = oct_dir /self.outfile.parent
             for dir in [indir, outdir]:
@@ -183,7 +183,7 @@ class OctopusTask(Task):
         self.write_job_script(self.job_script)
 
     def plot(self,**kwargs):
-        from litesoph.utilities.plot_spectrum import plot_spectrum
+        from litesoph.utilities.plot_spectrum import plot_spectrum,plot_multiple_column
 
         if self.task_name == 'spectrum':
             pol =  self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
@@ -211,7 +211,24 @@ class OctopusTask(Task):
             
             if result[cmd]['returncode'] != 0:
                 raise Exception(f"{result[cmd]['error']}")
-                
+            return
+
+        if self.task_name == 'mo_population':
+            # first check if the file exists already 
+            import numpy as np
+            from litesoph.post_processing.mo_population import create_states_index
+            below_homo = kwargs.get('num_occupied_mo_plot',1)
+            above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
+            population_diff_file = self.task_dir/'population_diff.dat'
+            self.occ = self.octopus.read_info()[0]
+            
+            # time_unit = kwargs.get('time_unit')            
+            column_range = (self.occ-below_homo+1, self.occ+above_lumo)
+            legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=self.occ)
+            
+            population_data = np.loadtxt(population_diff_file)            
+            plot_multiple_column(population_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (in h_cut/eV)')
+            return        
 
     @staticmethod
     def get_engine_network_job_cmd():
@@ -224,7 +241,7 @@ class OctopusTask(Task):
         return job_script
 
     def run_job_local(self,cmd):
-        if self.task_name in ['tcm','mo_population_correlation']:
+        if self.task_name in ['tcm','mo_population']:
             return
         cmd = cmd + ' ' + self.BASH_filename
         self.sumbit_local.add_proper_path()
@@ -246,7 +263,7 @@ class OctopusTask(Task):
         try:            
             if self.task_name == 'tcm':
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
-            elif self.task_name == 'mo_population_correlation':
+            elif self.task_name == 'mo_population':
                 from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)

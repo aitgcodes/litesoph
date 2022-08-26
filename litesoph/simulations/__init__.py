@@ -39,7 +39,7 @@ def get_engine_task(engine: str, task: str, status, directory, lsconfig, user_in
 
     if engine == 'nwchem':
         return NwchemTask(directory, lsconfig, status, **user_input)
-    elif engine == 'octopus' and task in ['ground_state','rt_tddft_delta','rt_tddft_laser','spectrum','tcm','mo_population_correlation']:
+    elif engine == 'octopus' and task in ['ground_state','rt_tddft_delta','rt_tddft_laser','spectrum','tcm','mo_population']:
         return OctopusTask(directory, lsconfig, status, **user_input)
 
     try:
