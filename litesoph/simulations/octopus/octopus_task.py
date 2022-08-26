@@ -40,7 +40,7 @@ octopus_data = {
             'dir': 'ksd',
             'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
 
-    "mo_population_correlation":{'inp': None,
+    "mo_population":{'inp': None,
             'req':[f'{engine_dir}/static/info',
             f'{engine_dir}/td.general/projections'],
             'dir': 'population',
@@ -57,7 +57,7 @@ class OctopusTask(Task):
     """ Wrapper class to perform Octopus tasks """
     NAME = 'octopus'
     engine_tasks = ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser','spectrum']
-    added_post_processing_tasks = ['tcm', 'mo_population_correlation']
+    added_post_processing_tasks = ['tcm', 'mo_population']
 
     def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:        
         
@@ -213,7 +213,7 @@ class OctopusTask(Task):
                 raise Exception(f"{result[cmd]['error']}")
             return
 
-        if self.task_name == 'mo_population_correlation':
+        if self.task_name == 'mo_population':
             # first check if the file exists already 
             import numpy as np
             from litesoph.post_processing.mo_population import create_states_index
@@ -241,7 +241,7 @@ class OctopusTask(Task):
         return job_script
 
     def run_job_local(self,cmd):
-        if self.task_name in ['tcm','mo_population_correlation']:
+        if self.task_name in ['tcm','mo_population']:
             return
         cmd = cmd + ' ' + self.BASH_filename
         self.sumbit_local.add_proper_path()
@@ -263,7 +263,7 @@ class OctopusTask(Task):
         try:            
             if self.task_name == 'tcm':
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
-            elif self.task_name == 'mo_population_correlation':
+            elif self.task_name == 'mo_population':
                 from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
