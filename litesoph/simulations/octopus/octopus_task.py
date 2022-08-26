@@ -80,7 +80,6 @@ class OctopusTask(Task):
         oct_dir = self.project_dir / engine_dir
 
         if self.task_name in self.added_post_processing_tasks:
-            print("here")
             self.task_dir = self.project_dir/engine_dir/self.task_data.get('dir')
             self.create_directory(self.task_dir)
             self.octopus = Octopus(directory=oct_dir)  
@@ -227,7 +226,7 @@ class OctopusTask(Task):
             legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=self.occ)
             
             population_data = np.loadtxt(population_diff_file)            
-            plot_multiple_column(population_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (in atomic unit)')
+            plot_multiple_column(population_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (in h_cut/eV)')
             return
 
     @staticmethod
