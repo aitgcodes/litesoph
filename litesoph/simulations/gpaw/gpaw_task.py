@@ -1,8 +1,11 @@
-from litesoph.simulations.esmd import Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
+from litesoph.post_processing.mo_population import calc_population_diff, create_states_index, get_occ_unocc
+from litesoph.simulations.esmd import InputError, Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from .gpaw_input import gpaw_create_input
-from litesoph.utilities.plot_spectrum import plot_spectrum
+from litesoph.utilities.plot_spectrum import plot_multiple_column, plot_spectrum
 from litesoph.lsio.IO import write2file
 from pathlib import Path
+import numpy as np
+from litesoph.utilities.units import autime_to_eV, au_to_fs
 
 gpaw_data = {
 'ground_state' : {'inp':'gpaw/GS/gs.py',
@@ -21,12 +24,12 @@ gpaw_data = {
         'restart': 'gpaw/TD_Delta/td.gpw',
         'check_list':['Writing','Total:']},
 
-'rt_tddft_laser': {'inp':'gpaw/TD_Laser/tdlaser.py',
+'rt_tddft_laser': {'inp':'gpaw/TD_Laser/td.py',
         'req' : ['gpaw/GS/gs.gpw'],
         'dir' : 'TD_Laser',
         'file_name' : 'td',
-        'out_log': 'gpaw/TD_Laser/tdlaser.out',
-        'restart': 'gpaw/TD_Laser/tdlaser.gpw',
+        'out_log': 'gpaw/TD_Laser/td.out',
+        'restart': 'gpaw/TD_Laser/td.gpw',
         'check_list':['Writing','Total:']},
 
 'spectrum' : {'inp':'gpaw/Spectrum/spec.py',
@@ -84,7 +87,7 @@ class GpawTask(Task):
 
         if 'ground_state' in self.task_name:
             param['geometry'] = str(self.project_dir / 'coordinate.xyz')
-          
+            return
         
         if 'rt_tddft' in self.task_name:
             param['gfilename'] = str(self.project_dir /  gpaw_data['ground_state'].get('restart'))
@@ -92,6 +95,7 @@ class GpawTask(Task):
             if 'ksd' in param or 'mo_population' in param:
                 param['wfile'] = 'wf.ulm'
             update_td_input(param)
+            return
 
         if 'spectrum' == self.task_name:
             param['dm_file'] = str(self.project_dir / self.task_data.get('req')[0])
@@ -99,15 +103,23 @@ class GpawTask(Task):
             param['spectrum_file'] = spec_file = f'spec_{self.pol[1]}.dat'
             update_spectrum_input(param)
             self.spec_file = self.task_dir / spec_file
+            return
 
         if 'tcm' == self.task_name:
             param['gfilename'] = str(self.project_dir /  self.task_data.get('req')[0])
             param['wfile'] = str(self.project_dir / self.task_data.get('req')[1])
+            return
 
         if 'mo_population' ==self.task_name:
-            param['gfilename'] = str(self.project_dir /  self.task_data.get('req')[0])
+            gs_log = str(self.project_dir / gpaw_data['ground_state'].get('out_log'))
+            gs_file = str(self.project_dir /  self.task_data.get('req')[0])
+            param['gfilename'] = gs_file
             param['wfile'] = str(self.project_dir / self.task_data.get('req')[1])
-            param['mopop_file'] = 'mo_population.dat'
+            param['mopop_file'] = mo_pop_file ='mo_population.dat'
+            self.mo_populationfile = self.task_dir / mo_pop_file
+            data = get_eigen_energy(gs_log)
+            self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
+            return
 
     def write_input(self, template=None):
         if not template:
@@ -152,26 +164,22 @@ class GpawTask(Task):
         self.write_job_script()
 
     def get_engine_log(self):
-
+        self.engine_log = self.project_dir / self.task_data.get('out_log')
         if self.check_output():
-            with open(self.task_dir / self.engine_log, 'r') as f:
-                text = f.read()      
-            return text
+            return self.read_log(self.engine_log)
 
-    def check_output(self):
-        try:
-            exist_status, stdout, stderr = self.local_cmd_out
-        except AttributeError:
-            TaskFailed("Job not completed.")
-            return
-        else:
-            return True
 
     def run_job_local(self, cmd):
         self.write_job_script(self.job_script)
-        super().run_job_local(cmd)
-        if self.check_output():
-            self.read_results()
+        try:
+            super().run_job_local(cmd)
+        except Exception:
+            raise
+        else:
+            if self.task_name == 'mo_population':
+                self.mo_population_diff_file = self.task_dir / 'mo_population_diff.dat'
+                calc_population_diff(homo_index=len(self.occupied_mo), infile=self.mo_populationfile,
+                                        outfile=self.mo_population_diff_file)
     
     def plot(self, **kwargs):
         
@@ -182,10 +190,24 @@ class GpawTask(Task):
         if self.task_name == 'tcm':
             from PIL import Image        
             for item in self.user_input.get('frequency_list'):
-                img_file = Path(self.project_dir) / 'gpaw' / 'TCM' / f'tcm_{item:.2f}.png'
-                
+                img_file = self.task_dir / f'tcm_{item:.2f}.png'
                 image = Image.open(img_file)
                 image.show()
+
+        elif self.task_name == 'mo_population':
+            occ = self.occupied_mo
+            unocc = self.unoccupied_mo
+            below_homo = kwargs.get('num_occupied_mo_plot',1)
+            above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
+            if (len(occ) < below_homo) or (len(unocc) < above_lumo):
+                raise InputError(f'The selected MO is out of range. Number of MO: below HOMO = {len(occ)}, above_LUMO = {len(unocc)}')
+            homo_index = len(occ)
+            column_range = (homo_index-below_homo+1, homo_index+above_lumo)
+            legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=homo_index)
+            
+            pop_data = np.loadtxt(self.mo_population_diff_file)
+            
+            plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (as)')
     
     @staticmethod
     def get_engine_network_job_cmd():
@@ -205,8 +227,14 @@ def get_polarization_direction(status):
     return (pol, pol_map[str(pol)])
 
 def update_td_input(param):
-
-    param['absorption_kick'] = [ p * param['strength'] for p in param['polarization']]
+    if 'laser' in param:
+        sigma = param['laser'].get('sigma')
+        time0 = param['laser'].get('time0')
+        param['laser']['sigma'] = round(autime_to_eV/sigma, 2)
+        param['laser']['time0'] = round(time0 * au_to_fs, 2)
+    else:
+        param['absorption_kick'] = [ p * param['strength'] for p in param['polarization']]
+    
     param['propagate'] = (param['time_step'], param['number_of_steps'])
     param['analysis_tools'] = tools = []
 
@@ -225,3 +253,25 @@ def update_spectrum_input(param):
     
     if 'width' not in param:
         param['width'] = 0.2123
+
+def get_eigen_energy(td_out_file):
+
+
+        labels = ['Band','Eigenvalues', 'Occupancy']
+        with open(td_out_file, 'r') as f:
+            lines = f.readlines()
+
+        data = []
+        check = False
+        for line in lines:
+
+            if all([tag in line for tag in labels]):
+                check = True
+                continue
+
+            if check:
+                vals = line.strip().split()
+                if not vals:
+                    break
+                data.append([float(val) for val in vals])
+        return data
