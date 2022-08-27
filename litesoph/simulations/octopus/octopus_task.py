@@ -1,5 +1,5 @@
 import copy
-import os
+import shutil
 from pathlib import Path
 from litesoph.simulations.esmd import Task
 from litesoph.simulations.octopus.octopus import Octopus
@@ -9,6 +9,7 @@ from litesoph import config
 engine_dir = 'octopus'
 
 engine_log_dir = f'{engine_dir}/log'
+engine_inp_dir = f'{engine_dir}/inputs'
 
 general_input_file = f'{engine_dir}/inp'
 
@@ -16,20 +17,24 @@ octopus_data = {
     "unoccupied_task": {'out_log':f'{engine_log_dir}/unocc.log'},
 
     "ground_state": {'inp':general_input_file,
+                    'task_inp': 'gs.inp',
                     'out_log': f'{engine_log_dir}/gs.log',
                     'req' : ['coordinate.xyz'],
                     'check_list':['SCF converged']},
 
     "rt_tddft_delta": {'inp':general_input_file,
+                    'task_inp': 'td_delta.inp',
                     'out_log': f'{engine_log_dir}/delta.log',
                     'req' : ['coordinate.xyz'],
                     'check_list':['Finished writing information', 'Calculation ended']},   
 
     "rt_tddft_laser": {'inp':general_input_file,
+                    'task_inp': 'td_laser.inp',
                     'out_log': f'{engine_log_dir}/laser.log',
                     'req' : ['coordinate.xyz']},
 
     "spectrum": {'inp':general_input_file,
+                'task_inp': 'spec.inp',
                 'out_log': f'{engine_log_dir}/spec.log',
                 'req' : ['coordinate.xyz'],
                 'spectra_file': [f'{engine_dir}/cross_section_vector']},
@@ -93,15 +98,15 @@ class OctopusTask(Task):
             outfile = self.task_data.get('out_log')
             # self.infile = Path(infile).name
         
-            self.infile = Path(infile).relative_to(engine_dir)
+            # self.infile = Path(infile).relative_to(engine_dir)
+            self.infile = 'inp'
             self.outfile = Path(outfile).relative_to(engine_dir)
 
-            ## update this creating of directory
-            indir = oct_dir / self.infile.parent
+            # indir = oct_dir / self.infile.parent
+            indir = oct_dir / 'inputs'
             outdir = oct_dir /self.outfile.parent
             for dir in [indir, outdir]:
-                if not dir.is_dir():
-                    os.makedirs(dir)
+                self.create_directory(dir)
         
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
             gs_from_status = self.status.get_status('octopus.ground_state.param')
@@ -119,6 +124,9 @@ class OctopusTask(Task):
 
     def write_input(self, template=None):
         self.octopus.write_input(template)
+        copy_infile = self.project_dir / engine_inp_dir /self.task_data.get('task_inp')
+        inp_file = self.project_dir / engine_dir / self.infile
+        shutil.copy(inp_file, copy_infile)
 
     def create_template(self):
         self.template = self.octopus.create_input()
@@ -179,6 +187,9 @@ class OctopusTask(Task):
             return
         self.create_template()
         self.write_input(self.template)
+        copy_infile = self.project_dir / engine_inp_dir /self.task_data.get('task_inp')
+        inp_file = self.project_dir / engine_dir / self.infile
+        shutil.copy(inp_file, copy_infile)
         self.create_job_script()
         self.write_job_script(self.job_script)
 
