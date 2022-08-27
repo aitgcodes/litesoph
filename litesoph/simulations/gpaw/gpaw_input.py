@@ -111,7 +111,7 @@ from gpaw.lcaotddft import LCAOTDDFT
 from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 from gpaw.lcaotddft.laser import GaussianPulse
 pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
-ext = ConstantElectricField(Hartree / Bohr,{electric_pol} )
+ext = ConstantElectricField(Hartree / Bohr,{polarization} )
 td_potential = {{'ext': ext, 'laser': pulse}}
 td_calc = LCAOTDDFT(filename='{gfilename}',
                     td_potential=td_potential,

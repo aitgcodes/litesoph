@@ -1,14 +1,16 @@
 import pathlib
 from pathlib import Path
-
+from litesoph.utilities.units import as_to_au
 from litesoph import config
-from litesoph.post_processing.mo_population import get_energy_window, get_occ_unocc
+from litesoph.post_processing.mo_population import calc_population_diff, get_energy_window, get_occ_unocc
 from litesoph.simulations.esmd import InputError, Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.simulations.nwchem.nwchem import NWChem
 from litesoph.simulations.nwchem.spectrum import photoabsorption_spectrum
 from litesoph.post_processing.mo_population_correlation.moocc_correlation_plot import plot_mo_population_correlations
 from litesoph.post_processing import mo_population_correlation
-from litesoph.utilities.plot_spectrum import plot_spectrum
+from litesoph.utilities.plot_spectrum import plot_multiple_column, plot_spectrum
+import numpy as np
+from litesoph.post_processing.mo_population import create_states_index
 
 xc = {
             'B3LYP'     :'xc b3lyp',
@@ -65,7 +67,7 @@ nwchem_data = {
         'spec_dir_path' : 'nwchem/Spectrum',
         'check_list':['Converged', 'Fermi level:','Total:']},
 
-'mo_population_correlation':{'inp':'nwchem/TD_Delta/td.nwi',
+'mo_population':{'inp':'nwchem/TD_Delta/td.nwi',
                             'out_log' : 'nwchem/TD_Delta/td.nwo',
                              'req' : ['nwchem/TD_Delta/td.nwo'],
                             'dir': 'mo_population'},
@@ -77,7 +79,7 @@ class NwchemTask(Task):
 
     NAME = 'nwchem'
     simulation_tasks =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
-    post_processing_tasks = ['spectrum', 'mo_population_correlation']
+    post_processing_tasks = ['spectrum', 'mo_population']
     implemented_task = simulation_tasks + post_processing_tasks
 
     def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:
@@ -122,7 +124,8 @@ class NwchemTask(Task):
         if 'rt_tddft' in self.task_name:
             param['restart_kw'] = 'restart'
             param['basis'] = self.status.get_status('nwchem.ground_state.param').get('basis')
-        
+            update_td_param(param)
+
         file_name = self.task_data.get('file_name')
         self.infile = file_name + infile_ext
         self.outfile = file_name + outfile_ext
@@ -150,7 +153,7 @@ class NwchemTask(Task):
         if remote:
             path_python = 'python3'
         else:
-            path_python = self.lsconfig.get('programs', 'python')
+            path_python = self.python_path
 
         nw_rtparse = str(path.parent /'nwchem_read_rt.py')
         spectrum_file = str(path.parent / 'spectrum.py')
@@ -177,9 +180,8 @@ class NwchemTask(Task):
         #    photoabsorption_spectrum(self.dipole_file, self.spectra_file,)
 
     def extract_mo_population(self):
-        
         self.below_homo = below_homo = self.user_input['num_occupied_mo']
-        self.above_lumo = above_lumo = self.user_input['num_unoccpied_mo']
+        self.above_lumo = above_lumo = self.user_input['num_unoccupied_mo']
 
         self.create_directory(self.task_dir)
         td_out = self.outfile
@@ -192,7 +194,10 @@ class NwchemTask(Task):
         self.mo_population_file = self.task_dir / 'mo_population.dat'
         self.nwchem.get_td_moocc(str(self.mo_population_file), td_out, homo_index=len(occ),
                                      below_homo=below_homo, above_lumo=above_lumo)
-        get_energy_window(eigen_data, self.energy_file, below_homo, above_lumo)
+        self.mo_population_diff_file = self.task_dir/ 'mo_pop_diff.dat'
+        calc_population_diff(homo_index=self.below_homo, infile=self.mo_population_file,
+                                outfile=self.mo_population_diff_file)
+        #get_energy_window(eigen_data, self.energy_file, below_homo, above_lumo)
     
     def _create_mo_pop_correlation_cmd(self):
         
@@ -236,14 +241,12 @@ class NwchemTask(Task):
             self.compute_spectrum()
             job_script = assemable_job_cmd(cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))
 
-        if self.task_name == 'mo_population_correlation':
-            self.extract_mo_population()
-            job_script = assemable_job_cmd(cd_path=str(self.task_dir), extra_block= self._create_mo_pop_correlation_cmd())
-        
         self.job_script = job_script
         return self.job_script
     
     def prepare_input(self):
+        if self.task_name == 'mo_population':
+            return
 
         if self.task_name in self.simulation_tasks:
             self.create_template()
@@ -254,23 +257,21 @@ class NwchemTask(Task):
             
 
     def run_job_local(self, cmd):
+        if self.task_name == 'mo_population':
+            try:
+                self.extract_mo_population()
+            except Exception as e:
+                self.local_cmd_out = (1, ' ', e)
+            else:
+                self.local_cmd_out = (0, 'done', ' ')
+            return
         super().run_job_local(cmd)
 
     def get_engine_log(self):
+        out_log = self.task_dir / self.outfile
+        if self.check_output():
+            return self.read_log(out_log)
 
-        if self.read_output():
-            with open(self.task_dir / self.outfile, 'r') as f:
-                text = f.read()      
-            return text
-
-    def read_output(self):
-        try:
-            exist_status, stdout, stderr = self.local_cmd_out
-        except AttributeError:
-            TaskFailed("Job not completed.")
-            return
-        else:
-            return True
 
     def plot(self,**kwargs):
 
@@ -278,10 +279,18 @@ class NwchemTask(Task):
             img = self.spectra_file.parent / f"spec_{self.pol}.png"
             plot_spectrum(self.spectra_file,img,0, 1, "Energy(eV)","Strength",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
 
-        elif self.task_name == 'mo_population_correlation':
-            pop_corr_file = self.task_dir / 'amp_file.dat'
-            plot_mo_population_correlations(pop_corr_file,self.below_homo, self.above_lumo,
-                                            divisions=kwargs['ngrid'], sigma=kwargs['broadening'])
+        elif self.task_name == 'mo_population':
+        
+            below_homo = kwargs.get('num_occupied_mo_plot',1)
+            above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
+            homo_index = self.below_homo
+            # time_unit = kwargs.get('time_unit')            
+            column_range = (homo_index-below_homo+1, homo_index+above_lumo)
+            legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=homo_index)
+            
+            pop_data = np.loadtxt(self.mo_population_diff_file)
+            
+            plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (au)')
     
     @staticmethod
     def get_engine_network_job_cmd():
@@ -294,6 +303,50 @@ class NwchemTask(Task):
 
 #module load nwchem"""
         return job_script
+
+
+def update_td_param(param):
+    strength = param.pop('strength')
+    pol = param.pop('polarization')
+    time_step = param.pop('time_step')
+    num_step = param.pop('number_of_steps')
+    out_freq = param.pop('output_freq')
+    properties = param.pop('properties')
+    laser = param.pop('laser', None)
+    param['rt_tddft'] = {'tmax': round(num_step * time_step * as_to_au,2),
+                        'dt': round(time_step * as_to_au, 2),
+                        'print':out_print(properties)}
+
+    if laser:     
+        param['rt_tddft']['field'] = {'name': 'gpulse_'  + read_pol_dir(pol)[1],
+                                'type': 'gaussian',
+                                'frequency' : laser['frequency'],
+                                'center': laser['time0'],
+                                'width': laser['sigma'],
+                                'polarization':read_pol_dir(pol)[1],
+                                'max':laser['strength']}
+
+    else:
+        param['rt_tddft']['field'] = {'name': 'kick_' + read_pol_dir(pol)[1],
+                                        'type': 'delta',
+                                        'polarization':read_pol_dir(pol)[1],
+                                        'max': strength}
+
+def out_print(property):
+        p = [] 
+        if 'spectrum' in property:
+            p.append('dipole')
+        if 'mo_population'in property:
+            p.append('moocc')
+        return p
+
+def read_pol_dir(pol):        
+        if pol == [1,0,0]:
+            return (0,'x')
+        elif pol == [0,1,0]:
+            return (1,'y') 
+        elif pol == [0,0,1]:
+            return (2,'z')
 
 
 def get_pol_and_tag(status):

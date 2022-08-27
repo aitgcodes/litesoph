@@ -11,7 +11,7 @@ RT_TDDFT_DELTA = 'rt_tddft_delta'
 RT_TDDFT_LASER = 'rt_tddft_laser'
 SPECTRUM = 'spectrum'
 TCM = 'tcm'
-MO_POPULATION_CORRELATION = 'mo_population_correlation'
+MO_POPULATION_CORRELATION = 'mo_population'
 
 def get_engine_obj(engine, *args, **kwargs)-> EngineStrategy:
     """ It takes engine name and returns coresponding EngineStrategy class"""
@@ -79,13 +79,12 @@ class Task:
     remote_job_script_last_line = "touch Done"
 
 
-    def __init__(self, engine_name, status, project_dir:pathlib.Path, lsconfig:ConfigParser) -> None:
+    def __init__(self, engine_name, status, project_dir, lsconfig) -> None:
         
         self.status = status
         self.lsconfig = lsconfig
        
         self.project_dir = project_dir
-        self.task_dir = None
         self.task = None
         self.filename = None
         self.template = None
@@ -94,33 +93,18 @@ class Task:
         self.task_state = None
 
         self.engine_name = engine_name
-        self.engine = get_engine_obj(self.engine_name, project_dir = self.project_dir, lsconfig = self.lsconfig, status=self.status)
-        self.prepend_project_name()
         self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
         mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
         self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
-
-
-    def prepend_project_name(self):
-        
-        # Remove this method, and use add_proper_path method for inserting proper path into file.
-
-        self.filename = pathlib.Path(f"{self.project_dir.name}/{self.task_data['inp']}")
-        for item in self.task_data['req']:
-            item = pathlib.Path(self.project_dir.name) / item
-            self.input_data_files.append(item)
-        try:
-            self.output_log_file =   pathlib.Path(f"{self.project_dir.name}/{self.task_data['out_log']}")
-        except KeyError:
-            pass
+        self.python_path = self.lsconfig['programs'].get('python', 'python')
         
     def create_template(self):
         ...
     
-    def reset_lsconfig(self):
-        self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
-        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
-        self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+    def reset_lsconfig(self, lsconfig):
+        self.engine_path = lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
 
     @staticmethod
     def create_directory(directory):
@@ -129,19 +113,11 @@ class Task:
             os.makedirs(directory)
 
     def write_input(self, template=None):
-        
-        if template:
-            self.template = template
-        if not self.task_dir:
-            self.create_task_dir()
-        if not self.template:
-            msg = 'Template not given or created'
-            raise Exception(msg)
-        self.engine.create_script(self.task_dir, self.template, self.filename.name)
+        ...        
 
     def check_prerequisite(self, network=False) -> bool:
         """ checks if the input files and required data files for the present task are present"""
-        
+        return
         inupt_file = self.project_dir.parent / self.filename
         
         if not pathlib.Path(inupt_file).exists():
@@ -151,7 +127,7 @@ class Task:
 
         if network:
             if not  self.bash_file.exists():
-                msg = f"job_script:{ self.bash_file} not found."
+                msg = f"job_script:{self.bash_file} not found."
                 raise FileNotFoundError(msg)
             #self.bash_filename =  self.bash_file.relative_to(self.project_dir.parent)
             return
@@ -178,9 +154,6 @@ class Task:
         with open(self.bash_file, 'w+') as f:
             f.write(self.job_script)
 
-    def create_task_dir(self):
-        self.task_dir = self.engine.create_dir(self.project_dir, type(self).__name__)
-
     def add_proper_path(self, path):
         """this adds in the proper path to the data file required for the job"""
         
@@ -194,11 +167,23 @@ class Task:
 
     def run_job_local(self,cmd):
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.add_proper_path()
         self.sumbit_local.run_job(cmd)
 
     def connect_to_network(self, *args, **kwargs):
         self.submit_network = SubmitNetwork(self, *args, **kwargs)
+    
+    def read_log(self, file):
+        with open(file , 'r') as f:
+            text = f.read()      
+        return text
+        
+    def check_output(self):
+        try:
+            exist_status, stdout, stderr = self.local_cmd_out
+        except AttributeError:
+            raise TaskFailed("Job not completed.")
+        else:
+            return True
 
 def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
                         mpi_path: str = None,

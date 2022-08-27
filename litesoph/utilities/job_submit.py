@@ -10,13 +10,6 @@ from scp import SCPClient
 import pexpect
 
 
-def get_submit_class(network=None, **kwargs):
-    
-    if network:
-        return SubmitNetwork(**kwargs)
-    else:
-        return SubmitLocal(**kwargs)
-
 def execute(command, directory):
     
     result = {}
@@ -30,8 +23,8 @@ def execute(command, directory):
         try:
             job = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
             output = job.communicate()
-        except Exception as e:
-            raise Exception(e)
+        except Exception:
+            raise 
         else:
             print("returncode =", job.returncode)
     
@@ -54,32 +47,13 @@ class SubmitLocal:
 
     def __init__(self, task, nprocessors:int) -> None:
         self.task = task
-        self.engine = self.task.engine
         self.project_dir = self.task.project_dir
         self.np = nprocessors
         self.command = None                   
 
-    def add_proper_path(self):
-        # Remove this method.
-        """this adds in the proper path to the data file required for the job"""
-        filename = self.project_dir.parent / self.task.filename
-
-        with open(filename , 'r+') as f:
-            text = f.read()
-            for item in self.task.input_data_files:
-                data_path = self.project_dir.parent / item                
-                if not re.search(str(data_path), text):
-                    text = re.sub(str(item), str(data_path), text)
-                
-            f.seek(0)
-            f.write(text)
-            f.truncate() 
-        print('done preparing')
-
     def run_job(self, cmd):    
         result = execute(cmd, self.project_dir)
         self.task.local_cmd_out = (result[cmd]['returncode'], result[cmd]['output'], result[cmd]['error'])
-        #print(result)
 
 class SubmitNetwork:
 
@@ -102,31 +76,10 @@ class SubmitNetwork:
         self.network_sub = NetworkJobSubmission(hostname, self.port)
         self.network_sub.ssh_connect(username, password)
         if self.network_sub.check_file(self.remote_path):
-            self.add_proper_path(self.remote_path)
+            self.task.add_proper_path(self.remote_path)
             self.upload_files()
         else:
             raise FileNotFoundError(f"Remote path: {self.remote_path} not found.")
-
-    def add_proper_path(self, path):
-        """this adds in the proper path to the data file required for the job"""
-        
-        #Remove if statement, by using add_proper_path method in all engine 
-        if "NwchemTask" == type(self.task).__name__:
-            self.task.add_proper_path(self.remote_path)
-            return
-
-        filename = self.task.project_dir.parent / self.task.filename
-        path = pathlib.Path(path)
-
-        with open(filename , 'r+') as f:
-            text = f.read()
-            for item in self.task.input_data_files:
-                data_path = path / item
-                if not re.search(str(data_path), text):
-                    text = re.sub(str(item), str(data_path), text)
-            f.seek(0)
-            f.write(text)
-            f.truncate() 
 
     def upload_files(self):
         """uploads entire project directory to remote path"""
