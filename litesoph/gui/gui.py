@@ -657,6 +657,7 @@ class GUIAPP:
             messagebox.showerror(title='yes',message=e)
             return
         except Exception as e:
+            raise
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             return
         else:
@@ -722,7 +723,8 @@ class GUIAPP:
             return
         try:
             task.submit_network.run_job(cmd)
-        except Exception as e:
+        except Exception:
+            raise
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.set_run_button_state('active')
             return
