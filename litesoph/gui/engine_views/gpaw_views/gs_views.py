@@ -242,7 +242,6 @@ class GpawGSPage(EngineViews):
             'maxiter' : self._var['maxiter'].get(),
             'box': self._var['shape'].get(),
             'smearing_func':self._var['smearfn'].get(),
-            'properties': 'get_potential_energy()',
             'engine':'gpaw'
                     } 
 
@@ -254,5 +253,6 @@ class GpawGSPage(EngineViews):
 
         if self._var['nbands'].get() == '':
             inp_dict_gp['nbands']= None
+        
 
         return inp_dict_gp

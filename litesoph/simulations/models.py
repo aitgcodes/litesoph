@@ -133,12 +133,12 @@ class GpawModel:
             'vacuum' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6},
             'energy' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 5.0e-7},
             'density' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 1e-6},
-            'bands' : {'type':DT.string, 'values':['occupied', 'unoccupied'], 'default_value': 'occupied'},
+            'bands' : {'type':DT.string, 'values':['occupied', 'unoccupied', 'all'], 'default_value': 'occupied'},
             'lx' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'ly' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'lz' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},
             'smear' :{'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.0},    
-            'smearfn' :{'type':DT.string, 'values':["improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt"], 'default_value': ''},
+            'smearfn' :{'type':DT.string, 'values':["","improved-tetrahedron-method","tetrahedron-method","fermi-dirac","marzari-vanderbilt",], 'default_value': ''},
             'eigenstate': {'type': DT.decimal , 'min': None, 'max': None, 'default_value': 4e-8}
         }
 
@@ -219,6 +219,8 @@ class LaserDesignModel:
         self.user_input = user_input
         range = int(self.user_input['number_of_steps'])* float(self.user_input['time_step'])
         self.range = range
+        self.freq = self.user_input['frequency']
+        self.strength = self.user_input['strength']
 
     def create_pulse(self):
         """ creates gaussian pulse with given inval,fwhm value """
@@ -226,13 +228,13 @@ class LaserDesignModel:
         from litesoph.pre_processing.laser_design import laser_design
         #from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au
         self.l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])      
-        laser_input = {
-            'frequency': self.user_input['frequency'],
-            'sigma': round(autime_to_eV/self.l_design['sigma'], 2),
-            'time0': round(self.l_design['time0']*au_to_as, 2) ,       
-            'sincos': 'sin'
-        }
-        self.pulse = GaussianPulse(float(self.user_input['strength']),float(laser_input['time0']),float(laser_input['frequency']), float(laser_input['sigma']), laser_input['sincos'])        
+        self.l_design['frequency'] = self.freq
+        self.l_design['strength'] = self.strength
+        
+        sigma = round(autime_to_eV/self.l_design['sigma'], 2)
+        time0 = round(self.l_design['time0']*au_to_as, 2)       
+
+        self.pulse = GaussianPulse(self.strength,float(time0),self.freq, float(sigma), 'sin')        
         
         self.time_t = np.arange(self.range)
         self.strength_t = self.pulse.strength(np.arange(self.range)*as_to_au)

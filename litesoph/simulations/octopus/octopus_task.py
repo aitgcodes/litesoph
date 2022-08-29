@@ -1,7 +1,7 @@
 import copy
 import shutil
 from pathlib import Path
-from litesoph.simulations.esmd import Task
+from litesoph.simulations.esmd import Task, TaskFailed, TaskNotImplementedError
 from litesoph.simulations.octopus.octopus import Octopus
 from litesoph.simulations.octopus.octopus_input import get_task
 from litesoph import config
@@ -73,7 +73,7 @@ class OctopusTask(Task):
         # self.task_name = get_task(kwargs)
 
         if not self.task_name in octopus_data.keys(): 
-            raise Exception(f'{self.task_name} is not implemented.')
+            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
 
         self.task_data = octopus_data.get(self.task_name)
         super().__init__('octopus',status, project_dir, lsconfig)
@@ -193,6 +193,11 @@ class OctopusTask(Task):
         self.create_job_script()
         self.write_job_script(self.job_script)
 
+    def get_engine_log(self):
+        out_log = self.project_dir / self.task_data.get('out_log')
+        if self.check_output():
+            return self.read_log(out_log)
+
     def plot(self,**kwargs):
         from litesoph.utilities.plot_spectrum import plot_spectrum,plot_multiple_column
 
@@ -255,7 +260,6 @@ class OctopusTask(Task):
         if self.task_name in ['tcm','mo_population']:
             return
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.add_proper_path()
         self.sumbit_local.run_job(cmd)
 
     def get_ksd_popln(self):        

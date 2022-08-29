@@ -9,18 +9,17 @@ def extract_pop_window(data, popl_file, homo_index, below_homo, above_lumo):
             pop_data.append(pop)
             
         pop_data = np.array(pop_data)
-        print(pop_data.shape)
         np.savetxt(popl_file, pop_data)
 
-def get_occ_unocc(data):
+def get_occ_unocc(data, energy_col=2, occupancy_col=1):
     occ = []
     unocc = []
     
     for row in data:
-        if row[1] == 2.0 or row[1] == 1.0:
-            occ.append(row[2])
-        elif row[1] == 0.0:
-            unocc.append(row[2])
+        if row[occupancy_col] == 2.0 or row[occupancy_col] == 1.0:
+            occ.append(row[energy_col])
+        elif row[occupancy_col] == 0.0:
+            unocc.append(row[energy_col])
         
     return occ, unocc
 
@@ -33,7 +32,7 @@ def get_energy_window(data,energy_file, below_homo, above_lumo):
         for item in zip(r_occ, r_unocc):
             f.write("{:.6e}  {:.6e} \n".format(item[0]-occ[-1], item[1]-occ[-1]))
 
-def calc_population_diff(homo_index:int, infile, outfile=None, **kwargs):
+def calc_population_diff(homo_index:int, infile, outfile):
     """ Calculates and writes change in population of KS states from population file"""
     
     data = np.loadtxt(infile)

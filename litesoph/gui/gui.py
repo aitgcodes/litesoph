@@ -21,10 +21,10 @@ from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.gui.viewpanel import ViewPanelManager
 from litesoph.lsio.IO import read_file
-from litesoph.simulations import check_task_pre_conditon, get_engine_task, models as m
+from litesoph.simulations import TaskManager, models as m
 from litesoph.gui import views as v
 from litesoph.gui import actions
-from litesoph.simulations.esmd import Task
+from litesoph.simulations.esmd import Task, TaskFailed
 from litesoph.gui.navigation import ProjectList, summary_of_current_project
 from litesoph.simulations.project_status import Status
 
@@ -60,7 +60,7 @@ class GUIAPP:
         self.navigation = ProjectList(self)
         
         self.view_panel = ViewPanelManager(self)
-
+        self.task_manager = TaskManager()
         self.status = None
         
         self.check = None
@@ -264,9 +264,10 @@ class GUIAPP:
             return
         else:
             if self.geometry_file:
-                proj_path = pathlib.Path(self.directory) / "coordinate.xyz"
-                shutil.copy(self.geometry_file, proj_path)
+                geom_path = pathlib.Path(self.directory) / "coordinate.xyz"
+                shutil.copy(self.geometry_file, geom_path)
                 self._frames[v.WorkManagerPage].show_upload_label()
+                self.geometry_file = geom_path
 
     def _on_visualize(self, *_):
         """ Calls an user specified visualization tool """
@@ -387,10 +388,11 @@ class GUIAPP:
 
     def _generate_gs_input(self, task_name, view):
         inp_dict = view.get_parameters()
+        #inp_dict['geometry'] = str(self.geometry_file)
         if not inp_dict:
             return
         self.engine = inp_dict.pop('engine')
-        self.ground_state_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.ground_state_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
         self.ground_state_task.create_template()
         self.view_panel.insert_text(text=self.ground_state_task.template, state='normal')
         self.bind_task_events(task_name, self.ground_state_task, view)
@@ -399,7 +401,7 @@ class GUIAPP:
 
     def _on_rt_tddft_delta_task(self, *_):
         task_name = actions.RT_TDDFT_DELTA
-        check = check_task_pre_conditon(self.engine, task_name, self.status)
+        check = self.task_manager.check_status(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
@@ -414,7 +416,7 @@ class GUIAPP:
 
     def _generate_td_input(self, task_name, view):
         inp_dict = view.get_parameters()
-        self.rt_tddft_delta_task = get_engine_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
+        self.rt_tddft_delta_task = self.task_manager.get_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
         self.rt_tddft_delta_task.create_template()
         self.view_panel.insert_text(text=self.rt_tddft_delta_task.template, state='normal')
         self.bind_task_events(task_name, self.rt_tddft_delta_task, view)
@@ -424,7 +426,7 @@ class GUIAPP:
     def _on_rt_tddft_laser_task(self, *_):
         task_name = actions.RT_TDDFT_LASER
 
-        check = check_task_pre_conditon(self.engine, task_name, self.status)
+        check = self.task_manager.check_status(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
@@ -463,7 +465,7 @@ class GUIAPP:
             return
         view.set_laser_design_dict(self.laser_design.l_design)
         inp_dict = view.get_parameters()
-        self.rt_tddft_laser_task = get_engine_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
+        self.rt_tddft_laser_task = self.task_manager.get_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
         self.rt_tddft_laser_task.create_template()
         self.view_panel.insert_text(text=self.rt_tddft_laser_task.template)
         self.bind_task_events(task_name, self.rt_tddft_laser_task, view)
@@ -471,7 +473,7 @@ class GUIAPP:
     
     def _on_spectra_task(self, *_):
         task_name = actions.SPECTRUM
-        check = check_task_pre_conditon(self.engine, task_name, self.status)
+        check = self.task_manager.check_status(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
@@ -490,7 +492,7 @@ class GUIAPP:
     def _on_spectra_run_local_button(self, task_name, *_):
         
         inp_dict = self.spectra_view.get_parameters()
-        self.spectra_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.spectra_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
@@ -506,7 +508,7 @@ class GUIAPP:
 
     def _on_tcm_task(self, *_):
         task_name = actions.TCM
-        check = check_task_pre_conditon(self.engine, task_name , self.status)
+        check = self.task_manager.check_status(self.engine, task_name , self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
@@ -525,13 +527,8 @@ class GUIAPP:
     def _on_tcm_run_local_button(self, task_name, *_):
         
         inp_dict = self.tcm_view.get_parameters()
-        self.tcm_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
-        # remove if statement to maintain generic task
-        if self.engine == 'octopus':
-            self.tcm_task.prepare_input()
-        else:
-            self.tcm_task.create_template()
-            self.tcm_task.write_input()
+        self.tcm_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.tcm_task.prepare_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
@@ -555,7 +552,7 @@ class GUIAPP:
     def _on_mo_population_run_local_button(self, task_name, *_):
         
         inp_dict = self.mo_population_view.get_parameters()
-        self.mo_population_task = get_engine_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.mo_population_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
         self.status.set_new_task(self.engine, self.mo_population_task.task_name)
         self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.param',self.mo_population_task.user_input)
@@ -624,11 +621,7 @@ class GUIAPP:
             param = get_param_func()
         
         try:
-            # Remove this 'if' after generalizing plot function
-            if self.engine in ['nwchem', 'octopus']:
-                task.plot(**param)
-            else:
-                task.plot()
+            task.plot(**param)
         except Exception as e:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
@@ -679,19 +672,13 @@ class GUIAPP:
 
     def _on_out_local_view_button(self,task: Task, *_):
 
-        # Remove this 'if' after generalizing get_engine_log to all the task class
-        if 'NwchemTask' == type(task).__name__:
+
+        try:
             log_txt = task.get_engine_log()
-        else:
-            log_file = self.directory.parent / task.output_log_file
-
-            try:
-                exist_status, stdout, stderr = task.local_cmd_out
-            except AttributeError:
-                messagebox.showinfo(title='Info', message="Job not completed.")
-                return
-
-            log_txt = read_file(log_file)
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message="Job not completed.")
+            return
+            
         self.view_panel.insert_text(log_txt, 'disabled')
 
 
@@ -761,11 +748,7 @@ class GUIAPP:
         np = self.job_sub_page.processors.get()
         rpath = self.job_sub_page.rpath.get()
         if rpath:
-            # Remove this "if" after implementing task class in gpaw
-            if self.engine == 'gpaw':
-                b_file =  task.create_job_script(np, remote_path=rpath, remote=True)
-            else:
-                b_file = task.create_job_script(np, remote_path=rpath)
+            b_file = task.create_job_script(np, remote_path=rpath)
         else:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
