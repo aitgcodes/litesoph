@@ -137,7 +137,7 @@ class Octopus:
             projection_file = self.directory / Path('td.general/projections')
 
         ### inputs to extract projections
-        start_of_time_steps = kwargs.get('time_start', 1)
+        start_of_time_steps = kwargs.get('time_start', 0)
         end_of_time_steps = kwargs.get('time_end')                
         number_of_proj_occupied = kwargs.get('number_of_proj_occupied', self.occ)
         number_of_proj_unoccupied = kwargs.get('number_of_proj_unoccupied', self.unocc)
