@@ -3,7 +3,6 @@ import pathlib
 import re
 import os
 
-from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
 from ..utilities.job_submit import SubmitNetwork
 
 GROUND_STATE = 'ground_state'
@@ -12,16 +11,6 @@ RT_TDDFT_LASER = 'rt_tddft_laser'
 SPECTRUM = 'spectrum'
 TCM = 'tcm'
 MO_POPULATION_CORRELATION = 'mo_population'
-
-def get_engine_obj(engine, *args, **kwargs)-> EngineStrategy:
-    """ It takes engine name and returns coresponding EngineStrategy class"""
-
-    if engine == 'gpaw':
-        return EngineGpaw(*args, **kwargs)
-    elif engine == 'octopus':
-        return  EngineOctopus(*args, **kwargs)
-    elif engine == 'nwchem':
-        return EngineNwchem(*args, **kwargs)
 
 class TaskError(RuntimeError):
     """Base class of error types related to any TASK."""
