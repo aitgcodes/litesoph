@@ -1053,8 +1053,10 @@ class LaserDesignPage(View):
         }
         return(laser_input)               
 
-    def set_laser_design_dict(self, l_dict:dict):
-        self.laser_design_dict = l_dict
+    def set_laser_design_dict(self, l_dict:dict):  
+        import copy   
+        self.laser_design_dict = copy.deepcopy(l_dict)   
+        self.laser_design_dict = l_dict        
 
     def get_property_list(self):
         p = ['spectrum']
