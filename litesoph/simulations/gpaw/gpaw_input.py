@@ -123,6 +123,27 @@ td_calc.propagate{propagate}
 td_calc.write('{gpw_out}', mode='all')
 """
 
+mask_external_field_template = """
+import numpy as np
+from ase.units import Hartree, Bohr
+from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField
+from gpaw.lcaotddft import LCAOTDDFT
+from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter
+from gpaw.lcaotddft.laser import GaussianPulse
+pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
+mask = {mask}
+ext = MaskedElectricField(Hartree / Bohr,{polarization}, mask=mask )
+td_potential = {{'ext': ext, 'laser': pulse}}
+td_calc = LCAOTDDFT(filename='{gfilename}',
+                    td_potential=td_potential,
+                    txt='{txt_out}')
+
+# Propagate"
+td_calc.propagate{propagate}
+# Save the state for restarting later"
+td_calc.write('{gpw_out}', mode='all')
+    """
+
 dm2spec="""
 from gpaw.tddft.spectrum import photoabsorption_spectrum
 photoabsorption_spectrum('{dm_file}', '{spectrum_file}',folding='{folding}', width={width},e_min={e_min}, e_max={e_max}, delta_e={delta_e})
@@ -249,6 +270,7 @@ task_map = {
     'ground_state': gs_template,
     'rt_tddft' :{'delta': delta_kick_template,
                     'laser': external_field_template},
+
     'spectrum' : dm2spec,
     'tcm' : tcm_temp,
     'mo_population': mo_population
@@ -258,16 +280,20 @@ def assemable_rt(**kwargs):
     if 'laser' in kwargs:
         laser = kwargs.pop('laser')
         kwargs.update(laser)
-        template = external_field_template.format(**kwargs)
-    else:
-       
+        if 'mask' in kwargs:
+            template = mask_external_field_template.format(**kwargs)
+        else:
+            template = external_field_template.format(**kwargs)    
+    else:       
         template = delta_kick_template.format(**kwargs)
 
     tlines = template.splitlines()
     
     if 'dipole' in tools:
-        tlines.insert(0, 'from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter')
-        tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', interval={kwargs.get('output_freq', 1)})")
+        if 'mask' in kwargs:
+            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', mask=ext.mask, interval={kwargs.get('output_freq', 1)})")
+        else:
+            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', interval={kwargs.get('output_freq', 1)})")
         
     if "wavefunction" in tools:  
         tlines.insert(0, "from gpaw.lcaotddft.wfwriter import WaveFunctionWriter")

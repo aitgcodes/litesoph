@@ -770,7 +770,7 @@ DMAT
         if not self.template:
             msg = 'Template not given or created'
             raise Exception(msg)
-        self.ksd_dir = Path(self.project_dir)/'octopus/ksd' 
+        self.ksd_dir = Path(self.project_dir)
         # inp_file = Path(ksd_dir) / 'oct.inp'   
         self.engine.create_directory(self.ksd_dir)
         write2file(self.ksd_dir, 'oct.inp', self.template)
