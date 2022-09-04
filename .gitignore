@@ -7,3 +7,5 @@ build
 litesoph.egg-info
 
 .vscode
+.history
+
