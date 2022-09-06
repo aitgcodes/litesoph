@@ -31,6 +31,12 @@ def display_graph(data):
     plt.draw()
     plt.show()
 
+def import_csv_data():
+    global v
+    csv_file_path = askopenfilename()
+    print(csv_file_path)
+    v.set(csv_file_path)
+    df = pd.read_csv(csv_file_path)
 
 def read_dmpulse_dat_file(data):
 
@@ -45,27 +51,9 @@ def read_dmpulse_dat_file(data):
 
     return df
 
-# def plot_dipole_moment(data):
-
-#     df=read_dmpulse_dat_file(data)
-    
-#     autofs = 0.02418906
-#     df.time *=autofs
-    
-#     x = df["time"]
-#     y1 = df["dmx"]
-#     lns2 = plt.plot(x,y1,'r-',linewidth=2.5)
-#     plt.ylabel('y axis label')
-#     plt.xlabel('x axis label')
-#     plt.title('Graph 1')
-#     plt.draw()
-#     plt.show()
-
 def plot_dipole_moment(data):
     
-    df=read_dmpulse_dat_file(data)
-    
-    
+    df=read_dmpulse_dat_file(data)        
     t=df['time'] 
 
     plt.subplot(3, 3, 1)
@@ -104,37 +92,34 @@ def plot_dipole_moment(data):
     plt.plot(t,df['dm_umz'])
     plt.title("dm_umz vs t")
 
-    # plt.subplot_tool()
     plt.suptitle("Dipole Moment Pulse")
-
     plt.show()
 
 
 def energy_transfer_coupling():
-
 
     def show_entry_fields():
         length = float(e1.get())
         area=  (6.023*10**(-34))/((length*(10**(-15)))*(1.6*10**(-19)))                                      
         result_label['text'] = str(area)+'eV'
 
-    master = Toplevel(root)
-    master.geometry("350x150")
+    top = Toplevel(root)
+    top.geometry("350x150")
 
-    Label(master, text="time period in fs").grid(row=0)
-    e1 = Entry(master)
+    Label(top, text="time period in fs").grid(row=0)
+    e1 = Entry(top)
     e1.grid(row=0, column=1)
 
-    area_label = Label(master, text="Energy coupling constant :")
+    area_label = Label(top, text="Energy coupling constant :")
     area_label.grid(row=2)
 
-    result_label = Label(master, text="")
+    result_label = Label(top, text="")
     result_label.grid(row=2,column=1)
 
-    Button(master, text='Quit', command=master.quit).grid(row=3, column=0, sticky=W, pady=4)
-    Button(master, text='Show', command=show_entry_fields).grid(row=3, column=1, sticky=W, pady=4)
+    Button(top, text='Quit', command=top.quit).grid(row=3, column=0, sticky=W, pady=4)
+    Button(top, text='Show', command=show_entry_fields).grid(row=3, column=1, sticky=W, pady=4)
 
-    master.mainloop()
+    top.mainloop()
 
    
 def plot_hilbert_transform(data):
@@ -155,15 +140,6 @@ def plot_hilbert_transform(data):
     plt.draw()
     plt.show()
 
-    
-    
-def import_csv_data():
-    global v
-    csv_file_path = askopenfilename()
-    print(csv_file_path)
-    v.set(csv_file_path)
-    df = pd.read_csv(csv_file_path)
-
 # Define the functions before calling them
 def doNothing():
     print("nothing")
@@ -172,7 +148,7 @@ def create_window():
     window = tk.Tk() 
 
 
-def graph_1():
+def sample_graph():
     display_graph(v.get())
 
 def dmpulse():
@@ -180,10 +156,6 @@ def dmpulse():
 
 def hilbert_button():
     plot_hilbert_transform(v.get())
-
-
-
-
 
 
 root = tk.Tk()
@@ -195,7 +167,7 @@ entry = tk.Entry(root, textvariable=v).grid(row=0, column=1)
 tk.Button(root, text='Browse Data Set',command=import_csv_data).grid(row=1, column=0)
 tk.Button(root, text='Close',command=root.destroy).grid(row=1, column=1)
 
-tk.Button(root, text='sample plot', command=graph_1).grid(row=3, column=0) # Call the graph_1 function
+tk.Button(root, text='sample plot', command=sample_graph).grid(row=3, column=0) # Call the sample_graph function
 tk.Button(root, text='dmpulse', command=dmpulse).grid(row=3, column=1)
 tk.Button(root, text='hilbert', command=hilbert_button).grid(row=3, column=2)
 tk.Button(root, text='energy_transfer_coupling', command=energy_transfer_coupling).grid(row=3, column=3)
