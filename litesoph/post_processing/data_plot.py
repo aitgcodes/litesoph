@@ -3,8 +3,6 @@ from tkinter.filedialog import askopenfilename
 from tkinter import *
 import pandas as pd
 import numpy as np
-import subprocess
-import sys
 import matplotlib.pyplot as plt; plt.rcdefaults()
 from scipy.signal import hilbert
 
