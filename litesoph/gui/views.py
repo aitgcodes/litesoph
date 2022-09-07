@@ -1123,7 +1123,7 @@ class LaserDesignPage(View):
         ### Widgets for job frame
         add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=0)
 
-        set_state(self.masking_control_frame, 'disabled')
+        set_state(self.masking_control_frame, 'active')
 
     def set_rsig_state(self, event):
         if self.mask_boundary.get() == "Abrupt":
