@@ -176,7 +176,7 @@ class GUIAPP:
             actions.SHOW_SPECTRUM_PAGE : self._on_spectra_task,
             actions.SHOW_TCM_PAGE : self._on_tcm_task,
             actions.SHOW_MO_POPULATION_CORRELATION_PAGE : self._on_mo_population_task,
-            actions.SHOW_MASKING_PAGE : self._on_masking_task
+#            actions.SHOW_MASKING_PAGE : self._on_masking_task
         }
         for event, callback in event_show_page.items():
             self.main_window.bind_all(event, callback)  
@@ -361,7 +361,7 @@ class GUIAPP:
         elif sub_task == "Population Tracking":
                self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE)
         elif sub_task == "Masking":
-               self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
+            self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
 
         w.refresh_var()
 

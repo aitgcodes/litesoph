@@ -917,7 +917,7 @@ class LaserDesignPage(View):
         self.ksd_var = tk.IntVar()
         self.popln_var = tk.IntVar()
         self.output_freq = tk.IntVar(value=1)
-        self.mask_var = tk.IntVar(value=0)
+        self.mask_var = tk.IntVar(value=1)
         self.mask_type = tk.StringVar()
         self.mask_axis = tk.IntVar(value=0)
         self.mask_origin =  tk.DoubleVar()
@@ -1122,6 +1122,8 @@ class LaserDesignPage(View):
 
         ### Widgets for job frame
         add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=0)
+
+        set_state(self.masking_control_frame, 'disabled')
 
     def set_rsig_state(self, event):
         if self.mask_boundary.get() == "Abrupt":
