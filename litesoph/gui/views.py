@@ -888,7 +888,7 @@ class TimeDependentPage(View):
         elif engn == 'nwchem':            
             self.update_var(self.nwchem_td_default)
             self.checkbox_ksd.config(state='disabled')
-            self.self._var['ksd'].set(0)
+            self._var['ksd'].set(0)
 
 class LaserDesignPage(View):
 
@@ -916,7 +916,7 @@ class LaserDesignPage(View):
         self.spec_var = tk.IntVar()
         self.ksd_var = tk.IntVar()
         self.popln_var = tk.IntVar()
-        self.output_freq = tk.IntVar()
+        self.output_freq = tk.IntVar(value=1)
         self.mask_var = tk.IntVar(value=0)
         self.mask_type = tk.StringVar()
         self.mask_axis = tk.IntVar(value=0)
@@ -1009,8 +1009,8 @@ class LaserDesignPage(View):
         self.frame_pol = ttk.Frame(self.Frame_simulation_input)
         self.frame_pol.grid(row=0, column=0, sticky='w', columnspan=4)
 
-        self.Frame_added = ttk.Frame(self.Frame_simulation_input)
-        self.Frame_added.grid(row=3, column=0, sticky='w', columnspan=3)
+        self.masking_control_frame = ttk.Frame(self.Frame_simulation_input)
+        self.masking_control_frame.grid(row=3, column=0, sticky='w', columnspan=3)
 
         # Widgets in additional input frame
         self.label_pol = tk.Label(self.frame_pol,text="Polarization Direction:",bg="gray",fg="black")
@@ -1038,7 +1038,7 @@ class LaserDesignPage(View):
         self.entry_simulation_steps['font'] = myFont
         self.entry_simulation_steps.grid(row=2, column=1)
 
-        self.label_mask = tk.Label(self.Frame_added,text="Design Mask",bg="gray",fg="black")
+        self.label_mask = tk.Label(self.masking_control_frame,text="Design Mask",bg="gray",fg="black")
         self.label_mask['font'] = myFont
         self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
         
@@ -1048,7 +1048,7 @@ class LaserDesignPage(View):
                 lambda: set_state(self.Frame_mask, 'disable')]
                 
         for (text, value, cmd) in zip(txt,values,comnd):
-            tk.Radiobutton(self.Frame_added,  text=text,  variable=self.mask_var, font=myfont2(),
+            tk.Radiobutton(self.masking_control_frame,  text=text,  variable=self.mask_var, font=myfont2(),
              justify='left',value=value,command=cmd).grid(row=0, column=value+1, sticky='w')
 
         #### Frames with masking inputs
@@ -1268,7 +1268,6 @@ class LaserDesignPage(View):
     def set_laser_design_dict(self, l_dict:dict):  
         import copy   
         self.laser_design_dict = copy.deepcopy(l_dict)   
-        self.laser_design_dict = l_dict        
 
     def get_property_list(self):
         p = ['spectrum']
