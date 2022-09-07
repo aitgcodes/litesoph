@@ -17,6 +17,70 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 from litesoph.simulations.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
 
+def var_define(var_dict:dict):
+    var_def_dict ={}
+    for key, type_value in var_dict.items():
+        type = type_value[0]
+        try:
+            value = type_value[1]
+            if type == 'str':
+                var ={ key : tk.StringVar(value=value)}
+            elif type == 'int':
+                var ={ key : tk.IntVar(value=value)}
+            elif type == 'float':
+                var ={ key : tk.DoubleVar(value=value)}
+        except IndexError:
+            if type == 'str':
+                var ={ key : tk.StringVar()}
+            elif type == 'int':
+                var ={ key : tk.IntVar()}
+            elif type == 'float':
+                var ={ key : tk.DoubleVar()}   
+         
+        var_def_dict.update(var)
+    return var_def_dict
+
+def define_tk_var(var_dict:dict):
+    from litesoph.lsio.data_types import DataTypes as DT
+    var_def_dict ={}
+    var_type = {
+        DT.boolean : tk.BooleanVar,
+        DT.integer : tk.IntVar,
+        DT.string : tk.StringVar,
+        DT.decimal : tk.DoubleVar
+    }
+    for key, value in var_dict.items():
+        #type = value['type']
+        
+        vtype = var_type.get(value['type'], tk.StringVar)
+        try:
+            v = value['default_value']
+        except KeyError:
+            v = ''
+        var_def_dict[key] = vtype(value=v) 
+    return var_def_dict
+
+def add_tabs(parent, *args, **kwargs):
+    style = ttk.Style()
+    notebook = ttk.Notebook(parent)
+    notebook.pack(fill=tk.BOTH, expand=True)
+    # notebook.grid(row=0,column=0, sticky='nsew')
+    style.configure("TNotebook.Tab",font=('Helvetica','10'))
+   
+    tabs_dict = kwargs.get('Tabs')        
+    if isinstance(tabs_dict, dict):
+        for key,value in tabs_dict.items():
+            setattr(parent, key, ttk.Frame(notebook))
+            notebook.add(getattr(parent,key), text = value) 
+
+def set_state(widget, state):
+    if widget.winfo_children():
+        for child in widget.winfo_children():        
+            if isinstance(child, ttk.Frame):
+                set_state(child, state)
+            else:
+                child.configure(state = state)      
+    
 
 class StartPage(ttk.Frame):
 
@@ -106,7 +170,7 @@ class WorkManagerPage(ttk.Frame):
     MainTask = ["Preprocessing Jobs","Simulations","Postprocessing Jobs"]
     Pre_task = ["Ground State"]
     Sim_task = ["Delta Kick","Gaussian Pulse"]
-    Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Tracking","Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
+    Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Tracking", "Masking", "Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
     def __init__(self, parent, *args, **kwargs):
@@ -339,51 +403,6 @@ class WorkManagerPage(ttk.Frame):
                 self._var[key].set(value[1])
             except IndexError:
                 self._var[key].set('')    
-
-def var_define(var_dict:dict):
-    var_def_dict ={}
-    for key, type_value in var_dict.items():
-        type = type_value[0]
-        try:
-            value = type_value[1]
-            if type == 'str':
-                var ={ key : tk.StringVar(value=value)}
-            elif type == 'int':
-                var ={ key : tk.IntVar(value=value)}
-            elif type == 'float':
-                var ={ key : tk.DoubleVar(value=value)}
-        except IndexError:
-            if type == 'str':
-                var ={ key : tk.StringVar()}
-            elif type == 'int':
-                var ={ key : tk.IntVar()}
-            elif type == 'float':
-                var ={ key : tk.DoubleVar()}   
-         
-        var_def_dict.update(var)
-
-    return var_def_dict
-
-def define_tk_var(var_dict:dict):
-    from litesoph.lsio.data_types import DataTypes as DT
-    var_def_dict ={}
-    var_type = {
-        DT.boolean : tk.BooleanVar,
-        DT.integer : tk.IntVar,
-        DT.string : tk.StringVar,
-        DT.decimal : tk.DoubleVar
-    }
-    for key, value in var_dict.items():
-        #type = value['type']
-        
-        vtype = var_type.get(value['type'], tk.StringVar)
-        try:
-            v = value['default_value']
-        except KeyError:
-            v = ''
-        var_def_dict[key] = vtype(value=v)   
-
-    return var_def_dict
         
 class View(ttk.Frame):
 
@@ -432,6 +451,38 @@ def add_job_frame(obj, parent, task_name, row:int=0, column:int=0):
     obj.subnet_Button = tk.Button(submit_frame, text="Submit Network", activebackground="#78d6ff", command=lambda: obj.event_generate('<<SubNetwork'+task_name+'>>'))
     obj.subnet_Button['font'] = myfont()
     obj.subnet_Button.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
+
+def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_freq_var, row=0, column=0):
+
+    frame_property = ttk.Frame(parent)
+    frame_property.grid(row=0, column=0)
+
+    obj.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
+    obj.property_note['font'] = myFont
+    obj.property_note.grid(row=0, column=0)
+
+    obj.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable= spectra_var, font=myFont, onvalue=1)
+    obj.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
+    
+    frame_spec_option = ttk.Frame(frame_property)
+    frame_spec_option.grid(row=2, column=0, sticky='w')
+
+    obj.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=ksd_var, font=myFont, onvalue=1, offvalue=0)
+    obj.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
+    
+    obj.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=pop_var, font=myFont, onvalue=1, offvalue=0)
+    obj.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
+
+    frame_output_freq = ttk.Frame(frame_property)
+    frame_output_freq.grid(row=5, column=0, sticky='w')
+
+    obj.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
+    obj.Frame2_lab['font'] = myFont
+    obj.Frame2_lab.grid(row=0, column=0,sticky='w')
+
+    obj.entry_out_frq = Onlydigits(frame_output_freq, textvariable=output_freq_var, width=5)
+    obj.entry_out_frq['font'] = myFont
+    obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
 class GroundStatePage(View):
     
@@ -620,40 +671,6 @@ class GroundStatePage(View):
                 self._var[key].set(value['default_value'])
             except KeyError:
                 self._var[key].set('')     
-
-def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_freq_var, row=0, column=0):
-
-    frame_property = ttk.Frame(parent)
-    frame_property.grid(row=0, column=0)
-
-    obj.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
-    obj.property_note['font'] = myFont
-    obj.property_note.grid(row=0, column=0)
-
-    obj.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable= spectra_var, font=myFont, onvalue=1)
-    obj.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
-    
-    frame_spec_option = ttk.Frame(frame_property)
-    frame_spec_option.grid(row=2, column=0, sticky='w')
-
-    obj.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=ksd_var, font=myFont, onvalue=1, offvalue=0)
-    obj.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
-    
-    obj.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=pop_var, font=myFont, onvalue=1, offvalue=0)
-    obj.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
-
-    frame_output_freq = ttk.Frame(frame_property)
-    frame_output_freq.grid(row=5, column=0, sticky='w')
-
-    obj.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
-    obj.Frame2_lab['font'] = myFont
-    obj.Frame2_lab.grid(row=0, column=0,sticky='w')
-
-    obj.entry_out_frq = Onlydigits(frame_output_freq, textvariable=output_freq_var, width=5)
-    obj.entry_out_frq['font'] = myFont
-    obj.entry_out_frq.grid(row=0, column=1,sticky='w')
-    output_freq_var.set(1)
-
 
 class TimeDependentPage(View):
 
@@ -1305,15 +1322,6 @@ class LaserDesignPage(View):
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)    
 
-def set_state(widget, state):
-    if widget.winfo_children():
-        for child in widget.winfo_children():        
-            if isinstance(child, ttk.Frame):
-                set_state(child, state)
-            else:
-                child.configure(state = state)      
-    
-
 class PlotSpectraPage(ttk.Frame):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
@@ -1665,7 +1673,6 @@ class TcmPage(ttk.Frame):
         'axis_limit': self.axis_limit.get()}
         return oct_ksd_plot_dict
 
-
 class PopulationPage(View):
     def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -1809,6 +1816,89 @@ class PopulationPage(View):
         } 
 
         return plot_param
+
+class MaskingPage(View):
+    def __init__(self, parent, engine,task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.engine = engine
+        self.task_name = task_name
+
+        self.SubFrame1 = self.input_param_frame 
+
+        self.SubFrame2 = self.property_frame 
+
+        self.SubFrame3 = self.submit_button_frame 
+
+        self.Frame_button1 = self.save_button_frame 
+
+        self.axis_var = tk.IntVar(value=0)
+        self.region_var = tk.IntVar(value=0)
+        self.plot_region = tk.StringVar()
+        self.envelope_var = tk.IntVar()
+
+        self.Frame_dm = ttk.Frame(self.SubFrame1)
+        self.Frame_dm.grid(row=0, column=0, sticky='nsew')
+
+        self.Frame_energy_coupling = ttk.Frame(self.SubFrame1)
+        self.Frame_energy_coupling.grid(row=1, column=0, sticky='nsew')
+
+        self.label_title_dm = tk.Label(self.Frame_dm,text="Parameters for Region Specific Dipole Moment", fg='blue')
+        self.label_title_dm['font'] = myfont()
+        self.label_title_dm.grid(row=0, column=0, sticky='w', padx=5, pady=10)
+
+        self.region_frame = ttk.Frame(self.Frame_dm) 
+        self.region_frame.grid(row=1, column=0, sticky='nsew')
+
+        self.label_region = tk.Label(self.region_frame,text="Select the region:", fg='black')
+        self.label_region['font'] = myfont()
+        self.label_region.grid(row=0, column=0,sticky='w', padx=5, pady=5)
+
+        region_list = ["Region 1 (Unmasked Region)", "Region 2 (Masked Region)", "Total Region"]
+        self.entry_plot_region = ttk.Combobox(self.region_frame,textvariable= self.plot_region, value = region_list, width=30)
+        self.entry_plot_region['font'] = myfont()
+        self.entry_plot_region.current(0)
+        self.entry_plot_region.grid(row=0, column=1)
+        self.entry_plot_region['state'] = 'readonly'
+        self.entry_plot_region.bind('<<ComboboxSelected>>', self.select_region)  
+                
+        self.axis_frame = ttk.Frame(self.Frame_dm)
+        self.axis_frame.grid(row=2, column=0,columnspan=4, sticky='news')
+
+        self.label_axis = tk.Label(self.axis_frame,text="Axis to Plot:", fg='black')
+        self.label_axis['font'] = myfont()
+        self.label_axis.grid(row=0, column=0, padx=10, pady=10) 
+
+        axis_list = {"X":0, "Y":1, "Z":2}
+        for (text, value) in axis_list.items():
+            tk.Radiobutton(self.axis_frame, text=text, variable=self.axis_var, font=myfont2(),
+                justify='left',value=value).grid(row=0, column=value+1, ipady=5, sticky='w')
+
+        self.checkbox_envelope = tk.Checkbutton(self.Frame_dm, text="With envelope from Hilbert Transform", variable= self.envelope_var, font=myfont(), onvalue=1)
+        self.checkbox_envelope.grid(row=3, column=0, ipady=5, sticky='w')
+
+        self.plot_button = tk.Button(self.Frame_dm, text="Plot", activebackground="#78d6ff")
+        self.plot_button['font'] = myfont()
+        self.plot_button.grid(row=3, column=1) 
+
+        self.label_title_energy_coupling = tk.Label(self.Frame_energy_coupling,text="Calculation of Energy Transfer Coupling Constant", fg='blue')
+        self.label_title_energy_coupling['font'] = myfont()
+        self.label_title_energy_coupling.grid(row=0, column=0, padx=5, pady=10)   
+
+        self.energy_coupling_button = tk.Button(self.Frame_energy_coupling, text="Compute", activebackground="#78d6ff")
+        self.energy_coupling_button['font'] = myfont()
+        self.energy_coupling_button.grid(row=3, column=2) 
+
+        self.back_button = tk.Button(self.Frame_button1, text="Back",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button['font'] = myfont()
+        self.back_button.grid(row=0, column=0, padx=10, sticky='nswe') 
+
+    def select_region(self, event):
+        if self.plot_region.get()== "Total Region":
+            self.checkbox_envelope.config(state='disabled')
+            self.envelope_var.set(0)
+        else:
+            self.checkbox_envelope.config(state='normal')
 
 class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
@@ -2033,7 +2123,6 @@ class JobSubPage(ttk.Frame):
           'remote_path':self.rpath.get(),
             } 
         return network_job_dict
-
 
 ####### popup filemenu #########
 
