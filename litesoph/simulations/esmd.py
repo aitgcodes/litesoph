@@ -11,6 +11,7 @@ RT_TDDFT_LASER = 'rt_tddft_laser'
 SPECTRUM = 'spectrum'
 TCM = 'tcm'
 MO_POPULATION_CORRELATION = 'mo_population'
+MASKING = 'masking'
 
 class TaskError(RuntimeError):
     """Base class of error types related to any TASK."""

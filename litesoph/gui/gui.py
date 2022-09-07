@@ -175,7 +175,8 @@ class GUIAPP:
             actions.SHOW_RT_TDDFT_LASER_PAGE: self._on_rt_tddft_laser_task,
             actions.SHOW_SPECTRUM_PAGE : self._on_spectra_task,
             actions.SHOW_TCM_PAGE : self._on_tcm_task,
-            actions.SHOW_MO_POPULATION_CORRELATION_PAGE : self._on_mo_population_task
+            actions.SHOW_MO_POPULATION_CORRELATION_PAGE : self._on_mo_population_task,
+#            actions.SHOW_MASKING_PAGE : self._on_masking_task
         }
         for event, callback in event_show_page.items():
             self.main_window.bind_all(event, callback)  
@@ -358,7 +359,9 @@ class GUIAPP:
         elif sub_task == "Kohn Sham Decomposition":
                self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
         elif sub_task == "Population Tracking":
-               self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE) 
+               self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE)
+        elif sub_task == "Masking":
+            self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
 
         w.refresh_var()
 
@@ -559,6 +562,15 @@ class GUIAPP:
 
         self.mo_population_task.prepare_input()
         self._run_local(self.mo_population_task, np=1)
+
+##-------------------------------masking task-------------------------------------------------------------
+
+    def _on_masking_task(self, *_): 
+        task_name = actions.MASKING     
+        self._show_frame(v.MaskingPage,self.engine, task_name)
+        self.mo_population_view = self._frames[v.MaskingPage]
+        self.mo_population_view.engine = self.engine
+        
 ##-----------------------------------------------------------------------------------------------------------##
 
     def view_input_file(self, task:Task):
