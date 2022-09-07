@@ -652,6 +652,7 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
     obj.entry_out_frq = Onlydigits(frame_output_freq, textvariable=output_freq_var, width=5)
     obj.entry_out_frq['font'] = myFont
     obj.entry_out_frq.grid(row=0, column=1,sticky='w')
+    output_freq_var.set(1)
 
 
 class TimeDependentPage(View):
@@ -870,7 +871,7 @@ class TimeDependentPage(View):
         elif engn == 'nwchem':            
             self.update_var(self.nwchem_td_default)
             self.checkbox_ksd.config(state='disabled')
-            self.checkbox_ksd.set(0)
+            self.self._var['ksd'].set(0)
 
 class LaserDesignPage(View):
 
@@ -890,15 +891,25 @@ class LaserDesignPage(View):
         self.pol_z =  tk.StringVar()
         self.fwhm = tk.DoubleVar()
         self.frequency =  tk.DoubleVar()
-        self.ts =  tk.DoubleVar()
-        self.ns =  tk.IntVar()
+        self.ts_laser =  tk.DoubleVar(value=10)
+        self.ts =  tk.DoubleVar(value=10)
+        self.ns =  tk.IntVar(value=2000)
         self.tin =  tk.DoubleVar()
         self.pol_var = tk.IntVar(value=0)
         self.spec_var = tk.IntVar()
         self.ksd_var = tk.IntVar()
         self.popln_var = tk.IntVar()
         self.output_freq = tk.IntVar()
-
+        self.mask_var = tk.IntVar(value=0)
+        self.mask_type = tk.StringVar()
+        self.mask_axis = tk.IntVar(value=0)
+        self.mask_origin =  tk.DoubleVar()
+        self.mask_radius =  tk.DoubleVar()
+        self.mask_boundary=tk.StringVar()
+        self.mask_rsig =  tk.DoubleVar()
+        self.mask_origin_x =  tk.DoubleVar()
+        self.mask_origin_y =  tk.DoubleVar()
+        self.mask_origin_z =  tk.DoubleVar()
 
         self.SubFrame1 = self.input_param_frame 
 
@@ -908,82 +919,83 @@ class LaserDesignPage(View):
 
         self.Frame_button1 = self.save_button_frame 
 
-        self.Frame2 = ttk.Frame(self.SubFrame1)
-        self.Frame2.grid(row=0, column=0)
+        # Frame for Laser Design inputs
+        self.Frame_laser_design = ttk.Frame(self.SubFrame1, borderwidth=2, relief='groove')
+        self.Frame_laser_design.grid(row=0, column=0)
 
-        self.frame_pol = ttk.Frame(self.SubFrame1)
-        self.frame_pol.grid(row=1, column=0, sticky='w')
+        # Widgets in Laser Design frame
+        self.label_title = tk.Label(self.Frame_laser_design,text="LITESOPH Input for Laser Design", fg='blue')
+        self.label_title['font'] = myFont
+        self.label_title.grid(row=0, column=0, padx=5, pady=10)
 
-        self.Frame1_label_path = tk.Label(self.Frame2,text="LITESOPH Input for Laser Design", fg='blue')
-        self.Frame1_label_path['font'] = myFont
-        self.Frame1_label_path.grid(row=0, column=0, padx=5, pady=10)
+        self.label_tin = tk.Label(self.Frame_laser_design,text="Time Origin (tin) in attosecond",bg="gray",fg="black")
+        self.label_tin['font'] = myFont
+        self.label_tin.grid(row=1, column=0, sticky='w', padx=5, pady=5)
 
-        self.label_proj = tk.Label(self.Frame2,text="Time Origin (tin) in attosecond",bg="gray",fg="black")
-        self.label_proj['font'] = myFont
-        self.label_proj.grid(row=1, column=0, sticky='w', padx=5, pady=5)
-
-        self.entry_tin = Decimalentry(self.Frame2, textvariable= self.tin, max= 10e100)
+        self.entry_tin = Decimalentry(self.Frame_laser_design, textvariable= self.tin, max= 10e100)
         self.entry_tin['font'] = myFont
         self.tin.set(0)
         self.entry_tin.grid(row=1, column=1)
         
-        self.label_inval = tk.Label(self.Frame2,text="-log((E at tin)/Eo)",bg="gray",fg="black")
+        self.label_inval = tk.Label(self.Frame_laser_design,text="-log((E at tin)/Eo)",bg="gray",fg="black")
         self.label_inval['font'] = myFont
         self.label_inval.grid(row=2, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_inval = Onlydigits(self.Frame2, textvariable= self.inval)
+        self.entry_inval = Onlydigits(self.Frame_laser_design, textvariable= self.inval)
         self.entry_inval['font'] = myFont
         self.inval.set(6)
         self.entry_inval.grid(row=2, column=1)
 
-        self.label_strength = tk.Label(self.Frame2,text="Laser Strength in a.u (Eo)",bg="gray",fg="black")
+        self.label_strength = tk.Label(self.Frame_laser_design,text="Laser Strength in a.u (Eo)",bg="gray",fg="black")
         self.label_strength['font'] = myFont
         self.label_strength.grid(row=3, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_strength = EntryPattern(self.Frame2,textvariable= self.strength)
+        self.entry_strength = EntryPattern(self.Frame_laser_design,textvariable= self.strength)
         self.entry_strength['font'] = myFont
         self.entry_strength.grid(row=3, column=1)
         self.strength.set('01e-05')
         
-        self.label_fwhm = tk.Label(self.Frame2,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
+        self.label_fwhm = tk.Label(self.Frame_laser_design,text="Full Width Half Max (FWHM in eV)",bg="gray",fg="black")
         self.label_fwhm['font'] = myFont
         self.label_fwhm.grid(row=4, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_fwhm = Decimalentry(self.Frame2, textvariable= self.fwhm, max= 10e100)
+        self.entry_fwhm = Decimalentry(self.Frame_laser_design, textvariable= self.fwhm, max= 10e100)
         self.fwhm.set("0.01")
         self.entry_fwhm['font'] = myFont
         self.entry_fwhm.grid(row=4, column=1)
 
-        self.label_freq = tk.Label(self.Frame2,text="Frequency in eV",bg="gray",fg="black")
+        self.label_freq = tk.Label(self.Frame_laser_design,text="Frequency (in eV)",bg="gray",fg="black")
         self.label_freq['font'] = myFont
         self.label_freq.grid(row=5, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_frq = Decimalentry(self.Frame2,textvariable= self.frequency, max= 10e100)
+        self.entry_frq = Decimalentry(self.Frame_laser_design,textvariable= self.frequency, max= 10e100)
         self.entry_frq['font'] = myFont
         self.entry_frq.grid(row=5, column=1)
 
-        self.label_proj = tk.Label(self.Frame2,text="Time step in attosecond ",bg="gray",fg="black")
+        self.label_proj = tk.Label(self.Frame_laser_design,text="Total time (in femtosecond)",bg="gray",fg="black")
         self.label_proj['font'] = myFont
         self.label_proj.grid(row=6, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_ts = Decimalentry(self.Frame2,textvariable= self.ts, max= 10e100)
+        self.entry_ts = Decimalentry(self.Frame_laser_design,textvariable= self.ts_laser, max= 10e100)
         self.entry_ts['font'] = myFont
         self.ts.set(10)
         self.entry_ts.grid(row=6, column=1)
-        
-        self.label_ns = tk.Label(self.Frame2,text="Number of Steps",bg="gray",fg="black")
-        self.label_ns['font'] = myFont
-        self.label_ns.grid(row=7, column=0, sticky='w', padx=5, pady=5)
 
-        self.entry_ns = Onlydigits(self.Frame2, textvariable= self.ns)
-        self.entry_ns['font'] = myFont
-        self.ns.set(2000)
-        self.entry_ns.grid(row=7, column=1)
-
-        Laser_button = tk.Button(self.Frame2,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
+        Laser_button = tk.Button(self.Frame_laser_design,text="Laser Design",activebackground="#78d6ff",command=lambda:[self.laser_button()])
         Laser_button['font'] = myFont
-        Laser_button.grid(row=8, column=10, sticky='nsew', padx=30, pady=5)
+        Laser_button.grid(row=7, column=10, sticky='nsew', padx=30, pady=5)
 
+        # Frame for extra simulation inputs
+        self.Frame_simulation_input = ttk.Labelframe(self.SubFrame1, text='Extra Simulation Inputs')
+        self.Frame_simulation_input.grid(row=1, column=0, sticky='nsew')
+
+        self.frame_pol = ttk.Frame(self.Frame_simulation_input)
+        self.frame_pol.grid(row=0, column=0, sticky='w', columnspan=4)
+
+        self.Frame_added = ttk.Frame(self.Frame_simulation_input)
+        self.Frame_added.grid(row=3, column=0, sticky='w', columnspan=3)
+
+        # Widgets in additional input frame
         self.label_pol = tk.Label(self.frame_pol,text="Polarization Direction:",bg="gray",fg="black")
         self.label_pol['font'] = myFont
         self.label_pol.grid(row=0, column=0, sticky='w', padx=5, pady=5)
@@ -992,11 +1004,89 @@ class LaserDesignPage(View):
         for (text, value) in values.items():
             tk.Radiobutton(self.frame_pol, text=text, variable=self.pol_var, font=myfont2(),
              justify='left',value=value).grid(row=0, column=value+1, sticky='w')
+        
+        self.label_simulation_time_step = tk.Label(self.Frame_simulation_input,text="Time step (in attosecond)",bg="gray",fg="black")
+        self.label_simulation_time_step['font'] = myFont
+        self.label_simulation_time_step.grid(row=1, column=0, sticky='w', padx=5, pady=5)
 
+        self.entry_simulation_time_step = Decimalentry(self.Frame_simulation_input,textvariable= self.ts, max= 10e100)
+        self.entry_simulation_time_step['font'] = myFont
+        self.entry_simulation_time_step.grid(row=1, column=1)
+        
+        self.label_simulation_steps = tk.Label(self.Frame_simulation_input,text="Number of Steps",bg="gray",fg="black")
+        self.label_simulation_steps['font'] = myFont
+        self.label_simulation_steps.grid(row=2, column=0, sticky='w', padx=5, pady=5)
+
+        self.entry_simulation_steps = Onlydigits(self.Frame_simulation_input, textvariable= self.ns)
+        self.entry_simulation_steps['font'] = myFont
+        self.entry_simulation_steps.grid(row=2, column=1)
+
+        self.label_mask = tk.Label(self.Frame_added,text="Design Mask",bg="gray",fg="black")
+        self.label_mask['font'] = myFont
+        self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
+        
+        values = [0, 1]
+        txt=["Yes","No"]
+        comnd = [lambda: set_state(self.Frame_mask, 'active'), 
+                lambda: set_state(self.Frame_mask, 'disable')]
+                
+        for (text, value, cmd) in zip(txt,values,comnd):
+            tk.Radiobutton(self.Frame_added,  text=text,  variable=self.mask_var, font=myfont2(),
+             justify='left',value=value,command=cmd).grid(row=0, column=value+1, sticky='w')
+
+        #### Frames with masking inputs
+        self.Frame_mask = ttk.Labelframe(self.SubFrame1, text='Masking Inputs')
+        self.Frame_mask.grid(row=2, column=0, sticky='nsew')
+        
+        self.Frame_mask_common = ttk.Frame(self.Frame_mask)
+        self.Frame_mask_common.grid(row=0, column=0, sticky='nsew', columnspan=4)
+
+        self.Frame_mask_specific = ttk.Frame(self.Frame_mask)
+        self.Frame_mask_specific.grid(row=1, column=0, sticky='nsew', columnspan=4) 
+
+        ##### Type of Masking Radiobutton Input
+        self.label_mask = tk.Label(self.Frame_mask_common,text="Mask Type:",fg="black")
+        self.label_mask['font'] = myFont
+        self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
+
+        masking_type_list = ["Plane","Spherical"]
+        self.entry_mask_type = ttk.Combobox(self.Frame_mask_common,textvariable= self.mask_type, value = masking_type_list)
+        self.entry_mask_type['font'] = myFont
+        self.entry_mask_type.current(0)
+        self.entry_mask_type.grid(row=0, column=1)
+        self.entry_mask_type.config(state='readonly')
+        self.entry_mask_type.bind('<<ComboboxSelected>>', self.show_masking_specific_input)
+        self.show_masking_plane_input(self.Frame_mask_specific, row=0, column=0, columnspan=4)
+
+        ##### Mask Boundary Details
+        self.label_mask = tk.Label(self.Frame_mask_common,text="Boundary Type:",fg="black")
+        self.label_mask['font'] = myFont
+        self.label_mask.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+
+        instr = ["Smooth","Abrupt"]
+        self.entry_mask_boundary = ttk.Combobox(self.Frame_mask_common,textvariable= self.mask_boundary, value = instr)
+        self.entry_mask_boundary['font'] = myFont
+        self.entry_mask_boundary.current(0)
+        self.entry_mask_boundary.grid(row=1, column=1)
+        self.entry_mask_boundary['state'] = 'readonly'
+        self.entry_mask_boundary.bind('<<ComboboxSelected>>', self.set_rsig_state)       
+
+        ##### RSig Details
+        self.label_mask_rsig = tk.Label(self.Frame_mask_common,text="Rsig:",fg="black")
+        self.label_mask_rsig['font'] = myFont
+        self.label_mask_rsig.grid(row=1, column=2, sticky='w', padx=5, pady=5)
+
+        self.entry_mask_rsig = Decimalentry(self.Frame_mask_common,textvariable= self.mask_rsig,width=10, max= 10e100)
+        self.entry_mask_rsig['font'] = myFont
+        self.mask_rsig.set(0.1)
+        self.entry_mask_rsig.grid(row=1, column=3)
+
+        ### Widgets for property frame
         property_frame(self, self.property_frame, myFont, spectra_var= self.spec_var,
                                 ksd_var=self.ksd_var, pop_var=self.popln_var,
-                                output_freq_var=self.output_freq)
+                                output_freq_var=self.output_freq, row=1, column=0)
         
+        ### Widgets for button frame
         Back_Button1 = tk.Button(self.Frame_button1, text="Back",activebackground="#78d6ff",command=lambda:self.back_button())
         Back_Button1['font'] = myFont
         Back_Button1.grid(row=0, column=0, sticky='nsew', padx=10, pady=5)
@@ -1013,9 +1103,98 @@ class LaserDesignPage(View):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew', padx=5, pady=5)
 
+        ### Widgets for job frame
         add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=0)
-        
-      
+
+    def set_rsig_state(self, event):
+        if self.mask_boundary.get() == "Abrupt":
+            self.label_mask_rsig.config(state= 'disabled')
+            self.entry_mask_rsig.config(state= 'disabled')
+        else:
+            self.label_mask_rsig.config(state= 'active')
+            self.entry_mask_rsig.config(state= 'active')
+
+    def show_masking_specific_input(self, event):
+        if self.mask_type.get() == 'Plane':
+            self.show_masking_plane_input(self.Frame_mask_specific, row=0, column=0, columnspan=4)
+        elif self.mask_type.get() == 'Spherical':
+            self.show_masking_sphere_input(self.Frame_mask_specific, row=0, column=0, columnspan=4)
+  
+    def show_masking_plane_input(self, parent, row:int, column:int, columnspan:int):
+        for widget in parent.winfo_children():
+            widget.destroy()
+
+        self.frame_masking_plane = ttk.Frame(parent)
+        self.frame_masking_plane.grid(row=row, column=column, sticky='nsew',columnspan=columnspan)
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        self.frame_axis_option = ttk.Frame(self.frame_masking_plane)
+        self.frame_axis_option.grid(row=0, column=0, sticky='nsew', columnspan=2)
+
+        ##### Axis Details
+        self.label_mask = tk.Label(self.frame_axis_option,text="Axis",fg="black")
+        self.label_mask['font'] = myFont
+        self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
+
+        values1 = {"X": 0, "Y": 1, "Z": 2}
+        for (text, value) in values1.items():
+            tk.Radiobutton(self.frame_axis_option, text=text, variable=self.mask_axis, font= myfont2(),
+             justify='left',value=value).grid(row=0, column=value+1, sticky='w')
+
+        ##### Origin Details
+        self.label_mask = tk.Label(self.frame_masking_plane,text="Origin",fg="black")
+        self.label_mask['font'] = myFont
+        self.label_mask.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+
+        self.entry_mask_origin = Decimalentry(self.frame_masking_plane,textvariable= self.mask_origin, max= 10e100)
+        self.entry_mask_origin['font'] = myFont
+        self.mask_origin.set(0.5)
+        self.entry_mask_origin.grid(row=1, column=1)
+
+    def show_masking_sphere_input(self, parent, row:int, column:int, columnspan:int):
+        for widget in parent.winfo_children():
+            widget.destroy()        
+
+        self.frame_masking_sphere = ttk.Frame(parent)
+        self.frame_masking_sphere.grid(row=row, column=column, sticky='nsew', columnspan=columnspan)
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        self.frame_origin = ttk.Frame(self.frame_masking_sphere)
+        self.frame_origin.grid(row=0, column=0, sticky='nsew', columnspan=4)
+
+        ##### Origin X,Y,Z coordinates
+        self.label_mask = tk.Label(self.frame_origin,text="Origin",fg="black")
+        self.label_mask['font'] = myFont
+        self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
+
+        self.entry_mask_origin_x = ttk.Spinbox(self.frame_origin, width=5, textvariable=self.mask_origin_x, from_=0, to=1, increment=0.01)
+        self.entry_mask_origin_x['font'] = myFont
+        self.entry_mask_origin_x.grid(row=0, column=1, padx=5, pady=5)
+        self.entry_mask_origin_x.set(0.5)        
+        self.entry_mask_origin_x.config(state='readonly')
+
+        self.entry_mask_origin_y = ttk.Spinbox(self.frame_origin, width=5,textvariable=self.mask_origin_y, from_=0, to=1, increment=0.01)
+        self.entry_mask_origin_y['font'] = myFont
+        self.entry_mask_origin_y.set(0.5)
+        self.entry_mask_origin_y.grid(row=0, column=2, padx=5, pady=5)
+
+        self.entry_mask_origin_z = ttk.Spinbox(self.frame_origin, width=5,textvariable=self.mask_origin_z, from_=0, to=1, increment=0.01)
+        self.entry_mask_origin_z['font'] = myFont
+        self.entry_mask_origin_z.set(0.5)
+        self.entry_mask_origin_z.grid(row=0, column=3, padx=5, pady=5)
+       
+        ##### Radius of Mask
+        self.label_mask_radius = tk.Label(self.frame_masking_sphere,text="Radius (in angstrom)",fg="black")
+        self.label_mask_radius['font'] = myFont
+        self.label_mask_radius.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+
+        self.entry_mask_radius = Decimalentry(self.frame_masking_sphere,textvariable= self.mask_radius, width=10,max= 10e100)
+        self.entry_mask_radius['font'] = myFont
+        self.mask_radius.set(0.5)
+        self.entry_mask_radius.grid(row=1, column=1, padx=5, pady=5)
+
     def laser_button(self):
         self.event_generate('<<DesignLaser>>')
    
@@ -1037,6 +1216,23 @@ class LaserDesignPage(View):
             pol = 'z'                
         return pol_list, pol
 
+    def get_mask(self):                        
+        mask_input = {
+            "Type": self.mask_type.get(),            
+            "Boundary": self.mask_boundary.get()
+            }
+            
+        if self.mask_type.get() == 'Plane':
+            mask_input.update({"Axis": self.mask_axis.get(),
+                                "X0"  : self.mask_origin.get()})
+        else:
+            mask_input.update({"Radius" : self.mask_radius.get(),
+                            "Centre":[self.mask_origin_x.get(),self.mask_origin_y.get(),self.mask_origin_z.get()]})
+        if self.mask_boundary.get() == 'Smooth':
+            mask_input.update({"Rsig" : self.mask_rsig.get()})
+        
+        return mask_input
+
     def get_laser_pulse(self):
         from litesoph.utilities.units import as_to_au
         laser_input = {
@@ -1046,8 +1242,7 @@ class LaserDesignPage(View):
         "pol_list": self.get_pol_list(),
         "fwhm" :self.fwhm.get(),
         "frequency" :  self.frequency.get(),
-        "time_step" : self.ts.get(),
-        "number_of_steps": self.ns.get(),
+        "total_time" : self.ts_laser.get(),
         "tin" : self.tin.get()*as_to_au
         
         }
@@ -1108,9 +1303,16 @@ class LaserDesignPage(View):
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
 
     def set_label_msg(self,msg):
-        show_message(self.label_msg, msg) 
+        show_message(self.label_msg, msg)    
 
-   
+def set_state(widget, state):
+    if widget.winfo_children():
+        for child in widget.winfo_children():        
+            if isinstance(child, ttk.Frame):
+                set_state(child, state)
+            else:
+                child.configure(state = state)      
+    
 
 class PlotSpectraPage(ttk.Frame):
 
