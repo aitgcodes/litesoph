@@ -217,8 +217,9 @@ class LaserDesignModel:
         }
     def __init__(self, user_input) -> None:
         self.user_input = user_input
-        range = int(self.user_input['number_of_steps'])* float(self.user_input['time_step'])
-        self.range = range
+        # range = int(self.user_input['number_of_steps'])* float(self.user_input['time_step'])
+        range = self.user_input['total_time']
+        self.range = range*1e3
         self.freq = self.user_input['frequency']
         self.strength = self.user_input['strength']
 
