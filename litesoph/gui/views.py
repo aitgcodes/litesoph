@@ -871,7 +871,7 @@ class TimeDependentPage(View):
         elif engn == 'nwchem':            
             self.update_var(self.nwchem_td_default)
             self.checkbox_ksd.config(state='disabled')
-            self.checkbox_ksd.set(0)
+            self.self._var['ksd'].set(0)
 
 class LaserDesignPage(View):
 
