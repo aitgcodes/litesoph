@@ -53,7 +53,9 @@ gpaw_data = {
                             'out_log' : ' ',
                             'file_name':'mo_pop',
                             'req' : ['gpaw/GS/gs.gpw','gpaw/TD_Delta/wf.ulm'],
-                            'dir': 'mo_population'}
+                            'dir': 'mo_population'},
+'masking': {'dir' : 'masking',
+            'req' : ['gpaw/TD_Laser/dm.out']}
 }
 
 class GpawTask(Task):
@@ -61,7 +63,7 @@ class GpawTask(Task):
     NAME = 'gpaw'
 
     simulation_tasks =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
-    post_processing_tasks = ['spectrum', 'tcm', 'mo_population']
+    post_processing_tasks = ['spectrum', 'tcm', 'mo_population', 'masking']
     implemented_task = simulation_tasks + post_processing_tasks
 
     def __init__(self, project_dir, lsconfig, status, **kwargs) -> None:
@@ -79,11 +81,13 @@ class GpawTask(Task):
     def setup_task(self, param):
         infile_ext = '.py'
         self.task_dir = self.project_dir / 'gpaw' / self.task_data.get('dir')
-        input_filename = self.task_data.get('file_name')
-        self.input_filename = input_filename + infile_ext
+        input_filename = self.task_data.get('file_name', None)
         
-        param['txt_out'] = input_filename + '.out'
-        param['gpw_out'] =  input_filename + '.gpw'
+        if input_filename:
+            self.input_filename = input_filename + infile_ext
+        
+            param['txt_out'] = input_filename + '.out'
+            param['gpw_out'] =  input_filename + '.gpw'
 
         if 'ground_state' in self.task_name:
             param['geometry'] = str(self.project_dir / 'coordinate.xyz')
@@ -121,6 +125,11 @@ class GpawTask(Task):
             self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
             return
 
+        if 'masking' == self.task_name:
+            print(self.task_data.get('req')[0])
+            self.state_mask_dm = False
+            self.energy_coupling_file = self.task_dir / 'energy_coupling.dat'
+
     def write_input(self, template=None):
         if not template:
             template = self.template
@@ -156,7 +165,7 @@ class GpawTask(Task):
         return self.job_script
 
     def prepare_input(self):
-
+        assert self.task_name != 'masking'
         self.create_template()
         self.write_input()
         
@@ -170,6 +179,7 @@ class GpawTask(Task):
 
 
     def run_job_local(self, cmd):
+        assert self.task_name != 'masking'
         self.write_job_script(self.job_script)
         try:
             super().run_job_local(cmd)
@@ -180,7 +190,40 @@ class GpawTask(Task):
                 self.mo_population_diff_file = self.task_dir / 'mo_population_diff.dat'
                 calc_population_diff(homo_index=len(self.occupied_mo), infile=self.mo_populationfile,
                                         outfile=self.mo_population_diff_file)
+    def extract_masked_dm(self):
+        self.create_directory(self.task_dir)
+        self.state_mask_dm = True
+
+    def compute_ecc(self):
+        return 0.0
+
+    def get_energy_coupling_constant(self, **kwargs) -> str:
+        if not self.state_mask_dm:
+            self.extract_masked_dm()
+        head = 'Region     direction       energy_coupling\n'
+        try:
+            with open(self.energy_coupling_file, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            lines = [head]
+
+        region = kwargs.get('region')
+        _ , direction = get_direction(kwargs.get('direction'))
     
+        if lines:
+            for line in lines:
+                if region in line and direction in line:
+                    lines.remove(line)
+        energy_coupling = self.compute_ecc()
+        txt = f"{region}    {direction}     {energy_coupling: .6f}\n"
+        lines.insert(1, txt)
+        lines = ''.join(lines)
+        with open(self.energy_coupling_file, 'w+') as f:
+            f.write(lines)
+
+        return lines
+
+
     def plot(self, **kwargs):
         
         if self.task_name == 'spectrum':
@@ -208,7 +251,11 @@ class GpawTask(Task):
             pop_data = np.loadtxt(self.mo_population_diff_file)
             
             plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (as)')
-    
+
+        elif self.task_name == 'masking':
+            if not self.state_mask_dm:
+                self.extract_masked_dm()
+
     @staticmethod
     def get_engine_network_job_cmd():
 
@@ -220,11 +267,14 @@ class GpawTask(Task):
         return job_script
 
 def get_polarization_direction(status):
-    pol_map = {'0' : 'x', '1' : 'y', '2': 'z'}
     param = status.get_status('gpaw.rt_tddft_delta.param')
-    pol = param['polarization'].index(1)
+    pol = param['polarization']
+    return get_direction(pol)
 
-    return (pol, pol_map[str(pol)])
+def get_direction(direction:list):
+    pol_map = {'0' : 'x', '1' : 'y', '2': 'z'}
+    index = direction.index(1)
+    return index , pol_map[str(index)]
 
 def update_td_input(param):
     if 'laser' in param:
