@@ -568,9 +568,20 @@ class GUIAPP:
     def _on_masking_task(self, *_): 
         task_name = actions.MASKING     
         self._show_frame(v.MaskingPage,self.engine, task_name)
-        self.mo_population_view = self._frames[v.MaskingPage]
-        self.mo_population_view.engine = self.engine
+        self.masking_view = self._frames[v.MaskingPage]
+        self.masking_view.engine = self.engine
+        self.mask_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, user_input={})
+        self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_masking_page_compute(self.masking_view,self.mask_task))
+        self.main_window.bind_all(f'<<Plot{task_name}>>', lambda _:self._on_plot_dm_file(self.masking_view,self.mask_task))
         
+    def _on_masking_page_compute(self,view, task, *_):
+        inp_dict = view.get_parameters()
+        txt = task.get_energy_coupling_constant(**inp_dict)
+        self.view_panel.insert_text(text= txt, state= 'disabled')
+
+    def _on_plot_dm_file(self,view, task, *_):
+        inp_dict = view.get_parameters()
+        task.plot(**inp_dict)
 ##-----------------------------------------------------------------------------------------------------------##
 
     def view_input_file(self, task:Task):
