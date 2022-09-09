@@ -1054,7 +1054,7 @@ class LaserDesignPage(View):
         self.entry_mask_rsig['font'] = myFont
         self.mask_rsig.set(0.1)
         self.entry_mask_rsig.grid(row=1, column=3)
-
+        set_state(self.Frame_mask, 'disable')
         ### Widgets for property frame
         property_frame(self, self.property_frame, myFont, spectra_var= self.spec_var,
                                 ksd_var=self.ksd_var, pop_var=self.popln_var,
