@@ -124,7 +124,8 @@ class OctopusTask(Task):
                              directory=oct_dir, **param)
 
     def write_input(self, template=None):
-        self.octopus.write_input(template)
+        self.template = template
+        self.octopus.write_input(self.template)
         copy_infile = self.project_dir / engine_inp_dir /self.task_data.get('task_inp')
         inp_file = self.project_dir / engine_dir / self.infile
         shutil.copy(inp_file, copy_infile)

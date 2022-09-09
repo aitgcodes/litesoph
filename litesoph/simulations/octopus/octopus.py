@@ -20,9 +20,9 @@ class Octopus:
         self.template = generate_input(self.parameters)
         return self.template
 
-    def write_input(self, template):
-
-        self.template = template
+    def write_input(self, template=None):
+        if template:
+            self.template = template
 
         self.infile_path = self.directory / self.infile
         self.outfile_path = self.directory / self.outfile

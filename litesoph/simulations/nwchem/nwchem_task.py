@@ -136,8 +136,10 @@ class NwchemTask(Task):
             
 
     def write_input(self, template=None):
+        if template:
+            self.template = template
         self.create_directory(self.task_dir)
-        self.nwchem.write_input(template)
+        self.nwchem.write_input(self.template)
 
     def create_template(self):
         self.template = self.nwchem.create_input()

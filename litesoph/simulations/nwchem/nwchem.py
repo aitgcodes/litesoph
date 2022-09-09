@@ -30,7 +30,7 @@ class NWChem:
 
     def write_input(self, template=None):
 
-        if template is not None:
+        if template:
             self.template = template
             
         if self.directory == ".":
