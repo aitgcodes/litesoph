@@ -784,24 +784,18 @@ class GUIAPP:
 
     def _on_out_remote_view_button(self,task, *_):
         
-        log_file = self.directory.parent / task.output_log_file
 
         try:
             exist_status, stdout, stderr = task.net_cmd_out
         except AttributeError:
             return
 
-        # if exist_status != 0:
-        #     return
         print("Checking for job completion..")
         if task.submit_network.check_job_status():
 
-            # if self.network_type == 0:
-            #     messagebox.showinfo(title='Info', message="Job commpleted.")
             print('job Done.')
             self._get_remote_output(task)   
-            log_txt = read_file(log_file)
-            #self.job_sub_page.text_view.clear_text()
+            log_txt = task.get_engine_log()
             self.view_panel.insert_text(log_txt, 'disabled')
 
         else:
@@ -809,7 +803,7 @@ class GUIAPP:
 
             if get:
                 task.submit_network.get_output_log()
-                log_txt = read_file(log_file)
+                log_txt = task.get_engine_log()
                 self.view_panel.insert_text(log_txt, 'disabled')
             else:
                 return                

@@ -2,6 +2,7 @@ from configparser import ConfigParser
 import pathlib
 import re
 import os
+from tabnanny import check
 
 from ..utilities.job_submit import SubmitNetwork
 
@@ -168,8 +169,12 @@ class Task:
         return text
         
     def check_output(self):
+        
         try:
-            exist_status, stdout, stderr = self.local_cmd_out
+            if hasattr(self, 'submit_network'):
+                exist_status, stdout, stderr = self.net_cmd_out
+            else:
+                exist_status, stdout, stderr = self.local_cmd_out
         except AttributeError:
             raise TaskFailed("Job not completed.")
         else:

@@ -82,7 +82,11 @@ class GpawTask(Task):
         infile_ext = '.py'
         self.task_dir = self.project_dir / 'gpaw' / self.task_data.get('dir')
         input_filename = self.task_data.get('file_name', None)
-        
+        self.network_done_file = self.task_dir / 'Done'
+
+        if self.task_name in self.simulation_tasks:
+            self.engine_log = self.project_dir / self.task_data.get('out_log')
+            
         if input_filename:
             self.input_filename = input_filename + infile_ext
         
@@ -149,7 +153,7 @@ class GpawTask(Task):
 
         python_path = self.lsconfig['programs'].get('python', 'python3')
         job_script = super().create_job_script()
-
+        self.engine_log = self.project_dir / self.task_data.get('out_log')
         engine_cmd = ' ' + str(self.input_filename)
  
         if remote_path:
