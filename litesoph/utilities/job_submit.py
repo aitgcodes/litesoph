@@ -84,7 +84,7 @@ class SubmitNetwork:
     def upload_files(self):
         """uploads entire project directory to remote path"""
 
-        include = ['*/','*.xyz', '*.sh', f'{self.task.task_dir.parent.name}/**']
+        include = ['*/','*.xyz', '*.sh', f'{self.task.NAME}/**']
         (error, message) = rsync_upload_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
                                                 source_dir=str(self.project_dir), dst_dir=str(self.remote_path),
                                                 include=include, exclude='*')
