@@ -55,7 +55,7 @@ gpaw_data = {
                             'req' : ['gpaw/GS/gs.gpw','gpaw/TD_Delta/wf.ulm'],
                             'dir': 'mo_population'},
 'masking': {'dir' : 'masking',
-            'req' : ['gpaw/TD_Laser/dm.out']}
+            'req' : ['gpaw/TD_Laser/dm.dat']}
 }
 
 class GpawTask(Task):
@@ -126,9 +126,11 @@ class GpawTask(Task):
             return
 
         if 'masking' == self.task_name:
-            print(self.task_data.get('req')[0])
+            
+            self.sim_total_dm = self.project_dir / self.task_data.get('req')[0]
             self.state_mask_dm = False
-            self.energy_coupling_file = self.task_dir / 'energy_coupling.dat'
+            from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
+            self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
 
     def write_input(self, template=None):
         if not template:
@@ -193,39 +195,19 @@ class GpawTask(Task):
     def extract_masked_dm(self):
         self.create_directory(self.task_dir)
         self.state_mask_dm = True
+        self.masked_dm_analysis.extract_dipolemoment_data()
 
-    def compute_ecc(self):
-        return 0.0
 
     def get_energy_coupling_constant(self, **kwargs) -> str:
         if not self.state_mask_dm:
             self.extract_masked_dm()
-        head = 'Region     direction       energy_coupling\n'
-        try:
-            with open(self.energy_coupling_file, 'r') as f:
-                lines = f.readlines()
-        except FileNotFoundError:
-            lines = [head]
-
         region = kwargs.get('region')
-        _ , direction = get_direction(kwargs.get('direction'))
-    
-        if lines:
-            for line in lines:
-                if region in line and direction in line:
-                    lines.remove(line)
-        energy_coupling = self.compute_ecc()
-        txt = f"{region}    {direction}     {energy_coupling: .6f}\n"
-        lines.insert(1, txt)
-        lines = ''.join(lines)
-        with open(self.energy_coupling_file, 'w+') as f:
-            f.write(lines)
-
-        return lines
+        axis = kwargs.get('direction')
+        return self.masked_dm_analysis.get_energy_coupling(region, axis)
 
 
     def plot(self, **kwargs):
-        
+        print(kwargs)
         if self.task_name == 'spectrum':
             img = self.spec_file.with_suffix('.png')
             plot_spectrum(str(self.spec_file),str(img),0, self.pol[0]+1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
@@ -255,7 +237,12 @@ class GpawTask(Task):
         elif self.task_name == 'masking':
             if not self.state_mask_dm:
                 self.extract_masked_dm()
-
+            region = kwargs.get('region')
+            axis = kwargs.get('direction')
+            envelope = kwargs.get('envelope', False)
+            plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
+            plt.show()
+            
     @staticmethod
     def get_engine_network_job_cmd():
 
