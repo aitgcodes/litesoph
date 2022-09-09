@@ -1836,7 +1836,7 @@ class MaskingPage(View):
         self.axis_var = tk.IntVar(value=0)
         self.region_var = tk.IntVar(value=0)
         self.plot_region = tk.StringVar()
-        self.envelope_var = tk.IntVar()
+        self.envelope_var = tk.IntVar(value=0)
 
         self.Frame_dm = ttk.Frame(self.SubFrame1)
         self.Frame_dm.grid(row=0, column=0, sticky='nsew')
@@ -1915,7 +1915,7 @@ class MaskingPage(View):
         mask = {
             'region': self.plot_region.get(),
             'direction': direction,
-            'envolpe': True if self.envelope_var.get() == 1 else False
+            'envelope': True if self.envelope_var.get() == 1 else False
         }
         return mask
 
