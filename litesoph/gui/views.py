@@ -87,83 +87,40 @@ class StartPage(ttk.Frame):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         
-       
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-
+        mainframe = ttk.Frame(self)
+        mainframe.pack(fill=tk.BOTH)
         
-
-        mainframe = ttk.Frame(self,padding="12 12 24 24")
-        #mainframe = ttk.Frame(self)
-        mainframe.grid(column=1, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        mainframe.columnconfigure(0, weight=1)
-        mainframe.rowconfigure(0, weight=1)
-
-        frame =ttk.Frame(self, relief=tk.SUNKEN, padding="6 6 0 24")
-        #frame =ttk.Frame(self)
-        frame.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-        frame.grid_rowconfigure(0, weight=1)
-        frame.grid_columnconfigure(0, weight=1)
-        
-        myFont = font.Font(family='Helvetica', size=15, weight='bold')
-        j= font.Font(family ='Courier', size=20,weight='bold')
-        k= font.Font(family ='Courier', size=40,weight='bold')
-        l= font.Font(family ='Courier', size=10,weight='bold')
+        button_frame = ttk.Frame(self)
+        button_frame.pack(fill=tk.BOTH)
+        myFont = font.Font(family='Helvetica', size=25, weight='bold')
+        l= font.Font(family ='Courier', size=15,weight='bold')
         
         gui_style = ttk.Style()
         gui_style.configure('TButton', foreground='black',background='gainsboro',font=('Helvetica', 20))
 
-        #parent.configure(bg="grey60")
-
-        # create a canvas to show project list icon
-        canvas_for_project_list_icon=tk.Canvas(frame, bg='gray', height=400, width=400, borderwidth=0, highlightthickness=0)
-        canvas_for_project_list_icon.grid(column=1, row=1, sticky=(tk.W, tk.E) ,columnspan=8,rowspan=8)
-        #canvas_for_project_list_icon.place(x=5,y=5)
-
-        #image_project_list = Image.open('images/project_list.png')
-        #canvas_for_project_list_icon.image = ImageTk.PhotoImage(image_project_list.resize((100,100), Image.ANTIALIAS))
-        #canvas_for_project_list_icon.create_image(0,0, image=canvas_for_project_list_icon.image, anchor='nw')
-        
-        #frame_1_label_1 = Label(frame,text="Manage Job(s)", fg="blue")
-        #frame_1_label_1['font'] = myFont
-        #frame_1_label_1.grid(row=10, column=2, sticky=(W, E) ,columnspan=3,rowspan=2)
-
-        #label_1 = Label(mainframe,text="Welcome to LITESOPH", bg='#0052cc',fg='#ffffff')
-        label_1 = tk.Label(mainframe,text="Welcome to LITESOPH",fg='blue')
-        label_1['font'] = myFont
-        #label_1.grid(row=0,column=1,sticky=(E,S))
-        label_1.place(x=200,y=50)
-        
-        label_2 = tk.Label(mainframe,text="Layer Integrated Toolkit and Engine for Simulations of Photo-induced Phenomena",fg='blue')
-        label_2['font'] = l
-        label_2.grid(row=1,column=1)
-        #label_2.place(x=200,y=100)
-
         # create a canvas to show image on
-        canvas_for_image = tk.Canvas(mainframe, bg='gray', height=125, width=125, borderwidth=0, highlightthickness=0)
-        #canvas_for_image.grid(row=30,column=0, sticky='nesw', padx=0, pady=0)
-        canvas_for_image.place(x=30,y=5)
+        canvas_for_image = tk.Canvas(mainframe, bg='gray', height=200, width=200, borderwidth=0, highlightthickness=0)
+        canvas_for_image.pack(side=tk.LEFT,  anchor='nw', padx=15, pady=50)
 
         image = Image.open(images.LITESOPH_LOGO_BIG)
-        canvas_for_image.image = ImageTk.PhotoImage(image.resize((125, 125), Image.ANTIALIAS))
+        canvas_for_image.image = ImageTk.PhotoImage(image.resize((200, 200), Image.ANTIALIAS))
         canvas_for_image.create_image(0,0,image=canvas_for_image.image, anchor='nw')
 
-        # create a canvas to show project list icon
-        canvas_for_project_create=tk.Canvas(mainframe, bg='gray', height=50, width=50, borderwidth=0, highlightthickness=0)
-        canvas_for_project_create.place(x=20,y=200)
+        welcome_label = tk.Label(mainframe,text="Welcome to LITESOPH",fg='blue')
+        welcome_label['font'] = myFont
+        welcome_label.pack(side=tk.TOP,padx=(10,50), pady=(100, 150), anchor='nw')
 
-        image_project_create = Image.open(images.PROJECT_CREATE_ICON)
-        canvas_for_project_create.image = ImageTk.PhotoImage(image_project_create.resize((50,50), Image.ANTIALIAS))
-        canvas_for_project_create.create_image(0,0, image=canvas_for_project_create.image, anchor='nw')
+        explain_label = tk.Label(button_frame,text="Layer Integrated Toolkit \n and Engine for Simulations of Photo-induced Phenomena",fg='blue')
+        explain_label['font'] = l
+        explain_label.pack(side=tk.TOP, padx=100, pady=(100,20))
 
-        button_create_project = tk.Button(mainframe,text="Start LITESOPH Project", activebackground="#78d6ff",command=lambda: self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        button_create_project['font'] = myFont
-        button_create_project.place(x=80,y=200)
+        button_create_project = tk.Button(button_frame,text="Start LITESOPH Project", activebackground="#78d6ff",  width= 30, command=lambda: self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        button_create_project['font'] = l
+        button_create_project.pack(side=tk.TOP)
 
-        #button_open_project = Button(mainframe,text="About LITESOPH",fg="white")
-        button_open_project = tk.Button(mainframe,text="About LITESOPH")
-        button_open_project['font'] = myFont
-        button_open_project.place(x=80,y=300)
+        button_open_project = tk.Button(button_frame,text="About LITESOPH", width= 30)
+        button_open_project['font'] = l
+        button_open_project.pack(side=tk.TOP)
 
 class WorkManagerPage(ttk.Frame):
 

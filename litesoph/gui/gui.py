@@ -80,7 +80,7 @@ class GUIAPP:
         
         self._show_page_events()
         self._bind_event_callbacks()
-        self._show_frame(v.WorkManagerPage)
+        self._show_frame(v.StartPage)
         self.main_window.after(1000, self.update_project_dir_tree)
 
     def run(self):
