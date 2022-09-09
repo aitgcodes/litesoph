@@ -78,7 +78,6 @@ class Task:
         self.project_dir = project_dir
         self.task = None
         self.filename = None
-        self.template = None
         self.input_data_files = []
         self.output_data_file = []
         self.task_state = None

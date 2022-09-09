@@ -137,10 +137,10 @@ class GpawTask(Task):
             self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
 
     def write_input(self, template=None):
-        if not template:
-            template = self.template
+        if template:
+            self.template = template
         self.create_directory(self.task_dir)
-        write2file(self.task_dir,self.input_filename,template)
+        write2file(self.task_dir,self.input_filename,self.template)
 
     def create_template(self):
         self.template = gpaw_create_input(**self.user_input)
