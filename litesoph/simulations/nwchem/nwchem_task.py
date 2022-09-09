@@ -103,6 +103,7 @@ class NwchemTask(Task):
         self.task_dir = self.project_dir / 'nwchem' / self.task_data.get('dir')
         label = str(self.project_dir.name)
         file_name = self.task_data.get('file_name')
+        self.network_done_file = self.task_dir / 'Done'
         
         if self.task_name in self.post_processing_tasks:
             completed_task = self.status.get_status('nwchem').keys()
@@ -112,7 +113,7 @@ class NwchemTask(Task):
                 td_out = nwchem_data['rt_tddft_delta'].get('out_log')
 
             self.outfile = self.project_dir / td_out 
-            
+            self.engine_log = self.task_dir / self.outfile
 
             self.nwchem = NWChem(outfile=str(self.outfile), 
                             label=label, directory=self.task_dir)
@@ -129,8 +130,10 @@ class NwchemTask(Task):
         file_name = self.task_data.get('file_name')
         self.infile = file_name + infile_ext
         self.outfile = file_name + outfile_ext
+        self.engine_log = self.task_dir / self.outfile
         self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
                             label=label, directory=self.task_dir, **param)
+            
 
     def write_input(self, template=None):
         self.create_directory(self.task_dir)

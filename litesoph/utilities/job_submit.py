@@ -103,9 +103,8 @@ class SubmitNetwork:
 
     def get_output_log(self):
         """Downloads engine log file for that particular task."""
-        remote_path = pathlib.Path(self.remote_path) / self.task.output_log_file
-        local_path = self.project_dir.parent / self.task.output_log_file
-        self.network_sub.download_files(str(remote_path), str(local_path))
+        rpath = pathlib.Path(self.remote_path) / self.task.engine_log.relative_to(self.project_dir.parent)
+        self.network_sub.download_files(str(rpath), str(self.task.engine_log))
 
 
     def run_job(self, cmd):
@@ -128,8 +127,8 @@ class SubmitNetwork:
     
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
-        remote_path = pathlib.Path(self.remote_path) / self.task.filename.parent / 'Done'
-        return self.network_sub.check_file(str(remote_path))
+        rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+        return self.network_sub.check_file(str(rpath))
 
 class NetworkJobSubmission:
     """This class contain methods connect to remote cluster through ssh and perform common

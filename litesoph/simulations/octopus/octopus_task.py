@@ -83,7 +83,8 @@ class OctopusTask(Task):
     def create_engine(self, param):
         """ Creates Octopus class object """
         oct_dir = self.project_dir / engine_dir
-
+        self.network_done_file = self.project_dir / engine_dir / 'Done'
+        self.engine_log = self.project_dir / self.task_data.get('out_log')
         if self.task_name in self.added_post_processing_tasks:
             self.task_dir = self.project_dir/engine_dir/self.task_data.get('dir')
             self.create_directory(self.task_dir)
@@ -97,7 +98,7 @@ class OctopusTask(Task):
             infile = self.task_data.get('inp')
             outfile = self.task_data.get('out_log')
             # self.infile = Path(infile).name
-        
+            
             # self.infile = Path(infile).relative_to(engine_dir)
             self.infile = 'inp'
             self.outfile = Path(outfile).relative_to(engine_dir)
@@ -134,7 +135,7 @@ class OctopusTask(Task):
     def create_job_script(self, np=1, remote_path=None) -> list:
         
         job_script = super().create_job_script()
-
+        
         ofilename = Path(self.task_data['out_log']).relative_to('octopus')
        
         def create_default_job_script(cmd:str=None):
