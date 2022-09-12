@@ -5,7 +5,7 @@ from litesoph.utilities.plot_spectrum import plot_multiple_column, plot_spectrum
 from litesoph.lsio.IO import write2file
 from pathlib import Path
 import numpy as np
-from litesoph.utilities.units import autime_to_eV, au_to_fs
+from litesoph.utilities.units import autime_to_eV, au_to_as
 
 gpaw_data = {
 'ground_state' : {'inp':'gpaw/GS/gs.py',
@@ -272,7 +272,7 @@ def update_td_input(param):
         sigma = param['laser'].get('sigma')
         time0 = param['laser'].get('time0')
         param['laser']['sigma'] = round(autime_to_eV/sigma, 2)
-        param['laser']['time0'] = round(time0 * au_to_fs, 2)
+        param['laser']['time0'] = round(time0 * au_to_as, 2)
     else:
         param['absorption_kick'] = [ p * param['strength'] for p in param['polarization']]
     
