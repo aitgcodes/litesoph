@@ -11,7 +11,7 @@ python_requires = '>=3.7'
 requirements = [
     'click>=8.0.3',
     'matplotlib','numpy','ase',
-    'paramiko', 'scp', 'pexpect'
+    'paramiko', 'scp', 'pexpect','pygubu'
 ]
 
 setup_requirements = []
@@ -31,7 +31,7 @@ setup(name = 'litesoph',
     },
     install_requires=requirements,
     packages=find_packages(),
-    package_data={'litesoph.gui.images':['*.png','*.jpg','*.xbm']},
+    package_data={'litesoph.gui.images':['*.png','*.jpg','*.xbm'], 'litesoph.gui':['*.ui']},
     setup_requires=setup_requirements,
     
 )

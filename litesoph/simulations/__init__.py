@@ -1,7 +1,6 @@
-from litesoph.simulations.esmd import Task
-from litesoph.simulations.gpaw import gpaw_template as gp
-from litesoph.simulations.nwchem import nwchem_template as nw
-from litesoph.simulations.octopus import octopus_template as ot
+from litesoph.simulations.gpaw.gpaw_task import GpawTask
+from litesoph.simulations.nwchem.nwchem_task import NwchemTask
+from litesoph.simulations.octopus.octopus_task import OctopusTask
 from litesoph.simulations import gpaw as g
 from litesoph.simulations import nwchem as n
 from litesoph.simulations import octopus as o
@@ -9,41 +8,51 @@ from litesoph.simulations import octopus as o
 
 task_dict = {
     'gpaw' : {
-        'ground_state' : [gp.GpawGroundState, g.pre_condition_ground_state],
-        'rt_tddft_delta' : [gp.GpawRTLCAOTddftDelta, g.pre_condition_rt_tddft_delta],
-        'rt_tddft_laser' : [gp.GpawRTLCAOTddftLaser,g.pre_condition_rt_tddft_laser],
-        'spectrum' : [gp.GpawSpectrum,g.pre_condition_spectrum],
-        'tcm' : [gp.GpawCalTCM,g.pre_condition_tcm]
+        'ground_state' : [g.pre_condition_ground_state],
+        'rt_tddft_delta' : [g.pre_condition_rt_tddft_delta],
+        'rt_tddft_laser' : [g.pre_condition_rt_tddft_laser],
+        'spectrum' : [g.pre_condition_spectrum],
+        'tcm' : [g.pre_condition_tcm]
     },
 
     'nwchem' : {
-        'ground_state' : [nw.NwchemGroundState, n.pre_condition_ground_state],
-        'rt_tddft_delta' : [nw.NwchemDeltaKick,n.pre_condition_rt_tddft_delta],
-        'rt_tddft_laser' :[ nw.NwchemGaussianPulse,n.pre_condition_rt_tddft_laser],
-        'spectrum' : [nw.NwchemSpectrum,n.pre_condition_spectrum],
-        'tcm' : [None, n.pre_condition_tcm]
+        'ground_state' : [n.pre_condition_ground_state],
+        'rt_tddft_delta' : [n.pre_condition_rt_tddft_delta],
+        'rt_tddft_laser' :[n.pre_condition_rt_tddft_laser],
+        'spectrum' : [n.pre_condition_spectrum],
+        'tcm' : [n.pre_condition_tcm],
+        'mo_population' : [n.pre_condition_spectrum]
     },
 
     'octopus' : {
-        'ground_state' : [ot.OctGroundState, o.pre_condition_ground_state],
-        'rt_tddft_delta' : [ot.OctTimedependentState, o.pre_condition_rt_tddft_delta],
-        'rt_tddft_laser' : [ot.OctTimedependentLaser, o.pre_condition_rt_tddft_laser],
-        'spectrum' : [ot.OctSpectrum, o.pre_condition_spectrum],
-        'tcm' : [ot.OctKSD, o.pre_condition_tcm]
+        'ground_state' : [o.pre_condition_ground_state],
+        'rt_tddft_delta' : [o.pre_condition_rt_tddft_delta],
+        'rt_tddft_laser' : [o.pre_condition_rt_tddft_laser],
+        'spectrum' : [o.pre_condition_spectrum],
+        'tcm' : [o.pre_condition_tcm]
 
     }
 }
 
-def get_engine_task(engine: str, task: str, status, directory, lsconfig, user_input) -> Task:
+class TaskManager:
 
-    try:
-        task  = task_dict[engine][task][0](status, directory, lsconfig, user_input)
-    except KeyError:
-        raise Exception("Task not implemented")
+    def __init__(self) -> None:
+        self.tasks = []
 
-    return task
+    def get_task(self, engine: str, task: str, status, directory, lsconfig, user_input):
+        user_input['task'] = task
+        if engine == 'nwchem':
+            task = NwchemTask(directory, lsconfig, status, **user_input)
+        elif engine == 'octopus':
+            task = OctopusTask(directory, lsconfig, status, **user_input)
+        elif engine == 'gpaw':
+            task = GpawTask(directory, lsconfig, status, **user_input)
 
+        self.tasks.append(task)
+        return task
 
-def check_task_pre_conditon(engine, task, status):
+    def check_status(self, engine, task, status):
 
-    return  task_dict[engine][task][1](status)
+        return  task_dict[engine][task][0](status)
+
+    

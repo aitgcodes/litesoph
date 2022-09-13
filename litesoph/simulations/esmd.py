@@ -1,18 +1,65 @@
 from configparser import ConfigParser
 import pathlib
 import re
+import os
+from tabnanny import check
 
-from litesoph.simulations.engine import EngineStrategy,EngineGpaw,EngineNwchem,EngineOctopus
+from ..utilities.job_submit import SubmitNetwork
 
-def get_engine_obj(engine, *args, **kwargs)-> EngineStrategy:
-    """ It takes engine name and returns coresponding EngineStrategy class"""
+GROUND_STATE = 'ground_state'
+RT_TDDFT_DELTA = 'rt_tddft_delta'
+RT_TDDFT_LASER = 'rt_tddft_laser'
+SPECTRUM = 'spectrum'
+TCM = 'tcm'
+MO_POPULATION_CORRELATION = 'mo_population'
+MASKING = 'masking'
 
-    if engine == 'gpaw':
-        return EngineGpaw(*args, **kwargs)
-    elif engine == 'octopus':
-        return  EngineOctopus(*args, **kwargs)
-    elif engine == 'nwchem':
-        return EngineNwchem(*args, **kwargs)
+class TaskError(RuntimeError):
+    """Base class of error types related to any TASK."""
+
+
+class TaskSetupError(TaskError):
+    """Calculation cannot be performed with the given parameters.
+
+    Typically raised before a calculation."""
+
+
+
+class InputError(TaskSetupError):
+    """Raised if inputs given to the calculator were incorrect.
+
+    Bad input keywords or values, or missing pseudopotentials.
+
+    This may be raised before or during calculation, depending on
+    when the problem is detected."""
+
+
+class TaskFailed(TaskError):
+    """Calculation failed unexpectedly.
+
+    Reasons to raise this error are:
+      * Calculation did not converge
+      * Calculation ran out of memory
+      * Segmentation fault or other abnormal termination
+      * Arithmetic trouble (singular matrices, NaN, ...)
+
+    Typically raised during calculation."""
+
+
+class ReadError(TaskError):
+    """Unexpected irrecoverable error while reading calculation results."""
+
+
+class TaskNotImplementedError(NotImplementedError):
+    """Raised if a calculator does not implement the requested property."""
+
+
+class PropertyNotPresent(TaskError):
+    """Requested property is missing.
+
+    Maybe it was never calculated, or for some reason was not extracted
+    with the rest of the results, without being a fatal ReadError."""
+
 
 class Task:
 
@@ -23,52 +70,44 @@ class Task:
     remote_job_script_last_line = "touch Done"
 
 
-    def __init__(self, engine_name, status, project_dir:pathlib.Path, lsconfig:ConfigParser) -> None:
+    def __init__(self, engine_name, status, project_dir, lsconfig) -> None:
         
         self.status = status
         self.lsconfig = lsconfig
        
         self.project_dir = project_dir
-        self.task_dir = None
         self.task = None
         self.filename = None
-        self.template = None
         self.input_data_files = []
         self.output_data_file = []
         self.task_state = None
 
         self.engine_name = engine_name
-        self.engine = get_engine_obj(self.engine_name, project_dir = self.project_dir, lsconfig = self.lsconfig, status=self.status)
-        self.prepend_project_name()
-
-    def prepend_project_name(self):
-
-        self.filename = pathlib.Path(f"{self.project_dir.name}/{self.task_data['inp']}")
-        for item in self.task_data['req']:
-            item = pathlib.Path(self.project_dir.name) / item
-            self.input_data_files.append(item)
-        try:
-            self.output_log_file =   pathlib.Path(f"{self.project_dir.name}/{self.task_data['out_log']}")
-        except KeyError:
-            pass
+        self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+        self.python_path = self.lsconfig['programs'].get('python', 'python')
         
     def create_template(self):
         ...
-       
+    
+    def reset_lsconfig(self, lsconfig):
+        self.engine_path = lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+
+    @staticmethod
+    def create_directory(directory):
+        absdir = os.path.abspath(directory)
+        if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
+            os.makedirs(directory)
+
     def write_input(self, template=None):
-        
-        if template:
-            self.template = template
-        if not self.task_dir:
-            self.create_task_dir()
-        if not self.template:
-            msg = 'Template not given or created'
-            raise Exception(msg)
-        self.engine.create_script(self.task_dir, self.template, self.filename.name)
+        ...        
 
     def check_prerequisite(self, network=False) -> bool:
         """ checks if the input files and required data files for the present task are present"""
-        
+        return
         inupt_file = self.project_dir.parent / self.filename
         
         if not pathlib.Path(inupt_file).exists():
@@ -78,7 +117,7 @@ class Task:
 
         if network:
             if not  self.bash_file.exists():
-                msg = f"job_script:{ self.bash_file} not found."
+                msg = f"job_script:{self.bash_file} not found."
                 raise FileNotFoundError(msg)
             #self.bash_filename =  self.bash_file.relative_to(self.project_dir.parent)
             return
@@ -105,17 +144,12 @@ class Task:
         with open(self.bash_file, 'w+') as f:
             f.write(self.job_script)
 
-    def create_task_dir(self):
-        self.task_dir = self.engine.create_dir(self.project_dir, type(self).__name__)
-
-    def replacetext(filename, search_text,replace_text):
-
-        with open(filename,'r+') as f:
-            file = f.read()
-            file = re.sub(search_text, replace_text, file)
-            f.seek(0)
-            f.write(file)
-            f.truncate()
+    def add_proper_path(self, path):
+        """this adds in the proper path to the data file required for the job"""
+        
+        if str(self.project_dir.parent) in self.template:
+            text = re.sub(str(self.project_dir.parent), str(path), self.template)
+        self.write_input(text)
 
     def set_submit_local(self, *args):
         from litesoph.utilities.job_submit import SubmitLocal
@@ -123,9 +157,66 @@ class Task:
 
     def run_job_local(self,cmd):
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.prepare_input()
         self.sumbit_local.run_job(cmd)
+
+    def connect_to_network(self, *args, **kwargs):
+        self.submit_network = SubmitNetwork(self, *args, **kwargs)
+    
+    def read_log(self, file):
+        with open(file , 'r') as f:
+            text = f.read()      
+        return text
         
+    def check_output(self):
+        
+        try:
+            if hasattr(self, 'submit_network'):
+                exist_status, stdout, stderr = self.net_cmd_out
+            else:
+                exist_status, stdout, stderr = self.local_cmd_out
+        except AttributeError:
+            raise TaskFailed("Job not completed.")
+        else:
+            return True
+
+def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
+                        mpi_path: str = None,
+                        remote : bool = False,
+                        scheduler_block : str = None,
+                        module_load_block : str = None,
+                        extra_block : str = None) -> str:
+    job_script_first_line = "#!/bin/bash"
+    remote_job_script_last_line = "touch Done"
+    
+    job_script = [job_script_first_line]
+    
+    if remote:
+        if scheduler_block:
+            job_script.append(scheduler_block)
+        if module_load_block:
+            job_script.append(module_load_block)
+
+    if cd_path:
+        job_script.append(f'cd {cd_path}')
+    
+    if engine_cmd:
+        if np > 1:
+            if not mpi_path:
+                mpi_path = 'mpirun'
+            job_script.append(f'{mpi_path} -np {np:d} {engine_cmd}')
+        else:
+            job_script.append(engine_cmd)
+
+    if extra_block:
+        job_script.append(extra_block)
+
+    if remote:
+        job_script.append(remote_job_script_last_line)
+
+    job_script = '\n'.join(job_script)
+    return job_script
+
+
 def pbs_job_script(name):
 
     head_job_script = f"""
