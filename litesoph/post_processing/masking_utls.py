@@ -7,6 +7,7 @@ from scipy.signal import hilbert
 from scipy.constants import e,h
 from math import pi
 import numpy, scipy.optimize
+from litesoph.post_processing.fourier import Fourier 
 
 
 def fit_sin(time, envelope):
@@ -30,6 +31,34 @@ def fit_sin(time, envelope):
     fitfunc = lambda t: A * numpy.sin(w*t + p) + c
     
     return time_period_for_envelope
+
+def timeperiod_by_fourier_transform(input_envelope_data, time_window, directionaxis:int, timeaxis=0):
+        """ function to calculate timeperiod thorough fourier transformation """
+
+        total_timestep=len(input_envelope_data) 
+
+        time = input_envelope_data[:,timeaxis] 
+        signal_func = input_envelope_data[:,directionaxis] 
+        signal_func=signal_func-np.mean(signal_func)
+
+        delt = time[1]-time[0]
+
+        fourier_func=Fourier(total_timestep,delt,time_window)
+        fourier_transformed  = fourier_func.transform(signal_func[:])
+        freq =(fourier_transformed[0])
+        signal_transformed   =np.abs(fourier_transformed[1])
+
+        freq = freq[range(int(len(freq)/2))]
+        signal_transformed = signal_transformed[range(int(len(signal_transformed)/2))]
+
+        signal_transformed_max=max(signal_transformed)
+        freq_max_pos=np.where(signal_transformed == signal_transformed_max)
+        freq_max=float(freq[freq_max_pos]) 
+        fourier_timeperiod= (1/freq_max) if freq_max !=0 else print("No freq found, try some other method")
+        time_period_for_envelope= 2*fourier_timeperiod
+ 
+        return time_period_for_envelope
+
 
 def get_direction(direction:list):
     pol_map = {'0' : 'x', '1' : 'y', '2': 'z'}
@@ -68,29 +97,34 @@ class MaskedDipoleAnaylsis:
             return self.unmasked_dm_file
         elif region == 'total':
             return self.total_dm_file
-        
-    def cal_energy_coupling_constant(self,region:str, axis:list, timeperiodmethod= fit_sin):
+
+
+    def cal_energy_coupling_constant(self, region:str, axis:list,timeperiodmethod= timeperiod_by_fourier_transform, time_window=100):
         
         datafile = self.get_region_dm_file(region)
         index, pol = get_direction(axis)
         envelope_file = self.task_dir / f'envelope_{region.lower()}_dm_{pol}.dat'
-        dat=np.loadtxt(str(datafile))  
-        t=dat[:,0]  
-        signal=dat[:,index + 1]  
+        dat=np.loadtxt(str(datafile), comments='#')  
+        total_time_steps=len(dat) 
+        time= dat[:,0] 
+        signal_func = dat[:,index+1] 
+        delt = time[1]-time[0]
+        fourier_func=Fourier(total_time_steps,delt,time_window)
+        envelope_amp  = fourier_func.envelope(signal_func[:])
+        amplitude_envelope=envelope_amp[0]
 
-        analytic_signal = hilbert(signal)
-        amplitude_envelope = np.abs(analytic_signal)  
-        envelope_data=np.stack((t, amplitude_envelope), axis=-1) 
+        envelope_data=np.stack((time, amplitude_envelope), axis=-1) 
         np.savetxt(str(envelope_file), envelope_data)
 
-        timeperiod = timeperiodmethod(t, amplitude_envelope)
-        
+        timeperiod = timeperiodmethod(envelope_data, time_window,1)
+
         sec_to_fs= 10**(-15)
 
         coupling_constant_in_eV= h/(timeperiod*sec_to_fs*e)
 
         return coupling_constant_in_eV
-
+        
+    
     def get_energy_coupling(self, region:str, axis:str):
         energy_coupling = self.cal_energy_coupling_constant(region, axis)
         _ , pol = get_direction(axis)
