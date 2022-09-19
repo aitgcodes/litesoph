@@ -211,7 +211,6 @@ class GpawTask(Task):
 
 
     def plot(self, **kwargs):
-        print(kwargs)
         if self.task_name == 'spectrum':
             img = self.spec_file.with_suffix('.png')
             plot_spectrum(str(self.spec_file),str(img),0, self.pol[0]+1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
