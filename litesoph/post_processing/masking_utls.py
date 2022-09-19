@@ -8,13 +8,28 @@ from scipy.constants import e,h
 from math import pi
 import numpy, scipy.optimize
 from litesoph.post_processing.fourier import Fourier 
+from scipy.signal import find_peaks
 
 
-def fit_sin(time, envelope):
 
-    '''Fit sin to the input time sequence, and return  "period" '''
-    time = numpy.array(time)
-    envelope = numpy.array(envelope)
+def timeperiod_by_maxima(input_envelope_data,directionaxis:int,timeaxis=0):
+    """ function to calculate timeperiod thorough maxima method"""
+
+    time = input_envelope_data[:,timeaxis] 
+    envelope = input_envelope_data[:,directionaxis] 
+
+    peaks, _ = find_peaks(envelope, prominence=1) 
+    time_at_peaks= np.take(time, peaks, 0)
+    timeperiod= np.diff(time_at_peaks).mean() if len(time_at_peaks) !=0 else print("No timeperiod found, try some other method")
+        
+    return timeperiod
+
+def timeperiod_by_fit_sin(input_envelope_data, directionaxis:int, timeaxis=0):
+
+    '''Fit sin to the input time sequence, and return  "time period" '''
+    time = input_envelope_data[:,timeaxis] 
+    envelope = input_envelope_data[:,directionaxis] 
+
     ff = numpy.fft.fftfreq(len(time), (time[1]-time[0]))   
     Fyy = abs(numpy.fft.fft(envelope))
     guess_freq = abs(ff[numpy.argmax(Fyy[1:])+1])  
@@ -99,7 +114,7 @@ class MaskedDipoleAnaylsis:
             return self.total_dm_file
 
 
-    def cal_energy_coupling_constant(self, region:str, axis:list,timeperiodmethod= timeperiod_by_fourier_transform, time_window=100):
+    def cal_energy_coupling_constant(self, region:str, axis:list,timeperiodmethod="fourier_method", time_window=100):
         
         datafile = self.get_region_dm_file(region)
         index, pol = get_direction(axis)
@@ -116,10 +131,16 @@ class MaskedDipoleAnaylsis:
         envelope_data=np.stack((time, amplitude_envelope), axis=-1) 
         np.savetxt(str(envelope_file), envelope_data)
 
-        timeperiod = timeperiodmethod(envelope_data, time_window,1)
+        if timeperiodmethod=="fourier_method":
+           timeperiod = timeperiod_by_fourier_transform(envelope_data, time_window,1)
+        
+        elif timeperiodmethod=="Sine_method":
+             timeperiod=timeperiod_by_fit_sin(envelope_data, 1)
+        
+        elif timeperiodmethod =="maxima_method":
+             timeperiod=timeperiod_by_maxima(envelope_data, 1)
 
         sec_to_fs= 10**(-15)
-
         coupling_constant_in_eV= h/(timeperiod*sec_to_fs*e)
 
         return coupling_constant_in_eV
