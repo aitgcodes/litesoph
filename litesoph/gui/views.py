@@ -998,11 +998,11 @@ class LaserDesignPage(View):
         self.label_mask = tk.Label(self.masking_control_frame,text="Design Mask",bg="gray",fg="black")
         self.label_mask['font'] = myFont
         self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
-        
+
         values = [0, 1]
         txt=["Yes","No"]
-        comnd = [lambda: set_state(self.Frame_mask, 'active'), 
-                lambda: set_state(self.Frame_mask, 'disable')]
+        comnd = [lambda:[set_state(self.Frame_mask, 'normal'), set_state(self.property_frame, 'disabled')],
+                lambda:[set_state(self.Frame_mask, 'disabled'), set_state(self.property_frame, 'normal')]]
                 
         for (text, value, cmd) in zip(txt,values,comnd):
             tk.Radiobutton(self.masking_control_frame,  text=text,  variable=self.mask_var, font=myfont2(),
@@ -1023,7 +1023,7 @@ class LaserDesignPage(View):
         self.label_mask['font'] = myFont
         self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
 
-        masking_type_list = ["Plane","Spherical"]
+        masking_type_list = ["Plane","Sphere"]
         self.entry_mask_type = ttk.Combobox(self.Frame_mask_common,textvariable= self.mask_type, value = masking_type_list)
         self.entry_mask_type['font'] = myFont
         self.entry_mask_type.current(0)
@@ -1093,7 +1093,7 @@ class LaserDesignPage(View):
     def show_masking_specific_input(self, event):
         if self.mask_type.get() == 'Plane':
             self.show_masking_plane_input(self.Frame_mask_specific, row=0, column=0, columnspan=4)
-        elif self.mask_type.get() == 'Spherical':
+        elif self.mask_type.get() == 'Sphere':
             self.show_masking_sphere_input(self.Frame_mask_specific, row=0, column=0, columnspan=4)
   
     def show_masking_plane_input(self, parent, row:int, column:int, columnspan:int):
@@ -1149,7 +1149,6 @@ class LaserDesignPage(View):
         self.entry_mask_origin_x['font'] = myFont
         self.entry_mask_origin_x.grid(row=0, column=1, padx=5, pady=5)
         self.entry_mask_origin_x.set(0.5)        
-        self.entry_mask_origin_x.config(state='readonly')
 
         self.entry_mask_origin_y = ttk.Spinbox(self.frame_origin, width=5,textvariable=self.mask_origin_y, from_=0, to=1, increment=0.01)
         self.entry_mask_origin_y['font'] = myFont

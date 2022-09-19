@@ -3,7 +3,6 @@ from tkinter import ttk                  # importing ttk which is used for styli
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
 
-import subprocess
 from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
 import tkinter as tk
 import pygubu
@@ -11,25 +10,18 @@ import pygubu
 import os
 import platform
 import pathlib 
-import shutil
-from configparser import ConfigParser, NoSectionError
 
 #---LITESOPH modules
-from litesoph.config import config_file, config_to_dict, dict_to_config
 from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.gui.viewpanel import ViewPanelManager
-from litesoph.lsio.IO import read_file
 from litesoph.simulations import TaskManager, models as m
 from litesoph.gui import views as v
 from litesoph.gui import actions
 from litesoph.simulations.esmd import Task, TaskFailed
-from litesoph.gui.navigation import ProjectList, summary_of_current_project
-from litesoph.simulations.project_status import Status
+from litesoph.gui.navigation import ProjectList 
 
-
-home = pathlib.Path.home()
 
 TITLE_FONT = ("Helvetica", 18, "bold")
 
@@ -39,9 +31,6 @@ class GUIAPP:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.lsconfig = config_to_dict(config_file)
-        self.directory = None 
 
         self.builder = pygubu.Builder()
 
@@ -61,9 +50,6 @@ class GUIAPP:
         
         self.view_panel = ViewPanelManager(self)
         self.task_manager = TaskManager()
-        self.status = None
-        
-        self.check = None
         
         self.engine = None
 
@@ -101,8 +87,9 @@ class GUIAPP:
         self.log_panel = LogPanelManager(self)
 
     def update_project_dir_tree(self):
-        if self.directory:
-            self.navigation.populate(self.directory)
+        directory = self.task_manager.current_project
+        if directory:
+            self.navigation.populate(directory)
         self.main_window.after(1000, self.update_project_dir_tree)
         
     def on_bpanel_button_clicked(self):
@@ -115,27 +102,17 @@ class GUIAPP:
         self.main_window.wm_title(title)
 
 
-    def _status_init(self, path):
-        """Initializes the status object."""
-        try:
-            self.status = Status(path)
-        except Exception as e:
-            messagebox.showerror(message=f'status.json file might be corrupted. Unable to open the open {path.name}. error {e}')
-            return False
-        else:
-            return True
-
     def _get_engine(self):
 
-        engine_list = list(self.status.status_dict.keys())
-        if engine_list:
-            self.engine = engine_list[0]
+        engine = self.task_manager.get_perivous_engine()
+        if engine:
+            self.engine = engine
             self.status_engine.set(self.engine)
 
     def _refresh_config(self,*_):
         """reads and updates the lsconfig object from lsconfig.ini"""
-        self.lsconfig.update(config_to_dict(config_file))
-    
+        self.task_manager.read_lsconfig()
+
     def _show_frame(self, frame,*args, **kwargs):
         
         if frame in self._frames.keys():
@@ -186,38 +163,34 @@ class GUIAPP:
         frame = list(self._frames)[1]
         self._show_frame(frame)
 
-    def _change_directory(self, path):
-        "changes current working directory"
-        self.directory = pathlib.Path(path)
-        os.chdir(self.directory) 
-
     def _show_workmanager_page(self, *_):
 
         self._show_frame(v.WorkManagerPage)
         if self.engine:
             self._frames[v.WorkManagerPage].engine.set(self.engine)
 
-        if self.status:
-            self.update_summary_of_project()
+        self.show_project_summary()
 
     def _init_project(self, path):
         
-        path = pathlib.Path(path)
-        if not self._status_init(path):       
-            return
-        self._change_directory(path)
         self.set_title(path.name)
-        self.update_summary_of_project()
+        self.show_project_summary()
         update_proj_list(path)
         self._get_engine()
-        return True
+        
 
     def _on_open_project(self, *_):
         """creates dialog to get project path and opens existing project"""
         project_path = filedialog.askdirectory(title= "Select the existing Litesoph Project")
         if not project_path:
             return
-        self._init_project(project_path)
+
+        try:
+            self.task_manager.open_existing_project(pathlib.Path(project_path))
+        except Exception as e:
+            messagebox.showerror(title='Error', message = 'Unable open Project', detail =e)
+            return
+        self._init_project(pathlib.Path(project_path))
         if self.engine:
             self._frames[v.WorkManagerPage].engine.set(self.engine)
         
@@ -243,11 +216,13 @@ class GUIAPP:
         project_path = pathlib.Path(project_path) / project_name
         
         try:
-            m.WorkManagerModel.create_dir(project_path)
+            self.task_manager.create_new_project(project_path)
         except PermissionError as e:
             messagebox.showerror(title='Error', message = 'Premission denied', detail = e)
         except FileExistsError as e:
             messagebox.showerror(title='Error', message = 'Project already exists', detail =e)
+        except Exception as e:
+            messagebox.showerror(title='Error', message = 'Unknown problem', detail =e)
         else:
             self._init_project(project_path)
             self.engine = None
@@ -260,34 +235,24 @@ class GUIAPP:
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
         try:
-            self.geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
+            geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
         except Exception as e:
             return
         else:
-            if self.geometry_file:
-                geom_path = pathlib.Path(self.directory) / "coordinate.xyz"
-                shutil.copy(self.geometry_file, geom_path)
+            if geometry_file:
+                self.task_manager.add_geometry(pathlib.Path(geometry_file))
                 self._frames[v.WorkManagerPage].show_upload_label()
-                self.geometry_file = geom_path
 
     def _on_visualize(self, *_):
         """ Calls an user specified visualization tool """
-        path = self.lsconfig['visualization_tools'].get('vmd', None)
-        if not path:
-            path = self.lsconfig['visualization_tools'].get('vesta', None)
-        if not path:
-            path = 'vmd'
-        cmd = path + ' ' + "coordinate.xyz"
         try:
-           subprocess.run(cmd.split(),capture_output=True, cwd=self.directory)
-        except:
+            self.task_manager.visualize_geometry()
+        except Exception as e:
             msg = "Cannot visualize molecule."
-            detail ="Command used to call visualization program '{}'. supply the appropriate command in ~/.litesoph/lsconfig.ini".format(cmd.split()[0])
-            messagebox.showerror(title='Error', message=msg, detail=detail) 
+            messagebox.showerror(title='Error', message=msg, detail=e) 
     
-    def update_summary_of_project(self):
-        
-        summary = summary_of_current_project(self.status)
+    def show_project_summary(self):
+        summary = self.task_manager.get_project_summary()
         self.view_panel.insert_text(summary, state='disabled')
 
     def _on_proceed(self, *_):
@@ -310,10 +275,10 @@ class GUIAPP:
         task = w.get_value('task')
         self.engine = w.engine.get()
 
-        if not self.directory:
+        if not self.task_manager.current_project:
             messagebox.showerror(title='Error', message='Please create project directory')
             return
-            
+        self.status = self.task_manager.current_project_status
         if task == '--choose job task--':
             messagebox.showerror(title='Error', message="Please choose job type")
             return
@@ -340,8 +305,7 @@ class GUIAPP:
             return
 
         if sub_task  == "Ground State":
-            path = pathlib.Path(self.directory) / "coordinate.xyz"
-            if path.exists() is True:
+            if self.task_manager.check_geometry():
                 self.main_window.event_generate(actions.SHOW_GROUND_STATE_PAGE)
             else:
                 messagebox.showerror(title = 'Error', message= "Upload geometry file")
@@ -391,11 +355,10 @@ class GUIAPP:
 
     def _generate_gs_input(self, task_name, view):
         inp_dict = view.get_parameters()
-        #inp_dict['geometry'] = str(self.geometry_file)
         if not inp_dict:
             return
         self.engine = inp_dict.pop('engine')
-        self.ground_state_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.ground_state_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
         self.ground_state_task.create_template()
         self.view_panel.insert_text(text=self.ground_state_task.template, state='normal')
         self.bind_task_events(task_name, self.ground_state_task, view)
@@ -419,7 +382,7 @@ class GUIAPP:
 
     def _generate_td_input(self, task_name, view):
         inp_dict = view.get_parameters()
-        self.rt_tddft_delta_task = self.task_manager.get_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
+        self.rt_tddft_delta_task = self.task_manager.get_task(self.engine, task_name , inp_dict)
         self.rt_tddft_delta_task.create_template()
         self.view_panel.insert_text(text=self.rt_tddft_delta_task.template, state='normal')
         self.bind_task_events(task_name, self.rt_tddft_delta_task, view)
@@ -468,7 +431,7 @@ class GUIAPP:
             return
         view.set_laser_design_dict(self.laser_design.l_design)
         inp_dict = view.get_parameters()
-        self.rt_tddft_laser_task = self.task_manager.get_task(self.engine, task_name , self.status, self.directory, self.lsconfig, inp_dict)
+        self.rt_tddft_laser_task = self.task_manager.get_task(self.engine, task_name , inp_dict)
         self.rt_tddft_laser_task.create_template()
         self.view_panel.insert_text(text=self.rt_tddft_laser_task.template)
         self.bind_task_events(task_name, self.rt_tddft_laser_task, view)
@@ -495,7 +458,7 @@ class GUIAPP:
     def _on_spectra_run_local_button(self, task_name, *_):
         
         inp_dict = self.spectra_view.get_parameters()
-        self.spectra_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.spectra_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
@@ -530,7 +493,7 @@ class GUIAPP:
     def _on_tcm_run_local_button(self, task_name, *_):
         
         inp_dict = self.tcm_view.get_parameters()
-        self.tcm_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.tcm_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
         self.tcm_task.prepare_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
@@ -555,7 +518,7 @@ class GUIAPP:
     def _on_mo_population_run_local_button(self, task_name, *_):
         
         inp_dict = self.mo_population_view.get_parameters()
-        self.mo_population_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, inp_dict)
+        self.mo_population_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
         self.status.set_new_task(self.engine, self.mo_population_task.task_name)
         self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.script', 1)
         self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.param',self.mo_population_task.user_input)
@@ -570,7 +533,7 @@ class GUIAPP:
         self._show_frame(v.MaskingPage,self.engine, task_name)
         self.masking_view = self._frames[v.MaskingPage]
         self.masking_view.engine = self.engine
-        self.mask_task = self.task_manager.get_task(self.engine, task_name, self.status, self.directory, self.lsconfig, user_input={})
+        self.mask_task = self.task_manager.get_task(self.engine, task_name, user_input={})
         self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_masking_page_compute(self.masking_view,self.mask_task))
         self.main_window.bind_all(f'<<Plot{task_name}>>', lambda _:self._on_plot_dm_file(self.masking_view,self.mask_task))
         
@@ -685,7 +648,7 @@ class GUIAPP:
         else:
             if task.local_cmd_out[0] != 0:
                 self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', task.local_cmd_out[0])
-                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.local_cmd_out[2].decode(encoding='utf-8')}")
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.local_cmd_out[2]}")
             else:
                 self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', 0)
                 self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.n_proc', np)
@@ -694,7 +657,6 @@ class GUIAPP:
                 
 
     def _on_out_local_view_button(self,task: Task, *_):
-
 
         try:
             log_txt = task.get_engine_log()
@@ -752,7 +714,7 @@ class GUIAPP:
         else:
             if task.net_cmd_out[0] != 0:
                 self.status.update_status(f'{self.engine}.{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
-                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.net_cmd_out[2].decode(encoding='utf-8')}")
+                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.net_cmd_out[2]}")
             else:
                 self.status.update_status(f'{self.engine}.{task.task_name}.sub_network.returncode', 0)
                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
@@ -784,7 +746,6 @@ class GUIAPP:
 
     def _on_out_remote_view_button(self,task, *_):
         
-
         try:
             exist_status, stdout, stderr = task.net_cmd_out
         except AttributeError:
@@ -811,7 +772,5 @@ class GUIAPP:
 #--------------------------------------------------------------------------------        
 if __name__ == '__main__':
 
-    from litesoph.config import read_config
-    
     app = GUIAPP()
     app.run()

@@ -39,8 +39,8 @@ def execute(command, directory):
                     for line in output[0].decode(encoding='utf-8').split('\n'):
                         print(line)
             out_dict['returncode'] = job.returncode
-            out_dict['output'] = output[0]
-            out_dict['error'] = output[1]
+            out_dict['output'] = output[0].decode(encoding='utf-8')
+            out_dict['error'] = output[1].decode(encoding='utf-8')
     return result
     
 class SubmitLocal:
@@ -123,7 +123,7 @@ class SubmitNetwork:
             for line in ssh_output.decode(encoding='utf-8').split('\n'):
                 print(line)
 
-        self.task.net_cmd_out = (exit_status, ssh_output, ssh_error)
+        self.task.net_cmd_out = (exit_status, ssh_output.decode(encoding='utf-8'), ssh_error.decode(encoding='utf-8'))
     
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
