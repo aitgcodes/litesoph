@@ -45,31 +45,3 @@ def compare_list(list1,list2):
             return True
         else:
             return False
-
-def summary_of_current_project(status):
-
-    state = ["Summary of all the tasks performed."]
-
-    s_dict = status.status_dict
-
-    engine_list = s_dict.keys()
-    if engine_list:
-        state.append(" ")
-        for engine in engine_list:
-            state.append(f"Engine: {engine}")
-
-            task_list = s_dict[engine].keys()
-
-            if task_list:
-                for i, task in  enumerate(task_list):
-                    if s_dict[engine][task]['done'] == True:
-                        state.append(f"     {task}")
-                    
-                
-                state.append(" ")
-    else:
-        state.append("No tasks have been performed yet.")
-
-    state = "\n".join(state)
-
-    return state
