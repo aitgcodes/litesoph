@@ -763,7 +763,6 @@ class TimeDependentPage(View):
         return self.pol_dir     
 
     def get_parameters(self):
-        from litesoph.utilities.units import as_to_au
         self.pol_list = self.get_pol_list()
 
         td_dict = {
@@ -774,22 +773,7 @@ class TimeDependentPage(View):
             'output_freq': self._var['output_freq'].get(),
             'properties' : self.get_property_list()
         }
-        # Move this engine specfic dict to their respective engine task
-        td_dict_oct = {
-            "CalculationMode": 'td',
-            "TDMaxSteps" : self._var['Nt'].get() ,
-            "TDTimeStep" : round(self._var['dt'].get()*as_to_au, 2),
-            "TDPropagator" : 'aetrs',
-            "TDDeltaStrength": self._var['strength'].get(),
-            "TDPolarizationDirection": self._var['pol_var'].get(),
-            "TDOutputComputeInterval": self._var['output_freq'].get(),
-            "TDOutput": self.get_td_out()
-          }
-
-        if self.engine == 'octopus':
-            return td_dict_oct
-        else:
-            return td_dict
+        return td_dict
 
     def get_property_list(self):
         prop_list = ['spectrum']
@@ -1251,27 +1235,7 @@ class LaserDesignPage(View):
             'laser': laser_param
         }
         
-        
-        # Move this engine specfic dict to their respective engine task
-        if self.engine == 'octopus':
-            td_oct = { 
-                'CalculationMode': 'td', 
-                'TDPropagator': 'aetrs',
-                'TDMaxSteps' : self.ns.get(),
-                'TDTimeStep': round(self.ts.get()*as_to_au, 2),
-                'TDFunctions': [[str('"'+"envelope_gauss"+'"'),'tdf_gaussian',
-                                self.strength.get(),
-                                laser_param['sigma'],laser_param['time0']
-                                ]],                
-                'TDExternalFields': [['electric_field',
-                                    self.pol_list[0],self.pol_list[1],self.pol_list[2],
-                                    str(self.frequency.get())+"*eV",
-                                    str('"'+"envelope_gauss"+'"')
-                                    ]]
-                    }
-            return td_oct        
-        else:
-            return td_dict       
+        return td_dict       
 
     def back_button(self):
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
