@@ -815,6 +815,7 @@ class TimeDependentPage(View):
                 self._var[key].set('')
 
     def update_engine_default(self, engn):
+        #TODO: The engine information should be abstracted from this module.
         self.engine = engn
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
@@ -1205,7 +1206,7 @@ class LaserDesignPage(View):
         "tin" : self.tin.get()*as_to_au
         
         }
-        return(laser_input)               
+        return laser_input               
 
     def set_laser_design_dict(self, l_dict:dict):  
         import copy   
@@ -1221,7 +1222,6 @@ class LaserDesignPage(View):
 
     def get_parameters(self):
         
-        from litesoph.utilities.units import as_to_au
         laser_param = self.laser_design_dict 
         self.pol_list, pol = self.get_pol_list()              
 
@@ -1234,6 +1234,10 @@ class LaserDesignPage(View):
             'properties' : self.get_property_list(),
             'laser': laser_param
         }
+        #TODO: The engine information should be abstracted from this module.
+        if self.engine =='gpaw':
+            if self.mask_var.get() == 0:
+                td_dict.update({'mask': self.get_mask()})
         
         return td_dict       
 
@@ -1255,6 +1259,7 @@ class PlotSpectraPage(ttk.Frame):
             'e_max' : ['float', 30.0],
             'e_min' : ['float']
         }
+        #TODO: The engine information should be abstracted from this module.
         self.gpaw_td_default = {
             'del_e' : ['float'],
             'e_max' : ['float'],
@@ -1376,6 +1381,7 @@ class PlotSpectraPage(ttk.Frame):
         self.entry_1.grid(row=0, column=1)
 
     def show_engine_specific_frame(self, engine):
+        #TODO: The engine information should be abstracted from this module.
         if engine=="gpaw":
             self.gpaw_specific_spectra(self)
             self.Frame1_Button3.config(state='active') 
@@ -1525,7 +1531,7 @@ class TcmPage(ttk.Frame):
 
     def select_ksd_frame(self, parent):
         engine = self.engine_name.get()
-
+        #TODO: The engine information should be abstracted from this module.
         for widget in parent.winfo_children():
             widget.destroy()
         if engine == 'gpaw':
@@ -1567,7 +1573,7 @@ class TcmPage(ttk.Frame):
     
     def get_parameters(self):
         engine = self.engine_name.get()    
-       
+       #TODO: The engine information should be abstracted from this module.
         if engine == 'gpaw':
             
             self.retrieve_input()
