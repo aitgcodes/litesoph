@@ -109,7 +109,8 @@ class Projections:
                         t = it*self.delt
                         fp.write("%10.6f " %(t))
                         for ip in range(np):
-                                fp.write("%10.6f " %(a[ip,it]))
+                                fp.write("%.6e " %(a[ip,it]))
+                                # fp.write("%10.6f " %(a[ip,it]))
                         fp.write("\n")
 
         def denmat(self,ost,ust):

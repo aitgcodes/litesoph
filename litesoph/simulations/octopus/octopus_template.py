@@ -153,8 +153,8 @@ PseudopotentialSet = {pseudo}
     def create_job_script(self, np, remote_path=None, remote=False) -> list:
       
         job_script = super().create_job_script()
-        ofilename = str(Path(self.task_data['out_log']).relative_to('octopus'))
-
+        ofilename = Path(self.task_data['out_log']).relative_to('octopus')
+        unocc_ofilename = Path(octopus_data.unoccupied_task['out_log']).relative_to('octopus')
         extra_cmd = ["cp inp gs.inp","perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp"]
         if remote:
             cmd = f"mpirun -np {np:d}  octopus > {str(ofilename)}"
@@ -162,22 +162,24 @@ PseudopotentialSet = {pseudo}
             job_script.append(self.engine.get_engine_network_job_cmd())
             job_script.append(f"cd {str(rpath)}")
             job_script.append(cmd)
-            job_script.extend(extra_cmd)
-            job_script.append(cmd)
+            if self.user_input['extra_states'] != 0:
+                job_script.extend(extra_cmd)
+                job_script.append(f"mpirun -np {np:d}  octopus > {str(unocc_ofilename)}")
         else:
             lpath = self.project_dir / 'octopus'
             job_script.append(f"cd {str(lpath)}")
 
-            path_nwchem = self.lsconfig.get('engine', 'octopus')
-            if not path_nwchem:
-                path_nwchem = 'octopus'
-            command = path_nwchem + ' ' + '>' + ' ' + str(ofilename)
+            path_octopus = self.lsconfig.get('engine', 'octopus')
+            if not path_octopus:
+                path_octopus = 'octopus'
+            command = path_octopus + ' ' + '>' + ' '
             if np > 1:
                 cmd_mpi = config.get_mpi_command('octopus', self.lsconfig)
                 command = cmd_mpi + ' ' + '-np' + ' ' + str(np) + ' ' + command
-            job_script.append(command)
-            job_script.extend(extra_cmd)
-            job_script.append(command)
+            job_script.append(command + str(ofilename))
+            if self.user_input['extra_states'] != 0:
+                job_script.extend(extra_cmd)
+                job_script.append(command + str(unocc_ofilename))
         self.job_script = "\n".join(job_script)
         return self.job_script
 
@@ -686,15 +688,21 @@ DMAT
 
         # self.unocc = self.status.get_status('octopus.ground_state.param.unocc')
         
-        self.unocc = self.status.get_status('octopus.ground_state.param.extra_states')
-        e_pol = self.status.get_status('octopus.rt_tddft_delta.param.e_pol')
-        max_step = self.status.get_status('octopus.rt_tddft_delta.param.max_step')
-        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.output_freq') 
+        self.unocc = self.status.get_status('octopus.ground_state.param.ExtraStates')
+        e_pol = self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+        max_step = self.status.get_status('octopus.rt_tddft_delta.param.TDMaxSteps')
+        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
         nt = int(max_step/output_freq) 
+
+        assign_pol_list ={
+            1 : [1,0,0],
+            2 : [0,1,0],
+            3 : [0,0,1]
+        }
 
         dict_to_update = {
             'unocc': self.unocc,
-            'e_pol': e_pol,
+            'e_pol': assign_pol_list.get(e_pol),
             'nt': nt
         }
         # print(dict_to_update)

@@ -9,8 +9,6 @@ user_data_dir = pathlib.Path.home() / ".litesoph"
 
 config_file = user_data_dir / "lsconfig.ini"
 
-lsroot = pathlib.Path(litesoph.__file__).parent.parent
-
 
 sections = {
     'visualization_tools' : ['vmd', 'vesta'],
@@ -54,8 +52,6 @@ def write_config():
     config = ConfigParser(allow_no_value=True)
     config.add_section('path')
     config.set('path','lsproject', str(pathlib.Path.home()))
-    print(f"setting lsroot:{str(lsroot)}")
-    config.set('path','lsroot',str(lsroot))
     create_default_config(config, sections)
 
     config.set('mpi', 'gpaw_mpi', '')
@@ -136,3 +132,41 @@ def get_mpi_command(engine_name: str, configs: ConfigParser):
             return mpi
     else:
         print(f"Please set path to mpi in {str(config_file)}")
+
+def remove_empty_value(config_items):
+    dict ={}
+    for key, val in config_items:
+        if val:
+            dict[key] = val
+    return dict
+
+def none2emptystr(input_dict:dict):
+    rdict = {}
+    for key, val in input_dict.items():
+        if type(val) == dict:
+            rdict[key] = {k : ('' if s is None else s) for k, s in val.items()}
+        else:
+            rdict[key] = val
+    return rdict
+
+######### convert config file to dictionary #########
+
+def config_to_dict(infile):
+
+    """converts configparser to dictionary object """
+    config = ConfigParser()
+    config.read(infile)
+    my_config_parser_dict = {s:remove_empty_value(config.items(s)) for s in config.sections()}
+    return dict(my_config_parser_dict)
+
+
+################## convert dictionary to config file #############
+
+def dict_to_config(input_dict, configfilename):
+
+    """converts dictionary to configfile  object """
+    parser = ConfigParser()
+    parser.read_dict(none2emptystr(input_dict))
+
+    with open(configfilename,'w') as fp:
+        parser.write(fp)
