@@ -763,7 +763,6 @@ class TimeDependentPage(View):
         return self.pol_dir     
 
     def get_parameters(self):
-        from litesoph.utilities.units import as_to_au
         self.pol_list = self.get_pol_list()
 
         td_dict = {
@@ -774,22 +773,7 @@ class TimeDependentPage(View):
             'output_freq': self._var['output_freq'].get(),
             'properties' : self.get_property_list()
         }
-        # Move this engine specfic dict to their respective engine task
-        td_dict_oct = {
-            "CalculationMode": 'td',
-            "TDMaxSteps" : self._var['Nt'].get() ,
-            "TDTimeStep" : round(self._var['dt'].get()*as_to_au, 2),
-            "TDPropagator" : 'aetrs',
-            "TDDeltaStrength": self._var['strength'].get(),
-            "TDPolarizationDirection": self._var['pol_var'].get(),
-            "TDOutputComputeInterval": self._var['output_freq'].get(),
-            "TDOutput": self.get_td_out()
-          }
-
-        if self.engine == 'octopus':
-            return td_dict_oct
-        else:
-            return td_dict
+        return td_dict
 
     def get_property_list(self):
         prop_list = ['spectrum']
@@ -831,6 +815,7 @@ class TimeDependentPage(View):
                 self._var[key].set('')
 
     def update_engine_default(self, engn):
+        #TODO: The engine information should be abstracted from this module.
         self.engine = engn
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
@@ -1221,7 +1206,7 @@ class LaserDesignPage(View):
         "tin" : self.tin.get()*as_to_au
         
         }
-        return(laser_input)               
+        return laser_input               
 
     def set_laser_design_dict(self, l_dict:dict):  
         import copy   
@@ -1237,7 +1222,6 @@ class LaserDesignPage(View):
 
     def get_parameters(self):
         
-        from litesoph.utilities.units import as_to_au
         laser_param = self.laser_design_dict 
         self.pol_list, pol = self.get_pol_list()              
 
@@ -1250,32 +1234,12 @@ class LaserDesignPage(View):
             'properties' : self.get_property_list(),
             'laser': laser_param
         }
-        
+        #TODO: The engine information should be abstracted from this module.
         if self.engine =='gpaw':
             if self.mask_var.get() == 0:
                 td_dict.update({'mask': self.get_mask()})
-
         
-        # Move this engine specfic dict to their respective engine task
-        if self.engine == 'octopus':
-            td_oct = { 
-                'CalculationMode': 'td', 
-                'TDPropagator': 'aetrs',
-                'TDMaxSteps' : self.ns.get(),
-                'TDTimeStep': round(self.ts.get()*as_to_au, 2),
-                'TDFunctions': [[str('"'+"envelope_gauss"+'"'),'tdf_gaussian',
-                                self.strength.get(),
-                                laser_param['sigma'],laser_param['time0']
-                                ]],                
-                'TDExternalFields': [['electric_field',
-                                    self.pol_list[0],self.pol_list[1],self.pol_list[2],
-                                    str(self.frequency.get())+"*eV",
-                                    str('"'+"envelope_gauss"+'"')
-                                    ]]
-                    }
-            return td_oct        
-        else:
-            return td_dict       
+        return td_dict       
 
     def back_button(self):
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
@@ -1295,6 +1259,7 @@ class PlotSpectraPage(ttk.Frame):
             'e_max' : ['float', 30.0],
             'e_min' : ['float']
         }
+        #TODO: The engine information should be abstracted from this module.
         self.gpaw_td_default = {
             'del_e' : ['float'],
             'e_max' : ['float'],
@@ -1416,6 +1381,7 @@ class PlotSpectraPage(ttk.Frame):
         self.entry_1.grid(row=0, column=1)
 
     def show_engine_specific_frame(self, engine):
+        #TODO: The engine information should be abstracted from this module.
         if engine=="gpaw":
             self.gpaw_specific_spectra(self)
             self.Frame1_Button3.config(state='active') 
@@ -1565,7 +1531,7 @@ class TcmPage(ttk.Frame):
 
     def select_ksd_frame(self, parent):
         engine = self.engine_name.get()
-
+        #TODO: The engine information should be abstracted from this module.
         for widget in parent.winfo_children():
             widget.destroy()
         if engine == 'gpaw':
@@ -1607,7 +1573,7 @@ class TcmPage(ttk.Frame):
     
     def get_parameters(self):
         engine = self.engine_name.get()    
-       
+       #TODO: The engine information should be abstracted from this module.
         if engine == 'gpaw':
             
             self.retrieve_input()
