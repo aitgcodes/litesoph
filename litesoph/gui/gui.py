@@ -460,8 +460,8 @@ class GUIAPP:
         inp_dict = self.spectra_view.get_parameters()
         self.spectra_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
-        self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
-        self.status.update_status(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
+        self.status.update(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
+        self.status.update(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
 
         self.spectra_task.prepare_input()
         self._run_local(self.spectra_task, np=1)
@@ -496,8 +496,8 @@ class GUIAPP:
         self.tcm_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
         self.tcm_task.prepare_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
-        self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
-        self.status.update_status(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
+        self.status.update(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
+        self.status.update(f'{self.engine}.{self.tcm_task.task_name}.param',self.tcm_task.user_input)
 
         self._run_local(self.tcm_task,np=1 )
         
@@ -520,8 +520,8 @@ class GUIAPP:
         inp_dict = self.mo_population_view.get_parameters()
         self.mo_population_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
         self.status.set_new_task(self.engine, self.mo_population_task.task_name)
-        self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.script', 1)
-        self.status.update_status(f'{self.engine}.{self.mo_population_task.task_name}.param',self.mo_population_task.user_input)
+        self.status.update(f'{self.engine}.{self.mo_population_task.task_name}.script', 1)
+        self.status.update(f'{self.engine}.{self.mo_population_task.task_name}.param',self.mo_population_task.user_input)
 
         self.mo_population_task.prepare_input()
         self._run_local(self.mo_population_task, np=1)
@@ -559,8 +559,8 @@ class GUIAPP:
         template = self.view_panel.get_text()
         task.write_input(template)
         self.status.set_new_task(self.engine, task.task_name)
-        self.status.update_status(f'{self.engine}.{task.task_name}.script', 1)
-        self.status.update_status(f'{self.engine}.{task.task_name}.param',task.user_input)
+        self.status.update(f'{self.engine}.{task.task_name}.script', 1)
+        self.status.update(f'{self.engine}.{task.task_name}.param',task.user_input)
         if task.task_name == 'ground_state':
             self.status_engine.set(self.engine)
         view.set_sub_button_state('active')
@@ -647,12 +647,12 @@ class GUIAPP:
             return
         else:
             if task.local_cmd_out[0] != 0:
-                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', task.local_cmd_out[0])
+                self.status.update(f'{self.engine}.{task.task_name}.sub_local.returncode', task.local_cmd_out[0])
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.local_cmd_out[2]}")
             else:
-                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.returncode', 0)
-                self.status.update_status(f'{self.engine}.{task.task_name}.sub_local.n_proc', np)
-                self.status.update_status(f'{self.engine}.{task.task_name}.done', True)
+                self.status.update(f'{self.engine}.{task.task_name}.sub_local.returncode', 0)
+                self.status.update(f'{self.engine}.{task.task_name}.sub_local.n_proc', np)
+                self.status.update(f'{self.engine}.{task.task_name}.done', True)
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
 
@@ -713,16 +713,16 @@ class GUIAPP:
             return
         else:
             if task.net_cmd_out[0] != 0:
-                self.status.update_status(f'{self.engine}.{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
+                self.status.update(f'{self.engine}.{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.net_cmd_out[2]}")
             else:
-                self.status.update_status(f'{self.engine}.{task.task_name}.sub_network.returncode', 0)
+                self.status.update(f'{self.engine}.{task.task_name}.sub_network.returncode', 0)
                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
 
 
     def _get_remote_output(self, task: Task):
         task.submit_network.download_output_files()
-        self.status.update_status(f'{self.engine}.{task.task_name}.done', True)
+        self.status.update(f'{self.engine}.{task.task_name}.done', True)
 
     def _on_create_local_job_script(self, task: Task, *_):
         np = self.job_sub_page.processors.get()

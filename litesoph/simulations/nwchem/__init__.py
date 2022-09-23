@@ -5,7 +5,7 @@ def pre_condition_ground_state(status):
 def pre_condition_rt_tddft_delta(status):
 
     try:
-        if status.get_status('nwchem.ground_state.done'):
+        if status.get('nwchem.ground_state.done'):
             return (True, 'yes')
         else:
             return (False, 'Please perform ground state calculation before proceeding to Electron Dynamics.')
@@ -15,7 +15,7 @@ def pre_condition_rt_tddft_delta(status):
 def pre_condition_rt_tddft_laser(status):
 
     try:
-        if status.get_status('nwchem.ground_state.done'):
+        if status.get('nwchem.ground_state.done'):
             return (True, 'yes')
         else:
             return (False, 'Please perform ground state calculation before proceeding to Electron Dynamics.')
@@ -25,7 +25,7 @@ def pre_condition_rt_tddft_laser(status):
 def pre_condition_spectrum(status):
 
     try:
-        if status.get_status('nwchem.rt_tddft_delta.done'):
+        if status.get('nwchem.rt_tddft_delta.done'):
             return (True, 'yes')
         else:
            return (False, 'Please perform Electron Dynamics delta pulse calculation before proceeding to Spectrum.')

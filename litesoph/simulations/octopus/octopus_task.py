@@ -106,7 +106,7 @@ class OctopusTask(Task):
         
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
             inp_dict = get_oct_kw_dict(param, self.task_name)
-            gs_from_status = self.status.get_status('octopus.ground_state.param')
+            gs_from_status = self.status.get('octopus.ground_state.param')
             gs_copy = copy.deepcopy(gs_from_status) 
             gs_copy.pop("CalculationMode")
             inp_dict.update(gs_copy)
@@ -202,7 +202,7 @@ class OctopusTask(Task):
         from litesoph.utilities.plot_spectrum import plot_spectrum,plot_multiple_column
 
         if self.task_name == 'spectrum':
-            pol =  self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+            pol =  self.status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
             spec_file = self.task_data['spectra_file'][int(pol-1)]
             file = Path(self.project_dir) / spec_file
             img = file.parent / f"spec_{pol}.png"
@@ -264,8 +264,8 @@ class OctopusTask(Task):
 
     def get_ksd_popln(self):        
         _axis = self.get_pol_list(self.status)
-        max_step = self.status.get_status('octopus.rt_tddft_delta.param.TDMaxSteps')
-        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
+        max_step = self.status.get('octopus.rt_tddft_delta.param.TDMaxSteps')
+        output_freq = self.status.get('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
         nt = int(max_step/output_freq) 
         below_homo = self.user_input['num_occupied_mo']
         above_lumo = self.user_input['num_unoccupied_mo']
@@ -289,7 +289,7 @@ class OctopusTask(Task):
             self.local_cmd_out = [1]
 
     def get_pol_list(self, status):
-        e_pol = status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+        e_pol = status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
         assign_pol_list ={
             1 : [1,0,0],
             2 : [0,1,0],
