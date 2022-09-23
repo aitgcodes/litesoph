@@ -35,12 +35,12 @@ class Status():
         self.status_dict = project_data
 
         if self.filepath.exists():
-            self.read_status()
+            self.read()
         else:
             self.save()
     
 
-    def read_status(self):
+    def read(self):
         """ reads the status object from json file & updates the status dictionary"""
 
         with open(self.filepath) as f:
@@ -48,7 +48,7 @@ class Status():
             for key, value in data_dict.items():
                 self.status_dict[key] = value
             
-    def update_status(self, path:str , value):
+    def update(self, path:str , value):
         """ updates the status dictionary and writes to json file
          if path(string of keys separated by '.') and value are given"""
 
@@ -56,11 +56,11 @@ class Status():
         recursive_update(keys, value, self.status_dict)
         self.save()
 
-    def get_status(self, path:str):
+    def get(self, path:str):
         """returns the value from the nested dictionary 
         with path(string of keys separated by '.')"""
 
-        self.read_status()
+        self.read()
         try:
             obj = dict(self.status_dict)
             list = path.split('.')
@@ -70,11 +70,11 @@ class Status():
         except KeyError:
             raise KeyError("Key not found")  
 
-    def check_status(self, path, value):
+    def check(self, path, value):
         """ returns boolean value if given path(keys separated by '.') and value match"""
 
         try:
-            if self.get_status(path) == value:
+            if self.get(path) == value:
                 return True
             else:
                 return False

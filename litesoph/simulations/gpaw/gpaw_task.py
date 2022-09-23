@@ -257,7 +257,7 @@ class GpawTask(Task):
         return job_script
 
 def get_polarization_direction(status):
-    param = status.get_status('gpaw.rt_tddft_delta.param')
+    param = status.get('gpaw.rt_tddft_delta.param')
     pol = param['polarization']
     return get_direction(pol)
 

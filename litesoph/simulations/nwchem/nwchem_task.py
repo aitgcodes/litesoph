@@ -106,7 +106,7 @@ class NwchemTask(Task):
         self.network_done_file = self.task_dir / 'Done'
         
         if self.task_name in self.post_processing_tasks:
-            completed_task = self.status.get_status('nwchem').keys()
+            completed_task = self.status.get('nwchem').keys()
             if 'rt_tddft_laser' in completed_task:
                 td_out = nwchem_data['rt_tddft_laser'].get('out_log')
             else:
@@ -124,7 +124,7 @@ class NwchemTask(Task):
         
         if 'rt_tddft' in self.task_name:
             param['restart_kw'] = 'restart'
-            param['basis'] = self.status.get_status('nwchem.ground_state.param').get('basis')
+            param['basis'] = self.status.get('nwchem.ground_state.param').get('basis')
             update_td_param(param)
 
         file_name = self.task_data.get('file_name')
@@ -356,7 +356,7 @@ def read_pol_dir(pol):
 
 def get_pol_and_tag(status):
 
-    param =  status.get_status('nwchem.rt_tddft_delta.param')
+    param =  status.get('nwchem.rt_tddft_delta.param')
     pol = param['rt_tddft']['field'].get('polarization', 'x')
     tag = param['rt_tddft'].get('tag', 'rt_tddft')
     return pol, tag
