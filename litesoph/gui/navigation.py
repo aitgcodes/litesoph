@@ -12,7 +12,8 @@ class ProjectList:
         self.treeview = app.treeview
         
         self.treeview.bind('<<TreeviewOpen>>', self.open_node)
-        
+        self.treeview.bind("<Double-1>", self.OnDoubleClick)
+               
     def populate(self, project_path: Path):
         
         paths = [path for path in project_path.glob('**/*')]
@@ -39,6 +40,10 @@ class ProjectList:
             self.treeview.delete(self.treeview.get_children(node))
             for p in Path.iterdir(abspath):
                 self.insert_node(node, p.name, Path.joinpath(abspath, p))
+
+    def OnDoubleClick(self, event):
+        item = self.treeview.selection()[0]
+        print("you clicked on", self.treeview.item(item,"text"))
 
 def compare_list(list1,list2):
         if(collections.Counter(list1)==collections.Counter(list2)):
