@@ -103,7 +103,7 @@ class TaskManager:
         self.project_list.append(self.current_project_data)
         self._change_directory(self.current_project)
 
-    def get_perivous_engine(self)-> list:
+    def get_previous_engine(self)-> list:
         non_engine_keys = ['name', 'path', 'tasks', 'geometry']
         keys = self.current_project_data.keys()
         for key in keys:
