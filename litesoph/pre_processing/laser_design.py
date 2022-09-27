@@ -27,7 +27,7 @@ def laser_design(inval, tin, fwhm):
     fwhm = fwhm*eV_to_au
     #loginval = (-1)*(math.log(float(inval)/float(strength)))
     tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of au
-    t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(inval)  # in units of au
+    t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(math.log(10)*inval)  # in units of au
     
     #tau_0 = tau_0*0.2418                              # converted from fms to eV
     #tau_0 = fs_to_eV/tau_0                           # converted from fms to eV

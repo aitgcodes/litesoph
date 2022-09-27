@@ -29,67 +29,52 @@ class Status():
                     
                     }
     
-    def __init__(self, directory) -> None:
+    def __init__(self, directory, project_data) -> None:
 
         self.filepath = pathlib.Path(directory) / "status.json"
-        self.status_dict = {}
+        self.status_dict = project_data
 
         if self.filepath.exists():
-            self.read_status()
+            self.read()
         else:
             self.save()
     
 
-    def read_status(self):
+    def read(self):
         """ reads the status object from json file & updates the status dictionary"""
 
         with open(self.filepath) as f:
             data_dict = json.load(f)
-            #self.status_dict.update(data_dict)
             for key, value in data_dict.items():
                 self.status_dict[key] = value
             
-    def update_status(self, path:str , value):
+    def update(self, path:str , value):
         """ updates the status dictionary and writes to json file
          if path(string of keys separated by '.') and value are given"""
 
-        list = path.split('.')
-
-        if len(list) == 1:
-            self.status_dict[list[0]] = value
-        elif len(list) == 2:
-            self.status_dict[list[0]][list[1]] = value
-        elif len(list) == 3:
-            self.status_dict[list[0]][list[1]][list[2]] = value
-        elif len(list) == 4:
-            self.status_dict[list[0]][list[1]][list[2]][list[3]] = value
-        elif len(list) == 5:
-            self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]] = value
-        elif len(list) == 6:
-            self.status_dict[list[0]][list[1]][list[2]][list[3]][list[4]][list[5]] = value
-        
+        keys = path.split('.')
+        recursive_update(keys, value, self.status_dict)
         self.save()
 
-    def get_status(self, path:str):
+    def get(self, path:str):
         """returns the value from the nested dictionary 
         with path(string of keys separated by '.')"""
 
-        self.read_status()
+        self.read()
         try:
             obj = dict(self.status_dict)
             list = path.split('.')
-            for i in range(len(list)):
-                key = list[i] 
+            for key in list:
                 obj = obj[key]   
             return obj
         except KeyError:
             raise KeyError("Key not found")  
 
-    def check_status(self, path, value):
+    def check(self, path, value):
         """ returns boolean value if given path(keys separated by '.') and value match"""
 
         try:
-            if self.get_status(path) == value:
+            if self.get(path) == value:
                 return True
             else:
                 return False
@@ -112,6 +97,14 @@ class Status():
             except TypeError:
                 raise   
 
+def recursive_update(keys :list, value, status_dict: dict):
+            
+    length = len(keys)
+    key = keys.pop(0)
+    if length == 1:
+        status_dict[key] = value
+    else: 
+        recursive_update(keys, value, status_dict[key])
 
 class file_check:
     def __init__(self, check_list:list, dir) -> None:
