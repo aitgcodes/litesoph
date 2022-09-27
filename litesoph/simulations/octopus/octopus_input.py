@@ -154,7 +154,7 @@ def validate_td_delta_input(inp_dict:dict):
     check_property_dependency(_list) 
 
 def validate_td_laser_input(inp_dict:dict):
-    pass
+    validate_td_delta_input(inp_dict)
 
 def validate_spec_input(inp_dict:dict):
     pass

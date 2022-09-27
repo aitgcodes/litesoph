@@ -64,13 +64,11 @@ class OctopusTask(Task):
     engine_tasks = ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser','spectrum']
     added_post_processing_tasks = ['tcm', 'mo_population']
 
-    def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:        
-        
+    def __init__(self, project_dir, lsconfig, status=None, **kwargs) -> None:   
         try:
             self.task_name = kwargs.pop('task')
         except KeyError:
             self.task_name = get_task(kwargs)
-        # self.task_name = get_task(kwargs)
 
         if not self.task_name in octopus_data.keys(): 
             raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
@@ -84,7 +82,9 @@ class OctopusTask(Task):
         """ Creates Octopus class object """
         oct_dir = self.project_dir / engine_dir
         self.network_done_file = self.project_dir / engine_dir / 'Done'
-        self.engine_log = self.project_dir / self.task_data.get('out_log')
+        if 'out_log' in self.task_data.keys():
+            self.engine_log = self.project_dir / self.task_data.get('out_log')
+        
         if self.task_name in self.added_post_processing_tasks:
             self.task_dir = self.project_dir/engine_dir/self.task_data.get('dir')
             self.create_directory(self.task_dir)
@@ -97,28 +97,35 @@ class OctopusTask(Task):
         if self.task_name in self.engine_tasks:
             infile = self.task_data.get('inp')
             outfile = self.task_data.get('out_log')
-            # self.infile = Path(infile).name
-            
-            # self.infile = Path(infile).relative_to(engine_dir)
+
             self.infile = 'inp'
             self.outfile = Path(outfile).relative_to(engine_dir)
 
-            # indir = oct_dir / self.infile.parent
             indir = oct_dir / 'inputs'
             outdir = oct_dir /self.outfile.parent
             for dir in [indir, outdir]:
                 self.create_directory(dir)
         
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
-            gs_from_status = self.status.get_status('octopus.ground_state.param')
+            inp_dict = get_oct_kw_dict(param, self.task_name)
+            gs_from_status = self.status.get('octopus.ground_state.param')
             gs_copy = copy.deepcopy(gs_from_status) 
             gs_copy.pop("CalculationMode")
-            param.update(gs_copy)
+            inp_dict.update(gs_copy)
+
             td_output_list = [["energy"], ["multipoles"]]
-            added_list = param.get("TDOutput", [])
+            added_list = inp_dict.get("TDOutput", [])
             td_output_list.extend(added_list)
-            param["TDOutput"] = td_output_list         
-            
+            inp_dict["TDOutput"] = td_output_list
+            param.update(inp_dict)  
+
+        elif self.task_name == 'spectrum':
+            inp_dict = get_oct_kw_dict(param, self.task_name)
+            param.update(inp_dict) 
+
+        elif self.task_name == 'tcm':
+            param.update({'output':['DMAT', 'POP']})
+
         self.user_input = param
         self.octopus = Octopus(infile= self.infile, outfile=self.outfile,
                              directory=oct_dir, **param)
@@ -204,11 +211,15 @@ class OctopusTask(Task):
         from litesoph.utilities.plot_spectrum import plot_spectrum,plot_multiple_column
 
         if self.task_name == 'spectrum':
-            pol =  self.status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
-            spec_file = self.task_data['spectra_file'][int(pol-1)]
+            pol =  self.status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+            energy_min = self.user_input['PropagationSpectrumMinEnergy']
+            energy_max = self.user_input['PropagationSpectrumMaxEnergy']
+            e_min_eV = str(energy_min).rpartition('*')[0]
+            e_max_eV = str(energy_max).rpartition('*')[0]
+            spec_file = self.task_data['spectra_file'][0]
             file = Path(self.project_dir) / spec_file
             img = file.parent / f"spec_{pol}.png"
-            plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)")
+            plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)", xlimit=(float(e_min_eV), float(e_max_eV)))
             return
 
         if self.task_name == 'tcm': 
@@ -266,8 +277,8 @@ class OctopusTask(Task):
 
     def get_ksd_popln(self):        
         _axis = self.get_pol_list(self.status)
-        max_step = self.status.get_status('octopus.rt_tddft_delta.param.TDMaxSteps')
-        output_freq = self.status.get_status('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
+        max_step = self.status.get('octopus.rt_tddft_delta.param.TDMaxSteps')
+        output_freq = self.status.get('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
         nt = int(max_step/output_freq) 
         below_homo = self.user_input['num_occupied_mo']
         above_lumo = self.user_input['num_unoccupied_mo']
@@ -291,10 +302,93 @@ class OctopusTask(Task):
             self.local_cmd_out = [1]
 
     def get_pol_list(self, status):
-        e_pol = status.get_status('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+        e_pol = status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
         assign_pol_list ={
             1 : [1,0,0],
             2 : [0,1,0],
             3 : [0,0,1]
         }
         return(assign_pol_list.get(e_pol))
+
+##---------------------------------------------------------------------------------------------------------------
+
+pol_list2dir = [([1,0,0], 1),
+                ([0,1,0], 2),
+                ([0,0,1], 3)]
+
+property_dict = {
+    "default": ["energy", "multipoles"],
+    "ksd": "td_occup",
+    "mo_population": "td_occup"}
+
+
+def get_oct_kw_dict(inp_dict:dict, task_name:str):
+    """ Acts on the input dictionary to return Octopus specifc keyword dictionary
+        inp_dict: dictionary from gui
+        task_name
+    """
+    from litesoph.utilities.units import as_to_au
+
+    if 'rt_tddft' in task_name:
+        pol_list = inp_dict.pop('polarization')
+        t_step = inp_dict.pop('time_step')
+        property_list = inp_dict.pop('properties')
+        laser = inp_dict.pop('laser', None)
+                  
+        ### add appropriate keywords from property list
+        _list = []
+        td_out_list = []
+        for item in property_list:
+            td_key = property_dict.get(item)
+            if td_key:
+                _list.append(td_key)
+        td_list = list(set(_list))
+        for item in td_list:
+            td_out_list.append([item])
+        
+        _dict ={
+        'CalculationMode': 'td', 
+        'TDPropagator': 'aetrs',
+        'TDMaxSteps': inp_dict.pop('number_of_steps'),
+        'TDTimeStep':round(t_step*as_to_au, 3),
+        'TDOutput': td_out_list ,
+        'TDOutputComputeInterval':inp_dict.pop('output_freq')
+        }
+
+        if laser:
+            _dict2update = {'TDFunctions':[[str('"'+"envelope_gauss"+'"'),
+                                    'tdf_gaussian',
+                                    inp_dict.get('strength'),
+                                    laser['sigma'],
+                                    laser['time0']
+                                    ]],
+                    'TDExternalFields':[['electric_field',
+                                        pol_list[0],pol_list[1],pol_list[2],
+                                        str(laser['frequency'])+"*eV",
+                                        str('"'+"envelope_gauss"+'"')
+                                        ]] }
+        else:
+            if isinstance(pol_list, list):      
+                for item in pol_list2dir:
+                    if item[0] == pol_list:
+                        pol_dir = item[1]
+
+            _dict2update = {
+                'TDDeltaStrength':inp_dict.get('strength'),
+                'TDPolarizationDirection':pol_dir,
+        }
+        _dict.update(_dict2update)
+
+    elif task_name == 'spectrum':
+        delta_e = inp_dict.pop('delta_e')
+        e_max = inp_dict.pop('e_max')
+        e_min = inp_dict.pop('e_min') 
+        
+        _dict = {
+        "UnitsOutput": 'eV_angstrom',
+        "PropagationSpectrumEnergyStep": str(delta_e)+"*eV",
+        "PropagationSpectrumMaxEnergy": str(e_max)+"*eV",
+        "PropagationSpectrumMinEnergy": str(e_min)+"*eV"
+        }
+
+    return _dict

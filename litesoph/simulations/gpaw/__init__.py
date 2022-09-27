@@ -5,7 +5,7 @@ def pre_condition_ground_state(status):
 def pre_condition_rt_tddft_delta(status):
 
     try:
-        if status.get_status('gpaw.ground_state.done'):
+        if status.get('gpaw.ground_state.done'):
             return (True, 'yes')
         else:
             return (False, 'Please perform ground state calculation before proceeding to Electron Dynamics with delta pulse.')
@@ -15,7 +15,7 @@ def pre_condition_rt_tddft_delta(status):
 def pre_condition_rt_tddft_laser(status):
 
     try:
-        if status.get_status('gpaw.ground_state.done'):
+        if status.get('gpaw.ground_state.done'):
             return (True, 'yes')
         else:
             return (False, 'Please perform ground state calculation before proceeding to Electron Dynamics with Laser.')
@@ -25,7 +25,7 @@ def pre_condition_rt_tddft_laser(status):
 def pre_condition_spectrum(status):
 
     try:
-        if status.get_status('gpaw.rt_tddft_delta.done'):
+        if status.get('gpaw.rt_tddft_delta.done'):
             return (True, 'yes')
         else:
             return (False, 'Please perform RT-TDDFT delta pulse calculation before proceeding to Spectrum.')
@@ -35,7 +35,7 @@ def pre_condition_spectrum(status):
 def pre_condition_tcm(status):
 
     try:
-        if status.get_status('gpaw.ground_state.done') and 'wavefunction' in status.get_status('gpaw.rt_tddft_delta.param.analysis_tools'):
+        if status.get('gpaw.ground_state.done') and 'wavefunction' in status.get('gpaw.rt_tddft_delta.param.analysis_tools'):
             return(True, 'yes')
         else:
             return (False, 'Please perform RT-TDDFT delta pulse calculation with Kohn-Sham decomposition option before proceeding to KSD.')

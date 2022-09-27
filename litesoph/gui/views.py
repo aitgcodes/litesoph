@@ -763,7 +763,6 @@ class TimeDependentPage(View):
         return self.pol_dir     
 
     def get_parameters(self):
-        from litesoph.utilities.units import as_to_au
         self.pol_list = self.get_pol_list()
 
         td_dict = {
@@ -774,22 +773,7 @@ class TimeDependentPage(View):
             'output_freq': self._var['output_freq'].get(),
             'properties' : self.get_property_list()
         }
-        # Move this engine specfic dict to their respective engine task
-        td_dict_oct = {
-            "CalculationMode": 'td',
-            "TDMaxSteps" : self._var['Nt'].get() ,
-            "TDTimeStep" : round(self._var['dt'].get()*as_to_au, 2),
-            "TDPropagator" : 'aetrs',
-            "TDDeltaStrength": self._var['strength'].get(),
-            "TDPolarizationDirection": self._var['pol_var'].get(),
-            "TDOutputComputeInterval": self._var['output_freq'].get(),
-            "TDOutput": self.get_td_out()
-          }
-
-        if self.engine == 'octopus':
-            return td_dict_oct
-        else:
-            return td_dict
+        return td_dict
 
     def get_property_list(self):
         prop_list = ['spectrum']
@@ -831,6 +815,7 @@ class TimeDependentPage(View):
                 self._var[key].set('')
 
     def update_engine_default(self, engn):
+        #TODO: The engine information should be abstracted from this module.
         self.engine = engn
         if engn == 'gpaw':
             self.update_var(self.gpaw_td_default)
@@ -998,11 +983,11 @@ class LaserDesignPage(View):
         self.label_mask = tk.Label(self.masking_control_frame,text="Design Mask",bg="gray",fg="black")
         self.label_mask['font'] = myFont
         self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
-        
+
         values = [0, 1]
         txt=["Yes","No"]
-        comnd = [lambda: set_state(self.Frame_mask, 'active'), 
-                lambda: set_state(self.Frame_mask, 'disable')]
+        comnd = [lambda:[set_state(self.Frame_mask, 'normal'), set_state(self.property_frame, 'disabled')],
+                lambda:[set_state(self.Frame_mask, 'disabled'), set_state(self.property_frame, 'normal')]]
                 
         for (text, value, cmd) in zip(txt,values,comnd):
             tk.Radiobutton(self.masking_control_frame,  text=text,  variable=self.mask_var, font=myfont2(),
@@ -1023,7 +1008,7 @@ class LaserDesignPage(View):
         self.label_mask['font'] = myFont
         self.label_mask.grid(row=0, column=0, sticky='w', padx=5, pady=5)
 
-        masking_type_list = ["Plane","Spherical"]
+        masking_type_list = ["Plane","Sphere"]
         self.entry_mask_type = ttk.Combobox(self.Frame_mask_common,textvariable= self.mask_type, value = masking_type_list)
         self.entry_mask_type['font'] = myFont
         self.entry_mask_type.current(0)
@@ -1093,7 +1078,7 @@ class LaserDesignPage(View):
     def show_masking_specific_input(self, event):
         if self.mask_type.get() == 'Plane':
             self.show_masking_plane_input(self.Frame_mask_specific, row=0, column=0, columnspan=4)
-        elif self.mask_type.get() == 'Spherical':
+        elif self.mask_type.get() == 'Sphere':
             self.show_masking_sphere_input(self.Frame_mask_specific, row=0, column=0, columnspan=4)
   
     def show_masking_plane_input(self, parent, row:int, column:int, columnspan:int):
@@ -1149,7 +1134,6 @@ class LaserDesignPage(View):
         self.entry_mask_origin_x['font'] = myFont
         self.entry_mask_origin_x.grid(row=0, column=1, padx=5, pady=5)
         self.entry_mask_origin_x.set(0.5)        
-        self.entry_mask_origin_x.config(state='readonly')
 
         self.entry_mask_origin_y = ttk.Spinbox(self.frame_origin, width=5,textvariable=self.mask_origin_y, from_=0, to=1, increment=0.01)
         self.entry_mask_origin_y['font'] = myFont
@@ -1222,7 +1206,7 @@ class LaserDesignPage(View):
         "tin" : self.tin.get()*as_to_au
         
         }
-        return(laser_input)               
+        return laser_input               
 
     def set_laser_design_dict(self, l_dict:dict):  
         import copy   
@@ -1238,7 +1222,6 @@ class LaserDesignPage(View):
 
     def get_parameters(self):
         
-        from litesoph.utilities.units import as_to_au
         laser_param = self.laser_design_dict 
         self.pol_list, pol = self.get_pol_list()              
 
@@ -1251,28 +1234,12 @@ class LaserDesignPage(View):
             'properties' : self.get_property_list(),
             'laser': laser_param
         }
+        #TODO: The engine information should be abstracted from this module.
+        if self.engine =='gpaw':
+            if self.mask_var.get() == 0:
+                td_dict.update({'mask': self.get_mask()})
         
-        
-        # Move this engine specfic dict to their respective engine task
-        if self.engine == 'octopus':
-            td_oct = { 
-                'CalculationMode': 'td', 
-                'TDPropagator': 'aetrs',
-                'TDMaxSteps' : self.ns.get(),
-                'TDTimeStep': round(self.ts.get()*as_to_au, 2),
-                'TDFunctions': [[str('"'+"envelope_gauss"+'"'),'tdf_gaussian',
-                                self.strength.get(),
-                                laser_param['sigma'],laser_param['time0']
-                                ]],                
-                'TDExternalFields': [['electric_field',
-                                    self.pol_list[0],self.pol_list[1],self.pol_list[2],
-                                    str(self.frequency.get())+"*eV",
-                                    str('"'+"envelope_gauss"+'"')
-                                    ]]
-                    }
-            return td_oct        
-        else:
-            return td_dict       
+        return td_dict       
 
     def back_button(self):
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
@@ -1292,6 +1259,7 @@ class PlotSpectraPage(ttk.Frame):
             'e_max' : ['float', 30.0],
             'e_min' : ['float']
         }
+        #TODO: The engine information should be abstracted from this module.
         self.gpaw_td_default = {
             'del_e' : ['float'],
             'e_max' : ['float'],
@@ -1413,6 +1381,7 @@ class PlotSpectraPage(ttk.Frame):
         self.entry_1.grid(row=0, column=1)
 
     def show_engine_specific_frame(self, engine):
+        #TODO: The engine information should be abstracted from this module.
         if engine=="gpaw":
             self.gpaw_specific_spectra(self)
             self.Frame1_Button3.config(state='active') 
@@ -1434,18 +1403,7 @@ class PlotSpectraPage(ttk.Frame):
             'e_max':self._var['e_max'].get(),
             'e_min': self._var['e_min'].get()       
         }
-        # Move this engine specfic dict to their respective engine task
-        td_dict_oct = {
-            "UnitsOutput": 'eV_angstrom',
-            "PropagationSpectrumEnergyStep": str(self._var['del_e'].get())+"*eV",
-            "PropagationSpectrumMaxEnergy": str(self._var['e_max'].get())+"*eV",
-            "PropagationSpectrumMinEnergy": str(self._var['e_min'].get())+"*eV"
-          }
-        
-        if self.engine == 'octopus':
-            return td_dict_oct
-        else:
-            return plot_dict            
+        return plot_dict            
 
 class TcmPage(ttk.Frame):
 
@@ -1562,7 +1520,7 @@ class TcmPage(ttk.Frame):
 
     def select_ksd_frame(self, parent):
         engine = self.engine_name.get()
-
+        #TODO: The engine information should be abstracted from this module.
         for widget in parent.winfo_children():
             widget.destroy()
         if engine == 'gpaw':
@@ -1604,7 +1562,7 @@ class TcmPage(ttk.Frame):
     
     def get_parameters(self):
         engine = self.engine_name.get()    
-       
+       #TODO: The engine information should be abstracted from this module.
         if engine == 'gpaw':
             
             self.retrieve_input()
@@ -1619,8 +1577,7 @@ class TcmPage(ttk.Frame):
             oct_ksd_dict = {
             'task': 'tcm',
             'num_occupied_mo': self.ni.get(),
-            'num_unoccupied_mo': self.na.get(),            
-            'output': ['DMAT', 'POP']
+            'num_unoccupied_mo': self.na.get()
         } 
             return oct_ksd_dict                
 
