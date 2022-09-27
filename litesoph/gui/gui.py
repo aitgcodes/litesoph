@@ -104,7 +104,7 @@ class GUIAPP:
 
     def _get_engine(self):
 
-        engine = self.task_manager.get_perivous_engine()
+        engine = self.task_manager.get_previous_engine()
         if engine:
             self.engine = engine
             self.status_engine.set(self.engine)
