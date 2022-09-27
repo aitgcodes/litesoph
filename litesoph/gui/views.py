@@ -1403,18 +1403,7 @@ class PlotSpectraPage(ttk.Frame):
             'e_max':self._var['e_max'].get(),
             'e_min': self._var['e_min'].get()       
         }
-        # Move this engine specfic dict to their respective engine task
-        td_dict_oct = {
-            "UnitsOutput": 'eV_angstrom',
-            "PropagationSpectrumEnergyStep": str(self._var['del_e'].get())+"*eV",
-            "PropagationSpectrumMaxEnergy": str(self._var['e_max'].get())+"*eV",
-            "PropagationSpectrumMinEnergy": str(self._var['e_min'].get())+"*eV"
-          }
-        
-        if self.engine == 'octopus':
-            return td_dict_oct
-        else:
-            return plot_dict            
+        return plot_dict            
 
 class TcmPage(ttk.Frame):
 
@@ -1588,8 +1577,7 @@ class TcmPage(ttk.Frame):
             oct_ksd_dict = {
             'task': 'tcm',
             'num_occupied_mo': self.ni.get(),
-            'num_unoccupied_mo': self.na.get(),            
-            'output': ['DMAT', 'POP']
+            'num_unoccupied_mo': self.na.get()
         } 
             return oct_ksd_dict                
 

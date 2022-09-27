@@ -115,7 +115,8 @@ class TaskManager:
     def add_geometry(self, geometry_file):
         geom_path = self.current_project / "coordinate.xyz"
         shutil.copy(geometry_file, geom_path)
-        self.current_project_data['geometry'] = str(geom_path)
+        # self.current_project_data['geometry'] = str(geom_path)
+        self.current_project_status.update('geometry', str(geom_path))
 
     def check_geometry(self):
         geom = self.current_project_data.get('geometry', None)
