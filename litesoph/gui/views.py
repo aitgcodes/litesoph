@@ -130,9 +130,12 @@ class WorkManagerPage(ttk.Frame):
     Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Tracking", "Masking", "Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
+    workflow_list = ['Spectrum', 'Time Dependent Calculation', 'Kohn Sham Decomposition','MO Population Tracking']
+    env_list = ['Gas Phase', 'Solvation Condition']
+
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
-               
+
         self._default_var = {
             'proj_path' : ['str'],
             'proj_name' : ['str'],
@@ -141,6 +144,9 @@ class WorkManagerPage(ttk.Frame):
             'dynamics': ['str','--dynamics type--'],
             'laser': ['str','-- laser type--'],
             'plot':['str', '-- choose option --'],
+            'select_wf_option':['int', 1],
+            'environment':['str'],
+            'workflow':['str']
         }
         self.parent = parent
         self.engine = tk.StringVar(value='auto-mode')
@@ -150,17 +156,16 @@ class WorkManagerPage(ttk.Frame):
         
         self.plot_option = None
 
-        self.Frame1 =ttk.Frame(self)
-        self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
-       
-        self.Frame1.configure(relief='groove')
-        self.Frame1.configure(borderwidth="2")
-        self.Frame1.configure(relief="groove")
-        self.Frame1.configure(cursor="fleur")
-
         # self.grid_columnconfigure(0, weight=1)
         # self.grid_columnconfigure(1, weight=2)
 
+        self.Frame1 =ttk.Labelframe(self)
+        self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))      
+        self.Frame1.configure(relief='groove',borderwidth="2")
+
+        self.frame_workflow = ttk.Frame(self)
+        self.frame_workflow.grid(row=0, column=1, rowspan=3)
+        
         self.label_proj = tk.Label(self.Frame1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)        
@@ -174,100 +179,188 @@ class WorkManagerPage(ttk.Frame):
         self.button_project['font'] = myfont()
         self.button_project.grid(column=2, row= 0, sticky=tk.W, padx= 10, pady=10)        
         
-        self.button_project = tk.Button(self.Frame1,text="Open Existing Project",activebackground="#78d6ff",command=self._open_project)
+        self.button_project = tk.Button(self.Frame1,text="Open Existing Project",width=18,activebackground="#78d6ff",command=self._open_project)
         self.button_project['font'] = myfont()
         self.button_project.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10)
 
-        self.Frame2 = ttk.Frame(self)
+        self.Frame2 = ttk.Labelframe(self)
         self.Frame2.grid(column=0, row=1, sticky=(tk.N, tk.W, tk.E, tk.S))
         # self.grid_columnconfigure(1, weight=1)
+        self.Frame2.configure(relief='groove',borderwidth="2",cursor="fleur")
 
-        self.Frame2.configure(relief='groove')
-        self.Frame2.configure(borderwidth="2")
-        self.Frame2.configure(cursor="fleur")
+        system_frame = ttk.Frame(self.Frame2)
+        system_frame.grid(row=0, column=0, sticky='nsew')
 
-        common_frame = ttk.Frame(self.Frame2)
-        common_frame.grid(row=0, column=0, sticky='w')
+        self.task_common_frame = ttk.Frame(self.Frame2)
+        self.task_common_frame.grid(row=1, column=0, sticky='nsew')
 
-        self.Frame2_label_1 = tk.Label(common_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
-        self.Frame2_label_1['font'] = myfont()
-        self.Frame2_label_1.grid(column=0, row= 0, sticky='w', padx=4,  pady=10)       
+        #-----------------------------------------------------------------------------------------
 
-        self.Frame2_Button_1 = tk.Button(common_frame,text="Select",activebackground="#78d6ff",command=self._get_geometry_file)
-        self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=1, row= 0, padx=10,  pady=10)       
+        self.label_upload_geom = tk.Label(system_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_upload_geom['font'] = myfont()
+        self.label_upload_geom.grid(row= 0,column=0, sticky='w', padx=5,  pady=5)       
 
-        self.message_label = tk.Label(common_frame, text='', foreground='red')
-        self.message_label['font'] = myfont()
-        self.message_label.grid(column=2, row= 0, padx=10,  pady=10)       
+        self.button_select_geom = tk.Button(system_frame,text="Select",width=6,activebackground="#78d6ff",command=self._get_geometry_file)
+        self.button_select_geom['font'] = myfont()
+        self.button_select_geom.grid(row= 0,column=1, padx=5)       
+
+        self.label_message_upload = tk.Label(system_frame, text='', foreground='red')
+        self.label_message_upload['font'] = myfont()
+        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)       
         
-        self.Frame2_Button_1 = tk.Button(common_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
-        self.Frame2_Button_1['font'] = myfont()
-        self.Frame2_Button_1.grid(column=3, row= 0, padx=10,  pady=10)
+        self.button_view = tk.Button(system_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
+        self.button_view['font'] = myfont()
+        self.button_view.grid(row= 0,column=3)
 
-        self.engine_source_label = tk.Label(common_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
-        self.engine_source_label['font'] = myfont()
-        self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
-            
-        self.engine_source = ttk.Combobox(common_frame,width=20, textvariable= self.engine, values= self.engine_list)
-        self.engine_source['font'] = myfont()
-        self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
-        self.engine_source['state'] = 'readonly'
+        self.label_charge = tk.Label(system_frame, text="Charge",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_charge['font'] = myfont()
+        self.label_charge.grid(row=1,column=0, sticky='w', padx=5,  pady=5)       
 
-        self.label_proj = tk.Label(common_frame,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
-        self.label_proj['font'] = myfont()
-        self.label_proj.grid(row= 2, column=0,  sticky='w', padx=4, pady=10)       
-            
-        self.entry_task = ttk.Combobox(common_frame,width=20, textvariable= self._var['task'], values= self.MainTask)
-        self.entry_task['font'] = myfont()
-        self.entry_task.grid(row= 2, column=1, columnspan=2, padx=4, pady=10)
-       
-        self.entry_task.bind("<<ComboboxSelected>>", self.pick_task)
-        self.entry_task['state'] = 'readonly'
+        self.entry_charge = tk.Entry(system_frame,width=6)
+        self.entry_charge['font'] = myfont()
+        self.entry_charge.grid(row=1, column=1, padx=5,  pady=5)
 
-        self.sub_task_frame = ttk.Frame(self.Frame2)
-        self.sub_task_frame.grid(row=1, column=0, sticky='w')
+        self.label_multiplicity = tk.Label(system_frame, text="Multiplicity",  bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_multiplicity['font'] = myfont()
+        self.label_multiplicity.grid(row=2, column=0, sticky='w', padx=5,  pady=5)       
 
-        self.show_sub_task_frame(self.sub_task_frame)
+        self.entry_multiplicity = tk.Entry(system_frame,width=6)
+        self.entry_multiplicity['font'] = myfont()
+        self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
+
+        self.label_select_option = tk.Label(system_frame, text="Select Option:",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_select_option['font'] = myfont()
+        self.label_select_option.grid(row=3, column=0, sticky='w', padx=5,  pady=5)   
+
+        values = [1,2]
+        text = ["Specific","Generalized"]
+        command = [lambda:self.show_specific_workflow_frame(self.task_common_frame),
+                   lambda:self.show_general_workflow_frame(self.task_common_frame)]        
+
+        for (txt, val, cmd) in zip(text, values, command):
+            tk.Radiobutton(system_frame, text=txt, variable=self._var['select_wf_option'], font=myfont2(),
+             justify='left',value=val, command=cmd).grid(row=3, column=val, ipady=5, sticky='w')    
+        self._var['select_wf_option'].trace_add('write', self.choose_workflow_frame)
+        self.show_specific_workflow_frame(self.task_common_frame)
+
+        #--------------------------------Button Frame------------------------------------------------------------------        
        
         self.Frame3 = ttk.Frame(self)
         self.Frame3.grid(column=0, row=2,  sticky=(tk.N, tk.W, tk.E, tk.S)) 
 
-        self.Frame3.configure(relief='groove')
-        self.Frame3.configure(borderwidth="2")
-        self.Frame3.configure(cursor="fleur")
+        self.Frame3.configure(relief='groove',borderwidth="2",cursor="fleur")
 
-        Frame3_Button1 = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
-        Frame3_Button1['font'] = myfont()
-        Frame3_Button1.pack(side=tk.RIGHT, padx=10)
-        self.show_sub_task_frame(self.sub_task_frame)
+        button_proceed = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
+        button_proceed['font'] = myfont()
+        button_proceed.pack(side=tk.RIGHT, padx=10)
 
-        self.Frame_status = ttk.Frame(self)
-        self.Frame_status.grid(row=0, column=1, rowspan=2, sticky='nsew') 
-        self.Frame_status.configure(relief='groove', borderwidth="2", cursor="fleur" )
+    def choose_workflow_frame(self, *_):
+        if self._var['select_wf_option'].get() == 1:
+            self.show_specific_workflow_frame(self.task_common_frame)
+        elif self._var['select_wf_option'].get() == 2:
+            self.show_general_workflow_frame(self.task_common_frame)
 
-    def show_sub_task_frame(self,parent):
+    def show_specific_workflow_frame(self, parent):
+        """Creates the specific workflow frame"""
 
         for widget in parent.winfo_children():
             widget.destroy()
 
-        common_sub_task_frame = ttk.Frame(parent)        
+        self.workflow_frame = ttk.Frame(parent)
+        self.workflow_frame.grid(row=0, column=0)
+
+        self.label_environment = tk.Label(self.workflow_frame, text="Environment",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_environment['font'] = myfont()
+        self.label_environment.grid(row=0, column=0, sticky='w', padx=5,  pady=10)       
+
+        self.entry_environment = ttk.Combobox(self.workflow_frame, textvariable=self._var['environment'], values= self.env_list)
+        self.entry_environment['font'] = myfont()
+        self.entry_environment.current(0)
+        self.entry_environment.config(state='readonly')
+        self.entry_environment.grid(row=0, column=1, padx=10, sticky='ew')
+
+        self.label_workflow = tk.Label(self.workflow_frame, text="Work Flow",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_workflow['font'] = myfont()
+        self.label_workflow.grid(row=1, column=0, sticky='w', padx=5,  pady=10)       
+
+        self.entry_workflow = ttk.Combobox(self.workflow_frame, textvariable=self._var['workflow'],width=22, values= self.workflow_list)
+        self.entry_workflow['font'] = myfont()
+        self.entry_workflow.current(0)
+        self.entry_workflow.config(state='readonly')
+        self.entry_workflow.grid(row=1, column=1, padx=10, sticky='ew')
+    
+    def show_general_workflow_frame(self, parent):
+        """Creates the general workflow frame"""
+
+        if self.frame_workflow.winfo_children():
+            for widget in self.frame_workflow.winfo_children():
+                widget.destroy()
+
+        for widget in parent.winfo_children():
+            widget.destroy()
+
+        self.workflow_frame = ttk.Frame(parent)
+        self.workflow_frame.grid(row=0, column=0)
+
+        _task_frame1 = ttk.Frame(self.workflow_frame)
+        _task_frame1.grid(row=0, column=0, sticky='w')
+
+        self._task_frame2 = ttk.Frame(self.workflow_frame)
+        self._task_frame2.grid(row=1, column=0, sticky='w')
+
+        self.engine_source_label = tk.Label(_task_frame1,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
+        self.engine_source_label['font'] = myfont()
+        self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
+            
+        self.engine_source = ttk.Combobox(_task_frame1,width=20, textvariable= self.engine, values= self.engine_list)
+        self.engine_source['font'] = myfont()
+        self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
+        self.engine_source['state'] = 'readonly'
+
+        self.label_job_type = tk.Label(_task_frame1,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
+        self.label_job_type['font'] = myfont()
+        self.label_job_type.grid(row= 2, column=0,  sticky='w', padx=4, pady=10)       
+            
+        self.entry_job_type = ttk.Combobox(_task_frame1, width=20, textvariable= self._var['task'], values= self.MainTask)
+        self.entry_job_type['font'] = myfont()
+        self.entry_job_type.grid(row= 2, column=1, columnspan=2, padx=4, pady=10)
+       
+        self.entry_job_type.bind("<<ComboboxSelected>>", self.pick_task)
+        self.entry_job_type['state'] = 'readonly'
+
+        self.show_sub_task_frame(self._task_frame2)
+
+    def show_workflow_chart(self, parent):
+        from litesoph.gui.workflow_navigation import WorkFlowNavigation,pick_workflow
+        workflow_var =  self._var['workflow'].get()
+        if workflow_var:
+            task_list = pick_workflow(workflow_var) 
+
+        for widget in parent.winfo_children():
+            widget.destroy()
+        work_flow = WorkFlowNavigation(parent, task_list)
+
+    def show_sub_task_frame(self,parent):
+        
+        for widget in parent.winfo_children():
+            widget.destroy()
+  
+        common_sub_task_frame = ttk.Frame(parent)       
         common_sub_task_frame.grid(row=0, column=0)  
 
         self.Frame2_label_3 = tk.Label(common_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.Frame2_label_3['font'] = myfont()
-        self.Frame2_label_3.grid( row= 0,column=0, sticky='nswe', padx=4, pady=10) 
+        self.Frame2_label_3.grid( row= 0,column=0, sticky='w', padx=4, pady=10) 
         
         self.entry_sub_task = ttk.Combobox(common_sub_task_frame, width= 20, textvariable=self._var['sub_task'], value = [''])
         self.entry_sub_task['font'] = myfont()
         self.entry_sub_task.current(0)
-        self.entry_sub_task.grid(row= 0, column=1, sticky='nswe',  pady=10, padx=68)       
+        self.entry_sub_task.grid(row= 0, column=1,  pady=10, padx=4)     
         self.entry_sub_task['state'] = 'readonly'  
 
         self.entry_sub_task.bind("<<ComboboxSelected>>", self.pick_sub_task)
         self.entry_sub_task['state'] = 'readonly'       
            
-
     def show_sim_task_frame(self, parent):
 
         for widget in parent.winfo_children():
@@ -278,18 +371,18 @@ class WorkManagerPage(ttk.Frame):
 
         self.sub_task_label = tk.Label(sim_sub_task_frame, text="Sub Task",bg=label_design['bg'],fg=label_design['fg'])
         self.sub_task_label['font'] = myfont()
-        self.sub_task_label.grid(column=0, row= 0, sticky='nswe', padx=4, pady=10)        
+        self.sub_task_label.grid(column=0, row= 0, sticky='w', padx=4, pady=10)        
           
         self.dynamics_type = ttk.Combobox(sim_sub_task_frame, width= 15, textvariable=self._var['dynamics'], value = ['electrons', 'electron+ion','ions'])
         self.dynamics_type['font'] = myfont()
         self.dynamics_type.set('--dynamics type--')
-        self.dynamics_type.grid(column=1, row= 0, sticky='nsew',  pady=10, padx=65)       
+        self.dynamics_type.grid(column=1, row= 0,  pady=10, padx=4)       
         self.dynamics_type['state'] = 'readonly'  
 
         self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Gaussian Pulse', 'Customised Pulse'])
         self.laser_type['font'] = myfont()
         self.laser_type.set('-- laser type--')
-        self.laser_type.grid(column=2, row= 0, sticky='nsew',  pady=10, padx=6)       
+        self.laser_type.grid(column=2, row= 0, sticky='nsew',  pady=10, padx=10)       
         self.laser_type['state'] = 'readonly'       
 
     def show_plot_option_frame(self, parent):
@@ -302,21 +395,19 @@ class WorkManagerPage(ttk.Frame):
 
     def pick_task(self, *_):
         if self._var['task'].get() == "Preprocessing Jobs":
-            self.show_sub_task_frame(self.sub_task_frame)
+            self.show_sub_task_frame(self._task_frame2)
             self.entry_sub_task.config(value = self.Pre_task)
             self.entry_sub_task.current(0)
         elif self._var['task'].get() == "Simulations":
-            self.show_sim_task_frame(self.sub_task_frame)
-                # self.entry_sub_task.config(value = self.Sim_task)
-                # self.entry_sub_task.current(0)
+            self.show_sim_task_frame(self._task_frame2)
         elif self._var['task'].get() == "Postprocessing Jobs":
-            self.show_sub_task_frame(self.sub_task_frame)
+            self.show_sub_task_frame(self._task_frame2)
             self.entry_sub_task.config(value = self.Post_task)
             self.entry_sub_task.current(0)                
 
     def pick_sub_task(self,*_):
         if self._var['sub_task'].get() == "Plot":
-            self.show_plot_option_frame(self.sub_task_frame)
+            self.show_plot_option_frame(self._task_frame2)
         else:
             if self.plot_option:
                 self.plot_option.destroy()    
@@ -346,7 +437,7 @@ class WorkManagerPage(ttk.Frame):
         self.event_generate(actions.ON_PROCEED)   
 
     def show_upload_label(self):
-        show_message(self.message_label,"Uploaded")
+        show_message(self.label_message_upload,"Uploaded")
 
     def get_value(self, key):
         return self._var[key].get()
