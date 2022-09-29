@@ -25,6 +25,9 @@ def myfont15():
     font15 = font.Font(family='Helvetica',size=15, weight='bold')
     return font15
 
+def config_widget(widget,config_dict:dict):
+    """ config dict : wrt the available parameters of the widget"""
+    widget.config(config_dict)
 
 f1=('Noto sans', 15, 'italic')
 mygreen = "#d2ffd2"
@@ -35,7 +38,6 @@ label_design={
     "fg": "white"
 }
 
-button_design={
+button_design={}
 
-}
        

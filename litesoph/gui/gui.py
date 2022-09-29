@@ -273,12 +273,19 @@ class GUIAPP:
         w = self._frames[v.WorkManagerPage]
         sub_task = w.get_value('sub_task')
         task = w.get_value('task')
+        workflow_option = w.get_value('select_wf_option')
+        check_show_workflow = (workflow_option == 1)
         self.engine = w.engine.get()
 
         if not self.task_manager.current_project:
             messagebox.showerror(title='Error', message='Please create project directory')
             return
         self.status = self.task_manager.current_project_status
+
+        if check_show_workflow:
+            w.show_workflow_chart(w.frame_workflow)
+            return
+            
         if task == '--choose job task--':
             messagebox.showerror(title='Error', message="Please choose job type")
             return
