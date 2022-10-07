@@ -2189,8 +2189,8 @@ class GroundStatePage(ttk.Frame):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        from litesoph.test.view_gs import InputFrame
-        from litesoph.test.gs_inp import gs_model
+        from litesoph.gui.view_gs import InputFrame
+        from litesoph.gui.input_model import gs_model
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         self.inp = InputFrame(self,fields=gs_model, padx=5, pady=5)
@@ -2219,3 +2219,6 @@ class GroundStatePage(ttk.Frame):
     def get_param(self):
         gui_dict = self.inp.get_values()
         return gui_dict
+
+    def back_button(self):
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)      

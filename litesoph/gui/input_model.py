@@ -10,7 +10,11 @@ gs_model ={"xc family": {
                     "text": "Exchange Correlation",
                     "help": None,
                     "widget": Combobox,
-                    "values": ['LDA', 'PBE'],
+                    "values": ["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP",
+                                "PBE96","B3LYP","PW91", "BP86", "BP91","BHLYP","M05","M05-2X",
+                                "M06-HF","M08-SO","M011","CAM-B3LYP","LC-BLYP","LC-PBE","LC-wPBE",
+                                "HSE03","HSE06"
+                                ],
                     "default": 'PBE',
         },
         "basis_type": {
@@ -94,7 +98,8 @@ gs_model ={"xc family": {
                 "text": "Maximum Iteration",
                 "help": None,
                 "widget": tk.Spinbox,
-                "type": int
+                "type": int,
+                "default":500,
         },
 
         "energy conv": {
@@ -103,7 +108,8 @@ gs_model ={"xc family": {
                 "text": "Energy Convergence",
                 "help": None,
                 "widget": tk.Entry,
-                "type": float
+                "type": float,
+                "default":10e-7
         },
 
         "density conv": {
@@ -112,7 +118,8 @@ gs_model ={"xc family": {
                 "text": "Density Convergence",
                 "help": None,
                 "widget": tk.Entry,
-                "type": float
+                "type": float,
+                "default":10e-6
         },
 
         "spin": {
@@ -129,7 +136,8 @@ gs_model ={"xc family": {
                 "text": "Smearing",
                 "help": None,
                 "widget": tk.Entry,
-                "type":str
+                "type":str,               
+                "default":0.05
         },
         "mixing": {
                 "tab":"Basic",
@@ -137,7 +145,8 @@ gs_model ={"xc family": {
                 "text": "Mixing",
                 "help": None,
                 "widget": tk.Entry,
-                "type":str
+                "type":str,               
+                "default":0.3
         },
         "bands": {
                 "tab":"Advanced",
