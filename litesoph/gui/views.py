@@ -532,7 +532,7 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
     obj.entry_out_frq['font'] = myFont
     obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
-class GroundStatePage(View):
+class GroundStatePageOld(View):
     
     def __init__(self, parent,engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2185,3 +2185,37 @@ class CreateProjectPage(Toplevel):
         return self._var[key].get()
 
     
+class GroundStatePage(ttk.Frame):
+    
+    def __init__(self, parent, engine, task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        from litesoph.test.view_gs import InputFrame
+        from litesoph.test.gs_inp import gs_model
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+
+        self.inp = InputFrame(self,fields=gs_model, padx=5, pady=5)
+        self.inp.grid(row=0, column=0)
+        self.inp.trace_variables()
+        
+        self.button_frame = ttk.Frame(self)
+        self.button_frame.grid(row=1, column=0)
+
+        self.button_back = tk.Button(self.button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.button_back['font'] = myFont
+        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+
+        self.button_view = tk.Button(self.button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.get_param())
+        self.button_view['font'] = myFont
+        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        
+        self.button_save = tk.Button(self.button_frame, text="Save Input", activebackground="#78d6ff")
+        self.button_save['font'] = myFont
+        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+
+        self.label_msg = tk.Label(self.button_frame,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.grid(row=0, column=3, sticky='nsew')
+
+    def get_param(self):
+        gui_dict = self.inp.get_values()
+        return gui_dict
