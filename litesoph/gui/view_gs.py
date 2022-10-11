@@ -274,9 +274,11 @@ class InputFrame(ttk.Frame):
         print(values)
         return values
 
+#----------------TODO Separate explicit dependency from the base class
+
     def box_frame(self, *_):
         import copy
-        from litesoph.test.test_view_gs import box_dict
+        from litesoph.gui.input_model import box_dict
         box_copy = copy.deepcopy(box_dict)
         if self.variable["select box"].get():
             self.frame_template(parent_frame=self.group["simulation box"],row=8, column=0, padx=2, pady=2,fields=box_copy) 
@@ -303,6 +305,8 @@ class InputFrame(ttk.Frame):
                 var.trace_add('write', self.grid_box_dim_frame)
             else:
                 var.trace("w", self.update_widgets)               
+
+#-----------------------------------------------------------------------------
 
     def frame_template(self, parent_frame,row, column, padx, pady, fields:dict):
         obj = parent_frame
