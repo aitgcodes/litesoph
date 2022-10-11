@@ -75,18 +75,17 @@ def get_box_dim(_boxshape:str,_from_vacuum=False, **kwargs):
                                 str(kwargs.get("box length_z")/2)+'*angstrom']]}}} 
             return _sim_box                 
 
-def get_box_dim_from_vacuum(geom_file, vacuum:float,box_shape,):
+def get_box_dim_from_vacuum(geom_file, vacuum:float,box_shape):
     from ase.io import read
     atoms = read(geom_file)
     atoms.center(vacuum=vacuum)
-    if box_shape == "parallepiped":
-        cell = atoms.get_cell()
+    if box_shape == "parallelepiped":
+        cell_param = atoms.cell.cellpar()
+        lx =round(cell_param[0], 2)
+        ly =round(cell_param[1], 2)
+        lz =round(cell_param[2], 2)
 
-        lx = cell[0][0]
-        ly = cell[0][1]
-        lz = cell[0][2]
-
-        return cell
+        return lx,ly,lz
     else:
         raise ValueError("Not implemented")
 
