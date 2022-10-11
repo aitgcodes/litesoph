@@ -105,6 +105,11 @@ class OctopusTask(Task):
             outdir = oct_dir /self.outfile.parent
             for dir in [indir, outdir]:
                 self.create_directory(dir)
+
+        if self.task_name == 'ground_state':
+            from litesoph.gui.engine_views.octopus_views.gs2oct import create_oct_gs_inp
+            oct_gs_dict = create_oct_gs_inp(param)
+            param = oct_gs_dict
         
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
             inp_dict = get_oct_kw_dict(param, self.task_name)
