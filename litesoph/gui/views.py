@@ -2190,12 +2190,17 @@ class GroundStatePage(ttk.Frame):
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         from litesoph.gui.view_gs import InputFrame
-        from litesoph.gui.input_model import gs_model
+        from litesoph.gui.models.inputs import gs_input, gs_visible_default
+
+        self.parent = parent
+        self.task_name = task_name
+        self.engine = tk.StringVar(value=engine)
+
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.inp = InputFrame(self,fields=gs_model, padx=5, pady=5)
+        self.inp = InputFrame(self,fields=gs_input,visible_state=gs_visible_default, padx=5, pady=5)
         self.inp.grid(row=0, column=0)
-        self.inp.trace_variables()
+        self.trace_variables()
         
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(row=1, column=0)
@@ -2204,11 +2209,11 @@ class GroundStatePage(ttk.Frame):
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
-        self.button_view = tk.Button(self.button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.get_param())
+        self.button_view = tk.Button(self.button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
         self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
-        self.button_save = tk.Button(self.button_frame, text="Save Input", activebackground="#78d6ff")
+        self.button_save = tk.Button(self.button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
         self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
@@ -2221,4 +2226,50 @@ class GroundStatePage(ttk.Frame):
         return gui_dict
 
     def back_button(self):
-        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)      
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
+    
+    def generate_input_button(self):
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
+
+    def save_button(self):
+        self.event_generate(f'<<Save{self.task_name}Script>>')  
+
+    #---------------------------------View Specific trace functions----------------------------------------------------------------    
+
+    def trace_select_box(self, *_):
+        import copy
+        from litesoph.gui.models.inputs import box_dict
+        box_copy = copy.deepcopy(box_dict)
+        if self.inp.variable["select box"].get():
+            self.inp.frame_template(parent_frame=self.inp.group["simulation box"],row=10, column=0, padx=2, pady=2,fields=box_copy) 
+            self.inp.update_widgets()            
+        else:
+            self.inp.update_widgets()
+            if hasattr (self.inp.group["simulation box"],'group'):
+                self.inp.group["simulation box"].group.grid_remove()
+            
+    def grid_sim_box_frame(self,*_):
+        for name in ["basis_type:common","basis_type:extra"]:
+            if self.inp.fields[name]["visible"]:
+                basis = self.inp.variable[name].get()
+                if basis == "Gaussian":
+                    self.inp.group["simulation box"].grid_remove()  
+                else:
+                    self.inp.group["simulation box"].grid()          
+                self.inp.update_widgets()
+
+    def trace_xc(self,*_):
+        self.inp.update_widgets()
+        self.grid_sim_box_frame()
+        
+    def trace_variables(self, *_):
+        for name, var in self.inp.variable.items():
+            if name == "xc family":
+                self.inp.update_widgets()
+                var.trace_add('write', self.trace_xc)
+            elif name ==  "select box":
+                var.trace_add('write', self.trace_select_box)
+            elif name in ["basis_type:common","basis_type:extra"]:
+                    var.trace_add('write', self.grid_sim_box_frame)            
+            else:
+                var.trace("w", self.inp.update_widgets)
