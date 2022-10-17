@@ -266,3 +266,21 @@ box_dict = {
 
 }
 
+gs_visible_default = { 
+        "xc family":True,               
+        "basis_type:common": True,  
+        "basis_type:extra": False,
+        "basis:nao": True,  
+        "basis:gaussian": False,
+        "spacing": True,
+        "spin": True,
+        "box shape": True,
+        "select box": True,
+        "vacuum": True,
+        "max itr":True,
+        "energy conv": True,
+        "density conv": True,
+        "smearing": True,
+        "mixing": True,
+        "bands": True,
+}
