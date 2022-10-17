@@ -11,6 +11,7 @@ class InputFrame(ttk.Frame):
     self,
     master=None,
     fields=None,
+    visible_state = None,
     padx=1,
     pady=2,
     column_minsize=200,
@@ -22,6 +23,7 @@ class InputFrame(ttk.Frame):
         self.column_minsize = column_minsize
         self.master = master
         self.fields = fields
+        self.visible_state = visible_state
         self.tab_template()
 
     def tab_template(self):
@@ -174,139 +176,18 @@ class InputFrame(ttk.Frame):
                     sticky="w",
                     padx=self.padx,
                     pady=self.pady,
-                )
-                
+                )                
                 config_widget(self.label[name],config_dict=v.label_design)
 
-            if "visible" not in desc:
-                desc["visible"] = True
+            if self.visible_state is None:
+                if "visible" not in desc:
+                    desc["visible"] = True
 
-        self.init_widgets(fields=self.fields)
-        self.update_widgets()
-
-    def enable(self, name):
-        """Show a widget by name."""
-        if self.fields[name]["visible"]:
-            return
-        self.toggle(name)
-
-    def disable(self, name):
-        """Hide a widget by name."""
-        if not self.fields[name]["visible"]:
-            return
-        self.toggle(name)
-
-    def toggle(self, name):
-        """Hide or show a widget by name."""
-        if not self.fields[name]["visible"]:
-            self.widget[name].grid()
-            if name in self.label:
-                self.label[name].grid()
-        else:
-            self.widget[name].grid_remove()
-            if name in self.label:
-                self.label[name].grid_remove()
-        self.fields[name]["visible"] = not self.fields[name]["visible"]
-
-    def update_widgets(self,*args, **kwargs):
-            """enable/disable widgets a/c switch key/ Update widget states."""
-                      
-            if self.fields is None:
-                return
-            
-            options = {}
-            for name in self.variable:
-                try:
-                    options[name] = self.variable[name].get()
-                except TclError:
-                    options[name] = self.fields[name]["default"]
-            for name, desc in self.fields.items():
-                if "switch" in desc:
-                    if desc["switch"](options):
-                        self.enable(name)
-                    else:
-                        self.disable(name)
-            ## TODO 
-            # check condition for controlling frame widgets first,
-            #  then go for the individual switch of widgets
-
-    def init_widgets(self, fields, *args, ignore_state=False, **kwargs):
-        """Sets the default values, calls update_widgets, Clear all fields to default values."""
-        if self.fields is None:
-            return     
-
-        init_values = {
-            name: desc["default"] for name, desc in fields.items()
-        }     
-        for name, value in init_values.items():
-            try:
-                self.variable[name].set(value)
-            except KeyError:
-                pass
-    
-    def get_values(self, *_):
-        """Return a dictionary of all variable values."""
-
-        values = {}
-        for name in self.variable:
-            if not self.fields[name]["visible"]:
-                values[name] = None
-                continue
-
-            try:
-                values[name] = self.variable[name].get()
-            except TclError:
-                values[name] = self.fields[name]["default"]
-
-            if values[name] == "None":
-                values[name] = None
-
-            if "values" in self.fields[name]:
-                translator = self.fields[name]["values"]
-                if isinstance(translator, dict):
-                    try:
-                        values[name] = translator[values[name]]
-                    except KeyError:
-                        values[name] = translator[self.fields[name]["default"]]
-
-            if values[name] == "None":
-                values[name] = None
-        print(values)
-        return values
-
-#----------------TODO Separate explicit dependency from the base class
-
-    def box_frame(self, *_):
-        import copy
-        from litesoph.gui.input_model import box_dict
-        box_copy = copy.deepcopy(box_dict)
-        if self.variable["select box"].get():
-            self.frame_template(parent_frame=self.group["simulation box"],row=8, column=0, padx=2, pady=2,fields=box_copy) 
-            self.update_widgets()            
-        else:
+        self.init_widgets()
+        if self.visible_state is None:
             self.update_widgets()
-            if hasattr (self.group["simulation box"],'group'):
-                self.group["simulation box"].group.grid_remove()
-            
-    def grid_box_dim_frame(self, *_):
-
-        if self.variable["basis_type"].get() == "gaussian":
-            self.group["simulation box"].grid_remove()   
         else:
-            """grid the frame"""
-            self.group["simulation box"].grid()   
-        self.update_widgets()
-
-    def trace_variables(self, *_):
-       for _, var in self.variable.items():
-            if _ ==  "select box":
-                var.trace_add('write', self.box_frame)
-            elif _ == "basis_type":
-                var.trace_add('write', self.grid_box_dim_frame)
-            else:
-                var.trace("w", self.update_widgets)               
-
-#-----------------------------------------------------------------------------
+            self.update_widgets(var_state=self.visible_state)
 
     def frame_template(self, parent_frame,row, column, padx, pady, fields:dict):
         obj = parent_frame
