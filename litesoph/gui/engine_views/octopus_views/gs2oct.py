@@ -39,21 +39,25 @@ def create_oct_gs_inp(gui_inp:dict):
     return _dict
 
 def get_box_dim(_boxshape:str,_from_vacuum=False, **kwargs):
-    if _from_vacuum and _boxshape == "parallelepiped":
-        try:
-            _geom_file = kwargs.get("XYZCoordinates")
-            _vacuum = kwargs.get('vacuum', 6)
-        except:
-            pass
-        _cell = get_box_dim_from_vacuum(_geom_file,_vacuum, _boxshape)
-        _sim_box = {
-                    "BoxShape":{"name":_boxshape,
-                    "param":{'LSize':[[
-                        str(_cell[0]/2)+'*angstrom',
-                        str(_cell[1]/2)+'*angstrom',
-                        str(_cell[2]/2)+'*angstrom']]}}
-                        }
-        return _sim_box
+    if _from_vacuum :
+        if _boxshape == "parallelepiped":
+            try:
+                _geom_file = kwargs.get("XYZCoordinates")
+                _vacuum = kwargs.get('vacuum', 6)
+            except:
+                raise KeyError("Geometry file not found")
+            _cell = get_box_dim_from_vacuum(_geom_file,_vacuum, _boxshape)
+            _sim_box = {
+                        "BoxShape":{"name":_boxshape,
+                        "param":{'LSize':[[
+                            str(_cell[0]/2)+'*angstrom',
+                            str(_cell[1]/2)+'*angstrom',
+                            str(_cell[2]/2)+'*angstrom']]}}
+                            }
+            return _sim_box
+        else:
+            # TODO Getting box dimension for ['cylinder','minimum','sphere']
+            print('Not implemented')
     elif not _from_vacuum:
         if _boxshape in ['minimum','sphere']:            
             _sim_box = {
