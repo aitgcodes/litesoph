@@ -148,10 +148,12 @@ class InputFrame(ttk.Frame):
                 self.widget[name] = desc["widget"](
                     parent, textvariable=self.variable[name], values=values
                 )
+                config_widget(self.widget[name], config_dict={'state':'readonly','font':v.label_design['font']})
             else:
                 self.widget[name] = desc["widget"](
                     parent, textvariable=self.variable[name]
                 )
+                config_widget(self.widget[name], config_dict={'font':v.label_design['font']})
             if "widget_grid" in desc:
                 self.widget[name].grid(
                 row=desc["widget_grid"]["row"], column=desc["widget_grid"]["column"], sticky="ew", padx=self.padx, pady=self.pady)
@@ -159,6 +161,7 @@ class InputFrame(ttk.Frame):
                 self.widget[name].grid(
                     row=i, column=1, sticky="ew", padx=self.padx, pady=self.pady
                 )
+            
             # config_widget(self.widget[name], config_dict={'font':v.label_design['font']})
 ##--------------hovering option
             # if "help" in desc:
@@ -255,9 +258,7 @@ class InputFrame(ttk.Frame):
                 text = desc["text"]
             else:
                 text = name.capitalize()
-            # if "visible" in desc:
-            #     pass
-            # else:
+
             if "widget" not in desc:
                 desc["widget"] = ttk.Combobox
 
@@ -269,10 +270,12 @@ class InputFrame(ttk.Frame):
                 obj.widget[name] = desc["widget"](
                     parent, textvariable=obj.variable[name], values=values
                 )
+                config_widget(obj.widget[name], config_dict={'state':'readonly','font':v.label_design['font']})
             else:
                 obj.widget[name] = desc["widget"](
                     parent, textvariable=obj.variable[name]
                 )
+                config_widget(obj.widget[name], config_dict={'font':v.label_design['font']})
             if "widget_grid" in desc:
                 obj.widget[name].grid(
                 row=desc["widget_grid"]["row"], column=desc["widget_grid"]["column"], sticky="ew", padx=padx, pady=pady)
@@ -307,4 +310,125 @@ class InputFrame(ttk.Frame):
 
         self.init_widgets(fields= fields)
 
- 
+    def enable(self, name):
+        """Show a widget by name."""
+        if self.fields[name]["visible"]:
+            return
+        self.toggle(name)
+
+    def disable(self, name):
+        """Hide a widget by name."""
+        if not self.fields[name]["visible"]:
+            return
+        self.toggle(name)
+
+    def toggle(self, name):
+        """Hide or show a widget by name."""
+        if not self.fields[name]["visible"]: 
+            self.widget[name].grid()
+            if name in self.label:
+                self.label[name].grid()
+        else:
+            self.widget[name].grid_remove()
+            if name in self.label:
+                self.label[name].grid_remove()
+        self.fields[name]["visible"] = not self.fields[name]["visible"]
+
+    def update_widgets(self, check_switch=True,*args,var_state:dict=None, **kwargs):
+            """enable/disable widgets from switch if check_switch is True, 
+            else from variable_state dict"""
+                      
+            if self.fields is None:
+                return
+            
+            if var_state is None:
+                check_switch = True
+            else:
+                check_switch = False
+                for name, desc in self.fields.items():
+                    try:
+                        if var_state[name]:
+                            desc["visible"] = True
+                        else:
+                            desc["visible"] = False
+                            self.widget[name].grid_remove()
+                            if name in self.label:
+                                self.label[name].grid_remove()
+                    except:
+                        raise KeyError("Key not found")  
+
+            visible_options = {}
+            if check_switch:
+                for name in self.variable:
+                    if self.fields[name]["visible"]:
+                        try:
+                            visible_options[name] = self.variable[name].get()
+                        except TclError:
+                            visible_options[name] = self.fields[name]["default"]
+
+            if check_switch and visible_options is not None:
+                for name, desc in self.fields.items():
+                        if "switch" in desc:
+                                if desc["switch"](visible_options):
+                                    self.enable(name)
+                                else:
+                                    self.disable(name)
+          
+            ## TODO 
+            # check condition for parent frame/tab widgets from corresponding dict first,
+            # then go for the individual switch of widgets
+
+    def init_widgets(self, fields=None, *args, ignore_state=False, var_values:dict=None, **kwargs):
+        """Sets the default values from fields option.
+        Updates defaults from var_values if ignore_state is False"""
+
+        init_values = {}   
+
+        if not fields:
+            fields = self.fields
+        default_values = {
+            name: desc["default"] for name, desc in fields.items()
+        }
+        init_values.update(default_values) 
+
+        if var_values and not ignore_state:
+            init_values.update(var_values)
+
+        for name, value in init_values.items():
+            try:
+                self.variable[name].set(value)
+            except:
+                raise KeyError("Key missing")
+    
+    def get_values(self, *_):
+        """Return a dictionary of all variable values."""
+
+        values = {}
+        for name in self.variable:
+            if not self.fields[name]["visible"]:
+                values[name] = None
+                continue
+
+            try:
+                values[name] = self.variable[name].get()
+            except TclError:
+                values[name] = self.fields[name]["default"]
+
+            if values[name] == "None":
+                values[name] = None
+
+            if "values" in self.fields[name]:
+                translator = self.fields[name]["values"]
+                if isinstance(translator, dict):
+                    try:
+                        values[name] = translator[values[name]]
+                    except KeyError:
+                        values[name] = translator[self.fields[name]["default"]]
+
+            if values[name] == "None":
+                values[name] = None
+        return values
+
+    def trace_variables(self, *_):
+        for name, var in self.variable.items():
+            var.trace("w", self.update_widgets) 
