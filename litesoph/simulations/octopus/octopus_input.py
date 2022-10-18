@@ -1,6 +1,6 @@
 
 kw_types={"str": [ "FromScratch" ,"CalculationMode","UnitsOutput", 
-            "ExperimentalFeatures","Spacing","BoxShape","Radius","Xlength","PseudopotentialSet",
+            "ExperimentalFeatures","Spacing","BoxShape","Radius","Xlength","PseudopotentialSet","XCFunctional",
             "ExtraStates","ExcessCharge","SpinComponents","Mixing",
             "MaximumIter","Eigensolver","Smearing","SmearingFunction",
             "ConvRelDens","ConvEnergy","ConvAbsEv","ConvRelEv","ConvAbsDens","TDPropagator","TDMaxSteps","TDTimeStep",
@@ -8,7 +8,7 @@ kw_types={"str": [ "FromScratch" ,"CalculationMode","UnitsOutput",
             "PropagationSpectrumEnergyStep","PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"],
         "quoted_str": ["WorkDir","XYZCoordinates"],
         "boolean": [],
-        "flag": ["XCFunctional"],
+        "flag": [],
         "block": ["LSize","TDExternalFields","TDFunctions","TDPolarization", "TDOutput"]
 }
 

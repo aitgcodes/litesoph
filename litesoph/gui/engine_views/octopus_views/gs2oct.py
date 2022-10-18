@@ -3,20 +3,21 @@ def create_oct_gs_inp(gui_inp:dict):
     import copy
 
     key2key = {
-        # "ExcessCharge": "",
+        "XYZCoordinates":"XYZCoordinates",
         "max itr": "MaximumIter",
         "energy conv": "ConvEnergy",
         "density conv": "ConvAbsDens",
         "smearing":"Smearing",
         "mixing":"Mixing",
-        "bands" : "ExtraStates"
+        "bands" : "ExtraStates",
+        "spin": "SpinComponents",
         }
 
     _dict = {
         "CalculationMode": "gs",
-        "UnitsOutput": "ev_angstrom"
+        "UnitsOutput": "ev_angstrom",
+        "FromScratch": gui_inp.get("FromScratch","yes"),        
     }
-
 
     boxshape = gui_inp.get("box shape")
     select_box = gui_inp.get("select box")
@@ -27,8 +28,7 @@ def create_oct_gs_inp(gui_inp:dict):
         if value is not None:
             if key in key2key.keys():
                 _key2key_dict = dict(
-                [(key2key.get(key), value) 
-                for key, value in copy_inp.items()])
+                [(key2key.get(key), value)]) 
                 _dict.update(_key2key_dict)
             else:
                 sim_box = get_box_dim(_boxshape= boxshape,
@@ -39,31 +39,35 @@ def create_oct_gs_inp(gui_inp:dict):
     return _dict
 
 def get_box_dim(_boxshape:str,_from_vacuum=False, **kwargs):
-    if _from_vacuum and _boxshape == "parallelepiped":
-        try:
-            _geom_file = kwargs.get("geom_file")
-            _vacuum = kwargs.get('vacuum', 6)
-        except:
-            pass
-        _cell = get_box_dim_from_vacuum(_geom_file,_vacuum, _boxshape)
-        _sim_box = {
-                    "BoxShape":{"name":_boxshape,
-                    "param":{'LSize':[[
-                        str(_cell[0]/2)+'*angstrom',
-                        str(_cell[1]/2)+'*angstrom',
-                        str(_cell[2]/2)+'*angstrom']]}}
-                        }
-        return _sim_box
+    if _from_vacuum :
+        if _boxshape == "parallelepiped":
+            try:
+                _geom_file = kwargs.get("XYZCoordinates")
+                _vacuum = kwargs.get('vacuum', 6)
+            except:
+                raise KeyError("Geometry file not found")
+            _cell = get_box_dim_from_vacuum(_geom_file,_vacuum, _boxshape)
+            _sim_box = {
+                        "BoxShape":{"name":_boxshape,
+                        "param":{'LSize':[[
+                            str(_cell[0]/2)+'*angstrom',
+                            str(_cell[1]/2)+'*angstrom',
+                            str(_cell[2]/2)+'*angstrom']]}}
+                            }
+            return _sim_box
+        else:
+            # TODO Getting box dimension for ['cylinder','minimum','sphere']
+            print('Not implemented')
     elif not _from_vacuum:
         if _boxshape in ['minimum','sphere']:            
             _sim_box = {
             "BoxShape":{"name":_boxshape,
-                        "param":{'Radius':kwargs.get("radius")+'*angstrom'}}}
+                        "param":{'Radius':str(kwargs.get("radius"))+'*angstrom'}}}
             return _sim_box 
         elif _boxshape == 'cylinder':
             _sim_box = {
             "BoxShape":{"name":_boxshape,
-                        "param":{'Radius':kwargs.get("radius")+'*angstrom',
+                        "param":{'Radius':str(kwargs.get("radius"))+'*angstrom',
                                 'Xlength':str(kwargs.get("cylinder length")/2)+'*angstrom'}}}
             return _sim_box 
         elif _boxshape == 'parallelepiped':
@@ -75,18 +79,17 @@ def get_box_dim(_boxshape:str,_from_vacuum=False, **kwargs):
                                 str(kwargs.get("box length_z")/2)+'*angstrom']]}}} 
             return _sim_box                 
 
-def get_box_dim_from_vacuum(geom_file, vacuum:float,box_shape,):
+def get_box_dim_from_vacuum(geom_file, vacuum:float,box_shape):
     from ase.io import read
     atoms = read(geom_file)
     atoms.center(vacuum=vacuum)
-    if box_shape == "parallepiped":
-        cell = atoms.get_cell()
+    if box_shape == "parallelepiped":
+        cell_param = atoms.cell.cellpar()
+        lx =round(cell_param[0], 2)
+        ly =round(cell_param[1], 2)
+        lz =round(cell_param[2], 2)
 
-        lx = cell[0][0]
-        ly = cell[0][1]
-        lz = cell[0][2]
-
-        return cell
+        return lx,ly,lz
     else:
         raise ValueError("Not implemented")
 
@@ -109,13 +112,14 @@ def get_xc_pseudo(xc_str:str):
         for key, values in pseudo_expt.items():
             if pseudo in values:
                 expt = key
+                break
         xc_dict = {
         "ExperimentalFeatures":expt,
         "XCFunctional": xc,
         "PseudopotentialSet" : pseudo,    
         }
     return xc_dict
-
     
 def convert_unit():
     pass
+
