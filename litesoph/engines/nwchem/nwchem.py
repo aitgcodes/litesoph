@@ -1,5 +1,5 @@
-from litesoph.simulations.nwchem.nwchem_input import nwchem_create_input
-from litesoph.simulations.nwchem.nwchem_read_rt import nwchem_rt_parser
+from litesoph.engines.nwchem.nwchem_input import nwchem_create_input
+from litesoph.engines.nwchem.nwchem_read_rt import nwchem_rt_parser
 from litesoph.post_processing.mo_population import extract_pop_window
 import subprocess
 import pathlib

@@ -1,4 +1,3 @@
-from litesoph.test.view_gs import InputFrame
 import tkinter as tk
 from tkinter import Tk
 from tkinter.ttk import Spinbox, Checkbutton, Combobox

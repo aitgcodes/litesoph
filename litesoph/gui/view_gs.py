@@ -2,7 +2,7 @@ from tkinter import ttk
 import tkinter as tk
 from tkinter import TclError
 
-from litesoph.test.workflow import config_widget
+from litesoph.gui.visual_parameter import config_widget
 from litesoph.gui import visual_parameter as v
 
 class InputFrame(ttk.Frame):

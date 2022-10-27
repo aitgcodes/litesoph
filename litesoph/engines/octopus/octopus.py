@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import subprocess
 from litesoph.post_processing.octopus.oct_projections import Projections
-from litesoph.simulations.octopus.octopus_input import generate_input
+from litesoph.engines.octopus.octopus_input import generate_input
 
 class Octopus:
     def __init__(self,infile=None, outfile=None, 

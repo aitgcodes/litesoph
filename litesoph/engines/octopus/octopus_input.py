@@ -1,6 +1,6 @@
 
 kw_types={"str": [ "FromScratch" ,"CalculationMode","UnitsOutput", 
-            "ExperimentalFeatures","Spacing","BoxShape","Radius","Xlength","PseudopotentialSet","XCFunctional",
+            "ExperimentalFeatures","Spacing","BoxShape","Radius","Xlength","PseudopotentialSet", "XCFunctional",
             "ExtraStates","ExcessCharge","SpinComponents","Mixing",
             "MaximumIter","Eigensolver","Smearing","SmearingFunction",
             "ConvRelDens","ConvEnergy","ConvAbsEv","ConvRelEv","ConvAbsDens","TDPropagator","TDMaxSteps","TDTimeStep",

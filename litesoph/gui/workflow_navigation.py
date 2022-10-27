@@ -1,5 +1,7 @@
+import tkinter as tk
+from tkinter import ttk
 from litesoph.gui import visual_parameter as v
-from litesoph.gui.visual_parameter import config_widget
+from litesoph.gui.visual_parameter import work_flow_ui_design, config_widget
 
 _dict_task = {
     'gs' : {'task_name':'gs',
@@ -46,16 +48,13 @@ def pick_workflow(workflow_var:str):
         workflow_branch.append(task_name)
     return workflow_branch
 
-class WorkFlowNavigation:
+class WorkflowNavigation:
         
-    config_default = {'highlightbackground':'red',
-                    'background':'light blue',
-                    'font': v.myfont()}
-
     config_done = {'background':'pale green'}
     config_current = {'background':'light yellow'}
 
     def __init__(self, parent, workflow_list:list) -> None:
+        self.config_default = work_flow_ui_design
         self.parent = parent
         self.workflow_list = workflow_list
         self.widgets = {}
@@ -65,9 +64,6 @@ class WorkFlowNavigation:
            
     def create_widgets(self, parent, workflow_list:list):
         """ Creates the widgets for workflow view"""
-
-        import tkinter as tk
-        from tkinter import ttk
         
         title_label = tk.Label(parent,text='Workflow', bg=v.label_design['bg'], fg=v.label_design['fg'], font=v.myfont())
         title_label.grid(row=0, column=0)
@@ -85,7 +81,7 @@ class WorkFlowNavigation:
             self.widgets[task_name][0].grid(row=i, column=0, sticky='nsew', padx=5, pady=5)
             i+=3
 
-    def update_widgets(self, current_index:int):
+    def _update_widgets(self, current_index:int):
         """Updates the current index and state"""
         self.current_index = current_index
         if current_index == len(self.workflow_list):
@@ -105,17 +101,17 @@ class WorkFlowNavigation:
         """ Shifts the current state to previous"""
         if 0 < self.current_index <= len(self.workflow_list):                  
             self.current_index -= 1
-        self.update_widgets(self.current_index)
-        self.update_config()
+        self._update_widgets(self.current_index)
+        self._update_config()
         
     def next(self):
         """ Shifts the current state to next"""
         if 0 <= self.current_index < len(self.workflow_list):
             self.current_index += 1
-        self.update_widgets(self.current_index)
-        self.update_config()
+        self._update_widgets(self.current_index)
+        self._update_config()
 
-    def update_config(self):
+    def _update_config(self):
         """ Assigns the visual config"""
         for key,value in self.widgets.items():
             if value[1] == 'done':
@@ -124,3 +120,8 @@ class WorkFlowNavigation:
                 config_widget(value[0], config_dict=self.config_current)
             elif value[1] == 'default':
                 config_widget(value[0], config_dict=self.config_default)
+
+    def clear(self):
+
+        for widget in self.parent.winfo_children():
+            widget.destroy()

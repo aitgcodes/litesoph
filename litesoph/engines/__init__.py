@@ -1,15 +1,14 @@
-from distutils.command.sdist import sdist
 import shutil
-from litesoph.simulations.gpaw.gpaw_task import GpawTask
-from litesoph.simulations.nwchem.nwchem_task import NwchemTask
-from litesoph.simulations.octopus.octopus_task import OctopusTask
-from litesoph.simulations import gpaw as g
-from litesoph.simulations import nwchem as n
-from litesoph.simulations import octopus as o
+from litesoph.engines.gpaw.gpaw_task import GpawTask
+from litesoph.engines.nwchem.nwchem_task import NwchemTask
+from litesoph.engines.octopus.octopus_task import OctopusTask
+from litesoph.engines import gpaw as g
+from litesoph.engines import nwchem as n
+from litesoph.engines import octopus as o
 from pathlib import Path
 import os
 from litesoph.config import config_file, config_to_dict, dict_to_config
-from litesoph.simulations.project_status import Status
+from litesoph.common.project_status import Status
 from litesoph.visualization.visualize_geometry import VisualizeGeometry
 
 task_dict = {

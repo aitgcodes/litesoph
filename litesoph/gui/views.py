@@ -1,21 +1,24 @@
 import tkinter as tk
-from tkinter import *                    # importing tkinter, a standart python interface for GUI.
 
 from tkinter import ttk
 from tkinter import messagebox
+from typing import Any, Dict
 from  PIL import Image,ImageTk
 from tkinter import font
 
-import pathlib
-
-from numpy import append
-
+from litesoph.common.data_sturcture.data_types import DataTypes as DT
 from litesoph.gui import actions, images
-from litesoph.simulations.project_status import show_message
 from litesoph.gui.input_validation import EntryPattern, Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
-from litesoph.simulations.models import AutoModeModel
+from litesoph.common.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
+
+
+def show_message(label_name, message):
+    """ Shows a update """
+
+    label_name['text'] = message
+    label_name['foreground'] = 'black'
 
 def var_define(var_dict:dict):
     var_def_dict ={}
@@ -41,7 +44,7 @@ def var_define(var_dict:dict):
     return var_def_dict
 
 def define_tk_var(var_dict:dict):
-    from litesoph.lsio.data_types import DataTypes as DT
+
     var_def_dict ={}
     var_type = {
         DT.boolean : tk.BooleanVar,
@@ -114,13 +117,17 @@ class StartPage(ttk.Frame):
         explain_label['font'] = l
         explain_label.pack(side=tk.TOP, padx=100, pady=(100,20))
 
-        button_create_project = tk.Button(button_frame,text="Start LITESOPH Project", activebackground="#78d6ff",  width= 30, command=lambda: self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        button_create_project['font'] = l
-        button_create_project.pack(side=tk.TOP)
+        self.button_create_project = tk.Button(button_frame,text="Create LITESOPH Project",  width= 30)
+        self.button_create_project['font'] = l
+        self.button_create_project.pack(side=tk.TOP)
 
-        button_open_project = tk.Button(button_frame,text="About LITESOPH", width= 30)
-        button_open_project['font'] = l
-        button_open_project.pack(side=tk.TOP)
+        self.button_open_project = tk.Button(button_frame,text="Open LITESOPH Project", width= 30)
+        self.button_open_project['font'] = l
+        self.button_open_project.pack(side=tk.TOP)
+
+        self.button_about_litesoph = tk.Button(button_frame,text="About LITESOPH", width= 30)
+        self.button_about_litesoph['font'] = l
+        self.button_about_litesoph.pack(side=tk.TOP)
 
 class WorkManagerPage(ttk.Frame):
 
@@ -137,8 +144,6 @@ class WorkManagerPage(ttk.Frame):
         super().__init__(parent,*args, **kwargs)
 
         self._default_var = {
-            'proj_path' : ['str'],
-            'proj_name' : ['str'],
             'task' : ['str', '--choose job task--'],
             'sub_task' : ['str'],
             'dynamics': ['str','--dynamics type--'],
@@ -146,42 +151,20 @@ class WorkManagerPage(ttk.Frame):
             'plot':['str', '-- choose option --'],
             'select_wf_option':['int', 1],
             'environment':['str'],
-            'workflow':['str']
+            'workflow':['str'],
+            'charge': ['int', 0],
+            'multiplicity': ['int', 0]
         }
+
         self.parent = parent
         self.engine = tk.StringVar(value='auto-mode')
 
         self._var = var_define(self._default_var)
-        label_design.update({"font":myfont()})
         
         self.plot_option = None
 
-        # self.grid_columnconfigure(0, weight=1)
-        # self.grid_columnconfigure(1, weight=2)
-
-        self.Frame1 =ttk.Labelframe(self)
-        self.Frame1.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))      
-        self.Frame1.configure(relief='groove',borderwidth="2")
-
         self.frame_workflow = ttk.Frame(self)
         self.frame_workflow.grid(row=0, column=1, rowspan=3)
-        
-        self.label_proj = tk.Label(self.Frame1,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(column=0, row= 0, sticky=tk.W,  pady=10, padx=10)        
-        
-        self.entry_proj = tk.Entry(self.Frame1,textvariable=self._var['proj_name'])
-        self.entry_proj['font'] = myfont()
-        self.entry_proj.grid(column=1, row= 0, sticky=tk.W)
-        self.entry_proj.delete(0, tk.END)
-                
-        self.button_project = tk.Button(self.Frame1,text="Create New Project",width=18, activebackground="#78d6ff",command=self._create_project)
-        self.button_project['font'] = myfont()
-        self.button_project.grid(column=2, row= 0, sticky=tk.W, padx= 10, pady=10)        
-        
-        self.button_project = tk.Button(self.Frame1,text="Open Existing Project",width=18,activebackground="#78d6ff",command=self._open_project)
-        self.button_project['font'] = myfont()
-        self.button_project.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10)
 
         self.Frame2 = ttk.Labelframe(self)
         self.Frame2.grid(column=0, row=1, sticky=(tk.N, tk.W, tk.E, tk.S))
@@ -216,7 +199,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_charge['font'] = myfont()
         self.label_charge.grid(row=1,column=0, sticky='w', padx=5,  pady=5)       
 
-        self.entry_charge = tk.Entry(system_frame,width=6)
+        self.entry_charge = tk.Entry(system_frame,width=6, textvariable=self._var['charge'])
         self.entry_charge['font'] = myfont()
         self.entry_charge.grid(row=1, column=1, padx=5,  pady=5)
 
@@ -224,13 +207,22 @@ class WorkManagerPage(ttk.Frame):
         self.label_multiplicity['font'] = myfont()
         self.label_multiplicity.grid(row=2, column=0, sticky='w', padx=5,  pady=5)       
 
-        self.entry_multiplicity = tk.Entry(system_frame,width=6)
+        self.entry_multiplicity = tk.Entry(system_frame,width=6,  textvariable=self._var['multiplicity'])
         self.entry_multiplicity['font'] = myfont()
         self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
 
+        self.engine_source_label = tk.Label(system_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
+        self.engine_source_label['font'] = myfont()
+        self.engine_source_label.grid(row= 3, column=0,  sticky='w',padx=4, pady=10)       
+            
+        self.engine_source = ttk.Combobox(system_frame,width=20, textvariable= self.engine, values= self.engine_list)
+        self.engine_source['font'] = myfont()
+        self.engine_source.grid(row= 3, column=1, columnspan=2, padx=4, pady=10)
+        self.engine_source['state'] = 'readonly'
+
         self.label_select_option = tk.Label(system_frame, text="Select Option:",bg=label_design['bg'],fg=label_design['fg'])  
         self.label_select_option['font'] = myfont()
-        self.label_select_option.grid(row=3, column=0, sticky='w', padx=5,  pady=5)   
+        self.label_select_option.grid(row=4, column=0, sticky='w', padx=5,  pady=5)   
 
         values = [1,2]
         text = ["Specific","Generalized"]
@@ -239,7 +231,7 @@ class WorkManagerPage(ttk.Frame):
 
         for (txt, val, cmd) in zip(text, values, command):
             tk.Radiobutton(system_frame, text=txt, variable=self._var['select_wf_option'], font=myfont2(),
-             justify='left',value=val, command=cmd).grid(row=3, column=val, ipady=5, sticky='w')    
+             justify='left',value=val, command=cmd).grid(row=4, column=val, ipady=5, sticky='w')    
         self._var['select_wf_option'].trace_add('write', self.choose_workflow_frame)
         self.show_specific_workflow_frame(self.task_common_frame)
 
@@ -250,9 +242,9 @@ class WorkManagerPage(ttk.Frame):
 
         self.Frame3.configure(relief='groove',borderwidth="2",cursor="fleur")
 
-        button_proceed = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
-        button_proceed['font'] = myfont()
-        button_proceed.pack(side=tk.RIGHT, padx=10)
+        self.button_proceed = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
+        self.button_proceed['font'] = myfont()
+        self.button_proceed.pack(side=tk.RIGHT, padx=10)
 
     def choose_workflow_frame(self, *_):
         if self._var['select_wf_option'].get() == 1:
@@ -330,15 +322,6 @@ class WorkManagerPage(ttk.Frame):
 
         self.show_sub_task_frame(self._task_frame2)
 
-    def show_workflow_chart(self, parent):
-        from litesoph.gui.workflow_navigation import WorkFlowNavigation,pick_workflow
-        workflow_var =  self._var['workflow'].get()
-        if workflow_var:
-            task_list = pick_workflow(workflow_var) 
-
-        for widget in parent.winfo_children():
-            widget.destroy()
-        work_flow = WorkFlowNavigation(parent, task_list)
 
     def show_sub_task_frame(self,parent):
         
@@ -412,19 +395,6 @@ class WorkManagerPage(ttk.Frame):
             if self.plot_option:
                 self.plot_option.destroy()    
             
-    def update_project_entry(self, proj_path):
-        proj_path = pathlib.Path(proj_path)
-        self._var['proj_path'].set(proj_path.parent)
-        self.entry_path.config(textvariable=self._var['proj_path'])
-        self._var['proj_name'].set(proj_path.name)
-        self.entry_proj.config(textvariable=self._var['proj_name'])
-
-    def _open_project(self):
-        self.event_generate(actions.OPEN_PROJECT)
-
-    def _create_project(self):
-        self.event_generate(actions.CREATE_NEW_PROJECT)
-
     def _get_geometry_file(self):
         self.event_generate(actions.GET_MOLECULE)
         
@@ -444,6 +414,13 @@ class WorkManagerPage(ttk.Frame):
 
     def set_value(self,key,value):
         self._var[key].set(value)
+
+    def get_parameters(self) -> Dict[str, Any]:
+        param = {}
+        for key in self._var.keys():
+            param[key] = self._var[key].get()
+        param['engine'] = self.engine.get()
+        return param
         
     def refresh_var(self):
         for key, value in self._default_var.items():
@@ -532,7 +509,7 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
     obj.entry_out_frq['font'] = myFont
     obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
-class GroundStatePageOld(View):
+class GroundStatePage(View):
     
     def __init__(self, parent,engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -554,6 +531,10 @@ class GroundStatePageOld(View):
 
         self.parent = parent
         self.task_name = task_name
+        
+        if not engine:
+            engine = 'auto-mode'
+
         self.engine = tk.StringVar(value=engine)
         self.engine.trace_add('write', self.on_engine_change)
         self.job = None
@@ -1338,7 +1319,7 @@ class LaserDesignPage(View):
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)    
 
-class PlotSpectraPage(ttk.Frame):
+class PlotSpectraPage(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -1350,35 +1331,20 @@ class PlotSpectraPage(ttk.Frame):
             'e_max' : ['float', 30.0],
             'e_min' : ['float']
         }
-        #TODO: The engine information should be abstracted from this module.
-        self.gpaw_td_default = {
-            'del_e' : ['float'],
-            'e_max' : ['float'],
-            'e_min' : ['float']
-        }
-        self.oct_td_default = {
-            'del_e' : ['float'],
-            'e_max' : ['float'],
-            'e_min' : ['float']
-        }
-        self.nwchem_td_default= {
-            'del_e' : ['float'],
-            'e_max' : ['float'],
-            'e_min' : ['float']
-        }
+
         self._var = var_define(self._default_var)
 
         self.axis = tk.StringVar()
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
-        self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame1 = self.input_param_frame #ttk.Frame(self, borderwidth=2, relief='groove')
         # self.grid_columnconfigure(9, weight=3)
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=5)
 
-        self.Frame1.grid(row=0,column=0, sticky='nsew')
+        #self.Frame1.grid(row=0,column=0, sticky='nsew')
 
-        self.add_job_frame(self, self.task_name, r=0, c=1)        
+        self.add_job_frame(self.submit_button_frame, self.task_name)        
 
         self.heading = tk.Label(self.Frame1,text="LITESOPH Spectrum Calculations and Plots", fg='blue')
         self.heading['font'] = myfont()
@@ -1413,75 +1379,31 @@ class PlotSpectraPage(ttk.Frame):
         self.entry_emax.grid(row=4, column=1, padx=2, pady=4, sticky='nsew')
 
 
-        self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.button_frame.grid(row=1, column=0, sticky='nsew')
+        #self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
+        #self.button_frame.grid(row=1, column=0, sticky='nsew')
 
-        Frame_Button1 = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        Frame_Button1['font'] = myfont()
-        Frame_Button1.grid(row=0, column=0, padx=3, pady=6)
+        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button['font'] = myfont()
+        self.back_button.grid(row=0, column=0, padx=3, pady=6)
 
-    def add_job_frame(self, parent, task_name, r:int, c:int):  
+    def add_job_frame(self, parent, task_name, r:int=0, c:int=0):  
         """  Adds submit job buttons to View1"""
 
         self.Frame3 = ttk.Frame(parent, borderwidth=2, relief='groove')
         self.Frame3.grid(row=r, column=c, sticky='nswe')
 
-        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
-        self.Frame1_Button2['font'] = myfont()
-        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
+        self.submit_button = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff")
+        self.submit_button['font'] = myfont()
+        self.submit_button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
         
-        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff")
         self.Frame1_Button3['font'] = myfont()
         self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
         self.Frame1_Button3.config(state='disabled')
         
-        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.show_plot())
+        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff")
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
-
-    def gpaw_specific_spectra(self, parent):
-        gpaw_spec_frame = ttk.Frame(parent)  
-        gpaw_spec_frame.grid(row=0, column=0)
-
-        self.label_folding = tk.Label(gpaw_spec_frame,text="Folding (in eV)",bg="gray",fg="black")
-        self.label_folding['font'] = myfont()
-        self.label_folding.grid(row=0, column=0)
-
-        self.entry_folding = tk.Entry(gpaw_spec_frame)
-        self.entry_folding['font'] = myfont()
-        self.entry_folding.grid(row=0, column=1)
-
-        self.label_width = tk.Label(gpaw_spec_frame,text="Width",bg="gray",fg="black")
-        self.label_width['font'] = myfont()
-        self.label_emax.grid(row=1, column=0)
-
-        self.entry_emax = tk.Entry(gpaw_spec_frame)
-        self.entry_emax['font'] = myfont()
-        self.entry_emax.grid(row=1, column=1)
-
-    def oct_specific_spectra(self, parent):
-        oct_spec_frame = ttk.Frame(parent)
-        oct_spec_frame.grid(row=0, column=0)
-
-        self.label_1 = tk.Label(oct_spec_frame,text="Propagation Spectrum Damp Mode",bg="gray",fg="black")
-        self.label_1['font'] = myfont()
-        self.label_1.grid(row=0, column=0)
-
-        self.entry_1 = tk.Entry(oct_spec_frame)
-        self.entry_1['font'] = myfont()
-        self.entry_1.grid(row=0, column=1)
-
-    def show_engine_specific_frame(self, engine):
-        #TODO: The engine information should be abstracted from this module.
-        if engine=="gpaw":
-            self.gpaw_specific_spectra(self)
-            self.Frame1_Button3.config(state='active') 
-        elif engine== "octopus":
-            self.oct_specific_spectra(self) 
-            self.Frame1_Button3.config(state='active') 
-        elif engine == "nwchem":
-            self.Frame1_Button3.config(state='disabled') 
-            
 
     def show_plot(self):
         self.event_generate(f"<<Show{self.task_name}Plot>>")
@@ -1535,9 +1457,9 @@ class TcmPage(ttk.Frame):
         self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
         self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
-        Frame_Button1 = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        Frame_Button1['font'] = myfont()
-        Frame_Button1.grid(row=0, column=0)
+        self.back_button = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button['font'] = myfont()
+        self.back_button.grid(row=0, column=0)
 
         self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
         self.add_job_frame(task_name)
@@ -1626,9 +1548,9 @@ class TcmPage(ttk.Frame):
         self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
         self.Frame3.grid(row=1, column=1, sticky='nswe')
         
-        self.Frame1_Button2 = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
-        self.Frame1_Button2['font'] =myfont()
-        self.Frame1_Button2.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
+        self.submit_button = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.submit_button['font'] =myfont()
+        self.submit_button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
         
         self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
         self.Frame1_Button3['font'] = myfont()
@@ -1637,10 +1559,6 @@ class TcmPage(ttk.Frame):
         self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate(f"<<Show{task_name}Plot>>"))
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
-
-    def set_sub_button_state(self,state):
-        self.Frame1_Button2.config(state=state)
-        self.Frame1_Button3.config(state=state)
 
     def retrieve_input(self):
         inputValues = self.frequency.get()  #TextBox_freqs.get("1.0", "end-1c")
@@ -1968,13 +1886,13 @@ class JobSubPage(ttk.Frame):
         view_btn['font'] = myfont()
         view_btn.grid(row=2, column=0, sticky='e', pady=5)
 
-        back = tk.Button(self.frame_button, text="Back ",activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Show{self.task}Page>>')])
-        back['font'] = myfont()
-        back.pack(side= tk.LEFT)
+        # back = tk.Button(self.frame_button, text="Back ",activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Show{self.task}Page>>')])
+        # back['font'] = myfont()
+        # back.pack(side= tk.LEFT)
 
-        back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",command=lambda:[self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)])
-        back2main['font'] = myfont()
-        back2main.pack(side= tk.RIGHT)
+        self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff")
+        self.back2main['font'] = myfont()
+        self.back2main.pack(side= tk.RIGHT)
 
     
     def set_network_profile(self, remote_profile: dict):
@@ -2150,7 +2068,7 @@ class JobSubPage(ttk.Frame):
 
 ####### popup filemenu #########
 
-class CreateProjectPage(Toplevel):
+class CreateProjectPage(tk.Toplevel):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2167,17 +2085,16 @@ class CreateProjectPage(Toplevel):
         self.lift()
         self.title("Create New Project")     
         self.geometry("550x200")
-
-        self.label_proj = Label(self,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_proj = tk.Label(self,text="Project Name",bg=label_design['bg'],fg=label_design['fg'])
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
 
-        self.entry_proj = Entry(self,textvariable=self._var['proj_name'])
+        self.entry_proj = tk.Entry(self,textvariable=self._var['proj_name'])
         self.entry_proj['font'] = myfont()
         self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
         self.entry_proj.delete(0, tk.END)
 
-        self.button_project = Button(self,text="Create New Project",width=18, activebackground="#78d6ff",command= lambda :self.event_generate('<<CreateNewProject>>'))
+        self.button_project = tk.Button(self,text="Create New Project",width=18, activebackground="#78d6ff")
         self.button_project['font'] = myfont()
         self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
             
@@ -2185,7 +2102,7 @@ class CreateProjectPage(Toplevel):
         return self._var[key].get()
 
     
-class GroundStatePage(ttk.Frame):
+class GroundStatePageNew(ttk.Frame):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2221,10 +2138,7 @@ class GroundStatePage(ttk.Frame):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
 
-    def get_param(self):
-        gui_dict = self.inp.get_values()
-        return gui_dict
-
+    
     def back_button(self):
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
     
@@ -2273,3 +2187,11 @@ class GroundStatePage(ttk.Frame):
                     var.trace_add('write', self.grid_sim_box_frame)            
             else:
                 var.trace("w", self.inp.update_widgets)
+
+    def get_parameters(self):
+        gui_dict = self.inp.get_values()
+        gs_input = {}
+        gs_input['xc'] = gui_dict.get('xc family')
+    
+
+        return gui_dict

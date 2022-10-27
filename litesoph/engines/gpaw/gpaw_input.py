@@ -1,19 +1,6 @@
-data = {
-    'ground_state': {
-        'import':[  'from ase.io import read, write',
-                    'from gpaw import GPAW',
-                    'from numpy import inf']
-    },
-    'rt_tddft': {
-        'lcao':{
-            'import':[  'from gpaw.lcaotddft import LCAOTDDFT',
-                        'from gpaw.lcaotddft.diplemomentwriter import DipoleMomentWriter']
-        }, 
-        'fd' : { 'import':[ 'from gpaw.lcaotddft import LCAOTDDFT',
-                            'from gpaw.lcaotddft.diplemomentwriter import DipoleMomentWriter']            
-        }
-    }
-}
+import copy
+
+
 
 default_param =  {
         'geometry' : 'coordinate.xyz',
@@ -55,6 +42,13 @@ default_param =  {
         'verbose': 0,
         'fixdensity': False,  # deprecated
         'dtype': None}  # deprecated
+
+
+def format_gs_input(gen_dict: dict):
+
+    gs_dict = copy.deepcopy(default_param)
+    
+    
 
 gs_template = """
 from ase.io import read, write
@@ -276,7 +270,7 @@ def assemable_rt(**kwargs):
     if 'mo_population' in tools:
         tlines.insert(0, 'from gpaw.lcaotddft.densitymatrix import DensityMatrix')
         tlines.insert(0, 'from gpaw.lcaotddft.ksdecomposition import KohnShamDecomposition')
-        tlines.insert(0, 'from litesoph.simulations.gpaw.mopopulationwriter import MoPopulationWriter')
+        tlines.insert(0, 'from litesoph.engines.gpaw.mopopulationwriter import MoPopulationWriter')
         tlines.insert(-5, "dmat = DensityMatrix(td_calc)")
         tlines.insert(-5, "ksd = KohnShamDecomposition(td_calc)")
         tlines.insert(-5, "ksd.initialize(td_calc)")
@@ -293,8 +287,11 @@ def gpaw_create_input(**kwargs):
         return assemable_rt(**kwargs) 
 
     if 'ground_state' == task_name:
-        default_param.update(kwargs)
-        kwargs = default_param
+        gs_dict = copy.deepcopy(default_param)
+        gs_dict.update(kwargs)
+        kwargs = gs_dict
     template = task_map.get(task_name)
     template = template.format(**kwargs)
     return template
+
+

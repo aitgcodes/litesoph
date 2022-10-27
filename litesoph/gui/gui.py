@@ -1,4 +1,3 @@
-from tkinter import *                    # importing tkinter, a standart python interface for gui.
 from tkinter import ttk                  # importing ttk which is used for styling widgets.
 from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
 from tkinter import messagebox
@@ -11,15 +10,22 @@ import os
 import platform
 import pathlib 
 
+
 #---LITESOPH modules
+from litesoph.gui.visual_parameter import myfont, create_design_feature
 from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.gui.viewpanel import ViewPanelManager
-from litesoph.simulations import TaskManager, models as m
+from litesoph.engines import TaskManager
+from litesoph.common.ls_manager import LSManager 
+from litesoph.common.project_manager import ProjectManager
+from litesoph.common import models as m
+from litesoph.gui.project_controller import ProjectController
 from litesoph.gui import views as v
+from litesoph.gui.views import StartPage
 from litesoph.gui import actions
-from litesoph.simulations.esmd import Task, TaskFailed
+from litesoph.common.task import Task, TaskFailed
 from litesoph.gui.navigation import ProjectList 
 
 
@@ -46,11 +52,28 @@ class GUIAPP:
 
         self.input_frame = self.builder.get_object('inputframe')
 
+        create_design_feature()
+
+        self.task_input_frame = ttk.Frame(self.input_frame)
+        self.task_input_frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        
+        self.workflow_frame = ttk.Frame(self.input_frame)
+        self.workflow_frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        
+        self.proceed_button_frame = ttk.Frame(self.input_frame)
+        self.proceed_button_frame.pack(fill=tk.BOTH, side=tk.BOTTOM)
+
+        self.proceed_button = tk.Button(self.proceed_button_frame, text="Proceed",activebackground="#78d6ff",command=self.on_proceed_button)
+        self.proceed_button['font'] = myfont()
+        self.proceed_button.pack(side=tk.RIGHT, padx=10)
+        
+        self.project_window = None
+
         self.navigation = ProjectList(self)
         
         self.view_panel = ViewPanelManager(self)
-        self.task_manager = TaskManager()
-        
+        self.ls_manager = LSManager()
+
         self.engine = None
 
         self.setup_bottom_panel()
@@ -64,10 +87,13 @@ class GUIAPP:
 
         self._frames = OrderedDict()
         
+        self.project_controller = ProjectController(self)
+
         self._show_page_events()
         self._bind_event_callbacks()
-        self._show_frame(v.StartPage)
-        self.main_window.after(1000, self.update_project_dir_tree)
+        self.show_start_page()
+        self.main_window.after(5000, self.save_data_repeat)
+        #self.main_window.after(1000, self.update_project_dir_tree)
 
     def run(self):
         self.main_window.protocol("WM_DELETE_WINDOW", self.__on_window_close)
@@ -75,6 +101,7 @@ class GUIAPP:
 
     def __on_window_close(self):
         """Manage WM_DELETE_WINDOW protocol."""
+        self.save_data()
         self.main_window.withdraw()
         self.main_window.destroy()
 
@@ -86,8 +113,15 @@ class GUIAPP:
 
         self.log_panel = LogPanelManager(self)
 
+    def save_data_repeat(self):
+        self.save_data()
+        self.main_window.after(30000, self.save_data_repeat)
+
+    def save_data(self):
+        self.ls_manager.save()
+
     def update_project_dir_tree(self):
-        directory = self.task_manager.current_project
+        directory = self.ls_manager.current_project
         if directory:
             self.navigation.populate(directory)
         self.main_window.after(1000, self.update_project_dir_tree)
@@ -101,42 +135,43 @@ class GUIAPP:
         title = default_title.format(newtitle)
         self.main_window.wm_title(title)
 
-
     def _get_engine(self):
-
-        engine = self.task_manager.get_previous_engine()
+        return
+        engine = self.ls_manager.get_previous_engine()
         if engine:
             self.engine = engine
             self.status_engine.set(self.engine)
 
     def _refresh_config(self,*_):
         """reads and updates the lsconfig object from lsconfig.ini"""
-        self.task_manager.read_lsconfig()
+        self.ls_manager.read_lsconfig()
+    
+    def show_start_page(self):
+        start_page = self.show_frame(StartPage)
+        start_page.button_create_project.config(command= self.create_project_window)
+        start_page.button_open_project.config(command= self._on_open_project)
 
-    def _show_frame(self, frame,*args, **kwargs):
+    def show_frame(self, frame,*args, **kwargs):
         
-        if frame in self._frames.keys():
-            frame_obj = self._frames[frame]
-            self._frames.move_to_end(frame, last=False)
-            frame_obj.tkraise()
-        else:
-            int_frame = frame(self.input_frame, *args, **kwargs)
-            self._frames[frame]= int_frame
-            self._frames.move_to_end(frame, last=False)
-            int_frame.grid(row=0, column=0, sticky ='NSEW')
-            int_frame.tkraise()
+        for widget in self.task_input_frame.winfo_children():
+            widget.destroy()
+        int_frame = frame(self.task_input_frame, *args, **kwargs)
+        self._frames[frame]= int_frame
+        self._frames.move_to_end(frame, last=False)
+        int_frame.grid(row=0, column=0, sticky ='NSEW')
+        int_frame.tkraise()
+
+        return int_frame
 
 
     def _bind_event_callbacks(self):
         """binds events and specific callback functions"""
         event_callbacks = {
-            actions.GET_MOLECULE : self._on_get_geometry_file,
-            actions.VISUALIZE_MOLECULE: self._on_visualize,
-            actions.CREATE_NEW_PROJECT: self._on_create_project,
+            actions.GET_MOLECULE : self.project_controller._on_get_geometry_file,
+            actions.VISUALIZE_MOLECULE: self.project_controller._on_visualize,
             actions.CREATE_PROJECT_WINDOW:self.create_project_window,
             actions.OPEN_PROJECT : self._on_open_project,
-            actions.ON_PROCEED : self._on_proceed,
-            actions.ON_BACK_BUTTON : self._on_back_button,
+            #actions.ON_PROCEED : self.project_controller._on_proceed,
             actions.REFRESH_CONFIG : self._refresh_config,
         }
 
@@ -146,7 +181,7 @@ class GUIAPP:
     def _show_page_events(self):
         
         event_show_page= {
-            actions.SHOW_WORK_MANAGER_PAGE : self._show_workmanager_page,
+            #actions.SHOW_WORK_MANAGER_PAGE : self._show_workmanager_page,
             actions.SHOW_GROUND_STATE_PAGE: self. _on_ground_state_task,
             actions.SHOW_RT_TDDFT_DELTA_PAGE : self._on_rt_tddft_delta_task,
             actions.SHOW_RT_TDDFT_LASER_PAGE: self._on_rt_tddft_laser_task,
@@ -158,14 +193,9 @@ class GUIAPP:
         for event, callback in event_show_page.items():
             self.main_window.bind_all(event, callback)  
 
-    def _on_back_button(self, *_):
-        "generates a event to show the first frame in odered_dict"
-        frame = list(self._frames)[1]
-        self._show_frame(frame)
-
     def _show_workmanager_page(self, *_):
 
-        self._show_frame(v.WorkManagerPage)
+        self.show_frame(v.WorkManagerPage)
         if self.engine:
             self._frames[v.WorkManagerPage].engine.set(self.engine)
 
@@ -177,6 +207,7 @@ class GUIAPP:
         self.show_project_summary()
         update_proj_list(path)
         self._get_engine()
+        self.navigation.create_project(path.name)
         
 
     def _on_open_project(self, *_):
@@ -186,23 +217,25 @@ class GUIAPP:
             return
 
         try:
-            self.task_manager.open_existing_project(pathlib.Path(project_path))
+            project_manager = self.ls_manager.open_project(pathlib.Path(project_path))
         except Exception as e:
+            raise
             messagebox.showerror(title='Error', message = 'Unable open Project', detail =e)
             return
         self._init_project(pathlib.Path(project_path))
-        if self.engine:
-            self._frames[v.WorkManagerPage].engine.set(self.engine)
+        self.show_project(project_manager)
         
     def create_project_window(self, *_):
-        self.project_window = v.CreateProjectPage(self.main_window)   
+        self.project_window = v.CreateProjectPage(self.main_window)
+        self.project_window.button_project.config(command= self._on_create_project)   
         
     def _on_create_project(self, *_):
         """Creates a new litesoph project"""
-        if hasattr(self, 'project_window'):
-            project_name = self.project_window.get_value('proj_name')
-        else:
-            project_name = self._frames[v.WorkManagerPage].get_value('proj_name')
+        
+        if not self.project_window:
+            return
+
+        project_name = self.project_window.get_value('proj_name')
         
         if not project_name:
             messagebox.showerror(title='Error', message='Please set the project name.')
@@ -216,125 +249,27 @@ class GUIAPP:
         project_path = pathlib.Path(project_path) / project_name
         
         try:
-            self.task_manager.create_new_project(project_path)
+            project_manager = self.ls_manager.new_project(project_path.name, project_path.parent)
         except PermissionError as e:
             messagebox.showerror(title='Error', message = 'Premission denied', detail = e)
         except FileExistsError as e:
             messagebox.showerror(title='Error', message = 'Project already exists', detail =e)
         except Exception as e:
+            raise
             messagebox.showerror(title='Error', message = 'Unknown problem', detail =e)
         else:
             self._init_project(project_path)
             self.engine = None
-            messagebox.showinfo("Message", f"project:{project_path} is created successfully")
-            if hasattr(self, 'project_window'):
-                self.project_window.destroy()
+            self.project_window.destroy()
+            self.show_project(project_manager)
+                
 
-            
-        
-    def _on_get_geometry_file(self, *_):
-        """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
-        try:
-            geometry_file = filedialog.askopenfilename(initialdir="./", title="Select File", filetypes=[(" Text Files", "*.xyz")])
-        except Exception as e:
-            return
-        else:
-            if geometry_file:
-                self.task_manager.add_geometry(pathlib.Path(geometry_file))
-                self._frames[v.WorkManagerPage].show_upload_label()
+    def show_project(self, project_manager: ProjectManager):
+        self.project_controller.open_project(project_manager)
 
-    def _on_visualize(self, *_):
-        """ Calls an user specified visualization tool """
-        try:
-            self.task_manager.visualize_geometry()
-        except Exception as e:
-            msg = "Cannot visualize molecule."
-            messagebox.showerror(title='Error', message=msg, detail=e) 
-    
     def show_project_summary(self):
-        summary = self.task_manager.get_project_summary()
+        summary = self.ls_manager.get_project_summary()
         self.view_panel.insert_text(summary, state='disabled')
-
-    def _on_proceed(self, *_):
-
-        simulation_type = [('electrons', 'None', '<<event>>'),
-                        ('electrons', 'Delta Pulse',actions.SHOW_RT_TDDFT_DELTA_PAGE),
-                        ('electrons', 'Gaussian Pulse', actions.SHOW_RT_TDDFT_LASER_PAGE),
-                        ('electrons', 'Customised Pulse', '<<event>>'),
-                        ('electron+ion', 'None', '<<event>>'),
-                        ('electron+ion', 'Delta Pulse', '<<event>>'),
-                        ('electron+ion', 'Gaussian Pulse', '<<event>>'),
-                        ('electron+ion', 'Customised Pulse', '<<event>>'),
-                        ('ions', 'None', '<<event>>'),
-                        ('ions', 'Delta Pulse', '<<event>>'),
-                        ('ions', 'Gaussian Pulse', '<<event>>'),
-                        ('ions', 'Customised Pulse', '<<event>>')]
-
-        w = self._frames[v.WorkManagerPage]
-        sub_task = w.get_value('sub_task')
-        task = w.get_value('task')
-        workflow_option = w.get_value('select_wf_option')
-        check_show_workflow = (workflow_option == 1)
-        self.engine = w.engine.get()
-
-        if not self.task_manager.current_project:
-            messagebox.showerror(title='Error', message='Please create project directory')
-            return
-        self.status = self.task_manager.current_project_status
-
-        if check_show_workflow:
-            w.show_workflow_chart(w.frame_workflow)
-            return
-            
-        if task == '--choose job task--':
-            messagebox.showerror(title='Error', message="Please choose job type")
-            return
-
-        if self.engine == 'auto-mode' and sub_task != "Ground State":
-            self._get_engine()
-            if not self.engine:
-                messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
-                return
-
-        if task == "Simulations":
-
-            if w.get_value('dynamics') == '--dynamics type--' or w.get_value('laser') == '-- laser type--':
-                messagebox.showerror(title= 'Error',message="Please select the Sub task options")
-                return
-
-            for dynamics, laser, event in simulation_type:
-                if dynamics == w.get_value('dynamics') and laser == w.get_value('laser'):
-                    if event == "<<event>>":
-                        messagebox.showinfo(title="Info", message="Option not Implemented")
-                        return
-                    else:
-                        self.main_window.event_generate(event)
-            return
-
-        if sub_task  == "Ground State":
-            if self.task_manager.check_geometry():
-                self.main_window.event_generate(actions.SHOW_GROUND_STATE_PAGE)
-            else:
-                messagebox.showerror(title = 'Error', message= "Upload geometry file")
-                return
-            return
-
-        if sub_task in ["Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]:
-            messagebox.showinfo(title='Info', message="This option is not yet Implemented.")
-            return
-        
-        elif sub_task == "Compute Spectrum":
-            self.main_window.event_generate(actions.SHOW_SPECTRUM_PAGE)   
-        elif sub_task == "Dipole Moment and Laser Pulse":
-            self.main_window.event_generate('')
-        elif sub_task == "Kohn Sham Decomposition":
-               self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
-        elif sub_task == "Population Tracking":
-               self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE)
-        elif sub_task == "Masking":
-            self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
-
-        w.refresh_var()
 
     @staticmethod
     def _check_task_run_condition(task, network=False) -> bool:
@@ -350,7 +285,7 @@ class GUIAPP:
     def _on_ground_state_task(self, *_):
         task_name = actions.GROUND_STATE
         self._frames[v.WorkManagerPage].refresh_var()
-        self._show_frame(v.GroundStatePage, self.engine, task_name)
+        self.show_frame(v.GroundStatePage, self.engine, task_name)
         self.ground_state_view = self._frames[v.GroundStatePage]
         if self.ground_state_view.engine.get() != self.engine:
             self.ground_state_view.engine.set(self.engine)
@@ -365,7 +300,7 @@ class GUIAPP:
         if not inp_dict:
             return
         self.engine = inp_dict.pop('engine')
-        self.ground_state_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
+        self.ground_state_task = self.ls_manager.get_task(self.engine, task_name, inp_dict)
         self.ground_state_task.create_template()
         self.view_panel.insert_text(text=self.ground_state_task.template, state='normal')
         self.bind_task_events(task_name, self.ground_state_task, view)
@@ -374,14 +309,14 @@ class GUIAPP:
 
     def _on_rt_tddft_delta_task(self, *_):
         task_name = actions.RT_TDDFT_DELTA
-        check = self.task_manager.check_status(self.engine, task_name, self.status)
+        check = self.ls_manager.check_status(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._show_frame(v.TimeDependentPage, self.engine, task_name)
+        self.show_frame(v.TimeDependentPage, self.engine, task_name)
         self.rt_tddft_delta_view = self._frames[v.TimeDependentPage]
         self.rt_tddft_delta_view.set_sub_button_state('disabled')
         self.rt_tddft_delta_view.update_engine_default(self.engine) 
@@ -389,7 +324,7 @@ class GUIAPP:
 
     def _generate_td_input(self, task_name, view):
         inp_dict = view.get_parameters()
-        self.rt_tddft_delta_task = self.task_manager.get_task(self.engine, task_name , inp_dict)
+        self.rt_tddft_delta_task = self.ls_manager.get_task(self.engine, task_name , inp_dict)
         self.rt_tddft_delta_task.create_template()
         self.view_panel.insert_text(text=self.rt_tddft_delta_task.template, state='normal')
         self.bind_task_events(task_name, self.rt_tddft_delta_task, view)
@@ -399,14 +334,14 @@ class GUIAPP:
     def _on_rt_tddft_laser_task(self, *_):
         task_name = actions.RT_TDDFT_LASER
 
-        check = self.task_manager.check_status(self.engine, task_name, self.status)
+        check = self.ls_manager.check_status(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._show_frame(v.LaserDesignPage, self.engine, task_name)
+        self.show_frame(v.LaserDesignPage, self.engine, task_name)
         self.rt_tddft_laser_view = self._frames[v.LaserDesignPage]
         self.rt_tddft_laser_view.set_sub_button_state('disabled')
         self.rt_tddft_laser_view.engine = self.engine
@@ -438,7 +373,7 @@ class GUIAPP:
             return
         view.set_laser_design_dict(self.laser_design.l_design)
         inp_dict = view.get_parameters()
-        self.rt_tddft_laser_task = self.task_manager.get_task(self.engine, task_name , inp_dict)
+        self.rt_tddft_laser_task = self.ls_manager.get_task(self.engine, task_name , inp_dict)
         self.rt_tddft_laser_task.create_template()
         self.view_panel.insert_text(text=self.rt_tddft_laser_task.template)
         self.bind_task_events(task_name, self.rt_tddft_laser_task, view)
@@ -446,14 +381,14 @@ class GUIAPP:
     
     def _on_spectra_task(self, *_):
         task_name = actions.SPECTRUM
-        check = self.task_manager.check_status(self.engine, task_name, self.status)
+        check = self.ls_manager.check_status(self.engine, task_name, self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
         else:
             messagebox.showinfo(title= "Info", message=check[1])
             return
-        self._show_frame(v.PlotSpectraPage, self.engine, task_name)
+        self.show_frame(v.PlotSpectraPage, self.engine, task_name)
         self.spectra_view = self._frames[v.PlotSpectraPage]
         self.spectra_view.engine = self.engine
         self.spectra_view.Frame1_Button2.config(state='active')
@@ -465,7 +400,7 @@ class GUIAPP:
     def _on_spectra_run_local_button(self, task_name, *_):
         
         inp_dict = self.spectra_view.get_parameters()
-        self.spectra_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
+        self.spectra_task = self.ls_manager.get_task(self.engine, task_name, inp_dict)
         self.status.set_new_task(self.engine, self.spectra_task.task_name)
         self.status.update(f'{self.engine}.{self.spectra_task.task_name}.script', 1)
         self.status.update(f'{self.engine}.{self.spectra_task.task_name}.param',self.spectra_task.user_input)
@@ -474,14 +409,11 @@ class GUIAPP:
         self._run_local(self.spectra_task, np=1)
         
 
-    def _on_spectra_run_network_button(self, *_):
-        pass
-
 ##----------------------compute---tcm---------------------------------
 
     def _on_tcm_task(self, *_):
         task_name = actions.TCM
-        check = self.task_manager.check_status(self.engine, task_name , self.status)
+        check = self.ls_manager.check_status(self.engine, task_name , self.status)
         
         if check[0]:
             self.status_engine.set(self.engine)    
@@ -489,7 +421,7 @@ class GUIAPP:
             messagebox.showinfo(title= "Info", message=check[1])
             return
 
-        self._show_frame(v.TcmPage, task_name)
+        self.show_frame(v.TcmPage, task_name)
         self.tcm_view = self._frames[v.TcmPage]
         self.tcm_view.engine_name.set(self.engine)
         
@@ -500,7 +432,7 @@ class GUIAPP:
     def _on_tcm_run_local_button(self, task_name, *_):
         
         inp_dict = self.tcm_view.get_parameters()
-        self.tcm_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
+        self.tcm_task = self.ls_manager.get_task(self.engine, task_name, inp_dict)
         self.tcm_task.prepare_input()
         self.status.set_new_task(self.engine,self.tcm_task.task_name)
         self.status.update(f'{self.engine}.{self.tcm_task.task_name}.script', 1)
@@ -509,14 +441,11 @@ class GUIAPP:
         self._run_local(self.tcm_task,np=1 )
         
 
-    def _on_tcm_run_network_button(self, *_):
-        pass
-
 ##-------------------------------population task-------------------------------------------------------------
 
     def _on_mo_population_task(self, *_): 
-        task_name = actions.MO_POPULATION_CORRELATION      
-        self._show_frame(v.PopulationPage,self.engine, task_name)
+        task_name = actions.MO_POPULATION      
+        self.show_frame(v.PopulationPage,self.engine, task_name)
         self.mo_population_view = self._frames[v.PopulationPage]
         self.mo_population_view.engine = self.engine
         self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_mo_population_run_local_button(task_name))
@@ -525,7 +454,7 @@ class GUIAPP:
     def _on_mo_population_run_local_button(self, task_name, *_):
         
         inp_dict = self.mo_population_view.get_parameters()
-        self.mo_population_task = self.task_manager.get_task(self.engine, task_name, inp_dict)
+        self.mo_population_task = self.ls_manager.get_task(self.engine, task_name, inp_dict)
         self.status.set_new_task(self.engine, self.mo_population_task.task_name)
         self.status.update(f'{self.engine}.{self.mo_population_task.task_name}.script', 1)
         self.status.update(f'{self.engine}.{self.mo_population_task.task_name}.param',self.mo_population_task.user_input)
@@ -537,10 +466,10 @@ class GUIAPP:
 
     def _on_masking_task(self, *_): 
         task_name = actions.MASKING     
-        self._show_frame(v.MaskingPage,self.engine, task_name)
+        self.show_frame(v.MaskingPage,self.engine, task_name)
         self.masking_view = self._frames[v.MaskingPage]
         self.masking_view.engine = self.engine
-        self.mask_task = self.task_manager.get_task(self.engine, task_name, user_input={})
+        self.mask_task = self.ls_manager.get_task(self.engine, task_name, user_input={})
         self.main_window.bind_all(f'<<SubLocal{task_name}>>', lambda _: self._on_masking_page_compute(self.masking_view,self.mask_task))
         self.main_window.bind_all(f'<<Plot{task_name}>>', lambda _:self._on_plot_dm_file(self.masking_view,self.mask_task))
         
@@ -553,6 +482,10 @@ class GUIAPP:
         inp_dict = view.get_parameters()
         task.plot(**inp_dict)
 ##-----------------------------------------------------------------------------------------------------------##
+    
+    def on_proceed_button(self):
+        #self.workflow_controller.next()
+        pass
 
     def view_input_file(self, task:Task):
         self.view_panel.insert_text(task.template)
@@ -578,7 +511,7 @@ class GUIAPP:
         if not self._check_task_run_condition(task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
-        self.job_sub_page = v.JobSubPage(self.input_frame, task.task_name , 'Network')
+        self.job_sub_page = v.JobSubPage(self.task_input_frame, task.task_name , 'Network')
         self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
         remote = get_remote_profile()
         if remote:
@@ -594,7 +527,7 @@ class GUIAPP:
         if not self._check_task_run_condition(task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
-        self.job_sub_page = v.JobSubPage(self.input_frame, task.task_name, 'Local')
+        self.job_sub_page = v.JobSubPage(self.task_input_frame, task.task_name, 'Local')
         self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
         self.job_sub_page.set_run_button_state('disable')
         

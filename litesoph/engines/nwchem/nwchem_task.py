@@ -3,12 +3,12 @@ from pathlib import Path
 from litesoph.utilities.units import as_to_au
 from litesoph import config
 from litesoph.post_processing.mo_population import calc_population_diff, get_energy_window, get_occ_unocc
-from litesoph.simulations.esmd import InputError, Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
-from litesoph.simulations.nwchem.nwchem import NWChem
-from litesoph.simulations.nwchem.spectrum import photoabsorption_spectrum
+from litesoph.common.task import InputError, Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
+from litesoph.engines.nwchem.nwchem import NWChem
+from litesoph.engines.nwchem.spectrum import photoabsorption_spectrum
 from litesoph.post_processing.mo_population_correlation.moocc_correlation_plot import plot_mo_population_correlations
 from litesoph.post_processing import mo_population_correlation
-from litesoph.utilities.plot_spectrum import plot_multiple_column, plot_spectrum
+from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum
 import numpy as np
 from litesoph.post_processing.mo_population import create_states_index
 

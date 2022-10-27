@@ -33,11 +33,21 @@ f1=('Noto sans', 15, 'italic')
 mygreen = "#d2ffd2"
 myred = "#dd0202"   
 
-label_design={
-    'bg':"navy blue",
-    "fg": "white"
-}
+label_design= {}
 
+work_flow_ui_design = {}
+
+def create_design_feature():
+
+    label_design.update({
+    'bg':"navy blue",
+    "fg": "white",
+    "font": myfont()
+    })
+    
+    work_flow_ui_design.update({'highlightbackground':'red',
+                    'background':'light blue',
+                    'font': myfont()})
 button_design={}
 
        

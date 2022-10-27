@@ -4,105 +4,9 @@ import os
 import json
 import numpy as np
 from typing import Any, Dict
-from litesoph.lsio.data_types import DataTypes as  DT
-from litesoph.simulations import gpaw
+from litesoph.common.data_sturcture.data_types import DataTypes as  DT
 from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
 
-class WorkManagerModel:
-
-    _default_var = {
-            'proj_path' : ['str'],
-            'proj_name' : ['str'],
-            'task' : ['str', '--choose job task--'],
-            'sub_task' : ['str']
-        }
-    
-    def __init__(self) -> None:
-        pass
-        
-    @staticmethod
-    def check_dir_exists(project_path):
-        """ check if directory exists. """
-        project_path = pathlib.Path(project_path)
-        dir_exists = os.access(project_path, os.F_OK)
-        return dir_exists
-            
-
-    @staticmethod
-    def create_dir(project_path):
-        """ Creates project directory. """
-        project_path = pathlib.Path(project_path)
-        parent_writeable = os.access(project_path.parent, os.W_OK)
-
-        if not parent_writeable:
-            msg = f'Permission denied creating directory: {project_path}'
-            raise PermissionError(msg)
-
-        project_path = pathlib.Path(project_path)
-        os.makedirs(project_path)
-
-class SettingsModel:
-
-    options ={
-        'validate job' : {'type': 'bool', 'value': True},
-        'autofill date': {'type': 'bool', 'value': True},
-        'autofill sheet data': {'type': 'bool', 'value': True},
-        'font size': {'type': 'int', 'value': 9},
-        'font family': {'type': 'str', 'value': ''},
-        'theme': {'type': 'str', 'value': 'default'},
-        'db_host': {'type': 'str', 'value': 'localhost'},
-        'db_name': {'type': 'str', 'value': ''},
-        'weather_station': {'type': 'str', 'value': 'KBMG'},
-        'host': {'type': 'str', 'value': 'localhost'},
-        'port': {'type': 'int', 'value': 22},
-        'path': {'type': 'str', 'value': ''}
-    }
-    
-    config_dirs = {
-    "Linux": pathlib.Path(os.environ.get('$LS_CONFIG_HOME', pathlib.Path.home() / '.lsconfig')),
-    'Windows': pathlib.Path.home() / 'AppData' / 'Local'
-  }
-
-    def __init__(self) -> None:
-        filename = "ls_settings.json"
-        self.filepath = pathlib.Path.home() / filename
-        self.load()
-
-    def load(self):
-        if not self.filepath.exists():
-            return
-
-        with open(self.filepath, 'r') as f:
-            raw_values = json.load(f)
-
-        for key in self.options:
-            if key in raw_values and 'value' in raw_values[key]:
-                raw_value = raw_values[key]['value']
-                self.options[key]['value'] = raw_value
-    
-    def save(self):
-        with open(self.filepath, 'w') as f:
-            json.dump(self.options, f)
-
-    def set(self, key, value):
-        if (
-            key in self.options and
-            type(value).__name__ == self.options[key]['type']
-        ):
-            self.options[key]['value'] = value
-        else:
-            raise ValueError("Bad key or wrong variable type")
-
-def get_engine_model(engine):
-
-    if  engine == 'auto-mode':
-        return AutoModeModel
-    elif engine == 'gpaw':
-        return GpawModel
-    elif engine == 'nwchem':
-        return NWchemModel
-    elif engine == 'octopus':
-        return OctopusModel
 
 @dataclass
 class AutoModeModel:
@@ -282,21 +186,3 @@ def plot(x_data, y_data, x_label, y_label):
  
     # return figure    
 
-
-class TextViewerModel:
-
-    def __init__(self, filename) -> None:
-        self.filename = filename
-
-    def read_file(self):
-        with open(self.filename, 'r') as f:
-            self.text = f.read()
-        return self.text
-
-    def append_file(self, text):
-        with open(self.filename, 'a') as f:
-            f.write(text)
-
-    def write_file(self, text):
-        with open(self.filename, 'w') as f:
-            f.write(text)

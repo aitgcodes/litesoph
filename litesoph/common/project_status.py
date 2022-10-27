@@ -136,10 +136,5 @@ class file_check:
                 return False
 
 
-def show_message(label_name, message):
-    """ Shows a update """
-
-    label_name['text'] = message
-    label_name['foreground'] = 'black'
 
 

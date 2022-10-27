@@ -6,7 +6,7 @@ from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 
 from litesoph.gui.engine_views import EngineViews
-from litesoph.simulations.models import GpawModel
+from litesoph.common.models import GpawModel
 
 
 class GpawGSPage(EngineViews):

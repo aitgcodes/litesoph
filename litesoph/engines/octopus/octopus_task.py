@@ -1,9 +1,9 @@
 import copy
 import shutil
 from pathlib import Path
-from litesoph.simulations.esmd import Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
-from litesoph.simulations.octopus.octopus import Octopus
-from litesoph.simulations.octopus.octopus_input import get_task
+from litesoph.common.task import Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
+from litesoph.engines.octopus.octopus import Octopus
+from litesoph.engines.octopus.octopus_input import get_task
 from litesoph import config
 
 engine_dir = 'octopus'
@@ -106,11 +106,11 @@ class OctopusTask(Task):
             for dir in [indir, outdir]:
                 self.create_directory(dir)
 
-        if self.task_name == 'ground_state':
-            from litesoph.gui.engine_views.octopus_views.gs2oct import create_oct_gs_inp
-            oct_gs_dict = create_oct_gs_inp(param)
-            param = oct_gs_dict
-        
+        # if self.task_name == 'ground_state':
+        #     from litesoph.gui.engine_views.octopus_views.gs2oct import create_oct_gs_inp
+        #     oct_gs_dict = create_oct_gs_inp(param)
+        #     param = oct_gs_dict
+
         if self.task_name in ["rt_tddft_delta","rt_tddft_laser"]:
             inp_dict = get_oct_kw_dict(param, self.task_name)
             gs_from_status = self.status.get('octopus.ground_state.param')
@@ -194,7 +194,7 @@ class OctopusTask(Task):
             return self.read_log(out_log)
 
     def plot(self,**kwargs):
-        from litesoph.utilities.plot_spectrum import plot_spectrum,plot_multiple_column
+        from litesoph.visualization.plot_spectrum import plot_spectrum,plot_multiple_column
 
         if self.task_name == 'spectrum':
             pol =  self.status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
@@ -209,7 +209,7 @@ class OctopusTask(Task):
             return
 
         if self.task_name == 'tcm': 
-            from litesoph.utilities.job_submit import execute
+            from litesoph.common.job_submit import execute
 
             fmin = kwargs.get('fmin')
             fmax = kwargs.get('fmax')

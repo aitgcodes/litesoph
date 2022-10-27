@@ -4,14 +4,14 @@ import re
 import os
 from tabnanny import check
 
-from ..utilities.job_submit import SubmitNetwork
+from litesoph.common.job_submit import SubmitNetwork, SubmitLocal
 
 GROUND_STATE = 'ground_state'
 RT_TDDFT_DELTA = 'rt_tddft_delta'
 RT_TDDFT_LASER = 'rt_tddft_laser'
 SPECTRUM = 'spectrum'
 TCM = 'tcm'
-MO_POPULATION_CORRELATION = 'mo_population'
+MO_POPULATION = 'mo_population'
 MASKING = 'masking'
 
 class TaskError(RuntimeError):
@@ -152,7 +152,6 @@ class Task:
         self.write_input(text)
 
     def set_submit_local(self, *args):
-        from litesoph.utilities.job_submit import SubmitLocal
         self.sumbit_local = SubmitLocal(self, *args)
 
     def run_job_local(self,cmd):
@@ -178,6 +177,34 @@ class Task:
             raise TaskFailed("Job not completed.")
         else:
             return True
+
+def write2file(directory,filename, template) -> None:
+    """Write template to a file.
+    
+    directroy: str
+        full path of the directory to write to.
+    filename: str
+        name of the file with extension
+    template: str
+        script template which needs to be written to file.
+    """
+
+    filename = pathlib.Path(directory) / filename
+    file_exists = os.access(filename, os.F_OK)
+    parent_writeable = os.access(filename.parent, os.W_OK)
+    file_writeable = os.access(filename, os.W_OK)
+    
+    if ((not file_exists and not parent_writeable) or
+        (file_exists and not file_writeable)):
+        msg = f'Permission denied acessing file: {filename}'
+        raise PermissionError(msg)
+
+    with open(filename, 'w+') as f:
+
+        f.truncate()
+        f.seek(0)
+        f.write(template)
+
 
 def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
                         mpi_path: str = None,
