@@ -113,8 +113,10 @@ gs_input ={"xc family": {
                 "default":6,
                 "switch_keys": ["select box","basis_type:common"],
                 "switch": lambda k:
-                k.get("select box", True) is False and
-                k.get("basis_type:common", "") in ["LCAO","FD","PW"]
+                # k.get("select box", True) is False and
+                k.get("basis_type:common", "") in ["LCAO","FD","PW"],
+                "state_switch":lambda k:
+                k.get("select box", False) is False
         },
 
         "select box": {

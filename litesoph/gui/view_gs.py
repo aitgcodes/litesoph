@@ -369,10 +369,17 @@ class InputFrame(ttk.Frame):
             if check_switch and visible_options is not None:
                 for name, desc in self.fields.items():
                         if "switch" in desc:
-                                if desc["switch"](visible_options):
-                                    self.enable(name)
-                                else:
-                                    self.disable(name)
+                            if desc["switch"](visible_options):
+                                self.enable(name)
+                                if "state_switch" in desc:
+                                    if desc["state_switch"](visible_options) is not None:
+                                        if desc["state_switch"](visible_options) is False:
+                                            self.widget[name].config(state = 'disabled')
+                                        else:
+                                            self.widget[name].config(state = 'normal')
+                            else:
+                                self.disable(name)
+                                
           
             ## TODO 
             # check condition for parent frame/tab widgets from corresponding dict first,
