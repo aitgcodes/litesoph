@@ -2190,8 +2190,62 @@ class GroundStatePageNew(ttk.Frame):
 
     def get_parameters(self):
         gui_dict = self.inp.get_values()
-        gs_input = {}
-        gs_input['xc'] = gui_dict.get('xc family')
-    
+        
+        for key in ["basis_type:common","basis_type:extra"]:
+            type = gui_dict.get(key)
+            if type :
+                assert type in ["LCAO","FD","PW","Gaussian"]
+                basis_type = type
 
-        return gui_dict
+                lcao = (basis_type == "LCAO")
+                gaussian = (basis_type == "Gaussian")
+
+                if lcao:
+                    basis = gui_dict.get("basis:nao")
+                elif gaussian:
+                    basis = gui_dict.get("basis:gaussian") 
+                else:
+                    basis = None
+        
+        select_box = gui_dict.get("select box")
+        boxshape = gui_dict.get("box shape")
+
+        if boxshape is not None and select_box is True:
+            if boxshape == "parallelepiped":
+                dim_dict = {
+                    "box length_x":gui_dict.get("box length_x"),
+                    "box length_y":gui_dict.get("box length_y"),
+                    "box length_z":gui_dict.get("box length_z")
+                    }
+            elif boxshape == "cylinder":
+                dim_dict = {
+                    "radius":gui_dict.get("radius"),
+                    "cylinder length":gui_dict.get("cylinder length"),
+                    }
+            elif boxshape in ["sphere", "minimumn"]:
+                dim_dict = {
+                    "radius":gui_dict.get("radius"),
+                    }  
+            else:
+                dim_dict = None            
+        else:
+            dim_dict = None
+        
+        gs_input = {
+            "xc":gui_dict.get('xc family'),  
+            "basis_type": basis_type,                                   
+            "basis": basis,               
+            "spin": gui_dict.get('spin'),
+            "spacing": gui_dict.get('spacing'),
+            "boxshape": boxshape,    
+            "box_dim" : dim_dict, 
+            "vacuum": gui_dict.get('vacuum'),
+            "max_iter":gui_dict.get('max itr'),
+            "energy_conv": gui_dict.get('energy conv'),
+            "density_conv": gui_dict.get('density conv'),
+            "smearing": gui_dict.get('smearing'),
+            "mixing": gui_dict.get('mixing'),
+            "bands": gui_dict.get('bands'),
+        }        
+        print(gs_input)
+        return gs_input
