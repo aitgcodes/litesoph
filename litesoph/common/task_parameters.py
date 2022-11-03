@@ -15,11 +15,13 @@ default_ground_state_parameters = {
         "spin": None,
         "spacing": None,
         "vacuum": None,
-        "box": {},        
+        "boxshape": None,
+        "box_dim" : None,        
         "max_iter":300,
         "energy_conv": 1e-6 ,
         "density_conv": 1e-6 ,
-        "smearing": None,
+        "smearing_fun": None,
+        "smearing_width": None,
         "mixing": None,
         
 }

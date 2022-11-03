@@ -44,12 +44,6 @@ default_param =  {
         'dtype': None}  # deprecated
 
 
-def format_gs_input(gen_dict: dict):
-
-    gs_dict = copy.deepcopy(default_param)
-    
-    
-
 gs_template = """
 from ase.io import read, write
 from gpaw import GPAW

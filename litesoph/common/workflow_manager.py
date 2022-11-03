@@ -11,8 +11,7 @@ from litesoph.common.task import (Task, TaskFailed,
                                 MASKING)
 
 from litesoph.common.project_status import Status
-from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.data_sturcture.data_classes import WorkflowInfo
+from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info
 from litesoph.engines.gpaw.gpaw_task import GpawTask
 from litesoph.engines.nwchem.nwchem_task import NwchemTask
 from litesoph.engines.octopus.octopus_task import OctopusTask
@@ -35,6 +34,7 @@ class WorkflowManager:
         self.tasks = workflow_info.tasks
         self.directory = workflow_info.path
         self.current_step = workflow_info.current_step
+        self.status = None
 
     def get_engine_task(self, task, user_input) -> Task:
         user_input['task'] = task
@@ -70,7 +70,7 @@ class WorkflowManager:
     def next(self, task_name:str= None) -> TaskInfo:
         
 
-        if not self.tasks:
+        if not self.status:
             self.init_workflow()
 
         if self.user_defined:
@@ -90,20 +90,18 @@ class WorkflowManager:
             self.tasks['user_defined'].append(task_info)
 
         else:
-            return
             # workflow dict should be defined for each engine and workflow. It should specify the steps in a workflow
             # and the tasks involved in each workflow.
             if not self.current_step:
-                self.current_step = [task_name , 0]
+                self.current_step.insert(0, self.steps[0])
+                self.current_step.insert(1, self.tasks[self.steps[0]])
+                self.current_step.insert(2, 0)
             else:
                 if self.current_step[1] == (len(self.steps) - 1):
                     raise TaskSetupError('No more tasks in the workflow.')
 
                 task_name = self.steps[self.current_step[1] + 1 ]
                 self.current_step = [task_name, self.current_step[1] + 1]
-
-            task_info = factory_task_info(task_name)
-            self.tasks[task_name] = task_info
 
         if self.engine:
             task_info.engine = self.engine
@@ -136,7 +134,3 @@ class WorkflowManager:
     
     def save(self):
         self.project_manager.save()
-    
-def factory_task_info(name: str) -> TaskInfo:
-
-    return TaskInfo(str(uuid.uuid4()), name)

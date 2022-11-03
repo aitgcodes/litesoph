@@ -1,8 +1,10 @@
+import copy
 from litesoph.post_processing.mo_population import calc_population_diff, create_states_index, get_occ_unocc
 from litesoph.common.task import (InputError, Task, TaskFailed ,
                                      TaskNotImplementedError, assemable_job_cmd, write2file)
 from litesoph.engines.gpaw.gpaw_input import gpaw_create_input, default_param
 from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum
+from litesoph.engines.gpaw.task_data import gpaw_gs_param_data
 from pathlib import Path
 import numpy as np
 from litesoph.utilities.units import autime_to_eV, au_to_as
@@ -69,14 +71,22 @@ class GpawTask(Task):
     def __init__(self, project_dir, lsconfig, status, **kwargs) -> None:
         
         self.task_name = kwargs.get('task', 'ground_state')
-        self.user_input = kwargs
+        
         self.engine_log = None
         self.output = {}
         if not self.task_name in self.implemented_task: 
             raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
         self.task_data = gpaw_data.get(self.task_name)
+        self.user_input = {}
+        self.user_input['task'] = self.task_name
+        if 'ground_state':
+            self.user_input.update(format_gs_input(kwargs))
+        else:
+            self.user_input.update(kwargs)
+
         super().__init__('gpaw', status, project_dir, lsconfig)
         self.setup_task(self.user_input)
+        
 
     def setup_task(self, param):
         infile_ext = '.py'
@@ -265,6 +275,76 @@ def get_direction(direction:list):
     pol_map = {'0' : 'x', '1' : 'y', '2': 'z'}
     index = direction.index(1)
     return index , pol_map[str(index)]
+
+def format_gs_input(gen_dict: dict) -> dict:
+    """ Converts a generalised dft input parameters to GPAW specific input
+        parameters."""
+
+    param_data = gpaw_gs_param_data
+    gs_dict = copy.deepcopy(default_param)
+
+    mode = gen_dict.get('basis_type')
+    if mode not in param_data['basis_type']['values']:
+        raise InputError(f"Undefined basis_type: {mode}")
+
+    gs_dict.update({'mode': mode})
+    
+    if mode == 'lcao':
+        basis = gen_dict.get('basis')
+        if basis not in param_data['basis']['metadata']['basis_type']['lcao']['values']:
+            raise InputError(f'Basis:{basis} not compatable with basis_type:{mode}.')
+
+        gs_dict.update({'basis':{'default': basis}})
+
+    elif mode == 'fd':
+        pass
+    elif mode == 'pw':
+        pass
+    
+
+    box = gen_dict.get('boxshape')
+    if box != 'parallelepiped' and box is not None:
+        raise InputError(f"Boxshape: {box} not compatable with gpaw.")
+
+    box_dim = gen_dict.get('box_dm')
+    if box_dim:
+        pass
+
+    vacuum = gen_dict.get('vacuum', 6)
+    gs_dict.update({'vacuum': vacuum})
+
+    spacing = gen_dict.get('spacing', 0.3)
+    gs_dict.update({'h': spacing})
+
+    spinpol = gen_dict.get('spin')
+    if spinpol == 'polarized':
+        gs_dict['spinpol'] = True
+    elif spinpol == 'unpolarized':
+        gs_dict['spinpol'] = False
+    else:
+        raise InputError(f"Unkown spin:{spinpol}")
+
+    maxiter = gen_dict.get("max_iter", 333)
+    gs_dict['maxiter'] = maxiter
+
+    energy_conv = gen_dict.get('energy_conv')
+    density_conv = gen_dict.get('density_conv')
+
+    gs_dict['convergence']['energy'] = energy_conv
+    gs_dict['convergence']['density'] = density_conv
+    
+    smearing_func = gen_dict.get('smearing_fun', '')
+    smearing_width = gen_dict.get('smearing_width', 0.0)
+
+    if smearing_func not in param_data['smearing_fun']['values']:
+        raise InputError(f'Unkown smearing function: {smearing_func}')
+
+    gs_dict['occupations'] = {}
+    gs_dict['occupations']['name'] = smearing_func
+    gs_dict['occupations']['width'] = smearing_width
+
+    return gs_dict
+    
 
 def update_td_input(param):
     if 'laser' in param:

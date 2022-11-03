@@ -509,7 +509,7 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
     obj.entry_out_frq['font'] = myFont
     obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
-class GroundStatePage(View):
+class GroundStatePageold(View):
     
     def __init__(self, parent,engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2102,7 +2102,7 @@ class CreateProjectPage(tk.Toplevel):
         return self._var[key].get()
 
     
-class GroundStatePageNew(ttk.Frame):
+class GroundStatePage(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2115,30 +2115,30 @@ class GroundStatePageNew(ttk.Frame):
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.inp = InputFrame(self,fields=gs_input,visible_state=gs_visible_default, padx=5, pady=5)
+        self.inp = InputFrame(self.input_param_frame,fields=gs_input,visible_state=gs_visible_default, padx=5, pady=5)
         self.inp.grid(row=0, column=0)
         self.trace_variables()
         
-        self.button_frame = ttk.Frame(self)
-        self.button_frame.grid(row=1, column=0)
-
-        self.button_back = tk.Button(self.button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        add_job_frame(self, self.submit_button_frame, task_name, column=1)
+        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
-        self.button_view = tk.Button(self.button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
+        self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
         self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
-        self.button_save = tk.Button(self.button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
+        self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
         self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
-        self.label_msg = tk.Label(self.button_frame,text="")
+        self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
 
-    
+    def set_label_msg(self,msg):
+        show_message(self.label_msg, msg)
+        
     def back_button(self):
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
     
@@ -2166,7 +2166,7 @@ class GroundStatePageNew(ttk.Frame):
         for name in ["basis_type:common","basis_type:extra"]:
             if self.inp.fields[name]["visible"]:
                 basis = self.inp.variable[name].get()
-                if basis == "Gaussian":
+                if basis == "gaussian":
                     self.inp.group["simulation box"].grid_remove()  
                 else:
                     self.inp.group["simulation box"].grid()          
@@ -2194,11 +2194,11 @@ class GroundStatePageNew(ttk.Frame):
         for key in ["basis_type:common","basis_type:extra"]:
             type = gui_dict.get(key)
             if type :
-                assert type in ["LCAO","FD","PW","Gaussian"]
+                assert type in ["lcao","fd","pw","gaussian"]
                 basis_type = type
 
-                lcao = (basis_type == "LCAO")
-                gaussian = (basis_type == "Gaussian")
+                lcao = (basis_type == "lcao")
+                gaussian = (basis_type == "gaussian")
 
                 if lcao:
                     basis = gui_dict.get("basis:nao")

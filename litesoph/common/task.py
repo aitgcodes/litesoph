@@ -1,8 +1,6 @@
-from configparser import ConfigParser
 import pathlib
 import re
 import os
-from tabnanny import check
 
 from litesoph.common.job_submit import SubmitNetwork, SubmitLocal
 

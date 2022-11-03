@@ -1,7 +1,6 @@
 import pathlib
 from pathlib import Path
 from litesoph.utilities.units import as_to_au
-from litesoph import config
 from litesoph.post_processing.mo_population import calc_population_diff, get_energy_window, get_occ_unocc
 from litesoph.common.task import InputError, Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.nwchem.nwchem import NWChem
@@ -11,31 +10,8 @@ from litesoph.post_processing import mo_population_correlation
 from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum
 import numpy as np
 from litesoph.post_processing.mo_population import create_states_index
+from litesoph.engines.nwchem.task_data import nwchem_gs_param_data, nwchem_xc_map
 
-xc = {
-            'B3LYP'     :'xc b3lyp',
-            'PBE0'      :'xc pbe0',
-            'PBE96'     :'xc xpbe96 cpbe96',
-            'BHLYP'     :'xc bhlyp',
-            'PW91'      :'xc xperdew91 perdew91',
-            'BP86'      :'xc becke88 perdew86',
-            'BP91'      :'xc becke88 perdew91',
-            'BLYP'      :'xc becke88 lyp',
-            'M05'       :'xc m05',
-            'M05-2X'    :'xc m05-2x',
-            'M06'       :'xc m06',
-            'M06-HF'    :'xc m06-hf',
-            'M08-SO'    :'xc m08-so',
-            'M11'       :'xc m11',
-            'CAM-B3LYP' :'xc xcamb88 1.00 lyp 0.81 vwn_5 0.19 hfexch 1.00 \n cam 0.33 cam_alpha 0.19 cam_beta 0.46',
-            'LC-BLYP'   :'xc xcamb88 1.00 lyp 1.0 hfexch 1.00 \n cam 0.33 cam_alpha 0.0 cam_beta 1.0',
-            'LC-PBE'    :'xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n cam 0.30 cam_alpha 0.0 cam_beta 1.0',
-            'LC-wPBE'   :'xc xwpbe 1.00 cpbe96 1.0 hfexch 1.00 \n cam 0.4 cam_alpha 0.00 cam_beta 1.00',
-            'CAM-PBE0'  :'xc xcampbe96 1.0 cpbe96 1.0 HFexch 1.0 \n cam 0.30 cam_alpha 0.25 cam_beta 0.75',
-            'rCAM-B3LYP':'xc xcamb88 1.00 lyp 1.0 vwn_5 0. hfexch 1.00 becke88 nonlocal 0.13590 \n cam 0.33 cam_alpha 0.18352 cam_beta 0.94979',
-            'HSE03'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.33 cam_alpha 0.0 cam_beta 1.0',
-            'HSE06'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.11 cam_alpha 0.0 cam_beta 1.0',
-}
 
 nwchem_data = {
 'ground_state' : {'inp':'nwchem/GS/gs.nwi',
@@ -93,7 +69,10 @@ class NwchemTask(Task):
 
         self.task_data = nwchem_data.get(self.task_name)
         super().__init__('nwchem',status, project_dir, lsconfig)
-        self.user_input = kwargs
+        if self.task_name == 'ground_state':
+            self.user_input = format_gs_param(kwargs)
+        else:
+            self.user_input = kwargs
         self.create_engine(self.user_input)
     
     def create_engine(self, param):
@@ -309,6 +288,34 @@ class NwchemTask(Task):
 #module load nwchem"""
         return job_script
 
+def format_gs_param(gen_dict:dict) -> dict:
+    param_data = nwchem_gs_param_data
+    gs_input = {'dft': {}}
+
+    basis_type = gen_dict.get('basis_type')
+    if basis_type != 'gaussian':
+        raise InputError(f'Unkown basis type: {basis_type}')
+
+    xc = gen_dict.get('xc')
+    if xc not in param_data['xc']['values']:
+        raise InputError('Unkown xc: {xc}')
+    gs_input['dft']['xc'] = xc
+
+    basis = gen_dict.get('basis')
+    if basis not in param_data['basis']['values']:
+        raise InputError('Unkown basis: {xc}')
+    gs_input['basis'] = basis
+    
+    energy_conv = gen_dict.get('energy_conv', 1e-5)
+    density_conv = gen_dict.get('density_conv', 1e-7)
+
+    convergence = gs_input['dft']['convergence'] = {}
+    convergence['energy'] = energy_conv
+    convergence['density'] = density_conv
+
+    gs_input['dft']['iterations'] = gen_dict.get('max_iter')
+
+    return gs_input
 
 def update_td_param(param):
     strength = param.pop('strength')

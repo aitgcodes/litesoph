@@ -22,7 +22,6 @@ class TaskController:
         self.workflow_controller = workflow_controller
         self.main_window = app.main_window
         self.view_panel = app.view_panel
-        self.task_input_frame = app.task_input_frame
         self.status_engine = app.status_engine
         self.task_info = None
         self.task_view = None
@@ -53,7 +52,7 @@ class TaskController:
             self.task_view.update_engine_default(self.engine)
 
     def create_task_view(self, view_class, *args, **kwargs):
-        self.task_view = view_class(self.task_input_frame, *args, **kwargs)
+        self.task_view = view_class(self.app.task_input_frame, *args, **kwargs)
         self.task_view.grid(row=0, column=0, sticky ='NSEW')
         self.task_view.tkraise()
 
@@ -162,7 +161,7 @@ class TaskController:
         if not self._check_task_run_condition(task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
-        self.job_sub_page = v.JobSubPage(self.task_input_frame, task.task_name , 'Network')
+        self.job_sub_page = v.JobSubPage(self.app.task_input_frame, task.task_name , 'Network')
         self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
         self.job_sub_page.back2main.config(command= self.workflow_controller.show_workmanager_page)
         remote = get_remote_profile()
@@ -179,7 +178,7 @@ class TaskController:
         if not self._check_task_run_condition(task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
-        self.job_sub_page = v.JobSubPage(self.task_input_frame, task.task_name, 'Local')
+        self.job_sub_page = v.JobSubPage(self.app.task_input_frame, task.task_name, 'Local')
         self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
         self.job_sub_page.back2main.config(command= self.workflow_controller.show_workmanager_page)
         self.job_sub_page.set_run_button_state('disable')

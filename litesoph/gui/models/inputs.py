@@ -21,7 +21,7 @@ gs_input ={"xc family": {
         "text": "Basis Type",
         "help": None,
         "widget": Combobox,
-        "values": ["LCAO","FD","PW","Gaussian"],
+        "values": ["lcao","fd","pw","gaussian"],
         "visible": True,
         "switch_keys": ["xc family"],
         "switch": lambda k:
@@ -35,7 +35,7 @@ gs_input ={"xc family": {
         "text": "Basis Type",
         "help": None,
         "widget": Combobox,
-        "values": ["Gaussian"],
+        "values": ["gaussian"],
         "visible": False,
         "switch_keys": ["xc family"],
         "switch": lambda k:
@@ -51,7 +51,7 @@ gs_input ={"xc family": {
                 "switch_keys": ["basis_type:common"],
                 "values": ["dzp","sz","dz","szp","pvalence.dz"],
                 "switch": lambda k:
-                k.get("basis_type:common", "") == "LCAO"
+                k.get("basis_type:common", "") == "lcao"
                 },
 
         "basis:gaussian": {
@@ -66,8 +66,8 @@ gs_input ={"xc family": {
                         "cc-pVDZ","aug-cc-pvtz"],
                 "switch_keys": ["basis_type:common","basis_type:extra"],
                 "switch": lambda k:
-                k.get("basis_type:common", "") == "Gaussian" or
-                k.get("basis_type:extra","") == "Gaussian"
+                k.get("basis_type:common", "") == "gaussian" or
+                k.get("basis_type:extra","") == "gaussian"
         },
         "spin": {
                "tab":"Basic",
@@ -88,7 +88,7 @@ gs_input ={"xc family": {
                 "default":0.3,
                 "switch_keys": ["basis_type:common"],
                 "switch": lambda k:
-                k.get("basis_type:common", "") in ["LCAO" ,"FD"]
+                k.get("basis_type:common", "") in ["lcao" ,"fd"]
                 },
 
         "box shape": {
@@ -100,7 +100,7 @@ gs_input ={"xc family": {
                 "values": ["parallelepiped", "sphere", "cylinder", "minimum"],
                 "switch_keys": ["basis_type:common"],
                 "switch": lambda k:
-                k.get("basis_type:common", "") in ["LCAO" ,"FD"]
+                k.get("basis_type:common", "") in ["lcao" ,"fd"]
         },
 
         "vacuum": {
@@ -114,7 +114,7 @@ gs_input ={"xc family": {
                 "switch_keys": ["select box","basis_type:common"],
                 "switch": lambda k:
                 # k.get("select box", True) is False and
-                k.get("basis_type:common", "") in ["LCAO","FD","PW"],
+                k.get("basis_type:common", "") in ["lcao","fd","pw"],
                 "state_switch":lambda k:
                 k.get("select box", False) is False
         },
@@ -128,7 +128,7 @@ gs_input ={"xc family": {
                 "default":False,
                 "switch_keys": ["basis_type:common"],
                 "switch": lambda k:
-                k.get("basis_type:common", "") in ["LCAO","FD"]
+                k.get("basis_type:common", "") in ["lcao","fd"]
         },
 
         "max itr": {

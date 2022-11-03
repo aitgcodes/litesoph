@@ -31,11 +31,8 @@ class WorkflowController:
         self.app = app
         self.project_controller = project_controller
         self.workflow_navigation_view = project_controller.workflow_navigation_view
-        self.workflow_frame = app.workflow_frame
         self.main_window = app.main_window
         self.view_panel = app.view_panel
-        self.task_input_frame = app.task_input_frame
-        self.proceed_button = app.proceed_button
         self.task_controller = TaskController(self,  app)
     
 
@@ -49,7 +46,7 @@ class WorkflowController:
     def show_workmanager_page(self, *_):
         self.workmanager_page._var['select_wf_option'].set(value=2)
         self.workmanager_page.tkraise()
-        self.workmanager_page.button_proceed.config(command= self.start_task)
+        self.app.proceed_button.config(command= self.start_task)
     
     def start_task(self, *_):
         
