@@ -223,7 +223,6 @@ class GUIAPP:
         try:
             project_manager = self.ls_manager.open_project(pathlib.Path(project_path))
         except Exception as e:
-            raise
             messagebox.showerror(title='Error', message = 'Unable open Project', detail =e)
             return
         self._init_project(pathlib.Path(project_path))
@@ -259,7 +258,6 @@ class GUIAPP:
         except FileExistsError as e:
             messagebox.showerror(title='Error', message = 'Project already exists', detail =e)
         except Exception as e:
-            raise
             messagebox.showerror(title='Error', message = 'Unknown problem', detail =e)
         else:
             self._init_project(project_path)

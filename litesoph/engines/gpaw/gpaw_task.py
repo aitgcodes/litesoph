@@ -1,7 +1,9 @@
 import copy
+from typing import Any, List, Dict, Union
 from litesoph.post_processing.mo_population import calc_population_diff, create_states_index, get_occ_unocc
 from litesoph.common.task import (InputError, Task, TaskFailed ,
                                      TaskNotImplementedError, assemable_job_cmd, write2file)
+from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.engines.gpaw.gpaw_input import gpaw_create_input, default_param
 from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum
 from litesoph.engines.gpaw.task_data import gpaw_gs_param_data
@@ -25,6 +27,10 @@ gpaw_data = {
         'out_log': 'gpaw/TD_Delta/td.out',
         'restart': 'gpaw/TD_Delta/td.gpw',
         'check_list':['Writing','Total:']},
+
+'rt_tddft' : {'file_name' : 'td',
+        'output': {'out_log': 'td.out',
+                    'gpw_out': 'td.gpw'}},
 
 'rt_tddft_laser': {'inp':'gpaw/TD_Laser/td.py',
         'req' : ['gpaw/GS/gs.gpw'],
@@ -266,9 +272,239 @@ class GpawTask(Task):
 ##conda activate <environment name>"""
         return job_script
 
-def get_polarization_direction(status):
-    param = status.get('gpaw.rt_tddft_delta.param')
-    pol = param['polarization']
+
+class GpawTask(Task):
+
+    NAME = 'gpaw'
+
+    simulation_tasks =  ['ground_state','rt_tddft']
+    post_processing_tasks = ['spectrum', 'tcm', 'mo_population', 'masking']
+    implemented_task = simulation_tasks + post_processing_tasks
+
+    def __init__(self, lsconfig, 
+                task_info: TaskInfo, 
+                dependent_tasks: Union[List[TaskInfo],None]= None
+                ) -> None:
+        
+        super().__init__(lsconfig, task_info, dependent_tasks)
+
+        if not self.task_name in self.implemented_task: 
+            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
+        self.task_data = gpaw_data.get(self.task_name)
+        self.params = copy.deepcopy(self.task_info.param)
+        
+        self.user_input = {}
+        self.user_input['task'] = self.task_name
+        if 'ground_state' == self.task_name:
+            self.user_input.update(format_gs_input(self.params))
+        else:
+            self.user_input.update(self.params)
+
+        
+        self.setup_task(self.user_input)
+        
+
+    def setup_task(self, param):
+        infile_ext = '.py'
+        self.task_dir = self.get_task_dir()
+        input_filename = self.task_data.get('file_name', None)
+        self.network_done_file = self.task_dir / 'Done'
+        self.task_info.input['engine_input']={}
+
+        if input_filename:
+            self.input_filename = input_filename + infile_ext
+        
+            param['txt_out'] = input_filename + '.out'
+            param['gpw_out'] =  input_filename + '.gpw'
+            self.task_info.input['engine_input']['path'] = str(self.task_dir / self.input_filename)
+            self.task_info.output['txt_out'] = str(self.task_dir / param['txt_out'])
+            self.task_info.output['gpw_out'] = str(self.task_dir / param['gpw_out'])
+
+        if 'ground_state' in self.task_name:
+            param['geometry'] = str(self.project_dir / 'coordinate.xyz')
+            return
+        
+        if 'rt_tddft' in self.task_name:
+            param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
+            param['dm_file'] = 'dm.dat'
+            self.task_info.output['dm_file'] = str(self.task_dir / param['dm_file'])
+            if 'ksd' in param or 'mo_population' in param:
+                param['wfile'] = 'wf.ulm'
+                self.task_info.output['wfile'] = str(self.task_dir / param['wfile'])
+            update_td_input(param)
+            return
+
+        if 'spectrum' == self.task_name:
+            param['dm_file'] = self.dependent_tasks[0].output.get('dm_file')
+            self.pol = get_polarization_direction(self.dependent_tasks[0])
+            param['spectrum_file'] = spec_file = f'spec_{self.pol[1]}.dat'
+            self.task_info.output['spectrum_file'] = str(self.task_dir / param['spectrum_file'])
+            update_spectrum_input(param)
+            self.spec_file = self.task_dir / spec_file
+            return
+
+        if 'tcm' == self.task_name:
+            param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
+            param['wfile'] = self.dependent_tasks[0].output.get('wfile')
+            return
+
+        if 'mo_population' ==self.task_name:
+            gs_log = self.dependent_tasks[0].output.get('txt_out')
+            gs_file = self.dependent_tasks[0].output.get('gpw_out')
+            param['gfilename'] = gs_file
+            param['wfile'] = self.dependent_tasks[0].output.get('wfile')
+            param['mopop_file'] = mo_pop_file ='mo_population.dat'
+            self.mo_populationfile = self.task_dir / mo_pop_file
+            self.task_info.output['mopop_file'] = str(self.mo_populationfile)
+            data = get_eigen_energy(gs_log)
+            self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
+            return
+
+        if 'masking' == self.task_name:
+            
+            self.sim_total_dm = Path(self.dependent_tasks[0].output.get('dm_file'))
+            self.state_mask_dm = False
+            from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
+            self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
+    
+    def get_task_dir(self):
+        task_dir = Path(self.project_dir) / 'gpaw' / self.task_name
+        i=1
+        while True:
+            if task_dir.exists():
+                name = self.task_name + f'{i}'
+                task_dir = task_dir = Path(self.project_dir) / 'gpaw' / name
+                i =+ 1
+            else:
+                break
+        return task_dir
+
+    def create_template(self):
+        template = gpaw_create_input(**self.user_input)
+        self.task_info.engine_param.update(self.user_input)
+        self.task_info.input['engine_input']['data'] = template
+
+    def write_input(self):
+        if not self.task_dir.exists():
+            self.create_directory(self.task_dir)
+        infile = self.task_info.input['engine_input']['path']
+        template = self.task_info.input['engine_input']['data']
+        with open(infile , 'w+') as f:
+            f.write(template)
+
+    def read_results(self):
+        if self.task_name in self.simulation_tasks:
+            self.engine_log = self.project_dir / self.task_data.get('out_log')
+
+    def create_job_script(self, np=1, remote_path=None) -> list:
+
+        python_path = self.lsconfig['programs'].get('python', 'python3')
+        job_script = super().create_job_script()
+        engine_cmd = ' ' + str(self.input_filename)
+ 
+        if remote_path:
+            python_path = 'python3'
+            engine_cmd = python_path + engine_cmd
+            rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
+            job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(rpath),
+                                            remote=True, module_load_block=self.get_engine_network_job_cmd())
+        else:
+            engine_cmd = python_path + engine_cmd
+            job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(self.task_dir),
+                                            mpi_path=self.mpi_path)
+    
+        self.job_script = job_script
+        return self.job_script
+
+    def prepare_input(self):
+        assert self.task_name != 'masking'
+        self.create_template()
+        self.write_input()
+        
+        self.create_job_script()
+        self.write_job_script()
+
+    def get_engine_log(self):
+        if self.check_output():
+            return self.read_log(self.task_info.output['txt_out'])
+        
+
+
+    def run_job_local(self, cmd):
+        assert self.task_name != 'masking'
+        self.write_job_script(self.job_script)
+        try:
+            super().run_job_local(cmd)
+        except Exception:
+            raise
+        else:
+            if self.task_name == 'mo_population':
+                self.mo_population_diff_file = self.task_dir / 'mo_population_diff.dat'
+                calc_population_diff(homo_index=len(self.occupied_mo), infile=self.mo_populationfile,
+                                        outfile=self.mo_population_diff_file)
+    def extract_masked_dm(self):
+        self.create_directory(self.task_dir)
+        self.state_mask_dm = True
+        self.masked_dm_analysis.extract_dipolemoment_data()
+
+
+    def get_energy_coupling_constant(self, **kwargs) -> str:
+        if not self.state_mask_dm:
+            self.extract_masked_dm()
+        region = kwargs.get('region')
+        axis = kwargs.get('direction')
+        return self.masked_dm_analysis.get_energy_coupling(region, axis)
+
+
+    def plot(self, **kwargs):
+        if self.task_name == 'spectrum':
+            img = self.spec_file.with_suffix('.png')
+            plot_spectrum(str(self.spec_file),str(img),0, self.pol[0]+1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
+    
+        if self.task_name == 'tcm':
+            from PIL import Image        
+            for item in self.user_input.get('frequency_list'):
+                img_file = self.task_dir / f'tcm_{item:.2f}.png'
+                image = Image.open(img_file)
+                image.show()
+
+        elif self.task_name == 'mo_population':
+            occ = self.occupied_mo
+            unocc = self.unoccupied_mo
+            below_homo = kwargs.get('num_occupied_mo_plot',1)
+            above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
+            if (len(occ) < below_homo) or (len(unocc) < above_lumo):
+                raise InputError(f'The selected MO is out of range. Number of MO: below HOMO = {len(occ)}, above_LUMO = {len(unocc)}')
+            homo_index = len(occ)
+            column_range = (homo_index-below_homo+1, homo_index+above_lumo)
+            legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=homo_index)
+            
+            pop_data = np.loadtxt(self.mo_population_diff_file)
+            
+            plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (as)')
+
+        elif self.task_name == 'masking':
+            if not self.state_mask_dm:
+                self.extract_masked_dm()
+            region = kwargs.get('region')
+            axis = kwargs.get('direction')
+            envelope = kwargs.get('envelope', False)
+            plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
+            plt.show()
+            
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of GPAW 
+
+##eval "$(conda shell.bash hook)"
+##conda activate <environment name>"""
+        return job_script
+
+def get_polarization_direction(task_info):
+    print(task_info.param)
+    pol = task_info.param.get('polarization')
     return get_direction(pol)
 
 def get_direction(direction:list):
@@ -301,6 +537,10 @@ def format_gs_input(gen_dict: dict) -> dict:
     elif mode == 'pw':
         pass
     
+    xc = gen_dict.get('xc')
+    if xc not in param_data['xc']['values']:
+        raise InputError(f'xc: {xc} is not supported in GPAW')
+    gs_dict['xc'] = xc
 
     box = gen_dict.get('boxshape')
     if box != 'parallelepiped' and box is not None:

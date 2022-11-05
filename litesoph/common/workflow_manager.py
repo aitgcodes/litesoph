@@ -1,14 +1,15 @@
 import shutil
 from pathlib import Path
 import os
-from typing import Dict
+from typing import Dict, Union, List
 import uuid
 
-from litesoph.common.task import (Task, TaskFailed,
-                                GROUND_STATE,RT_TDDFT_DELTA,
-                                RT_TDDFT_LASER, SPECTRUM,
-                                TCM, MO_POPULATION,
-                                MASKING)
+from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task_data import (GROUND_STATE,RT_TDDFT,
+                                    SPECTRUM,
+                                    TCM, MO_POPULATION,
+                                    MASKING, task_dependencies_map,
+                                    check_properties_dependencies)
 
 from litesoph.common.project_status import Status
 from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info
@@ -34,32 +35,59 @@ class WorkflowManager:
         self.tasks = workflow_info.tasks
         self.directory = workflow_info.path
         self.current_step = workflow_info.current_step
+        self.current_task_info = None
         self.status = None
 
-    def get_engine_task(self, task, user_input) -> Task:
-        user_input['task'] = task
-
-        if self.engine == 'nwchem':
-            task = NwchemTask(self.directory, self.config, self.status, **user_input)
-        elif self.engine == 'octopus':
-            task = OctopusTask(self.directory, self.config, self.status, **user_input)
-        elif self.engine == 'gpaw':
-            task = GpawTask(self.directory, self.config, self.status, **user_input)
+    def get_engine_task(self) -> Task:
+        
+        task_dependencies = self.get_task_dependencies()
+        # if self.engine == 'nwchem':
+        #     task = NwchemTask(self.directory, self.config, self.status, **user_input)
+        # elif self.engine == 'octopus':
+        #     task = OctopusTask(self.directory, self.config, self.status, **user_input)
+        # elif self.engine == 'gpaw':
+        task = GpawTask(self.config, self.current_task_info, task_dependencies)
 
         return task
 
-    def init_workflow(self):
+    def get_task_dependencies(self):
         
-        self.current_project_data = p_data = {}
-    
-        p_data['name'] = self.directory.name
-        p_data['path'] = str(self.directory)
-        p_data['tasks'] = []
-        try:
-            self.status = Status(self.directory, p_data)
-        except Exception:
-            p_data = {}
-            raise
+        if not self.current_task_info:
+            raise TaskSetupError('Task in not selected yet.')
+        task_name = self.current_task_info.name
+        dependencies_data = task_dependencies_map.get(task_name)
+        if not dependencies_data:
+            return []
+
+        dependent_tasks = []
+        for task in dependencies_data:
+            if isinstance(task, str):
+                dependent_tasks.append(task)
+            elif isinstance(task, dict):
+                dependent_tasks.extend([key for key  in task.keys()])
+
+        task_list = self._get_taskinfo(dependent_tasks[0])
+
+        if not task_list:
+            raise TaskSetupError(f"Dependent task:{dependent_tasks} not done")
+
+        check, msg = check_properties_dependencies(task_name, task_list[0])
+        if not check:
+            raise TaskSetupError(msg)
+        
+            
+        return task_list
+
+    def _get_taskinfo(self, task_name) -> List[TaskInfo]:
+
+        task_list = []
+
+        for task_info in self.tasks:
+            if task_info.name == task_name:
+                task_list.append(task_info)
+            else:
+                continue
+        return task_list
 
     def create_task_info(self):
         pass
@@ -70,9 +98,6 @@ class WorkflowManager:
     def next(self, task_name:str= None) -> TaskInfo:
         
 
-        if not self.status:
-            self.init_workflow()
-
         if self.user_defined:
             if not task_name: 
                 raise TaskSetupError("Task in not defined.")
@@ -81,13 +106,12 @@ class WorkflowManager:
                 self.current_step.insert(0, self.steps[0])
                 self.current_step.insert(1, task_name)
                 self.current_step.insert(2, 0)
-                self.tasks['user_defined'] = []
             else:
                 self.current_step[1] = task_name 
                 self.current_step[2] = self.current_step[2] + 1
                 
             task_info = factory_task_info(task_name)
-            self.tasks['user_defined'].append(task_info)
+            self.tasks.append(task_info)
 
         else:
             # workflow dict should be defined for each engine and workflow. It should specify the steps in a workflow
@@ -104,15 +128,17 @@ class WorkflowManager:
                 self.current_step = [task_name, self.current_step[1] + 1]
 
         if self.engine:
+            print(self.engine)
             task_info.engine = self.engine
-        
+
                 
         self.current_task_info = task_info
+        self.current_task_info.path = self.directory
         return task_info
 
-    def start_task(self, user_input):
+    # def start_task(self):
 
-        return self.get_engine_task(self.current_step[1], user_input)
+    #     return self.get_engine_task()
         
     def check(self):
         pass

@@ -3,11 +3,11 @@ from tkinter import messagebox
 from typing import Union
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 
-from litesoph.common.task import (Task, TaskFailed,
-                                GROUND_STATE,RT_TDDFT_DELTA,
-                                RT_TDDFT_LASER, SPECTRUM,
-                                TCM, MO_POPULATION,
-                                MASKING)
+from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task_data import (GROUND_STATE,RT_TDDFT,
+                                    SPECTRUM,
+                                    TCM, MO_POPULATION,
+                                    MASKING)
 from litesoph.common.workflow_manager import WorkflowManager
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
@@ -15,15 +15,15 @@ from litesoph.gui.task_controller import TaskController
 from litesoph.gui import views as v
 
 
-task_view_map={
-    GROUND_STATE: v.GroundStatePage,
-    RT_TDDFT_DELTA: v.TimeDependentPage,
-    RT_TDDFT_LASER: v.LaserDesignPage,
-    SPECTRUM: v.PlotSpectraPage,
-    TCM: v.TcmPage,
-    MO_POPULATION: v.PopulationPage,
-    MASKING: v.MaskingPage
-}
+# task_view_map={
+#     GROUND_STATE: v.GroundStatePage,
+#     RT_TDDFT_DELTA: v.TimeDependentPage,
+#     RT_TDDFT_LASER: v.LaserDesignPage,
+#     SPECTRUM: v.PlotSpectraPage,
+#     TCM: v.TcmPage,
+#     MO_POPULATION: v.PopulationPage,
+#     MASKING: v.MaskingPage
+# }
 
 class WorkflowController:
 
@@ -36,7 +36,7 @@ class WorkflowController:
         self.task_controller = TaskController(self,  app)
     
 
-    def start(self, workflow_manager: WorkflowManager, param):
+    def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
         self.user_defined_workflow = self.workflow_manager.user_defined
         self.workmanager_page = self.project_controller.workmanager_page
@@ -52,7 +52,7 @@ class WorkflowController:
         
         task_name = None
         if self.user_defined_workflow:
-            task_name = self.get_task_name()
+            task_name, task_view = self._get_task()
             if not task_name:
                 raise Exception('Task name not specified.') 
         else:
@@ -60,14 +60,13 @@ class WorkflowController:
                 return
             
         self.workflow_manager.next(task_name)
-        task_info = self.workflow_manager.current_task_info
-        self.task_controller.set_task(self.workflow_manager, task_view_map[task_info.name])
+        self.task_controller.set_task(self.workflow_manager, task_view)
 
-    def get_task_name(self) -> Union[str, None]:
+    def _get_task(self) -> Union[tuple, None]:
 
         simulation_type = [('electrons', 'None', '<<event>>'),
-                        ('electrons', 'Delta Pulse',RT_TDDFT_DELTA),
-                        ('electrons', 'Gaussian Pulse', RT_TDDFT_LASER),
+                        ('electrons', 'Delta Pulse',v.TimeDependentPage),
+                        ('electrons', 'Gaussian Pulse', v.LaserDesignPage),
                         ('electrons', 'Customised Pulse', '<<event>>'),
                         ('electron+ion', 'None', '<<event>>'),
                         ('electron+ion', 'Delta Pulse', '<<event>>'),
@@ -99,33 +98,33 @@ class WorkflowController:
                 messagebox.showerror(title= 'Error',message="Please select the Sub task options")
                 return
 
-            for dynamics, laser, task_name in simulation_type:
+            for dynamics, laser, task_view in simulation_type:
                 if dynamics == w.get_value('dynamics') and laser == w.get_value('laser'):
-                    if task_name == "<<event>>":
+                    if task_view == "<<event>>":
                         messagebox.showinfo(title="Info", message="Option not Implemented")
                         return
                     else:
-                        return task_name
+                        return ( RT_TDDFT, task_view)
             return
 
         if sub_task  == "Ground State":
-            return GROUND_STATE
+            return (GROUND_STATE, v.GroundStatePage)
 
         if sub_task in ["Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]:
             messagebox.showinfo(title='Info', message="This option is not yet Implemented.")
             return
         
         if sub_task == "Compute Spectrum":
-            return SPECTRUM
+            return (SPECTRUM, v.PlotSpectraPage)
             #self.main_window.event_generate(actions.SHOW_SPECTRUM_PAGE)   
         if sub_task == "Dipole Moment and Laser Pulse":
             return
         if sub_task == "Kohn Sham Decomposition":
-            return TCM
+            return (TCM, v.TcmPage)
             #self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
         if sub_task == "Population Tracking":
-            return MO_POPULATION
+            return (MO_POPULATION, v.PopulationPage)
             #self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE)
         if sub_task == "Masking":
-            return MASKING
+            return (MASKING, v.MaskingPage)
             #self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 

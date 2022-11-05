@@ -1,37 +1,53 @@
 
 from typing import Dict, List
-from litesoph.common.task import (GROUND_STATE, RT_TDDFT_DELTA, RT_TDDFT_LASER,
+from litesoph.common.task_data import (GROUND_STATE, RT_TDDFT,
                                     SPECTRUM, TCM, MO_POPULATION,
                                     MASKING)
 from litesoph.common.data_sturcture import WorkflowInfo , TaskInfo, factory_task_info
 
-workflow_types = Dict[str, Dict[str, List[str]]]
+workflow_types = Dict[str, callable]
 
 workflow_types = {
 
-    'Spectrum':{ 'ground_state': [GROUND_STATE],
-                    'rt_tddft': [RT_TDDFT_DELTA],
-                    'compute_spectra': [SPECTRUM]},
-    'Averaged Spectrum': { 'ground_state': [GROUND_STATE],
-                    'rt_tddft': [RT_TDDFT_DELTA, RT_TDDFT_DELTA, RT_TDDFT_DELTA],
-                    'compute_spectra': [SPECTRUM, SPECTRUM, SPECTRUM]},    
-  
+    'Spectrum': get_spectrum_workflow,
+
    }
 
+workflows = {
+    'Spectrum': ['Ground State', 'RT TDDFT', 'Compute Spectrum'] ,
+    'Averaged Spectrum' : ['Ground State', 'RT TDDFT', 'Compute Spectrum'],
+    'Kohn Sham Decompostion' : ['Ground State', 'RT TDDFT', 'Compute Spectrum'],
+    'MO Population Tracking' : ['Ground State', 'RT TDDFT', 'Compute Spectrum'],
+}
+workflow_steps = {
+    'Spectrum' : ['Ground State', 'RT TDDFT', 'Compute Spectrum']
+}
 
 
-def get_workflow_type(Workflowinfo: WorkflowInfo) -> WorkflowInfo:
-    name = Workflowinfo.name
-    workflow_dict = workflow_types.get(name)
+def get_spectrum_workflow(Workflowinfo: WorkflowInfo):
+    Workflowinfo.name = 'Spectrum'
     steps = Workflowinfo.steps
     tasks = Workflowinfo.tasks
     
     steps.clear()
     tasks.clear()
-    for step in workflow_dict.keys():
-        steps.append(step)
 
-    for step in steps:
-        tasks[step] = [factory_task_info(task_name) for task_name in workflow_dict[step]]
+    gs_task = factory_task_info(GROUND_STATE)
+    td_task = factory_task_info(RT_TDDFT)
+    spec_task = factory_task_info(SPECTRUM)
+    dependencies = {
+        gs_task.uuid: [],
+        td_task.uuid: [gs_task.uuid],
+        spec_task.uuid: [td_task.uuid]
+    }
+    steps.update({
+        'Ground State': [gs_task.uuid],
+        'RT TDDFT': [td_task.uuid],
+        'Compute Spectrum': [spec_task.uuid]
+    })
+    Workflowinfo.dependencies_map.update(dependencies)
+    for task in [gs_task, td_task, spec_task]:
+        Workflowinfo.tasks.append(task)
+    
+    
 
-    return Workflowinfo

@@ -28,6 +28,7 @@ class ProjectController:
 
     def open_project(self, project_manager: ProjectManager):
         self.project_manager = project_manager
+        self.workflow_list = project_manager.workflow_list
         self.app.create_workflow_frames()
         self.workmanager_page = self.app.show_frame(WorkManagerPage)
         self.workmanager_page.button_select_geom.config(command=self._on_get_geometry_file)
@@ -80,20 +81,25 @@ class ProjectController:
             messagebox.showerror(title='Error', message=msg, detail=e) 
 
     def start_workflow(self, *_):
+        workflow_info = self.workflow_list[-1]
         
-        param_view  = self.workmanager_page.get_parameters()
+        if workflow_info.name:
+            self.workflow_manager = self.project_manager.open_workflow(workflow_info.uuid)
+        else:
+            param_view  = self.workmanager_page.get_parameters()
+            
+            param ={}
+            for item in ['environment', 'charge', 'multiplicity', 'engine']:
+                param[item] = param_view.get(item)
+            
+            workflow_type = param_view.pop('workflow')
+            workflow_option = self.workmanager_page.get_value('select_wf_option')
+            check_user_workflow = (workflow_option == 2)
+            if check_user_workflow:
+                workflow_type = "user_defined"
+                if self.workflow_navigation_view:
+                    self.workflow_navigation_view.clear()
+            self.workflow_manager = self.project_manager.start_workflow(workflow_type, param) 
         
-        param ={}
-        for item in ['environment', 'charge', 'multiplicity', 'engine']:
-            param[item] = param_view.get(item)
-        
-        workflow_type = param_view.pop('workflow')
-        workflow_option = self.workmanager_page.get_value('select_wf_option')
-        check_user_workflow = (workflow_option == 2)
-        if check_user_workflow:
-            workflow_type = "user_defined"
-            if self.workflow_navigation_view:
-                self.workflow_navigation_view.clear()
-        self.workflow_manager = self.project_manager.start_workflow(workflow_type, param) 
-        self.workflow_controller.start(self.workflow_manager, param_view)
+        self.workflow_controller.start(self.workflow_manager)
     

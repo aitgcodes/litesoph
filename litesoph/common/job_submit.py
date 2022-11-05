@@ -47,13 +47,17 @@ class SubmitLocal:
 
     def __init__(self, task, nprocessors:int) -> None:
         self.task = task
+        self.task_info = task.task_info
         self.project_dir = self.task.project_dir
         self.np = nprocessors
         self.command = None                   
 
-    def run_job(self, cmd):    
+    def run_job(self, cmd): 
+        self.task_info.state.local = True   
         result = execute(cmd, self.project_dir)
-        self.task.local_cmd_out = (result[cmd]['returncode'], result[cmd]['output'], result[cmd]['error'])
+        self.task_info.local.update({'returncode': result[cmd]['returncode'],
+                                        'output' : result[cmd]['output'],
+                                        'error':result[cmd]['error']})
 
 class SubmitNetwork:
 
@@ -65,6 +69,8 @@ class SubmitNetwork:
                     remote_path: str) -> None:
 
         self.task = task
+        self.task_info = task.task_info
+        self.task_info.state.network = True
         self.project_dir = self.task.project_dir
 
         self.username = username
@@ -122,8 +128,11 @@ class SubmitNetwork:
             print("Job submitted successfully!...")
             for line in ssh_output.decode(encoding='utf-8').split('\n'):
                 print(line)
-
-        self.task.net_cmd_out = (exit_status, ssh_output.decode(encoding='utf-8'), ssh_error.decode(encoding='utf-8'))
+        
+        self.task_info.network.update({'sub_returncode': exit_status,
+                                            'n_proc': self.job_sub_page.processors.get(),
+                                            'output':ssh_output.decode(encoding='utf-8'),
+                                            'error':ssh_error.decode(encoding='utf-8')})
     
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""

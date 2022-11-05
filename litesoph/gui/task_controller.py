@@ -4,11 +4,11 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 
 from litesoph.common.workflow_manager import WorkflowManager
 from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.task import (Task, TaskFailed,
-                                GROUND_STATE,RT_TDDFT_DELTA,
-                                RT_TDDFT_LASER, SPECTRUM,
-                                TCM, MO_POPULATION,
-                                MASKING)
+from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task_data import (GROUND_STATE,RT_TDDFT,
+                                    SPECTRUM,
+                                    TCM, MO_POPULATION,
+                                    MASKING)
 from litesoph.gui import views as v
 from litesoph.gui import actions
 from litesoph.common import models as m
@@ -48,7 +48,7 @@ class TaskController:
             self.task_view.submit_button.config(command = self._run_task_serial)
             self.task_view.plot_button.config(command = self._run_task_serial)
         
-        if self.task_name == RT_TDDFT_DELTA:
+        if isinstance(self.task_view, v.TimeDependentPage):
             self.task_view.update_engine_default(self.engine)
 
     def create_task_view(self, view_class, *args, **kwargs):
@@ -58,7 +58,7 @@ class TaskController:
 
     def generate_input(self, *_):
         
-        if RT_TDDFT_LASER == self.task_name:
+        if isinstance(self.task_view, v.LaserDesignPage):
             if not self._on_choose_laser():
                 return
             self.task_view.set_laser_design_dict(self.laser_design.l_design)
@@ -71,10 +71,11 @@ class TaskController:
         if GROUND_STATE == self.task_name and (not self.engine):   
             self.task_info.engine = engine
 
-        self.task_info.ui_param.update(inp_dict)
-        self.task = self.workflow_manager.start_task(inp_dict)
-        self.task.create_template()
-        self.view_panel.insert_text(text=self.task.template, state='normal')
+        self.task_info.param.update(inp_dict)
+        self.task = self.workflow_manager.get_engine_task()
+        self.task.create_input()
+        txt = self.task.get_engine_input()
+        self.view_panel.insert_text(text=txt, state='normal')
         self.bind_task_events()
     
 ####-------------------------------------------------------------------------------------------
@@ -102,14 +103,15 @@ class TaskController:
     def _run_task_serial(self, *_):
         
         inp_dict = self.task_view.get_parameters()
-        self.task = self.workflow_manager.start_task(inp_dict)
-        self.status.set_new_task(self.engine, self.task.task_name)
-        self.status.update(f'{self.engine}.{self.task.task_name}.script', 1)
-        self.status.update(f'{self.engine}.{self.task.task_name}.param',self.task.user_input)
+        self.task_info.param.update(inp_dict)
+        self.task = self.workflow_manager.get_engine_task()
+        # self.status.set_new_task(self.engine, self.task.task_name)
+        # self.status.update(f'{self.engine}.{self.task.task_name}.script', 1)
+        # self.status.update(f'{self.engine}.{self.task.task_name}.param',self.task.user_input)
 
         self.task.prepare_input()
         self.task_info.state.input = 'done'
-        self.task_info.param.update(self.task.user_input)
+        self.task_info.engine_param.update(self.task.user_input)
         self._run_local(self.task, np=1)
         
 ##-------------------------------masking task-------------------------------------------------------------
@@ -145,12 +147,11 @@ class TaskController:
     
     def _on_save_button(self, task:Task, view, *_):
         template = self.view_panel.get_text()
-        task.write_input(template)
-        self.task_info.state.input = 'done'
-        self.task_info.param.update(task.user_input)
-        self.status.set_new_task(self.engine, task.task_name)
-        self.status.update(f'{self.engine}.{task.task_name}.script', 1)
-        self.status.update(f'{self.engine}.{task.task_name}.param',task.user_input)
+        task.set_engine_input(template)
+        task.save_input()
+        # self.status.set_new_task(self.engine, task.task_name)
+        # self.status.update(f'{self.engine}.{task.task_name}.script', 1)
+        # self.status.update(f'{self.engine}.{task.task_name}.param',task.user_input)
         if task.task_name == 'ground_state':
             self.status_engine.set(self.engine)
         view.set_sub_button_state('active')
@@ -238,19 +239,9 @@ class TaskController:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             return
         else:
-            if task.local_cmd_out[0] != 0:
-                self.task_info.local.update({'returncode': task.local_cmd_out[0],
-                                            'error':task.local_cmd_out[2]})
-                self.status.update(f'{self.engine}.{task.task_name}.sub_local.returncode', task.local_cmd_out[0])
-                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.local_cmd_out[2]}")
+            if task.task_info.local['returncode'] != 0:
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {task.task_info.local['error']}")
             else:
-                self.task_info.local.update({'returncode': task.local_cmd_out[0],
-                                            'n_proc': np,
-                                            'error':None})
-                self.task_info.state.calculation = True
-                self.status.update(f'{self.engine}.{task.task_name}.sub_local.returncode', 0)
-                self.status.update(f'{self.engine}.{task.task_name}.sub_local.n_proc', np)
-                self.status.update(f'{self.engine}.{task.task_name}.done', True)
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
 
@@ -259,6 +250,7 @@ class TaskController:
         try:
             log_txt = task.get_engine_log()
         except TaskFailed:
+            raise
             messagebox.showinfo(title='Info', message="Job not completed.")
             return
             
@@ -310,20 +302,10 @@ class TaskController:
             self.job_sub_page.set_run_button_state('active')
             return
         else:
-            if task.net_cmd_out[0] != 0:
-                self.task_info.network.update({'sub_returncode': task.local_cmd_out[0],
-                                            'n_proc': self.job_sub_page.processors.get(),
-                                            'error':task.net_cmd_out[2],
-                                            'output': task.net_cmd_out[1]})
-                self.status.update(f'{self.engine}.{task.task_name}.sub_network.returncode', task.net_cmd_out[0])
-                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.net_cmd_out[2]}")
+            if task.task_info.network['sub_returncode'] != 0:
+                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {task.task_info.network['error']}")
             else:
-                self.task_info.network.update({'sub_returncode': task.local_cmd_out[0],
-                                            'n_proc': self.job_sub_page.processors.get(),
-                                            'error':task.net_cmd_out[2],
-                                            'output':task.net_cmd_out[1]})
-                self.status.update(f'{self.engine}.{task.task_name}.sub_network.returncode', 0)
-                messagebox.showinfo(title= "Well done!", message='Job submitted successfully!')
+                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!', detail = f"output:{task.task_info.network['output']}")
 
 
     def _get_remote_output(self, task: Task):
@@ -351,11 +333,11 @@ class TaskController:
         task.write_job_script(txt)
         self.task_info.state.job_script = True
 
-    def _on_out_remote_view_button(self,task, *_):
+    def _on_out_remote_view_button(self,task: Task, *_):
         
-        try:
-            exist_status, stdout, stderr = task.net_cmd_out
-        except AttributeError:
+        check =  task.task_info.network.get('sub_returncode', None)
+        if not check or (check != 0):
+            messagebox.showinfo(title= "Warning", message="The job is not submitted yet or error occured during submission.", detail = f"output:{task.task_info.network['output']}")
             return
 
         print("Checking for job completion..")

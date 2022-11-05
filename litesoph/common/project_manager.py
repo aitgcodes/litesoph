@@ -51,13 +51,12 @@ class ProjectManager:
             raise WorkflowSetupError('Create workflow')
 
         if workflow_type in workflow_types.keys():
-            self.current_workflow_info.name = workflow_type
-            get_workflow_type(self.current_workflow_info)
+            workflow_types[workflow_type](self.current_workflow_info)
 
         elif workflow_type == "user_defined":
             self.current_workflow_info.name = workflow_type
             self.current_workflow_info.user_defined = True
-            self.current_workflow_info.steps.append(workflow_type)
+            self.current_workflow_info.steps.update({workflow_type: []})
             
         else:
             raise WorkflowSetupError(f'workflow:{workflow_type} is not Implemented.')

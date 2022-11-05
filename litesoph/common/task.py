@@ -1,16 +1,10 @@
+from typing import List, Any, Union
 import pathlib
 import re
 import os
-
+from abc import abstractmethod
 from litesoph.common.job_submit import SubmitNetwork, SubmitLocal
-
-GROUND_STATE = 'ground_state'
-RT_TDDFT_DELTA = 'rt_tddft_delta'
-RT_TDDFT_LASER = 'rt_tddft_laser'
-SPECTRUM = 'spectrum'
-TCM = 'tcm'
-MO_POPULATION = 'mo_population'
-MASKING = 'masking'
+from litesoph.common.data_sturcture.data_classes import TaskInfo
 
 class TaskError(RuntimeError):
     """Base class of error types related to any TASK."""
@@ -61,7 +55,7 @@ class PropertyNotPresent(TaskError):
 
 class Task:
 
-    """It takes in the user input dictionary as input."""
+    """Base-class for all tasks."""
 
     BASH_filename = 'job_script.sh'
     job_script_first_line = "#!/bin/bash"
@@ -85,9 +79,6 @@ class Task:
         mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
         self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
         self.python_path = self.lsconfig['programs'].get('python', 'python')
-        
-    def create_template(self):
-        ...
     
     def reset_lsconfig(self, lsconfig):
         self.engine_path = lsconfig['engine'].get(self.engine_name , self.engine_name)
@@ -100,6 +91,11 @@ class Task:
         if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
             os.makedirs(directory)
 
+    @abstractmethod
+    def create_template(self):
+        ...
+    
+    @abstractmethod
     def write_input(self, template=None):
         ...        
 
@@ -175,6 +171,133 @@ class Task:
             raise TaskFailed("Job not completed.")
         else:
             return True
+
+
+class Task:
+
+    """Base-class for all tasks."""
+
+    BASH_filename = 'job_script.sh'
+    job_script_first_line = "#!/bin/bash"
+    remote_job_script_last_line = "touch Done"
+
+
+    def __init__(self, lsconfig, 
+                task_info: TaskInfo, 
+                dependent_tasks: Union[List[TaskInfo],None]= None
+                ) -> None:
+        
+        self.lsconfig = lsconfig
+        self.task_info = task_info
+        self.task_name = task_info.name
+        self.dependent_tasks = dependent_tasks       
+        self.project_dir = task_info.path
+    
+        self.engine_name = task_info.engine
+        self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+        self.python_path = self.lsconfig['programs'].get('python', 'python')
+    
+    def reset_lsconfig(self, lsconfig):
+        self.engine_path = lsconfig['engine'].get(self.engine_name , self.engine_name)
+        mpi_path = lsconfig['mpi'].get('mpirun', 'mpirun')
+        self.mpi_path = lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
+
+    @staticmethod
+    def create_directory(directory):
+        absdir = os.path.abspath(directory)
+        if absdir != pathlib.Path.cwd and not pathlib.Path.is_dir(directory):
+            os.makedirs(directory)
+
+    @abstractmethod
+    def create_template(self):
+        """This method creates engine input and stores it in the task info.
+        Store the engine input in taskinfo.input['engine_input'][data] 
+        filepath in taskinfo.input['engine_input']['path']"""
+    
+    @abstractmethod
+    def write_input(self):
+        """This method creates engine directory and task directory and writes 
+        the engine input to a file."""        
+    
+    def create_input(self):
+        self.task_info.state.input_created = True
+        self.create_template()
+
+    def save_input(self):
+        self.task_info.state.input_saved = True
+        self.write_input()
+
+    @abstractmethod
+    def prepare_input(self):
+        ...
+    
+    def get_engine_input(self):
+        return self.task_info.input['engine_input']['data']
+
+    def set_engine_input(self, txt):
+        self.task_info.input['engine_input']['data'] = txt
+
+    def check_prerequisite(self, *_) -> bool:
+        """ checks if the input files and required data files for the present task are present"""
+        return True
+    
+    def create_job_script(self) -> list:
+        """Create the bash script to run the job and "touch Done" command to it, to know when the 
+        command is completed."""
+        job_script = []
+
+        job_script.append(self.job_script_first_line)
+        
+        return job_script
+
+    def write_job_script(self, job_script=None):
+        if job_script:
+            self.job_script = job_script
+        self.bash_file = self.project_dir / self.BASH_filename
+        with open(self.bash_file, 'w+') as f:
+            f.write(self.job_script)
+
+    def add_proper_path(self, path):
+        """This replaces the local paths to remote paths in the engine input."""
+        engine_input = self.task_info.input.get('engine_input', None)
+        if not engine_input:
+            return
+        template = engine_input.get('data', None)
+        if not template:
+            return
+
+        if str(self.project_dir.parent) in template:
+            text = re.sub(str(self.project_dir.parent), str(path), template)
+            self.task_info.input['engine_input']['data'] = text        
+            self.write_input()
+
+    def set_submit_local(self, *args):
+        self.sumbit_local = SubmitLocal(self, *args)
+
+    def run_job_local(self,cmd):
+        cmd = cmd + ' ' + self.BASH_filename
+        self.sumbit_local.run_job(cmd)
+
+    def connect_to_network(self, *args, **kwargs):
+        self.submit_network = SubmitNetwork(self, *args, **kwargs)
+    
+    def read_log(self, file):
+        with open(file , 'r') as f:
+            text = f.read()      
+        return text
+        
+    def check_output(self):
+        
+        if hasattr(self, 'submit_network'):
+            check = self.task_info.network.get('sub_returncode', None)
+        else:
+            check = self.task_info.local.get('returncode', None)
+        print(check)
+        if check is None:
+            raise TaskFailed("Job not completed.")
+        return True
 
 def write2file(directory,filename, template) -> None:
     """Write template to a file.
