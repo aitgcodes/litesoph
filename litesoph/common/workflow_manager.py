@@ -103,7 +103,7 @@ class WorkflowManager:
                 raise TaskSetupError("Task in not defined.")
             
             if not self.current_step:
-                self.current_step.insert(0, self.steps[0])
+                self.current_step.insert(0, 1)
                 self.current_step.insert(1, task_name)
                 self.current_step.insert(2, 0)
             else:

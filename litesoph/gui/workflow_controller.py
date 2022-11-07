@@ -52,13 +52,13 @@ class WorkflowController:
         
         task_name = None
         if self.user_defined_workflow:
-            task_name, task_view = self._get_task()
-            if not task_name:
+            task_and_view = self._get_task()
+            if not task_and_view:
                 raise Exception('Task name not specified.') 
         else:
             if not self.workflow_navigation_view:
                 return
-            
+        task_name, task_view = task_and_view   
         self.workflow_manager.next(task_name)
         self.task_controller.set_task(self.workflow_manager, task_view)
 

@@ -1,6 +1,10 @@
+from typing import List, Dict, Union
+import copy
 import pathlib
 from pathlib import Path
 from litesoph.utilities.units import as_to_au
+from litesoph.common.utils import get_new_directory
+from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.post_processing.mo_population import calc_population_diff, get_energy_window, get_occ_unocc
 from litesoph.common.task import InputError, Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.nwchem.nwchem import NWChem
@@ -20,6 +24,10 @@ nwchem_data = {
             'file_name':'gs',
             'req' : ['coordinate.xyz', 'nwchem/restart'],            
             'check_list':['Converged', 'Fermi level:','Total:']},
+
+'rt_tddft' : {'inp':'nwchem/TD_Delta/td.nwi',
+        'out_log' : 'td.nwo',
+        'file_name' : 'td'},
 
 'rt_tddft_delta' : {'inp':'nwchem/TD_Delta/td.nwi',
         'out_log' : 'nwchem/TD_Delta/td.nwo',
@@ -122,6 +130,244 @@ class NwchemTask(Task):
 
     def create_template(self):
         self.template = self.nwchem.create_input()
+
+    def _create_spectrum_cmd(self, remote=False ):
+
+        td_out = self.outfile
+
+        self.pol, tag = get_pol_and_tag(self.status)
+
+        if  not td_out.exists():
+            raise FileNotFoundError(f' Required file {td_out} doesnot exists!')
+            
+        path = pathlib.Path(__file__)
+
+        if remote:
+            path_python = 'python3'
+        else:
+            path_python = self.python_path
+
+        nw_rtparse = str(path.parent /'nwchem_read_rt.py')
+        spectrum_file = str(path.parent / 'spectrum.py')
+        
+        dm_cmd = f'{path_python} {nw_rtparse} -x dipole -p {self.pol} -t {tag} {td_out} > {self.pol}.dat'
+
+        spec_cmd = f'{path_python} {spectrum_file} dipole.dat spec_{self.pol}.dat'
+        
+        return spec_cmd
+
+    def compute_spectrum(self):
+        self.create_directory(self.task_dir)
+        
+        td_out = self.outfile
+
+        self.pol, tag = get_pol_and_tag(self.status)
+        self.dipole_file = self.task_dir / 'dipole.dat'
+        self.spectra_file = self.task_dir / f'spec_{self.pol}.dat'
+        try:
+            self.nwchem.get_td_dipole(self.dipole_file, td_out, tag, polarization=self.pol)
+        except Exception:
+            raise
+        #else:
+        #    photoabsorption_spectrum(self.dipole_file, self.spectra_file,)
+
+    def extract_mo_population(self):
+        self.below_homo = below_homo = self.user_input['num_occupied_mo']
+        self.above_lumo = above_lumo = self.user_input['num_unoccupied_mo']
+
+        self.create_directory(self.task_dir)
+        td_out = self.outfile
+
+        self.energy_file = self.task_dir / 'energy_format.dat'
+        eigen_data = self.nwchem.get_eigen_energy(td_out)
+        occ, unocc = get_occ_unocc(eigen_data)
+        if (len(occ) < below_homo) or (len(unocc) < above_lumo):
+            raise InputError(f'The selected MO is out of range. Number of MO: below HOMO = {len(occ)}, above_LUMO = {len(unocc)}')
+        self.mo_population_file = self.task_dir / 'mo_population.dat'
+        self.nwchem.get_td_moocc(str(self.mo_population_file), td_out, homo_index=len(occ),
+                                     below_homo=below_homo, above_lumo=above_lumo)
+        self.mo_population_diff_file = self.task_dir/ 'mo_pop_diff.dat'
+        calc_population_diff(homo_index=self.below_homo, infile=self.mo_population_file,
+                                outfile=self.mo_population_diff_file)
+        #get_energy_window(eigen_data, self.energy_file, below_homo, above_lumo)
+    
+    def _create_mo_pop_correlation_cmd(self):
+        
+        bandpass_window = self.user_input['bandpass_window']
+        hanning_window = self.user_input['hanning_window']
+        path = pathlib.Path(mo_population_correlation.__file__)
+        
+        pop_py = str(path.parent /'population_correlation.py')
+        pop_cmd = f'python {pop_py} {self.below_homo} {self.energy_file}'    
+        
+        band_py = str(path.parent / 'bandpass.py')
+        band_cmd = f'python {band_py} {self.mo_population_file} {bandpass_window}'       
+        
+        hann_py = str(path.parent / 'test.py')
+        hann_cmd = f'python {hann_py} frest.dat hanning {hanning_window}'
+        
+        dft_mod_py = str(path.parent /'dft-mod.py')
+        dft_mod_cmd = f'python {dft_mod_py} fn_rest.dat'
+
+        return '\n'.join([band_cmd, hann_cmd, dft_mod_cmd, pop_cmd])
+
+    def create_job_script(self, np=1, remote_path=None) -> list:
+                
+        ofilename = self.outfile
+    
+        if remote_path:
+            self.engine_path = 'nwchem'
+
+        if self.task_name in self.simulation_tasks:
+            ifilename =  self.infile
+            engine_cmd = self.engine_path + ' ' + str(ifilename) + ' ' + '>' + ' ' + str(ofilename)
+
+            if remote_path:
+                rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
+                job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(rpath),
+                                        remote=True, module_load_block=self.get_engine_network_job_cmd())
+            else:
+                job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(self.task_dir),
+                                                mpi_path=self.mpi_path)
+        if self.task_name == 'spectrum':    
+            self.compute_spectrum()
+            job_script = assemable_job_cmd(cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))
+
+        self.job_script = job_script
+        return self.job_script
+    
+    def prepare_input(self):
+        if self.task_name == 'mo_population':
+            return
+
+        if self.task_name in self.simulation_tasks:
+            self.create_template()
+            self.write_input()
+        
+        self.create_job_script()
+        self.write_job_script()
+            
+
+    def run_job_local(self, cmd):
+        if self.task_name == 'mo_population':
+            try:
+                self.extract_mo_population()
+            except Exception as e:
+                self.local_cmd_out = (1, ' ', e)
+            else:
+                self.local_cmd_out = (0, 'done', ' ')
+            return
+        super().run_job_local(cmd)
+
+    def get_engine_log(self):
+        out_log = self.task_dir / self.outfile
+        if self.check_output():
+            return self.read_log(out_log)
+
+
+    def plot(self,**kwargs):
+
+        if self.task_name == 'spectrum':
+            img = self.spectra_file.parent / f"spec_{self.pol}.png"
+            plot_spectrum(self.spectra_file,img,0, 1, "Energy(eV)","Strength",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
+
+        elif self.task_name == 'mo_population':
+        
+            below_homo = kwargs.get('num_occupied_mo_plot',1)
+            above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
+            homo_index = self.below_homo
+            # time_unit = kwargs.get('time_unit')            
+            column_range = (homo_index-below_homo+1, homo_index+above_lumo)
+            legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=homo_index)
+            
+            pop_data = np.loadtxt(self.mo_population_diff_file)
+            
+            plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (au)')
+    
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of NWCHEM or load the module
+
+#eval "$(conda shell.bash hook)"
+#conda activate <environment name>
+
+#module load nwchem"""
+        return job_script
+
+class NwchemTask(Task):
+
+    NAME = 'nwchem'
+    simulation_tasks =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
+    post_processing_tasks = ['spectrum', 'mo_population']
+    implemented_task = simulation_tasks + post_processing_tasks
+
+    def __init__(self, lsconfig, 
+                task_info: TaskInfo, 
+                dependent_tasks: Union[List[TaskInfo],None]= None
+                ) -> None:
+        
+        super().__init__(lsconfig, task_info, dependent_tasks)
+        
+        if not self.task_name in self.implemented_task: 
+            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
+
+        self.task_data = nwchem_data.get(self.task_name)
+        param = copy.deepcopy(self.task_info.param)
+        if self.task_name == 'ground_state':
+            self.user_input = format_gs_param(param)
+        else:
+            self.user_input = param
+        self.create_engine(self.user_input)
+    
+    def create_engine(self, param):
+
+        infile_ext = '.nwi'
+        outfile_ext = '.nwo'
+        task_dir = self.project_dir / 'nwchem' / self.task_data.get('dir')
+        self.task_dir = get_new_directory(task_dir)
+        label = str(self.project_dir.name)
+        file_name = self.task_data.get('file_name')
+        self.network_done_file = self.task_dir / 'Done'
+        self.task_info.input['engine_input']={}
+
+        if self.task_name in self.post_processing_tasks:
+            td_out = self.dependent_tasks[0].output.get('txt_out')
+
+            self.outfile = self.project_dir / td_out 
+            self.engine_log = self.task_dir / self.outfile
+
+            self.nwchem = NWChem(outfile=str(self.outfile), 
+                            label=label, directory=self.task_dir)
+            return
+
+        param['perm'] = str(self.task_dir.parent / 'restart')
+        param['geometry'] = str(self.project_dir / 'coordinate.xyz')
+        
+        if 'rt_tddft' in self.task_name:
+            param['restart_kw'] = 'restart'
+            param['basis'] =self.dependent_tasks[0].engine_param.get('basis')
+            update_td_param(param)
+
+        file_name = self.task_data.get('file_name')
+        self.infile = file_name + infile_ext
+        self.outfile = file_name + outfile_ext
+        self.engine_log = self.task_dir / self.outfile
+        self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
+                            label=label, directory=self.task_dir, **param)
+            
+
+    def write_input(self,):
+        if not self.task_dir.exists():
+            self.create_directory(self.task_dir)
+        template = self.task_info.input['engine_input']['data']
+        self.nwchem.write_input(template)
+
+    def create_template(self):
+        template = self.nwchem.create_input()
+        self.task_info.engine_param.update(self.user_input)
+        self.task_info.input['engine_input']['data'] = template
 
     def _create_spectrum_cmd(self, remote=False ):
 

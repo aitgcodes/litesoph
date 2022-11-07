@@ -1,5 +1,6 @@
 import copy
 from typing import Any, List, Dict, Union
+from litesoph.common.utils import get_new_directory
 from litesoph.post_processing.mo_population import calc_population_diff, create_states_index, get_occ_unocc
 from litesoph.common.task import (InputError, Task, TaskFailed ,
                                      TaskNotImplementedError, assemable_job_cmd, write2file)
@@ -66,211 +67,211 @@ gpaw_data = {
             'req' : ['gpaw/TD_Laser/dm.dat']}
 }
 
-class GpawTask(Task):
+# class GpawTask(Task):
 
-    NAME = 'gpaw'
+#     NAME = 'gpaw'
 
-    simulation_tasks =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
-    post_processing_tasks = ['spectrum', 'tcm', 'mo_population', 'masking']
-    implemented_task = simulation_tasks + post_processing_tasks
+#     simulation_tasks =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
+#     post_processing_tasks = ['spectrum', 'tcm', 'mo_population', 'masking']
+#     implemented_task = simulation_tasks + post_processing_tasks
 
-    def __init__(self, project_dir, lsconfig, status, **kwargs) -> None:
+#     def __init__(self, project_dir, lsconfig, status, **kwargs) -> None:
         
-        self.task_name = kwargs.get('task', 'ground_state')
+#         self.task_name = kwargs.get('task', 'ground_state')
         
-        self.engine_log = None
-        self.output = {}
-        if not self.task_name in self.implemented_task: 
-            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
-        self.task_data = gpaw_data.get(self.task_name)
-        self.user_input = {}
-        self.user_input['task'] = self.task_name
-        if 'ground_state':
-            self.user_input.update(format_gs_input(kwargs))
-        else:
-            self.user_input.update(kwargs)
+#         self.engine_log = None
+#         self.output = {}
+#         if not self.task_name in self.implemented_task: 
+#             raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
+#         self.task_data = gpaw_data.get(self.task_name)
+#         self.user_input = {}
+#         self.user_input['task'] = self.task_name
+#         if 'ground_state':
+#             self.user_input.update(format_gs_input(kwargs))
+#         else:
+#             self.user_input.update(kwargs)
 
-        super().__init__('gpaw', status, project_dir, lsconfig)
-        self.setup_task(self.user_input)
+#         super().__init__('gpaw', status, project_dir, lsconfig)
+#         self.setup_task(self.user_input)
         
 
-    def setup_task(self, param):
-        infile_ext = '.py'
-        self.task_dir = self.project_dir / 'gpaw' / self.task_data.get('dir')
-        input_filename = self.task_data.get('file_name', None)
-        self.network_done_file = self.task_dir / 'Done'
+#     def setup_task(self, param):
+#         infile_ext = '.py'
+#         self.task_dir = self.project_dir / 'gpaw' / self.task_data.get('dir')
+#         input_filename = self.task_data.get('file_name', None)
+#         self.network_done_file = self.task_dir / 'Done'
 
-        if self.task_name in self.simulation_tasks:
-            self.engine_log = self.project_dir / self.task_data.get('out_log')
+#         if self.task_name in self.simulation_tasks:
+#             self.engine_log = self.project_dir / self.task_data.get('out_log')
             
-        if input_filename:
-            self.input_filename = input_filename + infile_ext
+#         if input_filename:
+#             self.input_filename = input_filename + infile_ext
         
-            param['txt_out'] = input_filename + '.out'
-            param['gpw_out'] =  input_filename + '.gpw'
+#             param['txt_out'] = input_filename + '.out'
+#             param['gpw_out'] =  input_filename + '.gpw'
 
-        if 'ground_state' in self.task_name:
-            param['geometry'] = str(self.project_dir / 'coordinate.xyz')
-            return
+#         if 'ground_state' in self.task_name:
+#             param['geometry'] = str(self.project_dir / 'coordinate.xyz')
+#             return
         
-        if 'rt_tddft' in self.task_name:
-            param['gfilename'] = str(self.project_dir /  gpaw_data['ground_state'].get('restart'))
-            param['dm_file'] = 'dm.dat'
-            if 'ksd' in param or 'mo_population' in param:
-                param['wfile'] = 'wf.ulm'
-            update_td_input(param)
-            return
+#         if 'rt_tddft' in self.task_name:
+#             param['gfilename'] = str(self.project_dir /  gpaw_data['ground_state'].get('restart'))
+#             param['dm_file'] = 'dm.dat'
+#             if 'ksd' in param or 'mo_population' in param:
+#                 param['wfile'] = 'wf.ulm'
+#             update_td_input(param)
+#             return
 
-        if 'spectrum' == self.task_name:
-            param['dm_file'] = str(self.project_dir / self.task_data.get('req')[0])
-            self.pol = get_polarization_direction(self.status)
-            param['spectrum_file'] = spec_file = f'spec_{self.pol[1]}.dat'
-            update_spectrum_input(param)
-            self.spec_file = self.task_dir / spec_file
-            return
+#         if 'spectrum' == self.task_name:
+#             param['dm_file'] = str(self.project_dir / self.task_data.get('req')[0])
+#             self.pol = get_polarization_direction(self.status)
+#             param['spectrum_file'] = spec_file = f'spec_{self.pol[1]}.dat'
+#             update_spectrum_input(param)
+#             self.spec_file = self.task_dir / spec_file
+#             return
 
-        if 'tcm' == self.task_name:
-            param['gfilename'] = str(self.project_dir /  self.task_data.get('req')[0])
-            param['wfile'] = str(self.project_dir / self.task_data.get('req')[1])
-            return
+#         if 'tcm' == self.task_name:
+#             param['gfilename'] = str(self.project_dir /  self.task_data.get('req')[0])
+#             param['wfile'] = str(self.project_dir / self.task_data.get('req')[1])
+#             return
 
-        if 'mo_population' ==self.task_name:
-            gs_log = str(self.project_dir / gpaw_data['ground_state'].get('out_log'))
-            gs_file = str(self.project_dir /  self.task_data.get('req')[0])
-            param['gfilename'] = gs_file
-            param['wfile'] = str(self.project_dir / self.task_data.get('req')[1])
-            param['mopop_file'] = mo_pop_file ='mo_population.dat'
-            self.mo_populationfile = self.task_dir / mo_pop_file
-            data = get_eigen_energy(gs_log)
-            self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
-            return
+#         if 'mo_population' ==self.task_name:
+#             gs_log = str(self.project_dir / gpaw_data['ground_state'].get('out_log'))
+#             gs_file = str(self.project_dir /  self.task_data.get('req')[0])
+#             param['gfilename'] = gs_file
+#             param['wfile'] = str(self.project_dir / self.task_data.get('req')[1])
+#             param['mopop_file'] = mo_pop_file ='mo_population.dat'
+#             self.mo_populationfile = self.task_dir / mo_pop_file
+#             data = get_eigen_energy(gs_log)
+#             self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
+#             return
 
-        if 'masking' == self.task_name:
+#         if 'masking' == self.task_name:
             
-            self.sim_total_dm = self.project_dir / self.task_data.get('req')[0]
-            self.state_mask_dm = False
-            from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
-            self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
+#             self.sim_total_dm = self.project_dir / self.task_data.get('req')[0]
+#             self.state_mask_dm = False
+#             from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
+#             self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
 
-    def write_input(self, template=None):
-        if template:
-            self.template = template
-        self.create_directory(self.task_dir)
-        write2file(self.task_dir,self.input_filename,self.template)
+#     def write_input(self, template=None):
+#         if template:
+#             self.template = template
+#         self.create_directory(self.task_dir)
+#         write2file(self.task_dir,self.input_filename,self.template)
 
-    def create_template(self):
-        self.template = gpaw_create_input(**self.user_input)
+#     def create_template(self):
+#         self.template = gpaw_create_input(**self.user_input)
     
-    def read_results(self):
-        if self.task_name in self.simulation_tasks:
-            self.engine_log = self.project_dir / self.task_data.get('out_log')
+#     def read_results(self):
+#         if self.task_name in self.simulation_tasks:
+#             self.engine_log = self.project_dir / self.task_data.get('out_log')
 
-    def create_job_script(self, np=1, remote_path=None) -> list:
+#     def create_job_script(self, np=1, remote_path=None) -> list:
 
-        python_path = self.lsconfig['programs'].get('python', 'python3')
-        job_script = super().create_job_script()
-        self.engine_log = self.project_dir / self.task_data.get('out_log')
-        engine_cmd = ' ' + str(self.input_filename)
+#         python_path = self.lsconfig['programs'].get('python', 'python3')
+#         job_script = super().create_job_script()
+#         self.engine_log = self.project_dir / self.task_data.get('out_log')
+#         engine_cmd = ' ' + str(self.input_filename)
  
-        if remote_path:
-            python_path = 'python3'
-            engine_cmd = python_path + engine_cmd
-            rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
-            job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(rpath),
-                                            remote=True, module_load_block=self.get_engine_network_job_cmd())
-        else:
-            engine_cmd = python_path + engine_cmd
-            job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(self.task_dir),
-                                            mpi_path=self.mpi_path)
+#         if remote_path:
+#             python_path = 'python3'
+#             engine_cmd = python_path + engine_cmd
+#             rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
+#             job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(rpath),
+#                                             remote=True, module_load_block=self.get_engine_network_job_cmd())
+#         else:
+#             engine_cmd = python_path + engine_cmd
+#             job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(self.task_dir),
+#                                             mpi_path=self.mpi_path)
     
-        self.job_script = job_script
-        return self.job_script
+#         self.job_script = job_script
+#         return self.job_script
 
-    def prepare_input(self):
-        assert self.task_name != 'masking'
-        self.create_template()
-        self.write_input()
+#     def prepare_input(self):
+#         assert self.task_name != 'masking'
+#         self.create_template()
+#         self.write_input()
         
-        self.create_job_script()
-        self.write_job_script()
+#         self.create_job_script()
+#         self.write_job_script()
 
-    def get_engine_log(self):
-        self.engine_log = self.project_dir / self.task_data.get('out_log')
-        if self.check_output():
-            return self.read_log(self.engine_log)
-
-
-    def run_job_local(self, cmd):
-        assert self.task_name != 'masking'
-        self.write_job_script(self.job_script)
-        try:
-            super().run_job_local(cmd)
-        except Exception:
-            raise
-        else:
-            if self.task_name == 'mo_population':
-                self.mo_population_diff_file = self.task_dir / 'mo_population_diff.dat'
-                calc_population_diff(homo_index=len(self.occupied_mo), infile=self.mo_populationfile,
-                                        outfile=self.mo_population_diff_file)
-    def extract_masked_dm(self):
-        self.create_directory(self.task_dir)
-        self.state_mask_dm = True
-        self.masked_dm_analysis.extract_dipolemoment_data()
+#     def get_engine_log(self):
+#         self.engine_log = self.project_dir / self.task_data.get('out_log')
+#         if self.check_output():
+#             return self.read_log(self.engine_log)
 
 
-    def get_energy_coupling_constant(self, **kwargs) -> str:
-        if not self.state_mask_dm:
-            self.extract_masked_dm()
-        region = kwargs.get('region')
-        axis = kwargs.get('direction')
-        return self.masked_dm_analysis.get_energy_coupling(region, axis)
+#     def run_job_local(self, cmd):
+#         assert self.task_name != 'masking'
+#         self.write_job_script(self.job_script)
+#         try:
+#             super().run_job_local(cmd)
+#         except Exception:
+#             raise
+#         else:
+#             if self.task_name == 'mo_population':
+#                 self.mo_population_diff_file = self.task_dir / 'mo_population_diff.dat'
+#                 calc_population_diff(homo_index=len(self.occupied_mo), infile=self.mo_populationfile,
+#                                         outfile=self.mo_population_diff_file)
+#     def extract_masked_dm(self):
+#         self.create_directory(self.task_dir)
+#         self.state_mask_dm = True
+#         self.masked_dm_analysis.extract_dipolemoment_data()
 
 
-    def plot(self, **kwargs):
-        if self.task_name == 'spectrum':
-            img = self.spec_file.with_suffix('.png')
-            plot_spectrum(str(self.spec_file),str(img),0, self.pol[0]+1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
+#     def get_energy_coupling_constant(self, **kwargs) -> str:
+#         if not self.state_mask_dm:
+#             self.extract_masked_dm()
+#         region = kwargs.get('region')
+#         axis = kwargs.get('direction')
+#         return self.masked_dm_analysis.get_energy_coupling(region, axis)
+
+
+#     def plot(self, **kwargs):
+#         if self.task_name == 'spectrum':
+#             img = self.spec_file.with_suffix('.png')
+#             plot_spectrum(str(self.spec_file),str(img),0, self.pol[0]+1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
     
-        if self.task_name == 'tcm':
-            from PIL import Image        
-            for item in self.user_input.get('frequency_list'):
-                img_file = self.task_dir / f'tcm_{item:.2f}.png'
-                image = Image.open(img_file)
-                image.show()
+#         if self.task_name == 'tcm':
+#             from PIL import Image        
+#             for item in self.user_input.get('frequency_list'):
+#                 img_file = self.task_dir / f'tcm_{item:.2f}.png'
+#                 image = Image.open(img_file)
+#                 image.show()
 
-        elif self.task_name == 'mo_population':
-            occ = self.occupied_mo
-            unocc = self.unoccupied_mo
-            below_homo = kwargs.get('num_occupied_mo_plot',1)
-            above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
-            if (len(occ) < below_homo) or (len(unocc) < above_lumo):
-                raise InputError(f'The selected MO is out of range. Number of MO: below HOMO = {len(occ)}, above_LUMO = {len(unocc)}')
-            homo_index = len(occ)
-            column_range = (homo_index-below_homo+1, homo_index+above_lumo)
-            legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=homo_index)
+#         elif self.task_name == 'mo_population':
+#             occ = self.occupied_mo
+#             unocc = self.unoccupied_mo
+#             below_homo = kwargs.get('num_occupied_mo_plot',1)
+#             above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
+#             if (len(occ) < below_homo) or (len(unocc) < above_lumo):
+#                 raise InputError(f'The selected MO is out of range. Number of MO: below HOMO = {len(occ)}, above_LUMO = {len(unocc)}')
+#             homo_index = len(occ)
+#             column_range = (homo_index-below_homo+1, homo_index+above_lumo)
+#             legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=homo_index)
             
-            pop_data = np.loadtxt(self.mo_population_diff_file)
+#             pop_data = np.loadtxt(self.mo_population_diff_file)
             
-            plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (as)')
+#             plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (as)')
 
-        elif self.task_name == 'masking':
-            if not self.state_mask_dm:
-                self.extract_masked_dm()
-            region = kwargs.get('region')
-            axis = kwargs.get('direction')
-            envelope = kwargs.get('envelope', False)
-            plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
-            plt.show()
+#         elif self.task_name == 'masking':
+#             if not self.state_mask_dm:
+#                 self.extract_masked_dm()
+#             region = kwargs.get('region')
+#             axis = kwargs.get('direction')
+#             envelope = kwargs.get('envelope', False)
+#             plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
+#             plt.show()
             
-    @staticmethod
-    def get_engine_network_job_cmd():
+#     @staticmethod
+#     def get_engine_network_job_cmd():
 
-        job_script = """
-##### Please Provide the Excutable Path or environment of GPAW 
+#         job_script = """
+# ##### Please Provide the Excutable Path or environment of GPAW 
 
-##eval "$(conda shell.bash hook)"
-##conda activate <environment name>"""
-        return job_script
+# ##eval "$(conda shell.bash hook)"
+# ##conda activate <environment name>"""
+#         return job_script
 
 
 class GpawTask(Task):
@@ -306,7 +307,8 @@ class GpawTask(Task):
 
     def setup_task(self, param):
         infile_ext = '.py'
-        self.task_dir = self.get_task_dir()
+        task_dir = self.project_dir / 'gpaw' / self.task_name
+        self.task_dir = get_new_directory(task_dir)
         input_filename = self.task_data.get('file_name', None)
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
@@ -367,17 +369,17 @@ class GpawTask(Task):
             from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
             self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
     
-    def get_task_dir(self):
-        task_dir = Path(self.project_dir) / 'gpaw' / self.task_name
-        i=1
-        while True:
-            if task_dir.exists():
-                name = self.task_name + f'{i}'
-                task_dir = task_dir = Path(self.project_dir) / 'gpaw' / name
-                i =+ 1
-            else:
-                break
-        return task_dir
+    # def get_task_dir(self):
+    #     task_dir = Path(self.project_dir) / 'gpaw' / self.task_name
+    #     i=1
+    #     while True:
+    #         if task_dir.exists():
+    #             name = self.task_name + f'{i}'
+    #             task_dir = task_dir = Path(self.project_dir) / 'gpaw' / name
+    #             i =+ 1
+    #         else:
+    #             break
+    #     return task_dir
 
     def create_template(self):
         template = gpaw_create_input(**self.user_input)
@@ -428,7 +430,6 @@ class GpawTask(Task):
         if self.check_output():
             return self.read_log(self.task_info.output['txt_out'])
         
-
 
     def run_job_local(self, cmd):
         assert self.task_name != 'masking'

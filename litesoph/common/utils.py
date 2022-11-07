@@ -27,3 +27,19 @@ def create_dir(project_path):
 
     project_path = Path(project_path)
     os.makedirs(project_path)
+
+
+def get_new_directory(path:Path) -> Path:
+    """Checks if the directory exists and addeds a number to name untill
+    a new name is found."""
+    parent = path.parent
+    name = path.name
+
+    while True:
+        if path.exists():
+            name = name + f'{i}'
+            path = parent / name
+            i =+ 1
+        else:
+            break
+    return path

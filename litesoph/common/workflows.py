@@ -7,11 +7,7 @@ from litesoph.common.data_sturcture import WorkflowInfo , TaskInfo, factory_task
 
 workflow_types = Dict[str, callable]
 
-workflow_types = {
 
-    'Spectrum': get_spectrum_workflow,
-
-   }
 
 workflows = {
     'Spectrum': ['Ground State', 'RT TDDFT', 'Compute Spectrum'] ,
@@ -51,3 +47,8 @@ def get_spectrum_workflow(Workflowinfo: WorkflowInfo):
     
     
 
+workflow_types = {
+
+    'Spectrum': get_spectrum_workflow,
+
+   }

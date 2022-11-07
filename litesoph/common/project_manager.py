@@ -8,7 +8,7 @@ from litesoph.common.utils import create_dir, PROJECT_DATA_FILE_RELATIVE_PATH, P
 from litesoph.common.data_sturcture.data_classes import ProjectInfo, WorkflowInfo
 from litesoph.visualization.visualize_geometry import VisualizeGeometry
 from litesoph.common.workflow_manager import WorkflowManager, factory_task_info
-from litesoph.common.workflows import get_workflow_type, workflow_types
+from litesoph.common.workflows import workflow_types
 
 class WorkflowSetupError(Exception):
     """Raised when unable to creating or opening task."""
