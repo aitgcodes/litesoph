@@ -103,6 +103,89 @@ class OctopusModel:
         }
     
 
+# class LaserDesignModel:
+
+#     laser_input = {
+
+#         "strength": {'req' : True, 'type': DT.decimal},
+#         "inval" : {'req' : True, 'type': DT.decimal},
+#         #"pol_x": {'req' : True, 'type': DT.integer},
+#         #"pol_y" : {'req' : True, 'type': DT.integer},
+#         #"pol_z" : {'req' : True, 'type': DT.integer},
+#         "fwhm" : {'req' : True, 'type': DT.decimal},
+#         "frequency" : {'req' : True, 'type': DT.decimal},
+#         "time_step" : {'req' : True, 'type': DT.decimal},
+#         "number_of_steps": {'req' : True, 'type': DT.decimal},
+#         "tin" : {'req' : True, 'type': DT.decimal}
+        
+#         }
+#     def __init__(self, user_input) -> None:
+#         self.user_input = user_input
+#         # range = int(self.user_input['number_of_steps'])* float(self.user_input['time_step'])
+#         range = self.user_input['total_time']
+#         self.range = range*1e3
+#         self.freq = self.user_input['frequency']
+#         self.strength = self.user_input['strength']
+
+#     def create_pulse(self):
+#         """ creates gaussian pulse with given inval,fwhm value """
+#         from litesoph.pre_processing.laser_design import GaussianPulse
+#         from litesoph.pre_processing.laser_design import laser_design
+#         #from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au
+#         self.l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])      
+#         self.l_design['frequency'] = self.freq
+#         self.l_design['strength'] = self.strength
+        
+#         sigma = round(autime_to_eV/self.l_design['sigma'], 2)
+#         time0 = round(self.l_design['time0']*au_to_as, 2)       
+
+#         self.pulse = GaussianPulse(self.strength,float(time0),self.freq, float(sigma), 'sin')        
+        
+#         self.time_t = np.arange(self.range)
+#         self.strength_t = self.pulse.strength(np.arange(self.range)*as_to_au)
+#         self.derivative_t = self.pulse.derivative(np.arange(self.range)*as_to_au)
+
+#     def write_laser(self,filename):
+#         """ writes laser pulse to file """
+#         filename = pathlib.Path(filename) 
+#         self.pulse.write(filename, np.arange(self.range))
+
+#     def plot_time_strength(self):
+#         """ returns Figure object for (time,strength) in (X,Y) """
+#         fig = plot(self.time_t*as_to_au*au_to_fs,self.strength_t, 'Time (in fs)', 'Pulse Strength (in au)')
+#         return fig
+
+#     def plot_time_derivative(self):
+#         """ returns Figure object for (time,derivative) in (X,Y) """
+#         fig = plot(self.time_t,self.derivative_t, 'Time (in attosec)', 'Time derivative of pulse strength')
+#         return fig    
+
+#     def plot_strength_derivative(self):
+#         """ returns Figure object for (strength,derivative) in (X,Y) """
+#         fig = plot(self.strength_t,self.derivative_t, 'Pulse Strength (in au)', 'Time derivative of pulse strength')
+#         return fig 
+
+# def plot(x_data, y_data, x_label, y_label):
+#     """ returns Figure object given x and y data """
+#     from matplotlib.figure import Figure
+#     import matplotlib.pyplot as plt
+
+#     plt.figure(figsize=(8, 6), dpi=100)  
+#     # figure = Figure(figsize=(5, 3), dpi=100)  
+#     ax = plt.subplot(1, 1, 1)  
+#     # ax = figure.add_subplot(1, 1, 1)
+#     ax.plot(x_data, y_data, 'k')
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     ax.yaxis.set_ticks_position('left')
+#     ax.xaxis.set_ticks_position('bottom')
+#     ax.set_xlabel(x_label)
+#     ax.set_ylabel(y_label)
+
+#     plt.show()
+ 
+#     # return figure    
+
 class LaserDesignModel:
 
     laser_input = {
@@ -119,70 +202,89 @@ class LaserDesignModel:
         "tin" : {'req' : True, 'type': DT.decimal}
         
         }
-    def __init__(self, user_input) -> None:
+    def __init__(self,user_input) -> None:
         self.user_input = user_input
-        # range = int(self.user_input['number_of_steps'])* float(self.user_input['time_step'])
-        range = self.user_input['total_time']
-        self.range = range*1e3
-        self.freq = self.user_input['frequency']
-        self.strength = self.user_input['strength']
-
+    #     # # range = int(self.user_input['number_of_steps'])* float(self.user_input['time_step'])
+        # range = self.user_input['total_time']
+        # self.range = range*1e3
+        # self.freq = self.user_input['frequency']
+        # self.strength = self.user_input['strength']
+        
     def create_pulse(self):
-        """ creates gaussian pulse with given inval,fwhm value """
+        user_input = self.user_input
         from litesoph.pre_processing.laser_design import GaussianPulse
         from litesoph.pre_processing.laser_design import laser_design
-        #from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au
-        self.l_design = laser_design(self.user_input['inval'], self.user_input['tin'], self.user_input['fwhm'])      
-        self.l_design['frequency'] = self.freq
-        self.l_design['strength'] = self.strength
+        from litesoph.pre_processing.laser_design import G_DeltaPulse
+        import matplotlib.pyplot as plt
+        # print(user_input)
+        laser_details =[]
+        for n, laser in enumerate (user_input):
+
+            if laser['type']== 'Gaussian':
+
+                freq=laser['frequency']
+                strength = laser['strength']
+                t_total=laser['total_time']*1e3
+                in_value=laser['inval']
+                t_in=laser['tin']
+                F_fwhm=laser['fwhm']
+                
+                """ creates gaussian pulse with given inval,fwhm value """
+                l_design = laser_design(in_value,t_in,F_fwhm)
+                l_design['frequency'] = freq
+                l_design['strength'] = strength
+                sigma = round(autime_to_eV/l_design['sigma'], 2)
+                time0 = round(l_design['time0']*au_to_as, 2)                                 
+                l_design['type']= 'Gaussian'     
+                       
+                
+                delay_array=[x * 1e3 for x in [2,4,6,8,10]] 
+
+                # # ##### probe pulse train Generation  ###############
+                if n > 0:
+                    for  delay in delay_array:
+
+                        pulse=GaussianPulse(strength,float(time0)+delay,freq, float(sigma), 'sin')
+                        strength_t = pulse.strength(np.arange(t_total)*as_to_au)
+                        plt.plot(time_t*as_to_au*au_to_fs,strength_t)
+                else:
+
+                # ##### Generating Pulse by invoking GaussianPulse function
+                    pulse = GaussianPulse(strength,float(time0),freq, float(sigma), 'sin')        
+            
+                # ##Ploting all LASERs in single file#######
+                    time_t = np.arange(t_total)
+                    strength_t = pulse.strength(np.arange(t_total)*as_to_au)
+                    plt.plot(time_t*as_to_au*au_to_fs,strength_t) #, 'Time (in fs)', 'Pulse Strength (in au)'
+            else:
+                               
+                strength = laser['strength']
+                l_design={}
+                l_design['strength'] = strength
+                time0 = 0 
+                l_design['time0'] =time0                                
+                l_design['type']= 'Delta'         
+                
+                delay_array=[x * 1e3 for x in [2,4,6,8,10]] 
+
+                # # ##### Delta probe pulse train Generation  ###############
+                
+                for  delay in delay_array:
+
+                    pulse=G_DeltaPulse(strength,float(time0)+delay)
+                    strength_t = pulse.strength(np.arange(t_total)*as_to_au)
+                    plt.plot(time_t*as_to_au*au_to_fs,strength_t)
+                
+            laser_details.append(l_design)        
+
+        plt.xlabel('Time (in fs)')
+        plt.ylabel('Pulse Strength (in au)')
+        plt.show()
         
-        sigma = round(autime_to_eV/self.l_design['sigma'], 2)
-        time0 = round(self.l_design['time0']*au_to_as, 2)       
+        # self.derivative_t = self.pulse.derivative(np.arange(self.range)*as_to_au)
 
-        self.pulse = GaussianPulse(self.strength,float(time0),self.freq, float(sigma), 'sin')        
-        
-        self.time_t = np.arange(self.range)
-        self.strength_t = self.pulse.strength(np.arange(self.range)*as_to_au)
-        self.derivative_t = self.pulse.derivative(np.arange(self.range)*as_to_au)
-
-    def write_laser(self,filename):
-        """ writes laser pulse to file """
-        filename = pathlib.Path(filename) 
-        self.pulse.write(filename, np.arange(self.range))
-
-    def plot_time_strength(self):
-        """ returns Figure object for (time,strength) in (X,Y) """
-        fig = plot(self.time_t*as_to_au*au_to_fs,self.strength_t, 'Time (in fs)', 'Pulse Strength (in au)')
-        return fig
-
-    def plot_time_derivative(self):
-        """ returns Figure object for (time,derivative) in (X,Y) """
-        fig = plot(self.time_t,self.derivative_t, 'Time (in attosec)', 'Time derivative of pulse strength')
-        return fig    
-
-    def plot_strength_derivative(self):
-        """ returns Figure object for (strength,derivative) in (X,Y) """
-        fig = plot(self.strength_t,self.derivative_t, 'Pulse Strength (in au)', 'Time derivative of pulse strength')
-        return fig 
-
-def plot(x_data, y_data, x_label, y_label):
-    """ returns Figure object given x and y data """
-    from matplotlib.figure import Figure
-    import matplotlib.pyplot as plt
-
-    plt.figure(figsize=(8, 6), dpi=100)  
-    # figure = Figure(figsize=(5, 3), dpi=100)  
-    ax = plt.subplot(1, 1, 1)  
-    # ax = figure.add_subplot(1, 1, 1)
-    ax.plot(x_data, y_data, 'k')
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
-
-    plt.show()
- 
-    # return figure    
+    # def write_laser(self,filename):
+    #     """ writes laser pulse to file """
+    #     filename = pathlib.Path(filename) 
+    #     self.pulse.write(filename, np.arange(self.range))
 
