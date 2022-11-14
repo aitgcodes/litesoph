@@ -4,6 +4,7 @@ from litesoph.common.utils import get_new_directory
 from litesoph.post_processing.mo_population import calc_population_diff, create_states_index, get_occ_unocc
 from litesoph.common.task import (InputError, Task, TaskFailed ,
                                      TaskNotImplementedError, assemable_job_cmd, write2file)
+from litesoph.common.task_data import TaskTypes as tt 
 from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.engines.gpaw.gpaw_input import gpaw_create_input, default_param
 from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum
@@ -13,7 +14,7 @@ import numpy as np
 from litesoph.utilities.units import autime_to_eV, au_to_as
 
 gpaw_data = {
-'ground_state' : {'inp':'gpaw/GS/gs.py',
+tt.GROUND_STATE : {'inp':'gpaw/GS/gs.py',
             'req' : ['coordinate.xyz'],
             'dir' : 'GS',
             'file_name' : 'gs',
@@ -29,7 +30,7 @@ gpaw_data = {
         'restart': 'gpaw/TD_Delta/td.gpw',
         'check_list':['Writing','Total:']},
 
-'rt_tddft' : {'file_name' : 'td',
+tt.RT_TDDFT : {'file_name' : 'td',
         'output': {'out_log': 'td.out',
                     'gpw_out': 'td.gpw'}},
 
@@ -41,7 +42,7 @@ gpaw_data = {
         'restart': 'gpaw/TD_Laser/td.gpw',
         'check_list':['Writing','Total:']},
 
-'spectrum' : {'inp':'gpaw/Spectrum/spec.py',
+tt.COMPUTE_SPECTRUM : {'inp':'gpaw/Spectrum/spec.py',
         'req' : ['gpaw/TD_Delta/dm.dat'],
         'dir': 'Spectrum',
         'file_name' : 'spec',
@@ -50,7 +51,7 @@ gpaw_data = {
         'check_list':['FWHM'],
         'spectra_file': ['gpaw/Spectrum/spec_x.dat','gpaw/Spectrum/spec_y.dat', 'gpaw/Spectrum/spec_z.dat' ]},
 
-'tcm' : {'inp':'gpaw/TCM/tcm.py',
+tt.TCM : {'inp':'gpaw/TCM/tcm.py',
         'req' : ['gpaw/GS/gs.gpw','gpaw/TD_Delta/wf.ulm'],
         'out_log': 'gpaw/TCM/unocc.out',
         'dir': 'TCM',
@@ -71,13 +72,13 @@ gpaw_data = {
 
 #     NAME = 'gpaw'
 
-#     simulation_tasks =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
+#     simulation_tasks =  [GROUND_STATE, 'rt_tddft_delta', 'rt_tddft_laser']
 #     post_processing_tasks = ['spectrum', 'tcm', 'mo_population', 'masking']
 #     implemented_task = simulation_tasks + post_processing_tasks
 
 #     def __init__(self, project_dir, lsconfig, status, **kwargs) -> None:
         
-#         self.task_name = kwargs.get('task', 'ground_state')
+#         self.task_name = kwargs.get('task', GROUND_STATE)
         
 #         self.engine_log = None
 #         self.output = {}
@@ -86,7 +87,7 @@ gpaw_data = {
 #         self.task_data = gpaw_data.get(self.task_name)
 #         self.user_input = {}
 #         self.user_input['task'] = self.task_name
-#         if 'ground_state':
+#         if GROUND_STATE:
 #             self.user_input.update(format_gs_input(kwargs))
 #         else:
 #             self.user_input.update(kwargs)
@@ -110,12 +111,12 @@ gpaw_data = {
 #             param['txt_out'] = input_filename + '.out'
 #             param['gpw_out'] =  input_filename + '.gpw'
 
-#         if 'ground_state' in self.task_name:
+#         if GROUND_STATE in self.task_name:
 #             param['geometry'] = str(self.project_dir / 'coordinate.xyz')
 #             return
         
-#         if 'rt_tddft' in self.task_name:
-#             param['gfilename'] = str(self.project_dir /  gpaw_data['ground_state'].get('restart'))
+#         if  RT_TDDFT in self.task_name:
+#             param['gfilename'] = str(self.project_dir /  gpaw_data[GROUND_STATE].get('restart'))
 #             param['dm_file'] = 'dm.dat'
 #             if 'ksd' in param or 'mo_population' in param:
 #                 param['wfile'] = 'wf.ulm'
@@ -136,7 +137,7 @@ gpaw_data = {
 #             return
 
 #         if 'mo_population' ==self.task_name:
-#             gs_log = str(self.project_dir / gpaw_data['ground_state'].get('out_log'))
+#             gs_log = str(self.project_dir / gpaw_data[GROUND_STATE].get('out_log'))
 #             gs_file = str(self.project_dir /  self.task_data.get('req')[0])
 #             param['gfilename'] = gs_file
 #             param['wfile'] = str(self.project_dir / self.task_data.get('req')[1])
@@ -278,8 +279,8 @@ class GpawTask(Task):
 
     NAME = 'gpaw'
 
-    simulation_tasks =  ['ground_state','rt_tddft']
-    post_processing_tasks = ['spectrum', 'tcm', 'mo_population', 'masking']
+    simulation_tasks =  [tt.GROUND_STATE, tt.RT_TDDFT]
+    post_processing_tasks = [tt.COMPUTE_SPECTRUM, tt.TCM, tt.MO_POPULATION, 'masking']
     implemented_task = simulation_tasks + post_processing_tasks
 
     def __init__(self, lsconfig, 
@@ -296,7 +297,7 @@ class GpawTask(Task):
         
         self.user_input = {}
         self.user_input['task'] = self.task_name
-        if 'ground_state' == self.task_name:
+        if tt.GROUND_STATE == self.task_name:
             self.user_input.update(format_gs_input(self.params))
         else:
             self.user_input.update(self.params)
@@ -322,11 +323,11 @@ class GpawTask(Task):
             self.task_info.output['txt_out'] = str(self.task_dir / param['txt_out'])
             self.task_info.output['gpw_out'] = str(self.task_dir / param['gpw_out'])
 
-        if 'ground_state' in self.task_name:
+        if tt.GROUND_STATE in self.task_name:
             param['geometry'] = str(self.project_dir / 'coordinate.xyz')
             return
         
-        if 'rt_tddft' in self.task_name:
+        if  tt.RT_TDDFT in self.task_name:
             param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
             param['dm_file'] = 'dm.dat'
             self.task_info.output['dm_file'] = str(self.task_dir / param['dm_file'])
@@ -336,7 +337,7 @@ class GpawTask(Task):
             update_td_input(param)
             return
 
-        if 'spectrum' == self.task_name:
+        if tt.COMPUTE_SPECTRUM == self.task_name:
             param['dm_file'] = self.dependent_tasks[0].output.get('dm_file')
             self.pol = get_polarization_direction(self.dependent_tasks[0])
             param['spectrum_file'] = spec_file = f'spec_{self.pol[1]}.dat'
@@ -345,7 +346,7 @@ class GpawTask(Task):
             self.spec_file = self.task_dir / spec_file
             return
 
-        if 'tcm' == self.task_name:
+        if tt.TCM == self.task_name:
             param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
             param['wfile'] = self.dependent_tasks[0].output.get('wfile')
             return
@@ -458,11 +459,11 @@ class GpawTask(Task):
 
 
     def plot(self, **kwargs):
-        if self.task_name == 'spectrum':
+        if self.task_name == tt.COMPUTE_SPECTRUM:
             img = self.spec_file.with_suffix('.png')
             plot_spectrum(str(self.spec_file),str(img),0, self.pol[0]+1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
     
-        if self.task_name == 'tcm':
+        if self.task_name == tt.TCM:
             from PIL import Image        
             for item in self.user_input.get('frequency_list'):
                 img_file = self.task_dir / f'tcm_{item:.2f}.png'

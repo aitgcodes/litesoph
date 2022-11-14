@@ -1,8 +1,19 @@
 from litesoph.common.data_sturcture.data_types import DataTypes as DT
 
 gpaw_gs_param_data ={ 
-        "xc": {'type':DT.string, 'values':["LDA","PBE","PBE0","PBEsol","BLYP","B3LYP","CAMY-BLYP","CAMY-B3LYP"], 'default_value': 'LDA'},               
-        "basis_type": {'type':DT.string, 'values':['lcao', 'fd', 'pw'], 'default_value': 'lcao'},  
+        "xc": {'type':DT.string, 'values':["LDA",
+                                            "PBE",
+                                            "PBE0",
+                                            "PBEsol",
+                                            "BLYP",
+                                            "B3LYP",
+                                            "CAMY-BLYP",
+                                            "CAMY-B3LYP"], 
+                                            'default_value': 'LDA'},               
+        "basis_type": {'type':DT.string, 'values':['lcao',
+                                                     'fd', 
+                                                     'pw'], 
+                                                     'default_value': 'lcao'},  
         "basis": {'type':DT.string, 'metadata':{'basis_type': {'lcao' : {'values':["dzp","sz","dz","szp","pvalence.dz"], 'default_value': 'dzp'},
                                                 'fd' : {'default_value': None},
                                                 'pw': {'default_value': None}}}},  
@@ -20,3 +31,5 @@ gpaw_gs_param_data ={
         "mixing": None,
         
 }
+
+

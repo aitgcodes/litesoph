@@ -159,8 +159,8 @@ class GUIAPP:
 
     def show_frame(self, frame,*args, **kwargs):
         
-        for widget in self.task_input_frame.winfo_children():
-            widget.destroy()
+        # for widget in self.task_input_frame.winfo_children():
+        #     widget.destroy()
         int_frame = frame(self.task_input_frame, *args, **kwargs)
         int_frame.grid(row=0, column=0, sticky ='NSEW')
         int_frame.tkraise()

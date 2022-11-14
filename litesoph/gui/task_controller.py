@@ -5,15 +5,11 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 from litesoph.common.workflow_manager import WorkflowManager
 from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.common.task import Task, TaskFailed
-from litesoph.common.task_data import (GROUND_STATE,RT_TDDFT,
-                                    SPECTRUM,
-                                    TCM, MO_POPULATION,
-                                    MASKING)
+from litesoph.common.task_data import TaskTypes as tt                                  
 from litesoph.gui import views as v
-from litesoph.gui import actions
 from litesoph.common import models as m
 
-serial_tasks = [SPECTRUM, TCM, MO_POPULATION]
+serial_tasks = [tt.COMPUTE_SPECTRUM, tt.TCM, tt.MO_POPULATION]
 
 class TaskController:
 
@@ -31,10 +27,10 @@ class TaskController:
         self.task_info = workflow_manager.current_task_info
         self.task_name = self.task_info.name
         self.engine = self.task_info.engine
-        self.status = workflow_manager.status
+        #self.status = workflow_manager.status
         self.task_view = task_view
         self.task = None
-        self.create_task_view(task_view, self.task_info.engine, self.task_info.name)
+        self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)
         
         self.main_window.bind_all(f'<<Generate{self.task_name}Script>>', self.generate_input)
         self.main_window.bind_all('<<DesignLaser>>', self._on_design_laser)
@@ -43,7 +39,7 @@ class TaskController:
             self.task_view.submit_button.config(command = self._run_task_serial)
             self.task_view.plot_button.config(command = self._on_plot_button)
             self.task_view.back_button.config(command= self.workflow_controller.show_workmanager_page)
-        if self.task_name == MASKING:
+        if self.task_name == tt.MASKING:
             self.task = self.workflow_manager.start_task(user_input={})
             self.task_view.submit_button.config(command = self._run_task_serial)
             self.task_view.plot_button.config(command = self._run_task_serial)
@@ -51,10 +47,10 @@ class TaskController:
         if isinstance(self.task_view, v.TimeDependentPage):
             self.task_view.update_engine_default(self.engine)
 
-    def create_task_view(self, view_class, *args, **kwargs):
-        self.task_view = view_class(self.app.task_input_frame, *args, **kwargs)
-        self.task_view.grid(row=0, column=0, sticky ='NSEW')
-        self.task_view.tkraise()
+    # def create_task_view(self, view_class, *args, **kwargs):
+    #     self.task_view = view_class(self.app.task_input_frame, *args, **kwargs)
+    #     self.task_view.grid(row=0, column=0, sticky ='NSEW')
+    #     self.task_view.tkraise()
 
     def generate_input(self, *_):
         
@@ -68,7 +64,7 @@ class TaskController:
             return
 
         engine = inp_dict.pop('engine', None)
-        if GROUND_STATE == self.task_name and (not self.engine):   
+        if tt.GROUND_STATE == self.task_name and (not self.engine):   
             self.task_info.engine = engine
 
         self.task_info.param.update(inp_dict)
@@ -105,10 +101,6 @@ class TaskController:
         inp_dict = self.task_view.get_parameters()
         self.task_info.param.update(inp_dict)
         self.task = self.workflow_manager.get_engine_task()
-        # self.status.set_new_task(self.engine, self.task.task_name)
-        # self.status.update(f'{self.engine}.{self.task.task_name}.script', 1)
-        # self.status.update(f'{self.engine}.{self.task.task_name}.param',self.task.user_input)
-
         self.task.prepare_input()
         self.task_info.state.input = 'done'
         self.task_info.engine_param.update(self.task.user_input)
@@ -149,10 +141,7 @@ class TaskController:
         template = self.view_panel.get_text()
         task.set_engine_input(template)
         task.save_input()
-        # self.status.set_new_task(self.engine, task.task_name)
-        # self.status.update(f'{self.engine}.{task.task_name}.script', 1)
-        # self.status.update(f'{self.engine}.{task.task_name}.param',task.user_input)
-        if task.task_name == 'ground_state':
+        if task.task_name == tt.GROUND_STATE:
             self.status_engine.set(self.engine)
         view.set_sub_button_state('active')
         view.set_label_msg('saved')
@@ -250,7 +239,6 @@ class TaskController:
         try:
             log_txt = task.get_engine_log()
         except TaskFailed:
-            raise
             messagebox.showinfo(title='Info', message="Job not completed.")
             return
             
@@ -310,7 +298,7 @@ class TaskController:
 
     def _get_remote_output(self, task: Task):
         task.submit_network.download_output_files()
-        self.status.update(f'{self.engine}.{task.task_name}.done', True)
+        #self.status.update(f'{self.engine}.{task.task_name}.done', True)
 
     def _on_create_local_job_script(self, task: Task, *_):
         np = self.job_sub_page.processors.get()

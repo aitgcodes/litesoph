@@ -137,7 +137,11 @@ class WorkManagerPage(ttk.Frame):
     Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Tracking", "Masking", "Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
-    workflow_list = ['Spectrum', 'Time Dependent Calculation', 'Kohn Sham Decomposition','MO Population Tracking']
+    workflow_list =['Spectrum',
+                'Averaged Spectrum', 
+                'Kohn Sham Decomposition',
+                'MO Population Tracking']
+                
     env_list = ['Gas Phase', 'Solvation Condition']
 
     def __init__(self, parent, *args, **kwargs):

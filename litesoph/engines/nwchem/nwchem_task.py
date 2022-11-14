@@ -7,6 +7,7 @@ from litesoph.common.utils import get_new_directory
 from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.post_processing.mo_population import calc_population_diff, get_energy_window, get_occ_unocc
 from litesoph.common.task import InputError, Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
+from litesoph.common.task_data import TaskTypes as tt
 from litesoph.engines.nwchem.nwchem import NWChem
 from litesoph.engines.nwchem.spectrum import photoabsorption_spectrum
 from litesoph.post_processing.mo_population_correlation.moocc_correlation_plot import plot_mo_population_correlations
@@ -299,7 +300,7 @@ class NwchemTask(Task):
 class NwchemTask(Task):
 
     NAME = 'nwchem'
-    simulation_tasks =  ['ground_state', 'rt_tddft_delta', 'rt_tddft_laser']
+    simulation_tasks =  [tt.GROUND_STATE, 'rt_tddft_delta', 'rt_tddft_laser']
     post_processing_tasks = ['spectrum', 'mo_population']
     implemented_task = simulation_tasks + post_processing_tasks
 
@@ -315,7 +316,7 @@ class NwchemTask(Task):
 
         self.task_data = nwchem_data.get(self.task_name)
         param = copy.deepcopy(self.task_info.param)
-        if self.task_name == 'ground_state':
+        if self.task_name == tt.GROUND_STATE:
             self.user_input = format_gs_param(param)
         else:
             self.user_input = param
