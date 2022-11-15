@@ -60,13 +60,13 @@ class WorkflowNavigation:
         self.parent = parent
         self.workflow_list = workflow_list
         self.widgets = {}
-        self.current_index = 0
+        self.current_index = -1
         self.default_state = 'default'
         self.create_widgets(parent, self.workflow_list)
            
     def create_widgets(self, parent, workflow_list:list):
         """ Creates the widgets for workflow view"""
-        
+        self.clear()
         title_label = tk.Label(parent,text='Workflow', bg=v.label_design['bg'], fg=v.label_design['fg'], font=v.myfont())
         title_label.grid(row=0, column=0)
 
@@ -108,11 +108,16 @@ class WorkflowNavigation:
         
     def next(self):
         """ Shifts the current state to next"""
-        if 0 <= self.current_index < len(self.workflow_list):
+        if self.current_index < len(self.workflow_list):
             self.current_index += 1
         self._update_widgets(self.current_index)
         self._update_config()
-
+    
+    def start(self, index=0):
+        self.current_index = index
+        self._update_widgets(self.current_index)
+        self._update_config()
+    
     def _update_config(self):
         """ Assigns the visual config"""
         for key,value in self.widgets.items():

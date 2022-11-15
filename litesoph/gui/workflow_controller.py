@@ -5,7 +5,7 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 
 from litesoph.common.task import Task, TaskFailed
 from litesoph.common.task_data import TaskTypes as tt
-from litesoph.common.workflow_manager import WorkflowManager
+from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
 from litesoph.gui.task_controller import TaskController
@@ -50,7 +50,7 @@ class WorkflowController:
         if self.user_defined_workflow:
             task_and_view = self._get_task()
             if not task_and_view:
-                raise Exception('Task name not specified.') 
+                return 
         else:
             if not self.workflow_navigation_view:
                 return
@@ -100,7 +100,7 @@ class WorkflowController:
                         messagebox.showinfo(title="Info", message="Option not Implemented")
                         return
                     else:
-                        return ( tt.RT_TDDFT, task_view)
+                        return (tt.RT_TDDFT, task_view)
             return
 
         if sub_task  == "Ground State":
@@ -138,11 +138,19 @@ class SpectrumController(WorkflowController):
         
 
     def show_workmanager_page(self, *_):
-        self.workmanager_page._var['select_wf_option'].set(value=2)
+        self.workmanager_page._var['select_wf_option'].set(value=1)
         self.workmanager_page.tkraise()
         self.app.proceed_button.config(command= self.start_task)
     
     def start_task(self, *_):
         
-        self.workflow_manager.next(task_name)
+        try:
+            self.workflow_manager.next()
+        except TaskSetupError as e:
+            messagebox.showerror(title='Error', message=e)
+            return
+        task_view = task_view_map.get(self.workflow_manager.current_task_info.name)
+        if isinstance(task_view, list):
+            task_view = task_view[0]
+        self.workflow_navigation_view.next()
         self.task_controller.set_task(self.workflow_manager, task_view)

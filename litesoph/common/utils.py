@@ -34,7 +34,7 @@ def get_new_directory(path:Path) -> Path:
     a new name is found."""
     parent = path.parent
     name = path.name
-
+    i = 1
     while True:
         if path.exists():
             name = name + f'{i}'

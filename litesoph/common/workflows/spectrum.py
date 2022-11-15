@@ -1,8 +1,7 @@
 from typing import List, Dict, Union
 from pathlib import Path
-from litesoph.common.task_data import GROUND_STATE, RT_TDDFT, COMPUTE_SPECTRUM
+from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.workflow_manager import WorkflowManager
-from litesoph.common.workflows_data import workflow_types
 from litesoph.common.task import TaskSetupError
 from litesoph.common.data_sturcture import WorkflowInfo, TaskInfo, factory_task_info
 
@@ -18,48 +17,34 @@ class SpectrumWorkflow(WorkflowManager):
                         workflow_info,
                         config)
 
-        if not self.tasks:
-            self.current_step.insert(0, list(self.steps.keys())[0])
-        self.engine_current_tasks = []
+    def get_task_dependencies(self,):
+        denpendices_uuid = self.dependencies_map.get(self.current_task_info.uuid)
+        if denpendices_uuid is None:
+            return []
+        elif isinstance(denpendices_uuid ,str):
+            return [self.tasks.get(denpendices_uuid)]
+        elif isinstance(denpendices_uuid, list):
+            return [self.tasks.get(task_uuid) for task_uuid in denpendices_uuid]
 
-    def save_input(self, param):            
-        task_infolist = self._get_taskinfo_from_uuid(self.steps[self.current_step[0]])
-        for taskinfo in task_infolist:
-            taskinfo.param.update(param)
-            task_dependencies = self.get_task_dependencies(taskinfo.uuid)
-            task = self._get_task(taskinfo, task_dependencies)
+    def next(self) -> TaskInfo:
+        
+        self.save()
 
-            task.create_input()
-            task.save_input()
-            self.engine_current_tasks.append(task)
+        if not self.current_step:
+            container = self.containers[0]
+            self.current_step.insert(0, 0)
+            task_id = container.task_uuid
+        else:
+            container = self.containers[self.current_step[0]]
+            if container.next is None:
+                raise TaskSetupError('No more tasks in the workflow.')
+            task_id = container.next
+            self.current_step[0] =+ 1
+            container  = self.containers[self.current_step[0]]
+        self.current_task_info = self.tasks.get(task_id)
+        if self.engine:
+            self.current_task_info.engine = self.engine
+        self.current_task_info.path = self.directory
+        return self.current_task_info
 
-    def create_input(self):
-        pass
-    
-    def get_task_dependencies(self, uuid):
-        return self._get_taskinfo_from_uuid(self.dependencies_map[uuid])
-    
-    def build_execution_path():
-        pass
-
-    def prepare_for_submission():
-        pass
-    
-    def create_job_script(self):
-        pass
-
-    def write_job_script(self):
-        pass
-
-    def next():
-        pass
-
-    def run_local(self, n=1, cmd='bash'):
-        for task in self.engine_current_tasks:
-            if task.task_name == COMPUTE_SPECTRUM:
-                task.prepare_input()
-                np = 1
-                cmd = 'bash'
-            task.set_submit_local(np)
-            task.run_job_local(cmd)
 

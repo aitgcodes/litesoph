@@ -157,7 +157,7 @@ class WorkManagerPage(ttk.Frame):
             'environment':['str'],
             'workflow':['str'],
             'charge': ['int', 0],
-            'multiplicity': ['int', 0]
+            'multiplicity': ['int', 1]
         }
 
         self.parent = parent
@@ -229,7 +229,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_select_option.grid(row=4, column=0, sticky='w', padx=5,  pady=5)   
 
         values = [1,2]
-        text = ["Specific","Generalized"]
+        text = ["Predefined Workflow mode"," Task mode"]
         command = [lambda:self.show_specific_workflow_frame(self.task_common_frame),
                    lambda:self.show_general_workflow_frame(self.task_common_frame)]        
 
@@ -241,14 +241,14 @@ class WorkManagerPage(ttk.Frame):
 
         #--------------------------------Button Frame------------------------------------------------------------------        
        
-        self.Frame3 = ttk.Frame(self)
-        self.Frame3.grid(column=0, row=2,  sticky=(tk.N, tk.W, tk.E, tk.S)) 
+        # self.Frame3 = ttk.Frame(self)
+        # self.Frame3.grid(column=0, row=2,  sticky=(tk.N, tk.W, tk.E, tk.S)) 
 
-        self.Frame3.configure(relief='groove',borderwidth="2",cursor="fleur")
+        # self.Frame3.configure(relief='groove',borderwidth="2",cursor="fleur")
 
-        self.button_proceed = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
-        self.button_proceed['font'] = myfont()
-        self.button_proceed.pack(side=tk.RIGHT, padx=10)
+        # self.button_proceed = tk.Button(self.Frame3, text="Proceed",activebackground="#78d6ff",command=self.proceed_button)
+        # self.button_proceed['font'] = myfont()
+        # self.button_proceed.pack(side=tk.RIGHT, padx=10)
 
     def choose_workflow_frame(self, *_):
         if self._var['select_wf_option'].get() == 1:
@@ -2251,5 +2251,4 @@ class GroundStatePage(View):
             "mixing": gui_dict.get('mixing'),
             "bands": gui_dict.get('bands'),
         }        
-        print(gs_input)
         return gs_input

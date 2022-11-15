@@ -39,6 +39,7 @@ class TaskController:
             self.task_view.submit_button.config(command = self._run_task_serial)
             self.task_view.plot_button.config(command = self._on_plot_button)
             self.task_view.back_button.config(command= self.workflow_controller.show_workmanager_page)
+           
         if self.task_name == tt.MASKING:
             self.task = self.workflow_manager.start_task(user_input={})
             self.task_view.submit_button.config(command = self._run_task_serial)
@@ -47,6 +48,8 @@ class TaskController:
         if isinstance(self.task_view, v.TimeDependentPage):
             self.task_view.update_engine_default(self.engine)
 
+        if self.task_name not in serial_tasks:
+            self.task_view.set_sub_button_state('disable') 
     # def create_task_view(self, view_class, *args, **kwargs):
     #     self.task_view = view_class(self.app.task_input_frame, *args, **kwargs)
     #     self.task_view.grid(row=0, column=0, sticky ='NSEW')
