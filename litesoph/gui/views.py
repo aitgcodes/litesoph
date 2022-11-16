@@ -2158,7 +2158,7 @@ class GroundStatePage(View):
         import copy
         from litesoph.gui.models.inputs import box_dict
         box_copy = copy.deepcopy(box_dict)
-        if self.inp.variable["select box"].get():
+        if self.inp.variable["select_box"].get():
             self.inp.frame_template(parent_frame=self.inp.group["simulation box"],row=10, column=0, padx=2, pady=2,fields=box_copy) 
             self.inp.update_widgets()            
         else:
@@ -2167,7 +2167,8 @@ class GroundStatePage(View):
                 self.inp.group["simulation box"].group.grid_remove()
             
     def grid_sim_box_frame(self,*_):
-        for name in ["basis_type:common","basis_type:extra"]:
+        # for name in ["basis_type:common","basis_type:extra"]:
+        for name in ["basis_type"]:
             if self.inp.fields[name]["visible"]:
                 basis = self.inp.variable[name].get()
                 if basis == "gaussian":
@@ -2182,12 +2183,13 @@ class GroundStatePage(View):
         
     def trace_variables(self, *_):
         for name, var in self.inp.variable.items():
-            if name == "xc family":
+            if name == "xc":
                 self.inp.update_widgets()
                 var.trace_add('write', self.trace_xc)
-            elif name ==  "select box":
+            elif name ==  "select_box":
                 var.trace_add('write', self.trace_select_box)
-            elif name in ["basis_type:common","basis_type:extra"]:
+            # elif name in ["basis_type:common","basis_type:extra"]:
+            elif name in ["basis_type"]:
                     var.trace_add('write', self.grid_sim_box_frame)            
             else:
                 var.trace("w", self.inp.update_widgets)
@@ -2195,24 +2197,25 @@ class GroundStatePage(View):
     def get_parameters(self):
         gui_dict = self.inp.get_values()
         
-        for key in ["basis_type:common","basis_type:extra"]:
-            type = gui_dict.get(key)
-            if type :
-                assert type in ["lcao","fd","pw","gaussian"]
-                basis_type = type
+        # for key in ["basis_type:common","basis_type:extra"]:
+        key = "basis_type"
+        type = gui_dict.get(key)
+        if type :
+            assert type in ["lcao","fd","pw","gaussian"]
+            basis_type = type
 
-                lcao = (basis_type == "lcao")
-                gaussian = (basis_type == "gaussian")
+            lcao = (basis_type == "lcao")
+            gaussian = (basis_type == "gaussian")
 
-                if lcao:
-                    basis = gui_dict.get("basis:nao")
-                elif gaussian:
-                    basis = gui_dict.get("basis:gaussian") 
-                else:
-                    basis = None
+            if lcao:
+                basis = gui_dict.get("basis:lcao")
+            elif gaussian:
+                basis = gui_dict.get("basis:gaussian") 
+            else:
+                basis = None
         
-        select_box = gui_dict.get("select box")
-        boxshape = gui_dict.get("box shape")
+        select_box = gui_dict.get("select_box")
+        boxshape = gui_dict.get("boxshape")
 
         if boxshape is not None and select_box is True:
             if boxshape == "parallelepiped":
@@ -2226,7 +2229,7 @@ class GroundStatePage(View):
                     "radius":gui_dict.get("radius"),
                     "cylinder length":gui_dict.get("cylinder length"),
                     }
-            elif boxshape in ["sphere", "minimumn"]:
+            elif boxshape in ["sphere", "minimum"]:
                 dim_dict = {
                     "radius":gui_dict.get("radius"),
                     }  
@@ -2236,7 +2239,7 @@ class GroundStatePage(View):
             dim_dict = None
         
         gs_input = {
-            "xc":gui_dict.get('xc family'),  
+            "xc":gui_dict.get('xc'),  
             "basis_type": basis_type,                                   
             "basis": basis,               
             "spin": gui_dict.get('spin'),
@@ -2252,3 +2255,10 @@ class GroundStatePage(View):
             "bands": gui_dict.get('bands'),
         }        
         return gs_input
+
+    def populate_gs_defaults(self,default_param_dict:dict):
+        from litesoph.gui.defaults_handler import update_gui_dict_defaults
+        default_gui_dict = update_gui_dict_defaults("ground_state", default_param_dict)
+        self.inp.init_widgets(fields=self.inp.fields,
+                        ignore_state=False,var_values=default_gui_dict)
+
