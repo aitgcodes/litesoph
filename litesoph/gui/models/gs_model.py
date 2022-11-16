@@ -8,7 +8,7 @@ def choose_engine(input_param:dict):
     if basis is None:
         raise KeyError("No match for basis key")
 
-    boxshape = input_param.get('box_shape')
+    boxshape = input_param.get('boxshape')
     if boxshape:
         if basis == "lcao":
             if boxshape == "parallelepiped":

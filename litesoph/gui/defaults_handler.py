@@ -40,7 +40,7 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
     if task_type == "ground_state":
         task_param_map = ground_state_map
         basis_type = task_default.get("basis_type")
-        box_shape = task_default.get("box_shape")
+        box_shape = task_default.get("boxshape")
         if basis_type is not None:
             if basis_type == "lcao":
                 gui_basis_key = task_param_map["basis"]["lcao"]
@@ -62,7 +62,7 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
                 str(gui_basis_key): task_default.get('basis'),  
                 "spacing": task_default.get('spacing'),                           
                 "spin": task_default.get('spin'),
-                "box_shape": task_default.get('box_shape'),
+                "boxshape": task_default.get('boxshape'),
                 "select_box": False,
                 "vacuum": task_default.get('vacuum'),
                 "max_itr":task_default.get('max_itr'),

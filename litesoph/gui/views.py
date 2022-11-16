@@ -2215,7 +2215,7 @@ class GroundStatePage(View):
                 basis = None
         
         select_box = gui_dict.get("select_box")
-        boxshape = gui_dict.get("box_shape")
+        boxshape = gui_dict.get("boxshape")
 
         if boxshape is not None and select_box is True:
             if boxshape == "parallelepiped":
@@ -2244,7 +2244,7 @@ class GroundStatePage(View):
             "basis": basis,               
             "spin": gui_dict.get('spin'),
             "spacing": gui_dict.get('spacing'),
-            "box_shape": boxshape,    
+            "boxshape": boxshape,    
             "box_dim" : dim_dict, 
             "vacuum": gui_dict.get('vacuum'),
             "max_iter":gui_dict.get('max itr'),

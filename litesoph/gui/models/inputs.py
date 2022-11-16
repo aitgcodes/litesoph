@@ -92,7 +92,7 @@ gs_input ={
                 k.get("basis_type", "") in ["lcao" ,"fd"]
                 },
 
-        "box_shape": {
+        "boxshape": {
                 "tab":"Basic",
                 "group": "simulation box",
                 "text": "Box Shape",
@@ -200,9 +200,9 @@ box_dict = {
                 "widget": tk.Entry,
                 "type": float,
                 "default":12,
-                "switch_keys": ["select_box","box_shape"],
+                "switch_keys": ["select_box","boxshape"],
                 "switch": lambda k:
-                k.get("box_shape", "") == "parallelepiped"
+                k.get("boxshape", "") == "parallelepiped"
                 and k.get("select_box", False)
         },
 
@@ -215,9 +215,9 @@ box_dict = {
                 "widget": tk.Entry,
                 "type": float,
                 "default":12,
-                "switch_keys": ["select_box","box_shape"],
+                "switch_keys": ["select_box","boxshape"],
                 "switch": lambda k:
-                k.get("box_shape", "") == "parallelepiped"
+                k.get("boxshape", "") == "parallelepiped"
                 and k.get("select_box", False)
         },
         "box_length_z": {
@@ -229,9 +229,9 @@ box_dict = {
                 "widget": tk.Entry,
                 "type": float,
                 "default":12,
-                "switch_keys": ["select_box","box_shape"],
+                "switch_keys": ["select_box","boxshape"],
                 "switch": lambda k:
-                k.get("box_shape", "") == "parallelepiped"
+                k.get("boxshape", "") == "parallelepiped"
                 and k.get("select_box", False)
         },
         "radius": {
@@ -243,9 +243,9 @@ box_dict = {
                 "widget": tk.Entry,
                 "type": float,
                 "default":12,
-                "switch_keys": ["select_box","box_shape"],
+                "switch_keys": ["select_box","boxshape"],
                 "switch": lambda k:
-                k.get("box_shape", "") in ["sphere","minimum","cylinder"]
+                k.get("boxshape", "") in ["sphere","minimum","cylinder"]
                 and k.get("select_box", False)                
         },
         "cylinder_length": {
@@ -260,9 +260,9 @@ box_dict = {
                 "widget": tk.Entry,
                 "type": float,
                 "default":12,
-                "switch_keys": ["select_box","box_shape"],
+                "switch_keys": ["select_box","boxshape"],
                 "switch": lambda k:
-                k.get("box_shape", "") == "cylinder"
+                k.get("boxshape", "") == "cylinder"
                 and k.get("select_box", False)
         },
 
@@ -275,7 +275,7 @@ gs_visible_default = {
         "basis:gaussian": False,
         "spacing": True,
         "spin": True,
-        "box_shape": True,
+        "boxshape": True,
         "select_box": True,
         "vacuum": True,
         "max_itr":True,
