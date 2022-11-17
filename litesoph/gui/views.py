@@ -12,6 +12,7 @@ from litesoph.gui.input_validation import EntryPattern, Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.common.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
+from litesoph.gui.models import inputs as inp
 
 
 def show_message(label_name, message):
@@ -2168,7 +2169,6 @@ class GroundStatePage(View):
                 self.inp.group["simulation box"].group.grid_remove()
             
     def grid_sim_box_frame(self,*_):
-        # for name in ["basis_type:common","basis_type:extra"]:
         for name in ["basis_type"]:
             if self.inp.fields[name]["visible"]:
                 basis = self.inp.variable[name].get()
@@ -2189,7 +2189,6 @@ class GroundStatePage(View):
                 var.trace_add('write', self.trace_xc)
             elif name ==  "select_box":
                 var.trace_add('write', self.trace_select_box)
-            # elif name in ["basis_type:common","basis_type:extra"]:
             elif name in ["basis_type"]:
                     var.trace_add('write', self.grid_sim_box_frame)            
             else:
@@ -2198,7 +2197,6 @@ class GroundStatePage(View):
     def get_parameters(self):
         gui_dict = self.inp.get_values()
         
-        # for key in ["basis_type:common","basis_type:extra"]:
         key = "basis_type"
         type = gui_dict.get(key)
         if type :
@@ -2262,4 +2260,169 @@ class GroundStatePage(View):
         default_gui_dict = update_gui_dict_defaults("ground_state", default_param_dict)
         self.inp.init_widgets(fields=self.inp.fields,
                         ignore_state=False,var_values=default_gui_dict)
+
+class LaserDesignPagenew(View):
+    
+    def __init__(self, parent, engine, task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        from litesoph.gui.view_gs import InputFrame        
+
+        self.parent = parent
+        self.task_name = task_name
+        self.engine = tk.StringVar(value=engine)
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        
+        self.inp = InputFrame(self.input_param_frame,fields=inp.td_laser_input, padx=5, pady=5)        
+        self.inp.grid(row=0, column=0)
+        self.trace_variables()
+        
+        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Laser Design", activebackground="#78d6ff")
+        self.button_laser_design['font'] = myFont
+        self.button_laser_design.grid(column=1,padx=3)
+
+        add_job_frame(self, self.submit_button_frame, task_name, column=1)
+        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.button_back['font'] = myFont
+        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+
+        self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
+        self.button_view['font'] = myFont
+        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        
+        self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
+        self.button_save['font'] = myFont
+        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+
+        self.label_msg = tk.Label(self.save_button_frame,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.grid(row=0, column=3, sticky='nsew')
+
+    def trace_variables(self, *_):
+        for name, var in self.inp.variable.items():
+            if name in ["pump_probe", "probe_options"]:
+                var.trace("w", self.trace_pump_probe)          
+            else:
+                var.trace("w", self.inp.update_widgets)
+
+    def trace_probe_option(self, *_):        
+        if self.inp.variable["probe_options"].get() == "Delta Probe":
+            _dict = dict(inp.pump_input, **inp.probe_delta_input, **inp.pump_probe_extra_input)
+            if self.inp.group["laser details"].winfo_children():
+                for child in self.inp.group["laser details"].winfo_children(): 
+                    child.grid_remove()
+            self.inp.test_frame_template(parent_frame=self.inp.group["laser details"],
+                            row=0, column=0, padx=2, pady=2, fields=_dict) 
+            self.inp.update_widgets()
+
+        elif self.inp.variable["probe_options"].get() == "Gaussian Probe":
+            _dict = dict(inp.pump_input, **inp.probe_gaussian_input, **inp.pump_probe_extra_input)
+            if self.inp.group["laser details"].winfo_children():
+                for child in self.inp.group["laser details"].winfo_children(): 
+                    child.grid_remove()
+            self.inp.test_frame_template(parent_frame=self.inp.group["laser details"],
+                            row=0, column=0, padx=2, pady=2, fields=_dict)
+            self.inp.update_widgets()
+    
+    def trace_pump_probe(self, *_):      
+        if self.inp.variable["pump_probe"].get():
+            _dict = dict(inp.pump_input, **inp.probe_delta_input, **inp.pump_probe_extra_input)
+            if self.inp.group["laser details"].winfo_children():
+                for child in self.inp.group["laser details"].winfo_children(): 
+                    child.grid_remove()
+            self.inp.test_frame_template(parent_frame=self.inp.group["laser details"],
+                            row=0, column=0, padx=2, pady=2, fields=_dict)
+            self.trace_probe_option()
+            self.inp.update_widgets()
+        else:
+            if self.inp.group["laser details"].winfo_children():
+                for child in self.inp.group["laser details"].winfo_children(): 
+                    child.grid_remove()
+            self.inp.update_widgets()
+    
+    def get_parameters(self):
+        pass
+
+    def set_parameters(self):
+        pass
+           
+class TimeDependentPagenew(View):           
+    def __init__(self, parent, engine, task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        from litesoph.gui.view_gs import InputFrame
+        from litesoph.gui.models.inputs import td_delta_input
+
+        self.parent = parent
+        self.task_name = task_name
+        self.engine = tk.StringVar(value=engine)
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        
+        self.inp = InputFrame(self.input_param_frame,fields=td_delta_input, padx=5, pady=5)
+        self.inp.grid(row=0, column=0)
+        self.trace_variables()
+
+        add_job_frame(self, self.submit_button_frame, task_name, column=1)
+
+        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.button_back['font'] = myFont
+        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+
+        self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
+        self.button_view['font'] = myFont
+        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        
+        self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
+        self.button_save['font'] = myFont
+        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+
+        self.label_msg = tk.Label(self.save_button_frame,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.grid(row=0, column=3, sticky='nsew')
+
+    def trace_variables(self,*_):
+        for name, var in self.inp.variable.items():
+            var.trace("w", self.inp.update_widgets)
+
+    def get_pol_list(self, pol_var:str):
+        assert pol_var in ["X", "Y", "Z"] 
+        if pol_var == "X":
+            pol_list = [1,0,0]         
+        elif pol_var == "Y":
+            pol_list = [0,1,0] 
+        elif pol_var == "Z":
+            pol_list = [0,0,1]                
+        return pol_list
+
+    def get_property_list(self, gui_values:dict):
+        prop_list = ['spectrum']
+               
+        if gui_values.get("ksd") is True:
+            prop_list.append("ksd")
+        if gui_values.get("mo_population") is True:
+            prop_list.append("mo_population")    
+        return prop_list   
+
+    def get_parameters(self):
+        gui_dict = self.inp.get_values()
+        self.pol_list = self.get_pol_list(gui_dict.get("pol_dir"))
+
+        td_input = {
+            'strength': gui_dict.get("laser_strength"),
+            'polarization' : self.pol_list,
+            'time_step' : gui_dict.get("time_step"),
+            'number_of_steps' : gui_dict.get("number_of_steps"),
+            'output_freq': gui_dict.get("output_freq"),
+            'properties' : self.get_property_list(gui_dict)
+        }
+        print(td_input)
+        return td_input
+    
+    def set_parameters(self):
+        pass
+    
+    def generate_input_button(self):
+        self.get_parameters()
+        # self.event_generate(f'<<Generate{self.task_name}Script>>')
+    
 
