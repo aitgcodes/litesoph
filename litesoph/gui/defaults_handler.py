@@ -72,6 +72,29 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
             "smearing": task_default.get('smearing'),
             "mixing": task_default.get('mixing'),
             "bands": task_default.get('bands'),
-        }    
+        }
+
+    elif task_type == "tddft_delta":
+        spectrum_check = False
+        ksd_check = False
+        population_check = False
+        if "spectrum" in task_default.get('properties'):
+            spectrum_check = True
+        elif "ksd" in task_default.get('properties'):
+            ksd_check = True
+        elif "mo_population" in task_default.get('properties'):
+            population_check = True
+        
+    gui_default_dict = {
+        'laser_strength': task_default.get('strength'), 
+        'time_step': task_default.get('time_step'),
+        'number_of_steps': task_default.get('number_of_steps'),
+        'output_freq': task_default.get('output_freq'),
+        "pol_dir": None,
+        "spectrum": spectrum_check,
+        "ksd": ksd_check,
+        "mo_population": population_check,
+        
+    }
     return gui_default_dict
 
