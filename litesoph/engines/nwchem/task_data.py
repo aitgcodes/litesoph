@@ -36,3 +36,41 @@ nwchem_xc_map = {
             'HSE03'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.33 cam_alpha 0.0 cam_beta 1.0',
             'HSE06'     :'xc xpbe96 1.0 xcampbe96 -0.25 cpbe96 1.0 srhfexch 0.25 \n cam 0.11 cam_alpha 0.0 cam_beta 1.0',
 }
+
+
+def get_gs_default_param():
+    return { 
+        "xc":"PBE96",               
+        "basis_type": 'gaussian',  
+        "basis": "6-31G",  
+        "max_iter":300,
+        "energy_conv": 1e-6 ,
+        "density_conv": 1e-6 ,        
+    }
+
+
+def get_rt_tddft_default_param():
+    return {
+    'strength': 1e-5,
+    'polarization': [1,0,0],
+    'time_step': 2.4,
+    'number_of_steps': 1000,
+    'output_freq': 1,
+    'properties': ['spectrum'],
+    'laser': None,
+    'masking': None
+}
+
+def get_compute_spec_param():
+    return{
+            'delta_e': 0.05,
+            'e_max':30.0,
+            'e_min': 0.0,       
+        }
+
+
+def get_mopop_param():
+    return{
+        'num_occupied_mo': None,
+        'num_unoccupied_mo': None,
+    }

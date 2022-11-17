@@ -14,6 +14,7 @@ from litesoph.gui import actions
 from litesoph.gui.workflow_controller import WorkflowController, WorkflowModeController
 from litesoph.common.project_manager import ProjectManager
 from litesoph.common.data_sturcture.data_classes import ProjectInfo
+from litesoph.common.workflows_data import predefined_workflow
 
 workflow_name_map = {
     'user_defined' : 'user_defined',
@@ -91,7 +92,7 @@ class ProjectController:
     def _get_workflow_controller(self, name):
         if name == 'user_defined':
             return WorkflowController
-        elif name == 'spectrum':
+        elif name in ['spectrum', 'averaged_spectrum']:#list(predefined_workflow.keys()):
             return WorkflowModeController
         else:
             messagebox.showerror(message=f'Workflow: {name} not implemented')

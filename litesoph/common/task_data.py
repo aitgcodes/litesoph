@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class TaskTypes(str, Enum):
     GROUND_STATE: str = 'ground_state'
     RT_TDDFT: str = 'rt_tddft'

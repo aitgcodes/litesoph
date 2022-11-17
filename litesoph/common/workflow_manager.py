@@ -14,6 +14,7 @@ from litesoph.common.engine_manager import EngineManager
 from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info, Container
 from litesoph.engines.octopus.octopus_task import OctopusTask
 import importlib
+from litesoph.common.decision_tree import decide_engine
 
 engine_classname = {
     'gpaw' : 'GPAW',
@@ -33,7 +34,7 @@ class WorkflowManager:
         
         self.project_manager = project_manager
         self.config = config
-        self.workflowinfo = workflow_info
+        self.workflow_info = workflow_info
         self.workflow_type = workflow_info.name
         self.user_defined = workflow_info.user_defined
         self.engine = workflow_info.engine
@@ -43,12 +44,15 @@ class WorkflowManager:
         self.directory = workflow_info.path
         self.current_step = workflow_info.current_step
         self.dependencies_map = workflow_info.dependencies_map
-        if not self.user_defined:
-            if not self.tasks:
-                self.workflow_from_db  = predefined_workflow.get('spectrum')
-                update_workflowinfo(self.workflow_from_db, workflow_info)
+        self.user_defined = workflow_info.user_defined = True
         self.current_task_info = None
+        self.choose_engine()
         
+    def choose_engine(self):
+        engine = self.workflow_info.param.get('engine', None)
+        if engine and (engine != 'auto-mode'):
+            self.workflow_info.engine = engine
+            self.engine = self.workflow_info.engine
 
     def _get_engine_manager(self, engine_name) -> EngineManager:
         engine_class = engine_classname.get(engine_name)
@@ -108,7 +112,7 @@ class WorkflowManager:
         return task_list
 
     def set_engine(self, engine):
-        self.workflowinfo.engine = engine
+        self.workflow_info.engine = engine
     
     def create_task_info(self):
         pass
@@ -184,6 +188,14 @@ class WorkflowMode(WorkflowManager):
         super().__init__(project_manager,
                         workflow_info,
                         config)
+        self.workflow_info.user_defined = False
+        if not self.tasks:
+            self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
+            update_workflowinfo(self.workflow_from_db, workflow_info)
+
+    def choose_engine(self):
+        self.workflow_info.engine = decide_engine(self.workflow_type)
+        self.engine = self.workflow_info.engine        
 
     def get_task_dependencies(self,):
         denpendices_uuid = self.dependencies_map.get(self.current_task_info.uuid)
@@ -207,7 +219,7 @@ class WorkflowMode(WorkflowManager):
             if container.next is None:
                 raise TaskSetupError('No more tasks in the workflow.')
             task_id = container.next
-            self.current_step[0] =+ 1
+            self.current_step[0] += 1
             container  = self.containers[self.current_step[0]]
         self.current_task_info = self.tasks.get(task_id)
         if self.engine:
@@ -233,20 +245,25 @@ def update_workflowinfo(workflow_dict:dict, workflowinfo: WorkflowInfo):
     prev_cont = None
     for wstep in wstepslist:
         taskinfo = factory_task_info(wstep.task_type)
-        container = Container(wstepslist.index(wstep), wstep.id, wstep.task_type, taskinfo.uuid, workflowinfo.uuid)
+        container = Container(wstepslist.index(wstep), 
+                                wstep.block_id, 
+                                wstep.task_type, 
+                                taskinfo.uuid, 
+                                workflowinfo.uuid,
+                                wstep.env_parameters)
         if prev_cont is not None:
             prev_cont.next = container.task_uuid
             container.previous = prev_cont.task_uuid
         containers.append(container)
         prev_cont = container
-        dependendt_tasks = w_dependency[str(wstepslist.index(wstep))]
-        if dependendt_tasks is None:
+        dependent_tasks = w_dependency.get(str(wstepslist.index(wstep)))
+        if dependent_tasks is None:
             dependencies[taskinfo.uuid] = None
-        elif isinstance(dependendt_tasks, str):
-            dependencies[taskinfo.uuid] = containers[int(dependendt_tasks)].task_uuid
-        elif isinstance(dependendt_tasks, list):
+        elif isinstance(dependent_tasks, str):
+            dependencies[taskinfo.uuid] = containers[int(dependent_tasks)].task_uuid
+        elif isinstance(dependent_tasks, list):
             dependencies[taskinfo.uuid] = []
-            for dtask_index in dependendt_tasks:
+            for dtask_index in dependent_tasks:
                 dependencies[taskinfo.uuid].append(containers[int(dtask_index)].task_uuid)
 
         tasks[taskinfo.uuid] = taskinfo

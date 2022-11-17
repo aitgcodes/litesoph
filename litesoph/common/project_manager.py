@@ -51,26 +51,23 @@ class ProjectManager:
         if not self.current_workflow_info:
             raise WorkflowSetupError('Create workflow')
 
-        # if workflow_type in workflow_types.keys():
-        #     workflow_types[workflow_type](self.current_workflow_info)
-
-        elif workflow_type == "user_defined":
-            self.current_workflow_info.name = workflow_type
-            self.current_workflow_info.user_defined = True
-            engine = param.get('engine', None)
-            if engine and (engine != 'auto-mode'):
-                 self.current_workflow_info.engine = engine
-            workflow_manager = WorkflowManager
+        # if workflow_type == "user_defined":
+            
+        #     self.current_workflow_info.user_defined = True
+        #     engine = param.get('engine', None)
+        #     if engine and (engine != 'auto-mode'):
+        #          self.current_workflow_info.engine = engine
+        #     workflow_manager = WorkflowManager
         
-        elif workflow_type == "spectrum":
-            self.current_workflow_info.name = workflow_type
-            workflow_manager = WorkflowMode
-            self.current_workflow_info.engine = decide_engine(workflow_type)
+        # elif workflow_type == "spectrum":
+        #     self.current_workflow_info.name = workflow_type
+        #     workflow_manager = WorkflowMode
+        #     self.current_workflow_info.engine = decide_engine(workflow_type)
         
-        else:
-            raise WorkflowSetupError(f'workflow:{workflow_type} is not Implemented.')
-
-        
+        # else:
+        #     raise WorkflowSetupError(f'workflow:{workflow_type} is not Implemented.')
+        workflow_manager = self._get_workflow_manager(workflow_type)
+        self.current_workflow_info.name = workflow_type        
         self.current_workflow_info.param.update(param)
         workflow_manager = workflow_manager(self, self.current_workflow_info, config=self.config)
         return workflow_manager
@@ -90,10 +87,12 @@ class ProjectManager:
     def _get_workflow_manager(self, name):
         if name == 'user_defined':
             return WorkflowManager
-        elif name == 'spectrum':
-            return WorkflowMode
-        else:
-            raise WorkflowSetupError(f'Workflow:{name} not defined.') 
+
+        workflow_type = predefined_workflow.get(name, None)
+        if not workflow_type:
+            raise WorkflowSetupError(f'Workflow:{name} not defined.')
+        
+        return WorkflowMode
         
 
     def list(self) -> list:

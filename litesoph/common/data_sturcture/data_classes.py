@@ -102,6 +102,7 @@ class Container:
     task_type: str
     task_uuid: str
     workflow_uuid: str
+    env_parameters: Dict[str, Any] = field(default_factory=dict)
     next: Union[str, None] = field(default=None)
     previous: Union[str, None] = field(default=None)
 
@@ -112,6 +113,7 @@ class Container:
                     task_type = data['task_type'],
                     task_uuid = data['task_uuid'],
                     workflow_uuid = data['workflow_uuid'],
+                    env_parameters = data['env_parameters'],
                     next = data['next'],
                     previous = data['previous'])
 

@@ -5,6 +5,7 @@ from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.workflows_data import WorkflowTypes as wt        
 from litesoph.common.engine_manager import EngineManager
 from litesoph.engines.gpaw.gpaw_task import GpawTask
+from litesoph.engines.gpaw import task_data as td
 
 class GPAWManager(EngineManager):
     """Base class for all the engine."""
@@ -23,9 +24,22 @@ class GPAWManager(EngineManager):
         return GpawTask(config, task_info, dependent_tasks)
     
     def get_default_task_param(self, name):
-        pass
+        task_default_parameter_map = {
+            tt.GROUND_STATE: td.get_gs_default_param,
+            tt.RT_TDDFT: td.get_rt_tddft_default_param,
+        }
+        self.check_task()
+
+        get_func = task_default_parameter_map.get(name)
+        return get_func()
+
+
 
     def get_workflow(self, name):
         pass
     
+
+    def check_task(self, name):
+        if not name in self.implemented_tasks:
+            raise TaskNotImplementedError(f'{name} is not implemented in GPAW.')
 

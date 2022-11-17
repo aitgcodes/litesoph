@@ -1,4 +1,5 @@
 from litesoph.common.data_sturcture.data_types import DataTypes as DT
+from litesoph.common.task_data import template_ground_state_parameters
 
 gpaw_gs_param_data ={ 
         "xc": {'type':DT.string, 'values':["LDA",
@@ -33,3 +34,62 @@ gpaw_gs_param_data ={
 }
 
 
+def get_gs_default_param():
+    return { 
+        "xc":"PBE",               
+        "basis_type": "lcao",  
+        "basis": "dzp",  
+        "bands": 0,
+        "spin": 'unpolarized',
+        "spacing": 0.3,
+        "vacuum": 6,
+        "boxshape": "parallelepiped",
+        "box_dim" : None,        
+        "max_iter":300,
+        "energy_conv": 1e-6 ,
+        "density_conv": 1e-6 ,
+        "smearing_fun": '',
+        "smearing_width": 0.0,
+        "mixing": None,
+        
+    }
+
+
+def get_rt_tddft_default_param():
+    return {
+    'strength': 1e-5,
+    'polarization': [1,0,0],
+    'time_step': 10,
+    'number_of_steps': 1000,
+    'output_freq': 1,
+    'properties': ['spectrum'],
+    'laser': None,
+    'masking': None
+}
+
+def get_compute_spec_param():
+    return{
+            'delta_e': 0.05,
+            'e_max':30.0,
+            'e_min': 0.0,       
+        }
+
+
+def get_tcm_param():
+    return{
+            'frequency_list' : [],
+            'axis_limit': 3,
+    } 
+
+def get_mopop_param():
+    return{
+        'num_occupied_mo': None,
+        'num_unoccupied_mo': None,
+    }
+
+def get_masking_analysis():
+    return{
+        'region':None,
+        'direction':None,
+        'envelope':None,
+    }
