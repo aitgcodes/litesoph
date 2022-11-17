@@ -19,8 +19,11 @@ workflow_compatibility = {
     "mo_population_tracking": ls_integrated_engines,
     }
 
-xc_hybrid = ["B3LYP", "PBE0"]
-xc_gga = ["PBE","PW91","BLYP"]
+xc_hybrid = ["B3LYP", "PBE0","CAMY-B3LYP","CAM-B3LYP",
+            "HSE03","HSE06","M05","M05-2X","M06-HF",
+            "M08-SO","M011"]
+xc_gga = ["PBE","PW91","BLYP","CAMY-BLYP","PBEsol",
+            "PW91","BP86","BP91","LC-BLYP","LC-PBE","LC-wPBE"]
 xc_lda = ["LDA"]
 
 basis_sets_gaussian = ["def2SVP","6-31G","STO-2G","STO-3G"]
