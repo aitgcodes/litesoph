@@ -439,3 +439,151 @@ class InputFrame(ttk.Frame):
     def trace_variables(self, *_):
         for name, var in self.variable.items():
             var.trace("w", self.update_widgets) 
+
+    def test_frame_template(self, parent_frame,row, column, padx, pady, fields:dict, **kwargs):
+            obj = parent_frame
+            obj.group = {}
+            obj.variable = {}     
+            obj.label = {}      
+            obj.widget = {}     
+                    
+            if fields is None:
+                return
+            else:
+                obj.fields = fields
+
+            _parent = ttk.Frame(parent_frame)
+            _parent.columnconfigure(
+                [0, 1], weight=1
+            )
+            _parent.grid(         
+                row=row,
+                column=column,
+                columnspan=2,
+                sticky="ew",
+                padx=padx,
+                pady=1.5* pady,
+            )
+            obj._parent = _parent
+            parent = _parent
+
+            for i, (name, desc) in enumerate(fields.items()):
+                if "group" in desc:
+                    if desc["group"] not in obj.group:
+                        group = ttk.LabelFrame(obj._parent, text=desc["group"].capitalize())
+                        group.columnconfigure(
+                            [0, 1], weight=1,
+                            #  minsize=self.column_minsize
+                        )
+                        group.grid(         
+                            row=i,
+                            column=0,
+                            columnspan=2,
+                            sticky="ew",
+                            padx=padx,
+                            pady=1.5* pady,
+                        )
+                        obj.group[desc["group"]] = group
+                    else:
+                        group = obj.group[desc["group"]]
+                    parent = group
+
+                if "values" in desc:
+                    values = list(desc["values"])
+                if "type" not in desc:
+                    if "default" in desc and desc["default"] is not None:
+                        desc["type"] = type(desc["default"])
+                    elif "values" in desc:
+                        desc["type"] = type(
+                            [v for v in values if v is not None][0]
+                        )
+                    else:
+                        raise ValueError(
+                            f"could not infer type, please specify: {desc}"
+                        )
+
+                if "default" not in desc:
+                    if "values" in desc:
+                        desc["default"] = [v for v in values][0]
+                    elif "type" in desc:
+                        desc["default"] = desc["type"]()
+                    else:
+                        raise ValueError(
+                            f"could not infer default, please specify: {desc}"
+                        )
+                if desc["type"] is int :
+                    obj.variable[name] = tk.IntVar(self)
+                elif desc["type"] is bool:
+                    obj.variable[name] = tk.BooleanVar(self)
+                elif desc["type"] is str:
+                    obj.variable[name] = tk.StringVar(self)
+                elif desc["type"] is float:
+                    obj.variable[name] = tk.DoubleVar(self)
+                elif desc["type"] is None and desc["widget"] is ttk.Button:
+                    obj.variable[name] = None
+                    # if "values" in desc:
+                    #     values = [np.round(v, 2) for v in values]
+                else:
+                    raise ValueError(f"unknown type '{desc['type']}' for '{name}'")
+                if "text" in desc:
+                    text = desc["text"]
+                else:
+                    text = name.capitalize()
+
+                if "widget" not in desc:
+                    desc["widget"] = ttk.Combobox
+
+                if desc["widget"] is ttk.Checkbutton:
+                    obj.widget[name] = desc["widget"](
+                        parent, variable=obj.variable[name], text=text)
+
+                if desc["widget"] is ttk.Button:
+                    obj.widget[name] = desc["widget"](
+                        parent, text=text)
+
+                elif "values" in desc:
+                    obj.widget[name] = desc["widget"](
+                        parent, textvariable=obj.variable[name], values=values
+                    )
+                    config_widget(obj.widget[name], config_dict={'state':'readonly','font':v.label_design['font']})
+                else:
+                    obj.widget[name] = desc["widget"](
+                        parent, textvariable=obj.variable[name]
+                    )
+                    config_widget(obj.widget[name], config_dict={'font':v.label_design['font']})
+                if "widget_grid" in desc:
+                    obj.widget[name].grid(
+                    row=desc["widget_grid"]["row"], column=desc["widget_grid"]["column"], sticky="ew", padx=padx, pady=pady)
+                else:
+
+                    obj.widget[name].grid(
+                        row=i, column=1, sticky="ew", padx=padx, pady=pady
+                    )
+                if desc["widget"] is not ttk.Checkbutton:
+                    if desc["widget"] is ttk.Button:
+                        pass
+                    else:
+                        obj.label[name] = tk.Label(parent, text=text + ":")
+                        if "label_grid" in desc:
+                            obj.label[name].grid(
+                            row=desc["label_grid"]["row"], column=desc["label_grid"]["column"], sticky="w", padx=padx, pady=pady)
+                        else:
+                            obj.label[name].grid(
+                            row=i,
+                            column=0,
+                            sticky="w",
+                            padx=padx,
+                            pady=pady,
+                        )
+                        config_widget(obj.label[name],config_dict=v.label_design)
+
+                if "visible" not in desc:
+                    desc["visible"] = True
+                    
+            self.variable.update(obj.variable)     
+            self.label.update(obj.label)        
+            self.widget.update(obj.widget)  
+            self.group.update(obj.group) 
+            self.fields.update(fields)
+
+            self.init_widgets(fields= fields)
