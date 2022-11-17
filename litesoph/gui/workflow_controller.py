@@ -126,7 +126,7 @@ class WorkflowController:
             #self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
 
 
-class SpectrumController(WorkflowController):
+class WorkflowModeController(WorkflowController):
 
     def __init__(self, project_controller, app) -> None:
         super().__init__(project_controller, app)

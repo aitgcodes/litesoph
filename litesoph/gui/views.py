@@ -215,14 +215,14 @@ class WorkManagerPage(ttk.Frame):
         self.entry_multiplicity['font'] = myfont()
         self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
 
-        self.engine_source_label = tk.Label(system_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
-        self.engine_source_label['font'] = myfont()
-        self.engine_source_label.grid(row= 3, column=0,  sticky='w',padx=4, pady=10)       
+        # self.engine_source_label = tk.Label(system_frame,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
+        # self.engine_source_label['font'] = myfont()
+        # self.engine_source_label.grid(row= 3, column=0,  sticky='w',padx=4, pady=10)       
             
-        self.engine_source = ttk.Combobox(system_frame,width=20, textvariable= self.engine, values= self.engine_list)
-        self.engine_source['font'] = myfont()
-        self.engine_source.grid(row= 3, column=1, columnspan=2, padx=4, pady=10)
-        self.engine_source['state'] = 'readonly'
+        # self.engine_source = ttk.Combobox(system_frame,width=20, textvariable= self.engine, values= self.engine_list)
+        # self.engine_source['font'] = myfont()
+        # self.engine_source.grid(row= 3, column=1, columnspan=2, padx=4, pady=10)
+        # self.engine_source['state'] = 'readonly'
 
         self.label_select_option = tk.Label(system_frame, text="Select Option:",bg=label_design['bg'],fg=label_design['fg'])  
         self.label_select_option['font'] = myfont()
@@ -2144,6 +2144,7 @@ class GroundStatePage(View):
         show_message(self.label_msg, msg)
         
     def back_button(self):
+        return
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
     
     def generate_input_button(self):
@@ -2220,14 +2221,14 @@ class GroundStatePage(View):
         if boxshape is not None and select_box is True:
             if boxshape == "parallelepiped":
                 dim_dict = {
-                    "box length_x":gui_dict.get("box length_x"),
-                    "box length_y":gui_dict.get("box length_y"),
-                    "box length_z":gui_dict.get("box length_z")
+                    "box_length_x":gui_dict.get("box_length_x"),
+                    "box_length_y":gui_dict.get("box_length_y"),
+                    "box_length_z":gui_dict.get("box_length_z")
                     }
             elif boxshape == "cylinder":
                 dim_dict = {
                     "radius":gui_dict.get("radius"),
-                    "cylinder length":gui_dict.get("cylinder length"),
+                    "cylinder_length":gui_dict.get("cylinder_length"),
                     }
             elif boxshape in ["sphere", "minimum"]:
                 dim_dict = {
@@ -2247,16 +2248,16 @@ class GroundStatePage(View):
             "boxshape": boxshape,    
             "box_dim" : dim_dict, 
             "vacuum": gui_dict.get('vacuum'),
-            "max_iter":gui_dict.get('max itr'),
-            "energy_conv": gui_dict.get('energy conv'),
-            "density_conv": gui_dict.get('density conv'),
+            "max_iter":gui_dict.get('max_itr'),
+            "energy_conv": gui_dict.get('energy_conv'),
+            "density_conv": gui_dict.get('density_conv'),
             "smearing": gui_dict.get('smearing'),
             "mixing": gui_dict.get('mixing'),
             "bands": gui_dict.get('bands'),
         }        
         return gs_input
 
-    def populate_gs_defaults(self,default_param_dict:dict):
+    def set_parameters(self,default_param_dict:dict):
         from litesoph.gui.defaults_handler import update_gui_dict_defaults
         default_gui_dict = update_gui_dict_defaults("ground_state", default_param_dict)
         self.inp.init_widgets(fields=self.inp.fields,

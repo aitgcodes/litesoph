@@ -12,14 +12,12 @@ from litesoph.common.workflows_data import predefined_workflow
 from litesoph.common.project_status import Status
 from litesoph.common.engine_manager import EngineManager
 from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info, Container
-from litesoph.engines.gpaw.gpaw_task import GpawTask
-from litesoph.engines.nwchem.nwchem_task import NwchemTask
 from litesoph.engines.octopus.octopus_task import OctopusTask
 import importlib
 
 engine_classname = {
     'gpaw' : 'GPAW',
-    'nwchem': 'NWchem',
+    'nwchem': 'NWChem',
     'octopus': 'OCTOPUS'
 }
 
@@ -109,6 +107,9 @@ class WorkflowManager:
                 continue
         return task_list
 
+    def set_engine(self, engine):
+        self.workflowinfo.engine = engine
+    
     def create_task_info(self):
         pass
 
@@ -172,6 +173,47 @@ class WorkflowManager:
         self.project_manager.save()
 
 
+class WorkflowMode(WorkflowManager):
+
+    def __init__(self, 
+                project_manager, 
+                workflow_info: WorkflowInfo, 
+                config: Dict[str, str]) -> None:
+        
+        
+        super().__init__(project_manager,
+                        workflow_info,
+                        config)
+
+    def get_task_dependencies(self,):
+        denpendices_uuid = self.dependencies_map.get(self.current_task_info.uuid)
+        if denpendices_uuid is None:
+            return []
+        elif isinstance(denpendices_uuid ,str):
+            return [self.tasks.get(denpendices_uuid)]
+        elif isinstance(denpendices_uuid, list):
+            return [self.tasks.get(task_uuid) for task_uuid in denpendices_uuid]
+
+    def next(self) -> TaskInfo:
+        
+        self.save()
+
+        if not self.current_step:
+            container = self.containers[0]
+            self.current_step.insert(0, 0)
+            task_id = container.task_uuid
+        else:
+            container = self.containers[self.current_step[0]]
+            if container.next is None:
+                raise TaskSetupError('No more tasks in the workflow.')
+            task_id = container.next
+            self.current_step[0] =+ 1
+            container  = self.containers[self.current_step[0]]
+        self.current_task_info = self.tasks.get(task_id)
+        if self.engine:
+            self.current_task_info.engine = self.engine
+        self.current_task_info.path = self.directory
+        return self.current_task_info
 
 
 def update_workflowinfo(workflow_dict:dict, workflowinfo: WorkflowInfo):

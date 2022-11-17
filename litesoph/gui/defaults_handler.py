@@ -38,6 +38,7 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
 
     gui_default_dict = {}
     if task_type == "ground_state":
+        print(task_type)
         task_param_map = ground_state_map
         basis_type = task_default.get("basis_type")
         box_shape = task_default.get("boxshape")
@@ -56,21 +57,21 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
                     [(ls_box_dim.get(key), value)]) 
                     box_dict.update(_key2key_dict)
                 
-            gui_default_dict ={
-                "xc":task_default.get('xc'),  
-                "basis_type": task_default.get('basis_type'),                                  
-                str(gui_basis_key): task_default.get('basis'),  
-                "spacing": task_default.get('spacing'),                           
-                "spin": task_default.get('spin'),
-                "boxshape": task_default.get('boxshape'),
-                "select_box": False,
-                "vacuum": task_default.get('vacuum'),
-                "max_itr":task_default.get('max_itr'),
-                "energy_conv": task_default.get('energy_conv'),
-                "density_conv": task_default.get('density_conv'),
-                "smearing": task_default.get('smearing'),
-                "mixing": task_default.get('mixing'),
-                "bands": task_default.get('bands'),
-            }    
-        return gui_default_dict
+        gui_default_dict ={
+            "xc":task_default.get('xc'),  
+            "basis_type": task_default.get('basis_type'),                                  
+            str(gui_basis_key): task_default.get('basis'),  
+            "spacing": task_default.get('spacing'),                           
+            "spin": task_default.get('spin'),
+            "boxshape": task_default.get('boxshape'),
+            "select_box": False,
+            "vacuum": task_default.get('vacuum'),
+            "max_itr":task_default.get('max_iter'),
+            "energy_conv": task_default.get('energy_conv'),
+            "density_conv": task_default.get('density_conv'),
+            "smearing": task_default.get('smearing'),
+            "mixing": task_default.get('mixing'),
+            "bands": task_default.get('bands'),
+        }    
+    return gui_default_dict
 

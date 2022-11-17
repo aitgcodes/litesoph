@@ -7,9 +7,9 @@ import os
 from litesoph.common.utils import create_dir, PROJECT_DATA_FILE_RELATIVE_PATH, PROJECT_DATA_FILE_NAME, WORKFLOW_DATA_FILE_NAME
 from litesoph.common.data_sturcture.data_classes import ProjectInfo, WorkflowInfo
 from litesoph.visualization.visualize_geometry import VisualizeGeometry
-from litesoph.common.workflow_manager import WorkflowManager, factory_task_info
-from litesoph.common.workflows.spectrum import SpectrumWorkflow
+from litesoph.common.workflow_manager import WorkflowManager, WorkflowMode, factory_task_info
 from litesoph.common.workflows_data import predefined_workflow
+from litesoph.common.decision_tree import decide_engine
 
 class WorkflowSetupError(Exception):
     """Raised when unable to creating or opening task."""
@@ -57,17 +57,20 @@ class ProjectManager:
         elif workflow_type == "user_defined":
             self.current_workflow_info.name = workflow_type
             self.current_workflow_info.user_defined = True
+            engine = param.get('engine', None)
+            if engine and (engine != 'auto-mode'):
+                 self.current_workflow_info.engine = engine
             workflow_manager = WorkflowManager
+        
         elif workflow_type == "spectrum":
             self.current_workflow_info.name = workflow_type
-            workflow_manager = SpectrumWorkflow
+            workflow_manager = WorkflowMode
+            self.current_workflow_info.engine = decide_engine(workflow_type)
+        
         else:
             raise WorkflowSetupError(f'workflow:{workflow_type} is not Implemented.')
 
-        engine = param.get('engine', None)
-        if engine and (engine != 'auto-mode'):
-            self.current_workflow_info.engine = engine
-
+        
         self.current_workflow_info.param.update(param)
         workflow_manager = workflow_manager(self, self.current_workflow_info, config=self.config)
         return workflow_manager
@@ -88,7 +91,7 @@ class ProjectManager:
         if name == 'user_defined':
             return WorkflowManager
         elif name == 'spectrum':
-            return SpectrumWorkflow
+            return WorkflowMode
         else:
             raise WorkflowSetupError(f'Workflow:{name} not defined.') 
         

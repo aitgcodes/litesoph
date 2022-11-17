@@ -11,7 +11,7 @@ from litesoph.gui.task_controller import TaskController
 from litesoph.gui.workflow_navigation import WorkflowNavigation, pick_workflow
 from litesoph.gui.views import WorkManagerPage
 from litesoph.gui import actions
-from litesoph.gui.workflow_controller import WorkflowController, SpectrumController
+from litesoph.gui.workflow_controller import WorkflowController, WorkflowModeController
 from litesoph.common.project_manager import ProjectManager
 from litesoph.common.data_sturcture.data_classes import ProjectInfo
 
@@ -92,7 +92,7 @@ class ProjectController:
         if name == 'user_defined':
             return WorkflowController
         elif name == 'spectrum':
-            return SpectrumController
+            return WorkflowModeController
         else:
             messagebox.showerror(message=f'Workflow: {name} not implemented')
 

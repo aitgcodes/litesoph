@@ -3,7 +3,7 @@ from litesoph.engines.octopus.task_data import ground_state as octopus_data
 from litesoph.engines.nwchem.task_data import nwchem_gs_param_data as nwchem_data
 
 ls_integrated_engines = ["gpaw", "nwchem", "octopus"]
-available_engines = ["gpaw", "nwchem", "octopus"]
+available_engines = ["gpaw","nwchem", "octopus"]
 engine_priorities = ["nwchem","gpaw","octopus"]  
 
 engine_data_base = {
@@ -13,10 +13,10 @@ engine_data_base = {
 }   
 
 workflow_compatibility = {
-    "Spectrum": ls_integrated_engines,
-    "Averaged Spectrum": ls_integrated_engines,
-    "Kohn Sham Decompostion": ["octopus","gpaw",],
-    "MO Population Tracking": ls_integrated_engines,
+    "spectrum": ls_integrated_engines,
+    "averaged_spectrum": ls_integrated_engines,
+    "kohn_sham_decomposition": ["octopus","gpaw",],
+    "mo_population_tracking": ls_integrated_engines,
     }
 
 xc_hybrid = ["B3LYP", "PBE0"]
@@ -39,6 +39,9 @@ priority_map = {
     "basis": priority_basis_set,
     "boxshape": priority_boxshape   
 }
+
+class EngineDecisionError(RecursionError):
+    "Raise this exception when unable to determine the engine."
 
 def update_engine_list(calc_param:str, choice:str, engine_data_map:dict):
     """Access the possible task_param values from engine_data_map,
@@ -88,7 +91,9 @@ calc_params = {
     }
 
 def decide_engine(workflow_type:str, 
-                  decision_priority:list, decision_param_dict:dict):
+                  decision_priority:list =["basis_type", "xc","basis", "boxshape"] , 
+                  decision_param_dict:dict = calc_params,
+                  available_engines:list =["gpaw","nwchem", "octopus"]):
     
     compatible_engines = workflow_compatibility.get(workflow_type)
     incompatible_engines = [engine for engine in ls_integrated_engines 
@@ -119,4 +124,4 @@ def decide_engine(workflow_type:str,
         engine_choice = engine_priorities[index_min]
         return engine_choice
     else:
-        print("Error in deciding engine")
+        EngineDecisionError("Error in deciding engine")
