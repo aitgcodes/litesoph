@@ -38,7 +38,6 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
 
     gui_default_dict = {}
     if task_type == "ground_state":
-        print(task_type)
         task_param_map = ground_state_map
         basis_type = task_default.get("basis_type")
         box_shape = task_default.get("boxshape")
@@ -83,7 +82,7 @@ def update_td_delta_defaults(td_default:dict):
         pol_dir = "X"         
     elif pol_list == [0,1,0] :
         pol_dir = "Y"   
-    elif pol_dir == [0,0,1] :
+    elif pol_list == [0,0,1] :
         pol_dir = "Z" 
 
     spectrum_check = False

@@ -706,7 +706,7 @@ class GroundStatePageold(View):
             except KeyError:
                 self._var[key].set('')     
 
-class TimeDependentPage(View):
+class TimeDependentPageOld(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
@@ -909,7 +909,7 @@ class TimeDependentPage(View):
             self.checkbox_ksd.config(state='disabled')
             self._var['ksd'].set(0)
 
-class LaserDesignPage(View):
+class LaserDesignPageOld(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2261,7 +2261,7 @@ class GroundStatePage(View):
         self.inp.init_widgets(fields=self.inp.fields,
                         ignore_state=False,var_values=default_gui_dict)
 
-class LaserDesignPagenew(View):
+class LaserDesignPage(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2346,7 +2346,7 @@ class LaserDesignPagenew(View):
     def set_parameters(self):
         pass
            
-class TimeDependentPagenew(View):           
+class TimeDependentPage(View):           
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         from litesoph.gui.view_gs import InputFrame
@@ -2384,6 +2384,9 @@ class TimeDependentPagenew(View):
         for name, var in self.inp.variable.items():
             var.trace("w", self.inp.update_widgets)
 
+    def set_label_msg(self,msg):
+        show_message(self.label_msg, msg)
+        
     def get_pol_list(self, pol_var:str):
         assert pol_var in ["X", "Y", "Z"] 
         if pol_var == "X":
@@ -2415,7 +2418,6 @@ class TimeDependentPagenew(View):
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict)
         }
-        print(td_input)
         return td_input
     
     def set_parameters(self, default_param_dict:dict):
@@ -2425,7 +2427,9 @@ class TimeDependentPagenew(View):
                         ignore_state=False,var_values=default_gui_dict)
     
     def generate_input_button(self):
-        self.get_parameters()
-        # self.event_generate(f'<<Generate{self.task_name}Script>>')
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
+
+    def save_button(self):
+        self.event_generate(f'<<Save{self.task_name}Script>>')
     
 

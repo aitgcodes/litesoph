@@ -59,7 +59,7 @@ class WorkflowManager:
         module_path = f'litesoph.engines.{engine_name}.{engine_name}_manager'  
         engine_module = importlib.import_module(module_path)
         engine_manager = getattr(engine_module, f'{engine_class}Manager')
-        return engine_manager
+        return engine_manager()
 
     def get_engine_task(self) -> Task:
         
@@ -68,7 +68,6 @@ class WorkflowManager:
 
     def _get_task(self, current_task_info, task_dependencies ) -> Task:
         engine_manager = self._get_engine_manager(self.engine)
-        engine_manager = engine_manager()
         task = engine_manager.get_task(self.config, current_task_info, task_dependencies)
         return task
 
@@ -222,8 +221,14 @@ class WorkflowMode(WorkflowManager):
             self.current_step[0] += 1
             container  = self.containers[self.current_step[0]]
         self.current_task_info = self.tasks.get(task_id)
+        
         if self.engine:
             self.current_task_info.engine = self.engine
+            engine_manager = self._get_engine_manager(self.engine)
+            param = engine_manager.get_default_task_param(self.current_task_info.name)
+            param.update(container.env_parameters)
+            self.current_task_info.param.update(param)
+        
         self.current_task_info.path = self.directory
         return self.current_task_info
 

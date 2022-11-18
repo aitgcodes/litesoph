@@ -1,5 +1,7 @@
 from enum import Enum
 
+
+
 class TaskTypes(str, Enum):
     GROUND_STATE: str = 'ground_state'
     RT_TDDFT: str = 'rt_tddft'
@@ -7,6 +9,14 @@ class TaskTypes(str, Enum):
     TCM: str = 'tcm'
     MO_POPULATION: str = 'mo_population'
     MASKING: str = 'masking'
+
+
+class TaskParamDB:
+
+    @staticmethod
+    def get_template_task_param(self, name):
+        pass
+
 
 template_ground_state_parameters = { 
         "xc":None,               

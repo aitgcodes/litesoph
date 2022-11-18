@@ -1,11 +1,12 @@
 from abc import abstractmethod, ABC
 from typing import List, Dict, Any
 import copy
+from litesoph.common.task import TaskNotImplementedError
 
 
 class EngineManager(ABC):
     """Base class for all the engine."""
-
+    NAME : str = ''
     implemented_tasks: List[str] = []
 
     implemented_workflows: List[str] = []
@@ -30,3 +31,6 @@ class EngineManager(ABC):
         task_list = copy.deepcopy(self.implemented_workflows)
         return task_list
 
+    def check_task(self, name):
+        if not name in self.implemented_tasks:
+            raise TaskNotImplementedError(f'{name} is not implemented in {self.NAME}.')

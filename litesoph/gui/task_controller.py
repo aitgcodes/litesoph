@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
-
+import copy
 from litesoph.common.workflow_manager import WorkflowManager
 from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.common.task import Task, TaskFailed
@@ -45,11 +45,15 @@ class TaskController:
             self.task_view.submit_button.config(command = self._run_task_serial)
             self.task_view.plot_button.config(command = self._run_task_serial)
         
-        if isinstance(self.task_view, v.TimeDependentPage):
-            self.task_view.update_engine_default(self.engine)
+        # if isinstance(self.task_view, v.TimeDependentPage):
+        #     self.task_view.update_engine_default(self.engine)
 
         if self.task_name not in serial_tasks:
             self.task_view.set_sub_button_state('disable') 
+
+        if hasattr(self.task_view, 'set_parameters'):
+            self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
+
     # def create_task_view(self, view_class, *args, **kwargs):
     #     self.task_view = view_class(self.app.task_input_frame, *args, **kwargs)
     #     self.task_view.grid(row=0, column=0, sticky ='NSEW')
@@ -61,7 +65,7 @@ class TaskController:
             if not self._on_choose_laser():
                 return
             self.task_view.set_laser_design_dict(self.laser_design.l_design)
-        
+
         inp_dict = self.task_view.get_parameters()
         if not inp_dict:
             return
