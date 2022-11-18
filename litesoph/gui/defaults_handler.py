@@ -73,28 +73,38 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
             "mixing": task_default.get('mixing'),
             "bands": task_default.get('bands'),
         }
+    
+    return gui_default_dict
 
-    elif task_type == "tddft_delta":
-        spectrum_check = False
-        ksd_check = False
-        population_check = False
-        if "spectrum" in task_default.get('properties'):
-            spectrum_check = True
-        elif "ksd" in task_default.get('properties'):
-            ksd_check = True
-        elif "mo_population" in task_default.get('properties'):
-            population_check = True
-        
+def update_td_delta_defaults(td_default:dict):
+    pol_list = td_default.get("polarization")
+    
+    if pol_list == [1,0,0] :
+        pol_dir = "X"         
+    elif pol_list == [0,1,0] :
+        pol_dir = "Y"   
+    elif pol_dir == [0,0,1] :
+        pol_dir = "Z" 
+
+    spectrum_check = False
+    ksd_check = False
+    population_check = False
+    if "spectrum" in td_default.get('properties'):
+        spectrum_check = True
+    elif "ksd" in td_default.get('properties'):
+        ksd_check = True
+    elif "mo_population" in td_default.get('properties'):
+        population_check = True
+    
     gui_default_dict = {
-        'laser_strength': task_default.get('strength'), 
-        'time_step': task_default.get('time_step'),
-        'number_of_steps': task_default.get('number_of_steps'),
-        'output_freq': task_default.get('output_freq'),
-        "pol_dir": None,
+        'laser_strength': td_default.get('strength'), 
+        'time_step': td_default.get('time_step'),
+        'number_of_steps': td_default.get('number_of_steps'),
+        'output_freq': td_default.get('output_freq'),
+        "pol_dir": pol_dir,
         "spectrum": spectrum_check,
         "ksd": ksd_check,
         "mo_population": population_check,
         
     }
     return gui_default_dict
-
