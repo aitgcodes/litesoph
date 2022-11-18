@@ -2418,8 +2418,11 @@ class TimeDependentPagenew(View):
         print(td_input)
         return td_input
     
-    def set_parameters(self):
-        pass
+    def set_parameters(self, default_param_dict:dict):
+        from litesoph.gui.defaults_handler import update_td_delta_defaults
+        default_gui_dict = update_td_delta_defaults(default_param_dict)
+        self.inp.init_widgets(fields=self.inp.fields,
+                        ignore_state=False,var_values=default_gui_dict)
     
     def generate_input_button(self):
         self.get_parameters()
