@@ -1,12 +1,14 @@
+from enum import Enum
 
-GROUND_STATE = 'ground_state'
-RT_TDDFT = 'rt_tddft'
-SPECTRUM = 'spectrum'
-TCM = 'tcm'
-MO_POPULATION = 'mo_population'
-MASKING = 'masking'
+class TaskTypes(str, Enum):
+    GROUND_STATE: str = 'ground_state'
+    RT_TDDFT: str = 'rt_tddft'
+    COMPUTE_SPECTRUM: str = 'spectrum'
+    TCM: str = 'tcm'
+    MO_POPULATION: str = 'mo_population'
+    MASKING: str = 'masking'
 
-default_ground_state_parameters = { 
+template_ground_state_parameters = { 
         "xc":None,               
         "basis_type": None,  
         "basis": None,  
@@ -25,7 +27,7 @@ default_ground_state_parameters = {
         
 }
 
-default_rt_tddft_parameters = {
+template_rt_tddft_parameters = {
     'strength': 1e-5,
     'polarization': None,
     'time_step': None,
@@ -36,36 +38,42 @@ default_rt_tddft_parameters = {
     'masking': None
 }
 
+template_compute_spectrum_parameters = {
+            'delta_e': 0.05,
+            'e_max':30.0,
+            'e_min': 0.0,       
+        }
+
 task_dependencies_map = {
-    GROUND_STATE: None,
-    RT_TDDFT: [GROUND_STATE],
-    SPECTRUM: [{RT_TDDFT:{'delta_kick': True,
+    TaskTypes.GROUND_STATE: None,
+    TaskTypes.RT_TDDFT: [TaskTypes.GROUND_STATE],
+    TaskTypes.COMPUTE_SPECTRUM: [{TaskTypes.RT_TDDFT:{'delta_kick': True,
                             "spectrum" : True}}],
-    TCM: [{RT_TDDFT: {"ksd": True}}],
-    MO_POPULATION: [{RT_TDDFT: {"mo_population": True}}],
-    MASKING: [{RT_TDDFT: {"laser": True,
+    TaskTypes.TCM: [{TaskTypes.RT_TDDFT: {"ksd": True}}],
+    TaskTypes.MO_POPULATION: [{TaskTypes.RT_TDDFT: {"mo_population": True}}],
+    TaskTypes.MASKING: [{TaskTypes.RT_TDDFT: {"laser": True,
                             "masking": True}}]
 }
 
 
 def check_properties_dependencies(task_name, task) -> tuple:
     
-    if task_name == SPECTRUM:
+    if task_name == TaskTypes.COMPUTE_SPECTRUM:
         laser = task.param.get('laser', None)
         if laser:
             return (False, "spectrum only works with delta kick.")
         if "spectrum" not in task.param['properties']:
             return (False, "spectrum was not choosen in TD simulation")
 
-    if task_name == TCM:
+    if task_name == TaskTypes.TCM:
         if 'ksd' not in task.param['properties']:
             return (False, "ksd was not choosen in TD simulation")
 
-    if task_name == MO_POPULATION:
+    if task_name == TaskTypes.MO_POPULATION:
         if "mo_population" not in task.param['properties']:
             return (False, "mo_population was not choosen in TD simulation")
 
-    if task_name == MASKING:
+    if task_name == TaskTypes.MASKING:
         laser = task.param.get('laser', None)
         masking = task.param.get('masking', None)
         if not laser or not masking:

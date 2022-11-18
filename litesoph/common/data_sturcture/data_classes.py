@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 import json
 import os
-
+import uuid
 from litesoph.common.data_sturcture.utils import WorkflowInfoEncoder
 
 @dataclass
@@ -82,9 +82,40 @@ class TaskInfo(Info):
         network = data['network']
         local = data['local']
 
-        return cls(_uuid = uuid, _name = name,path =Path(data['path']), engine= engine, state= state,
-                    param= param, input= input, output= output, task_data = data['task_data'],
-                    engine_param = data['engine_param'] ,network = network, local= local)
+        return cls(_uuid = uuid, 
+                    _name = name,
+                    path =Path(data['path']), 
+                    engine= engine, 
+                    state= state,
+                    param= param, 
+                    input= input, 
+                    output= output, 
+                    task_data = data['task_data'],
+                    engine_param = data['engine_param'],
+                    network = network, 
+                    local= local)
+
+@dataclass
+class Container:
+    id : int
+    block_id : int
+    task_type: str
+    task_uuid: str
+    workflow_uuid: str
+    env_parameters: Dict[str, Any] = field(default_factory=dict)
+    next: Union[str, None] = field(default=None)
+    previous: Union[str, None] = field(default=None)
+
+    @classmethod
+    def from_dict(cls, data: Dict[Any, Any]):
+        return cls(id = data['id'],
+                    block_id = data['block_id'],
+                    task_type = data['task_type'],
+                    task_uuid = data['task_uuid'],
+                    workflow_uuid = data['workflow_uuid'],
+                    env_parameters = data['env_parameters'],
+                    next = data['next'],
+                    previous = data['previous'])
 
 
 @dataclass
@@ -97,10 +128,11 @@ class WorkflowInfo(Info):
     engine: Union[str, None] = field(default=None)
     user_defined: bool = field(default=False)
     param: Dict[Any, Any] = field(default_factory=dict)
-    steps: Dict[str, List[str]] = field(default_factory=dict)
+    steps: List[str] = field(default_factory=list)
+    containers: List[Container] = field(default_factory=list)
     state: State = field(default_factory= factory_state)
     dependencies_map : Dict[str, str] = field(default_factory=dict)
-    tasks: List[TaskInfo] = field(default_factory=list)
+    tasks: Dict[str , TaskInfo] = field(default_factory=dict)
     current_step: list = field(default_factory=list)
     
     @property
@@ -118,11 +150,23 @@ class WorkflowInfo(Info):
     def from_dict(cls, data: Dict[str, Any]):
         state = data.pop('state')
         state = State.from_dict(state)
-        tasks = [TaskInfo.from_dict(task) for task in data['tasks']] 
+        tasks = {uuid : TaskInfo.from_dict(task) for uuid, task in data['tasks'].items()} 
+        containers = [Container.from_dict(container) for container in data['containers']]
         current_step = data['current_step']
-        return cls(_uuid = data['_uuid'], _name=data['_name'], description= data['description'], path= Path(data['path']),
-                    label =data['label'],param= data['param'], state= state, user_defined = data['user_defined'],
-                    steps = data['steps'], tasks= tasks, dependencies_map = data['dependencies_map'], current_step=current_step)
+        return cls(_uuid = data['_uuid'],
+                     _name=data['_name'], 
+                    description= data['description'], 
+                    path= Path(data['path']),
+                    label =data['label'],
+                    engine = data['engine'],
+                    param= data['param'], 
+                    state= state, 
+                    user_defined = data['user_defined'],
+                    steps = data['steps'],
+                    containers = containers,
+                    tasks= tasks, 
+                    dependencies_map = data['dependencies_map'], 
+                    current_step=current_step)
         
     
     
@@ -138,5 +182,14 @@ class ProjectInfo(Info):
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
         workflows = [WorkflowInfo.from_dict(workflow) for workflow in data['workflows']]
-        return cls(_uuid = data['_uuid'], label=data['label'], description= data['description'],
-                     path =Path(data['path']), workflows= workflows)
+        return cls(_uuid = data['_uuid'], 
+                    label=data['label'], 
+                    description= data['description'],
+                    path =Path(data['path']), 
+                    workflows= workflows)
+
+
+
+def factory_task_info(name: str) -> TaskInfo:
+
+    return TaskInfo(str(uuid.uuid1()), name)

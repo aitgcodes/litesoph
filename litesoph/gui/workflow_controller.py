@@ -4,26 +4,22 @@ from typing import Union
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 
 from litesoph.common.task import Task, TaskFailed
-from litesoph.common.task_data import (GROUND_STATE,RT_TDDFT,
-                                    SPECTRUM,
-                                    TCM, MO_POPULATION,
-                                    MASKING)
-from litesoph.common.workflow_manager import WorkflowManager
+from litesoph.common.task_data import TaskTypes as tt
+from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
 from litesoph.gui.task_controller import TaskController
 from litesoph.gui import views as v
 
 
-# task_view_map={
-#     GROUND_STATE: v.GroundStatePage,
-#     RT_TDDFT_DELTA: v.TimeDependentPage,
-#     RT_TDDFT_LASER: v.LaserDesignPage,
-#     SPECTRUM: v.PlotSpectraPage,
-#     TCM: v.TcmPage,
-#     MO_POPULATION: v.PopulationPage,
-#     MASKING: v.MaskingPage
-# }
+task_view_map={
+    tt.GROUND_STATE: v.GroundStatePage,
+    tt.RT_TDDFT: [v.TimeDependentPage, v.LaserDesignPage],
+    tt.COMPUTE_SPECTRUM: v.PlotSpectraPage,
+    tt.TCM: v.TcmPage,
+    tt.MO_POPULATION: v.PopulationPage,
+    tt.MASKING: v.MaskingPage
+}
 
 class WorkflowController:
 
@@ -54,7 +50,7 @@ class WorkflowController:
         if self.user_defined_workflow:
             task_and_view = self._get_task()
             if not task_and_view:
-                raise Exception('Task name not specified.') 
+                return 
         else:
             if not self.workflow_navigation_view:
                 return
@@ -104,27 +100,57 @@ class WorkflowController:
                         messagebox.showinfo(title="Info", message="Option not Implemented")
                         return
                     else:
-                        return ( RT_TDDFT, task_view)
+                        return (tt.RT_TDDFT, task_view)
             return
 
         if sub_task  == "Ground State":
-            return (GROUND_STATE, v.GroundStatePage)
+            return (tt.GROUND_STATE, v.GroundStatePage)
 
         if sub_task in ["Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]:
             messagebox.showinfo(title='Info', message="This option is not yet Implemented.")
             return
         
         if sub_task == "Compute Spectrum":
-            return (SPECTRUM, v.PlotSpectraPage)
+            return (tt.COMPUTE_SPECTRUM, v.PlotSpectraPage)
             #self.main_window.event_generate(actions.SHOW_SPECTRUM_PAGE)   
         if sub_task == "Dipole Moment and Laser Pulse":
             return
         if sub_task == "Kohn Sham Decomposition":
-            return (TCM, v.TcmPage)
+            return (tt.TCM, v.TcmPage)
             #self.main_window.event_generate(actions.SHOW_TCM_PAGE) 
         if sub_task == "Population Tracking":
-            return (MO_POPULATION, v.PopulationPage)
+            return (tt.MO_POPULATION, v.PopulationPage)
             #self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE)
         if sub_task == "Masking":
-            return (MASKING, v.MaskingPage)
+            return (tt.MASKING, v.MaskingPage)
             #self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
+
+
+class WorkflowModeController(WorkflowController):
+
+    def __init__(self, project_controller, app) -> None:
+        super().__init__(project_controller, app)
+
+    def start(self, workflow_manager: WorkflowManager):
+        self.workflow_manager = workflow_manager
+        self.workmanager_page = self.project_controller.workmanager_page
+        self.start_task()        
+        
+
+    def show_workmanager_page(self, *_):
+        self.workmanager_page._var['select_wf_option'].set(value=1)
+        self.workmanager_page.tkraise()
+        self.app.proceed_button.config(command= self.start_task)
+    
+    def start_task(self, *_):
+        
+        try:
+            self.workflow_manager.next()
+        except TaskSetupError as e:
+            messagebox.showerror(title='Error', message=e)
+            return
+        task_view = task_view_map.get(self.workflow_manager.current_task_info.name)
+        if isinstance(task_view, list):
+            task_view = task_view[0]
+        self.workflow_navigation_view.next()
+        self.task_controller.set_task(self.workflow_manager, task_view)

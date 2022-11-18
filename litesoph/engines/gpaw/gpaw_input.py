@@ -1,6 +1,5 @@
 import copy
-
-
+from litesoph.common.task_data import TaskTypes as tt 
 
 default_param =  {
         'geometry' : 'coordinate.xyz',
@@ -234,12 +233,12 @@ run(frequency_list)
 """
 
 task_map = {
-    'ground_state': gs_template,
-    'rt_tddft' :{'delta': delta_kick_template,
+    tt.GROUND_STATE: gs_template,
+    tt.RT_TDDFT :{'delta': delta_kick_template,
                     'laser': external_field_template},
-    'spectrum' : dm2spec,
-    'tcm' : tcm_temp,
-    'mo_population': mo_population
+    tt.COMPUTE_SPECTRUM : dm2spec,
+    tt.TCM : tcm_temp,
+    tt.MO_POPULATION: mo_population
 }
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
@@ -275,12 +274,12 @@ def assemable_rt(**kwargs):
     return template
 
 def gpaw_create_input(**kwargs):
-    task_name = kwargs.pop('task', 'ground_state')
+    task_name = kwargs.pop('task', tt.GROUND_STATE)
 
     if 'rt_tddft' in task_name:
         return assemable_rt(**kwargs) 
 
-    if 'ground_state' == task_name:
+    if tt.GROUND_STATE == task_name:
         gs_dict = copy.deepcopy(default_param)
         gs_dict.update(kwargs)
         kwargs = gs_dict

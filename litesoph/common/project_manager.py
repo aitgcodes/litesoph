@@ -7,8 +7,9 @@ import os
 from litesoph.common.utils import create_dir, PROJECT_DATA_FILE_RELATIVE_PATH, PROJECT_DATA_FILE_NAME, WORKFLOW_DATA_FILE_NAME
 from litesoph.common.data_sturcture.data_classes import ProjectInfo, WorkflowInfo
 from litesoph.visualization.visualize_geometry import VisualizeGeometry
-from litesoph.common.workflow_manager import WorkflowManager, factory_task_info
-from litesoph.common.workflows import workflow_types
+from litesoph.common.workflow_manager import WorkflowManager, WorkflowMode, factory_task_info
+from litesoph.common.workflows_data import predefined_workflow
+from litesoph.common.decision_tree import decide_engine
 
 class WorkflowSetupError(Exception):
     """Raised when unable to creating or opening task."""
@@ -50,35 +51,49 @@ class ProjectManager:
         if not self.current_workflow_info:
             raise WorkflowSetupError('Create workflow')
 
-        if workflow_type in workflow_types.keys():
-            workflow_types[workflow_type](self.current_workflow_info)
-
-        elif workflow_type == "user_defined":
-            self.current_workflow_info.name = workflow_type
-            self.current_workflow_info.user_defined = True
-            self.current_workflow_info.steps.update({workflow_type: []})
+        # if workflow_type == "user_defined":
             
-        else:
-            raise WorkflowSetupError(f'workflow:{workflow_type} is not Implemented.')
-
-        engine = param.get('engine', None)
-        if engine and (engine != 'auto-mode'):
-            self.current_workflow_info.engine = engine
-
+        #     self.current_workflow_info.user_defined = True
+        #     engine = param.get('engine', None)
+        #     if engine and (engine != 'auto-mode'):
+        #          self.current_workflow_info.engine = engine
+        #     workflow_manager = WorkflowManager
+        
+        # elif workflow_type == "spectrum":
+        #     self.current_workflow_info.name = workflow_type
+        #     workflow_manager = WorkflowMode
+        #     self.current_workflow_info.engine = decide_engine(workflow_type)
+        
+        # else:
+        #     raise WorkflowSetupError(f'workflow:{workflow_type} is not Implemented.')
+        workflow_manager = self._get_workflow_manager(workflow_type)
+        self.current_workflow_info.name = workflow_type        
         self.current_workflow_info.param.update(param)
-        workflow_manager = WorkflowManager(self, self.current_workflow_info, config=self.config)
+        workflow_manager = workflow_manager(self, self.current_workflow_info, config=self.config)
         return workflow_manager
 
     def open_workflow(self, uuid) -> WorkflowManager:
         
         for workflow in self.workflow_list:
             if workflow.uuid == uuid:
-                self.current_workflow_info = workflow        
-                workflow_manager = WorkflowManager(self, workflow, config=self.config)
+                self.current_workflow_info = workflow 
+                workflow_manager = self._get_workflow_manager(workflow.name)       
+                workflow_manager = workflow_manager(self, workflow, config=self.config)
                 return workflow_manager
             else:
                 continue
         raise WorkflowSetupError("Workflow with uuid:{uuid} doest exists.")
+
+    def _get_workflow_manager(self, name):
+        if name == 'user_defined':
+            return WorkflowManager
+
+        workflow_type = predefined_workflow.get(name, None)
+        if not workflow_type:
+            raise WorkflowSetupError(f'Workflow:{name} not defined.')
+        
+        return WorkflowMode
+        
 
     def list(self) -> list:
         workflows = [[workflow.label, workflow.uuid] for workflow in self.workflow_list]
@@ -117,7 +132,7 @@ class ProjectManager:
         os.chdir(path)
 
     def list_available_workflows(self):
-        return [workflow for workflow in workflow_types.keys()]
+        return [workflow for workflow in predefined_workflow.keys()]
 
     def append_workflow(self, workflow_info: WorkflowInfo):
         for workflow in self.workflow_list:

@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from litesoph.gui import visual_parameter as v
 from litesoph.gui.visual_parameter import work_flow_ui_design, config_widget
-
+from litesoph.common.workflows_data import predefined_workflow
 _dict_task = {
     'gs' : {'task_name':'gs',
             'display_text':'Ground State'},
@@ -32,6 +32,11 @@ _dict_task = {
                     'display_text':'Population Tracking Plot'}    
 }
 
+workflows_ui_map = {'Spectrum': 'spectrum', 
+                'Averaged Spectrum': 'averaged_spectrum', 
+                'Kohn Sham Decomposition': 'kohn_sham_decomposition',
+                'MO Population Tracking': 'mo_population_tracking'}
+
 _workflow = {
     
     'Spectrum': ['gs', 'rt_tddft_delta','extract_dm','process_dm', 'spec_calc', 'spec_plot'],    
@@ -41,11 +46,8 @@ _workflow = {
    }
 
 def pick_workflow(workflow_var:str):
-    workflow = _workflow.get(workflow_var)
-    workflow_branch = []
-    for task in workflow:
-        task_name = _dict_task.get(task)['display_text']
-        workflow_branch.append(task_name)
+    workflow = workflows_ui_map.get(workflow_var)
+    workflow_branch =  predefined_workflow.get(workflow)['blocks']
     return workflow_branch
 
 class WorkflowNavigation:
@@ -58,13 +60,13 @@ class WorkflowNavigation:
         self.parent = parent
         self.workflow_list = workflow_list
         self.widgets = {}
-        self.current_index = 0
+        self.current_index = -1
         self.default_state = 'default'
         self.create_widgets(parent, self.workflow_list)
            
     def create_widgets(self, parent, workflow_list:list):
         """ Creates the widgets for workflow view"""
-        
+        self.clear()
         title_label = tk.Label(parent,text='Workflow', bg=v.label_design['bg'], fg=v.label_design['fg'], font=v.myfont())
         title_label.grid(row=0, column=0)
 
@@ -106,11 +108,16 @@ class WorkflowNavigation:
         
     def next(self):
         """ Shifts the current state to next"""
-        if 0 <= self.current_index < len(self.workflow_list):
+        if self.current_index < len(self.workflow_list):
             self.current_index += 1
         self._update_widgets(self.current_index)
         self._update_config()
-
+    
+    def start(self, index=0):
+        self.current_index = index
+        self._update_widgets(self.current_index)
+        self._update_config()
+    
     def _update_config(self):
         """ Assigns the visual config"""
         for key,value in self.widgets.items():
