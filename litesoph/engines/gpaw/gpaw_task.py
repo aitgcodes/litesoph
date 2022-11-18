@@ -189,7 +189,7 @@ class GpawTask(Task):
         if remote_path:
             python_path = 'python3'
             engine_cmd = python_path + engine_cmd
-            rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent)
+            rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent.parent)
             job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(rpath),
                                             remote=True, module_load_block=self.get_engine_network_job_cmd())
         else:

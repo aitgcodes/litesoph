@@ -251,7 +251,7 @@ class TaskController:
     def _run_network(self, task: Task):
 
         try:
-            task.check_prerequisite(network = True)
+            task.check_prerequisite()
         except FileNotFoundError as e:
             messagebox.showerror(title = "Error", message = e)
             self.job_sub_page.set_run_button_state('active')
@@ -327,8 +327,12 @@ class TaskController:
     def _on_out_remote_view_button(self,task: Task, *_):
         
         check =  task.task_info.network.get('sub_returncode', None)
-        if not check or (check != 0):
-            messagebox.showinfo(title= "Warning", message="The job is not submitted yet or error occured during submission.", detail = f"output:{task.task_info.network['output']}")
+        if check is None:
+            messagebox.showinfo(title= "Warning", message="The job is not submitted yet.")
+            return
+
+        if check != 0:
+            messagebox.showinfo(title= "Warning", message="Error occured during job submission.", detail = f"output:{task.task_info.network['output']}")
             return
 
         print("Checking for job completion..")

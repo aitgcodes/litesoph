@@ -71,8 +71,7 @@ class SubmitNetwork:
         self.task = task
         self.task_info = task.task_info
         self.task_info.state.network = True
-        self.project_dir = self.task.project_dir
-
+        self.project_dir = self.task.project_dir.parent 
         self.username = username
         self.hostname = hostname
         self.password = password
@@ -109,13 +108,14 @@ class SubmitNetwork:
 
     def get_output_log(self):
         """Downloads engine log file for that particular task."""
-        rpath = pathlib.Path(self.remote_path) / self.task.engine_log.relative_to(self.project_dir.parent)
-        self.network_sub.download_files(str(rpath), str(self.task.engine_log))
+        engine_log = pathlib.Path(self.task.task_info.output['txt_out'])
+        rpath = pathlib.Path(self.remote_path) / engine_log.relative_to(self.project_dir.parent)
+        self.network_sub.download_files(str(rpath), str(engine_log))
 
 
     def run_job(self, cmd):
         "This method creates the job submission command and executes the command on the cluster"
-        remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.name
+        remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.relative_to(self.project_dir.parent)
         self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"
         
         
@@ -130,7 +130,6 @@ class SubmitNetwork:
                 print(line)
         
         self.task_info.network.update({'sub_returncode': exit_status,
-                                            'n_proc': self.job_sub_page.processors.get(),
                                             'output':ssh_output.decode(encoding='utf-8'),
                                             'error':ssh_error.decode(encoding='utf-8')})
     
