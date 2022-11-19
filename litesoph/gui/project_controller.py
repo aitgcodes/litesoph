@@ -92,7 +92,7 @@ class ProjectController:
     def _get_workflow_controller(self, name):
         if name == 'user_defined':
             return WorkflowController
-        elif name in ['spectrum', 'averaged_spectrum']:#list(predefined_workflow.keys()):
+        elif name in list(predefined_workflow.keys()):
             return WorkflowModeController
         else:
             messagebox.showerror(message=f'Workflow: {name} not implemented')

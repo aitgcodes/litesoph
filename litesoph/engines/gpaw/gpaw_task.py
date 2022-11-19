@@ -124,8 +124,9 @@ class GpawTask(Task):
             param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
             param['dm_file'] = 'dm.dat'
             self.task_info.output['dm_file'] = str(self.task_dir / param['dm_file'])
-            if 'ksd' in param or 'mo_population' in param:
+            if 'ksd' in param['properties'] or 'mo_population' in param['properties']:
                 param['wfile'] = 'wf.ulm'
+                print('here')
                 self.task_info.output['wfile'] = str(self.task_dir / param['wfile'])
             update_td_input(param)
             return
@@ -141,14 +142,14 @@ class GpawTask(Task):
 
         if tt.TCM == self.task_name:
             param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
-            param['wfile'] = self.dependent_tasks[0].output.get('wfile')
+            param['wfile'] = self.dependent_tasks[1].output.get('wfile')
             return
 
         if 'mo_population' ==self.task_name:
             gs_log = self.dependent_tasks[0].output.get('txt_out')
             gs_file = self.dependent_tasks[0].output.get('gpw_out')
             param['gfilename'] = gs_file
-            param['wfile'] = self.dependent_tasks[0].output.get('wfile')
+            param['wfile'] = self.dependent_tasks[1].output.get('wfile')
             param['mopop_file'] = mo_pop_file ='mo_population.dat'
             self.mo_populationfile = self.task_dir / mo_pop_file
             self.task_info.output['mopop_file'] = str(self.mo_populationfile)
@@ -370,7 +371,8 @@ def format_gs_input(gen_dict: dict) -> dict:
     
 
 def update_td_input(param):
-    if 'laser' in param:
+    laser = param.get('laser',None)
+    if laser is not None:
         sigma = param['laser'].get('sigma')
         time0 = param['laser'].get('time0')
         param['laser']['sigma'] = round(autime_to_eV/sigma, 2)

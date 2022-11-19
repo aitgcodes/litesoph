@@ -59,12 +59,33 @@ predefined_workflow = {
                             '6' : '3' }
     },
     "kohn_sham_decomposition": {
-        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute KSD', 'Plot'],
+        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute KSD'],
+        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+                    step(1 ,1 ,tt.RT_TDDFT,{
+                                        'properties':['spectrum', 'ksd'],
+                                                } ),
+                    step(2 ,2 ,tt.COMPUTE_SPECTRUM),
+                    step(3 ,3 ,tt.TCM)],
+        
+        "dependency_map": {'0' : None,
+                            '1' : '0',
+                            '2' : '1',
+                            '3' : ['0', '1']}
         
     },
     "mo_population_tracking": {
-        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute MO population']
+        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute MO population'],
+        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+                    step(1 ,1 ,tt.RT_TDDFT,{
+                                        'properties':['spectrum', 'ksd'],
+                                                } ),
+                    step(2 ,2 ,tt.COMPUTE_SPECTRUM),
+                    step(3 ,3 ,tt.MO_POPULATION)],
         
+        "dependency_map": {'0' : None,
+                            '1' : '0',
+                            '2' : '1',
+                            '3' : ['0', '1']}
     },
 
 }

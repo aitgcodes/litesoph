@@ -46,9 +46,9 @@ def update_gui_dict_defaults(task_type:str, task_default:dict):
                 gui_basis_key = task_param_map["basis"]["lcao"]
             elif basis_type == "gaussian":
                 gui_basis_key = task_param_map["basis"]["gaussian"]
-        if box_shape is not None:
-            ls_box_dim = task_default.get("box_dim")
-
+        # if box_shape is not None:
+        ls_box_dim = task_default.get("box_dim", None)
+        if ls_box_dim is not None:
             box_dict = {}
             for key, value in ls_box_dim.items():
                 if key in ls_box_dim.keys():

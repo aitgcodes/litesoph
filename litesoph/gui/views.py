@@ -1423,14 +1423,15 @@ class PlotSpectraPage(View):
         }
         return plot_dict            
 
-class TcmPage(ttk.Frame):
+class TcmPage(View):
 
-    def __init__(self, parent,task_name, *args, **kwargs):
+    def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
         self.parent = parent
         self.job = None
         self.task_name = task_name
+        self.engine = engine
 
         self.engine_name = tk.StringVar()
         self.min = tk.DoubleVar()
@@ -1446,28 +1447,29 @@ class TcmPage(ttk.Frame):
 
         self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
-        self.heading = tk.Label(self,text="LITESOPH Kohn Sham Decomposition", fg='blue')
+        self.heading = tk.Label(self.input_param_frame,text="LITESOPH Kohn Sham Decomposition", fg='blue')
         self.heading['font'] = myfont()
         self.heading.grid(row=0, column=0)
 
-        self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame1.grid(row=1,column=0, sticky='nsew')
+        self.frame_inp = ttk.Frame(self.input_param_frame, borderwidth=2, relief='groove')
+        self.frame_inp.grid(row=1,column=0, sticky='nsew')
 
         self.grid_rowconfigure(1, weight=5)
         self.grid_rowconfigure(2, weight=1)
 
-        self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.frame_button.grid(row=2, column=0, sticky='nsew')
+        # self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
+        # self.frame_button.grid(row=2, column=0, sticky='nsew')
 
-        self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
-        self.frame_inp.grid(row=1,column=0, sticky='nsew')           
+        # self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
+        # self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
-        self.back_button = tk.Button(self.frame_button, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0)
 
-        self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
-        self.add_job_frame(task_name)
+        #self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
+        self.select_ksd_frame(self.frame_inp)
+        self.add_job_frame(self.submit_button_frame, self.task_name)
 
     def add_gpaw_ksd_frame(self, parent):
         """ Creates widgets for gpaw ksd calculation"""    
@@ -1537,47 +1539,48 @@ class TcmPage(ttk.Frame):
 
 
     def select_ksd_frame(self, parent):
-        engine = self.engine_name.get()
+        # engine = self.engine_name.get()
         #TODO: The engine information should be abstracted from this module.
         for widget in parent.winfo_children():
             widget.destroy()
-        if engine == 'gpaw':
+        if self.engine == 'gpaw':
             self.add_gpaw_ksd_frame(parent)
-        elif engine == 'octopus':
+        elif self.engine == 'octopus':
             self.add_oct_ksd_frame(parent)    
 
 
-    def add_job_frame(self, task_name):  
+    def add_job_frame(self,parent, task_name):  
         """  Adds submit job buttons"""
 
-        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame3.grid(row=1, column=1, sticky='nswe')
+        # self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
+        # self.Frame3.grid(row=1, column=1, sticky='nswe')
         
-        self.submit_button = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
+        self.submit_button = tk.Button(parent, text="Submit Local", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
         self.submit_button['font'] =myfont()
         self.submit_button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
         
-        self.Frame1_Button3 = tk.Button(self.Frame3, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
+        self.Frame1_Button3 = tk.Button(parent, text="Submit Network", activebackground="#78d6ff", command=lambda: self.event_generate('<<SubNetwork'+task_name+'>>'))
         self.Frame1_Button3['font'] = myfont()
         self.Frame1_Button3.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')    
 
-        self.plot_button = tk.Button(self.Frame3, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate(f"<<Show{task_name}Plot>>"))
+        self.plot_button = tk.Button(parent, text="Plot", activebackground="#78d6ff", command=lambda: self.event_generate(f"<<Show{task_name}Plot>>"))
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=3, column=2,padx=3, pady=15, sticky='nsew')
 
     def retrieve_input(self):
         inputValues = self.frequency.get()  #TextBox_freqs.get("1.0", "end-1c")
-        freqs = inputValues.split()
+        freqs = inputValues.split(',')
 
         self.freq_list = []
         for freq in freqs[0:]:
+            freq = freq.strip()
             self.freq_list.append(float(freq))
         return(self.freq_list)   
     
     def get_parameters(self):
         engine = self.engine_name.get()    
        #TODO: The engine information should be abstracted from this module.
-        if engine == 'gpaw':
+        if self.engine == 'gpaw':
             
             self.retrieve_input()
 
@@ -1587,7 +1590,7 @@ class TcmPage(ttk.Frame):
                  } 
             return gpaw_ksd_dict
 
-        elif engine == 'octopus':
+        elif self.engine == 'octopus':
             oct_ksd_dict = {
             'task': 'tcm',
             'num_occupied_mo': self.ni.get(),
@@ -2386,7 +2389,7 @@ class TimeDependentPage(View):
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
-        
+
     def get_pol_list(self, pol_var:str):
         assert pol_var in ["X", "Y", "Z"] 
         if pol_var == "X":

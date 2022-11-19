@@ -98,6 +98,8 @@ class NwchemTask(Task):
 
             outfile = self.dependent_tasks[0].output.get('txt_out')
             # self.engine_log = self.task_dir / self.outfile
+            if self.task_name == tt.MO_POPULATION:
+                outfile = self.dependent_tasks[1].output.get('txt_out')
 
             self.nwchem = NWChem(outfile=outfile, 
                             label=label, directory=self.task_dir)
@@ -176,7 +178,7 @@ class NwchemTask(Task):
         self.above_lumo = above_lumo = self.user_input['num_unoccupied_mo']
 
         self.create_directory(self.task_dir)
-        td_out = self.dependent_tasks[0].output.get('txt_out')
+        td_out = self.dependent_tasks[1].output.get('txt_out')
 
         #self.energy_file = self.task_dir / 'energy_format.dat'
         eigen_data = self.nwchem.get_eigen_energy(td_out)
@@ -256,10 +258,10 @@ class NwchemTask(Task):
         if self.task_name == 'mo_population':
             try:
                 self.extract_mo_population()
-            except Exception as e:
+            except InputError as e:
                 self.task_info.local.update({'returncode': 1,
                                             'output': '',
-                                            'error': e}) 
+                                            'error': str(e)}) 
             else:
                 self.task_info.local.update({'returncode': 0,
                                             'output': '',
