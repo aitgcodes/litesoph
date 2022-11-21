@@ -11,7 +11,7 @@ from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.common.utils import get_new_directory
 from litesoph.engines.octopus.octopus_input import get_task
 from litesoph import config
-from litesoph.gui.engine_views.octopus_views.gs2oct import create_oct_gs_inp
+from litesoph.engines.octopus.gs2oct import create_oct_gs_inp
 
 
 engine_log_dir = 'octopus/log'
