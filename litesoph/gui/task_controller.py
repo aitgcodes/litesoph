@@ -8,6 +8,8 @@ from litesoph.common.task import Task, TaskFailed
 from litesoph.common.task_data import TaskTypes as tt                                  
 from litesoph.gui import views as v
 from litesoph.common import models as m
+from litesoph.gui.models.gs_model import choose_engine
+from litesoph.common.decision_tree import EngineDecisionError
 
 serial_tasks = [tt.COMPUTE_SPECTRUM, tt.TCM, tt.MO_POPULATION]
 
@@ -70,10 +72,20 @@ class TaskController:
         if not inp_dict:
             return
 
-        engine = inp_dict.pop('engine', None)
-        if tt.GROUND_STATE == self.task_name and (not self.engine):   
-            self.task_info.engine = engine
+        # engine = inp_dict.pop('engine', None)
+        # if tt.GROUND_STATE == self.task_name and (not self.engine):   
+        #     self.task_info.engine = engine
 
+        if tt.GROUND_STATE == self.task_name:
+            engine = choose_engine(copy.deepcopy(inp_dict))   
+            if engine is None:
+                return
+            try:
+                self.workflow_manager.set_engine(engine)
+            except EngineDecisionError as e:
+                messagebox.showerror(title="Engine Error", message=e)
+                return
+        
         self.task_info.param.update(inp_dict)
         self.task = self.workflow_manager.get_engine_task()
         self.task.create_input()

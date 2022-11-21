@@ -9,12 +9,10 @@ from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.workflows_data import predefined_workflow
-from litesoph.common.project_status import Status
 from litesoph.common.engine_manager import EngineManager
 from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info, Container
-from litesoph.engines.octopus.octopus_task import OctopusTask
 import importlib
-from litesoph.common.decision_tree import decide_engine
+from litesoph.common.decision_tree import decide_engine, EngineDecisionError
 
 engine_classname = {
     'gpaw' : 'GPAW',
@@ -46,9 +44,9 @@ class WorkflowManager:
         self.dependencies_map = workflow_info.dependencies_map
         self.user_defined = workflow_info.user_defined = True
         self.current_task_info = None
-        self.choose_engine()
+        self.choose_default_engine()
         
-    def choose_engine(self):
+    def choose_default_engine(self):
         engine = self.workflow_info.param.get('engine', None)
         if engine and (engine != 'auto-mode'):
             self.workflow_info.engine = engine
@@ -68,6 +66,7 @@ class WorkflowManager:
 
     def _get_task(self, current_task_info, task_dependencies ) -> Task:
         engine_manager = self._get_engine_manager(self.engine)
+        current_task_info.engine = self.engine
         task = engine_manager.get_task(self.config, current_task_info, task_dependencies)
         return task
 
@@ -192,7 +191,7 @@ class WorkflowMode(WorkflowManager):
             self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
             update_workflowinfo(self.workflow_from_db, workflow_info)
 
-    def choose_engine(self):
+    def choose_default_engine(self):
         self.workflow_info.engine = decide_engine(self.workflow_type)
         self.engine = self.workflow_info.engine        
 
@@ -231,6 +230,20 @@ class WorkflowMode(WorkflowManager):
         self.current_task_info.path = self.directory
         return self.current_task_info
 
+    def check_engine(self, engine)-> bool:
+        engine_manager = self._get_engine_manager(engine)
+        workflow_list = engine_manager.get_workflow_list()
+        if self.workflow_type in workflow_list:
+            return True
+        else:
+            return False
+    
+    def set_engine(self, engine):
+        check = self.check_engine(engine)
+        if check:
+            self.engine = self.workflow_info.engine = engine
+        else:
+            raise EngineDecisionError(f'workflow: {self.workflow_type} is not supported implemented in {engine}')
 
 def update_workflowinfo(workflow_dict:dict, workflowinfo: WorkflowInfo):
     
