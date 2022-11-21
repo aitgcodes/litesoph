@@ -2,10 +2,11 @@ import numpy as np
 
 def create_oct_gs_inp(gui_inp:dict):
     import copy
-
+    # Add Validation for available options
     key2key = {
         "XYZCoordinates":"XYZCoordinates",
-        "max_itr": "MaximumIter",
+        "spacing": "Spacing",
+        "max_iter": "MaximumIter",
         "energy_conv": "ConvEnergy",
         "density_conv": "ConvAbsDens",
         "smearing":"Smearing",

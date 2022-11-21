@@ -52,6 +52,41 @@ ground_state = {
     "mixing": {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},
     }
 
-time_dependent = {
+def get_gs_default_param():
+    return { 
+        "xc":"PBE",               
+        "basis_type": "fd",  
+        "basis": "None",  
+        "bands": 0,
+        "spin": 'unpolarized',
+        "spacing": 0.3,
+        "vacuum": 6,
+        "boxshape": "parallelepiped",
+        "box_dim" : None,        
+        "max_iter":300,
+        "energy_conv": 1e-6 ,
+        "density_conv": 1e-6 ,
+        "smearing_fun": '',
+        "smearing_width": 0.0,
+        "mixing": None,
+        
+    } 
 
-}    
+def get_rt_tddft_default_param():
+    return {
+    'strength': 1e-5,
+    'polarization': [1,0,0],
+    'time_step': 10,
+    'number_of_steps': 1000,
+    'output_freq': 1,
+    'properties': ['spectrum'],
+    'laser': None,
+    'masking': None
+}
+
+def get_compute_spec_param():
+    return{
+            'delta_e': 0.05,
+            'e_max':30.0,
+            'e_min': 0.0,       
+        }
