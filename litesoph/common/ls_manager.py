@@ -55,12 +55,12 @@ class LSManager:
                                     description= description, config= self.config)
         project_data_file = project_path / self.project_data_file_relative_path
 
-        with open(project_data_file, 'w+') as f:
-            project_info.save(f)
+        # with open(project_data_file, 'w+') as f:
+        #     project_info.save(f)
 
-        project_manager = ProjectManager(self, project_info)
+        self.project_manager = ProjectManager(self, project_info)
         self.append_project(project_info)
-        return project_manager
+        return self.project_manager
 
     
     def open_project(self, path: Union[str, Path]) -> ProjectManager:
@@ -82,9 +82,9 @@ class LSManager:
             raise ProjectSetupError(f'Project:{str(project_path)}. Unable to load project data. Error:{e}')
         else:
             project_info.config.update(self.config)
-            project_manager = ProjectManager(self, project_info)
+            self.project_manager = ProjectManager(self, project_info)
             self.append_project(project_info)
-            return project_manager
+            return self.project_manager
 
     def list(self):
         pass
@@ -96,10 +96,12 @@ class LSManager:
         pass
 
     def save(self):
-        for project in self.project_list:
-            file = project.path / self.project_data_file_relative_path
-            with open(file, 'w') as f:
-                project.save(f)
+        if hasattr(self, 'project_manager'):
+            self.project_manager.save()
+        # for project in self.project_list:
+        #     file = project.path / self.project_data_file_relative_path
+        #     with open(file, 'w') as f:
+        #         project.save(f)
 
     def get_project_summary(self):
         return ' '

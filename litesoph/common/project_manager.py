@@ -32,6 +32,7 @@ class ProjectManager:
             self.current_workflow_info = self.workflow_list[-1]
         else:
             self.new_workflow('workflow_1')
+        self.save()
 
     def new_workflow(self, label: str):
         
@@ -121,8 +122,13 @@ class ProjectManager:
 
     def save(self):
         file = self.project_path / self.ls_manager.project_data_file_relative_path
+        try:
+            json_txt = self.project_info.to_json()
+        except TypeError:
+            raise
+        
         with open(file, 'w') as f:
-            self.project_info.save(f)
+            f.write(json_txt)
 
     def remove(self):
         pass

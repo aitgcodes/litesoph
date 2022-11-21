@@ -43,8 +43,12 @@ class Info:
     def to_json(self) -> str:
         return json.dumps(self, cls=WorkflowInfoEncoder, indent=3)
 
-    def save(self, fp):
-        fp.write(self.to_json())
+    # def save(self, fp):
+    #     try:
+    #         json_txt = self.to_json()
+    #     except TypeError:
+    #         raise
+    #     fp.write(json_txt)
 
 @dataclass
 class TaskInfo(Info):
