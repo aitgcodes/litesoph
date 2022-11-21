@@ -33,46 +33,32 @@ ground_state_map = {
     # "bands": "bands",
     }
 
-def update_gui_dict_defaults(task_type:str, task_default:dict):
-    """Updates the default dict for gui widgets"""         
-
-    gui_default_dict = {}
-    if task_type == "ground_state":
-        task_param_map = ground_state_map
-        basis_type = task_default.get("basis_type")
-        box_shape = task_default.get("boxshape")
-        if basis_type is not None:
-            if basis_type == "lcao":
-                gui_basis_key = task_param_map["basis"]["lcao"]
-            elif basis_type == "gaussian":
-                gui_basis_key = task_param_map["basis"]["gaussian"]
-        # if box_shape is not None:
-        ls_box_dim = task_default.get("box_dim", None)
-        if ls_box_dim is not None:
-            box_dict = {}
-            for key, value in ls_box_dim.items():
-                if key in ls_box_dim.keys():
-                    _key2key_dict = dict(
-                    [(ls_box_dim.get(key), value)]) 
-                    box_dict.update(_key2key_dict)
-                
-        gui_default_dict ={
-            "xc":task_default.get('xc'),  
-            "basis_type": task_default.get('basis_type'),                                  
-            str(gui_basis_key): task_default.get('basis'),  
-            "spacing": task_default.get('spacing'),                           
-            "spin": task_default.get('spin'),
-            "boxshape": task_default.get('boxshape'),
-            "select_box": False,
-            "vacuum": task_default.get('vacuum'),
-            "max_itr":task_default.get('max_iter'),
-            "energy_conv": task_default.get('energy_conv'),
-            "density_conv": task_default.get('density_conv'),
-            "smearing": task_default.get('smearing'),
-            "mixing": task_default.get('mixing'),
-            "bands": task_default.get('bands'),
-        }
+def update_gs_defaults(task_default:dict):
+    """Updates the default dict for GS gui widgets"""  
     
+    task_param_map = ground_state_map
+    basis_type = task_default.get("basis_type")
+    box_shape = task_default.get("boxshape")
+
+    gui_default_dict ={
+                "xc":task_default.get('xc')}
+    if basis_type is not None:
+        gui_default_dict.update({
+            "basis_type": task_default.get('basis_type')})
+        if basis_type == "lcao":
+            gui_basis_key = task_param_map["basis"]["lcao"]
+            gui_default_dict.update({                                 
+            str(gui_basis_key): task_default.get('basis'),
+        })
+        elif basis_type == "gaussian":
+            gui_basis_key = task_param_map["basis"]["gaussian"]
+            gui_default_dict.update({                                 
+            str(gui_basis_key): task_default.get('basis'),
+        })
+        
+    if box_shape is not None:
+        gui_default_dict.update({"boxshape": box_shape})
+      
     return gui_default_dict
 
 def update_td_delta_defaults(td_default:dict):
@@ -90,9 +76,9 @@ def update_td_delta_defaults(td_default:dict):
     population_check = False
     if "spectrum" in td_default.get('properties'):
         spectrum_check = True
-    elif "ksd" in td_default.get('properties'):
+    if "ksd" in td_default.get('properties'):
         ksd_check = True
-    elif "mo_population" in td_default.get('properties'):
+    if "mo_population" in td_default.get('properties'):
         population_check = True
     
     gui_default_dict = {
