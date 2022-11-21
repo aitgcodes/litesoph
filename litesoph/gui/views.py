@@ -2259,8 +2259,8 @@ class GroundStatePage(View):
         return gs_input
 
     def set_parameters(self,default_param_dict:dict):
-        from litesoph.gui.defaults_handler import update_gui_dict_defaults
-        default_gui_dict = update_gui_dict_defaults("ground_state", default_param_dict)
+        from litesoph.gui.defaults_handler import update_gs_defaults
+        default_gui_dict = update_gs_defaults(default_param_dict)
         self.inp.init_widgets(fields=self.inp.fields,
                         ignore_state=False,var_values=default_gui_dict)
 
