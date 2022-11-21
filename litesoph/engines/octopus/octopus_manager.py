@@ -1,8 +1,11 @@
-from abc import abstractmethod, ABC
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
+from litesoph.common.data_sturcture.data_classes import TaskInfo
+from litesoph.common.task import TaskNotImplementedError
 from litesoph.common.task_data import TaskTypes as tt                    
-from litesoph.common.workflows_data import WorkflowTypes as wt        
+from litesoph.common.workflows_data import WorkflowTypes as wt     
 from litesoph.common.engine_manager import EngineManager
+from litesoph.engines.octopus.octopus_task import OctopusTask
+from litesoph.engines.octopus import task_data as td
 
 class OCTOPUSManager(EngineManager):
     """Base class for all the engine."""
@@ -13,23 +16,24 @@ class OCTOPUSManager(EngineManager):
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM, wt.KOHN_SHAM_DECOMPOSITION, 
                                         wt.MO_POPULATION_TRACKING]
 
-    @abstractmethod
-    def get_task(self, task_info, dependent_task):
-        ...
-
-    @abstractmethod
-    def get_default_task_param(self, name):
-        ...
-
-    @abstractmethod
-    def get_task_list():
-        ...
-
-    @abstractmethod
-    def get_workflow(self, name):
-        ...
+    def get_task(self, config, task_info: TaskInfo, 
+                        dependent_tasks: Union[List[TaskInfo], None] =None ):
+        self.check_task(task_info.name)
+        return OctopusTask(config, task_info, dependent_tasks)
     
-    @abstractmethod
-    def get_workflow_list():
-        ...
+    def get_default_task_param(self, name):
+        task_default_parameter_map = {
+            tt.GROUND_STATE: td.get_gs_default_param,
+            tt.RT_TDDFT: td.get_rt_tddft_default_param,
+            tt.COMPUTE_SPECTRUM: td.get_compute_spec_param,
+        }
+        self.check_task(name)
+
+        get_func = task_default_parameter_map.get(name)
+        return get_func()
+
+    def get_workflow(self, name):
+        pass
+    
+  
 
