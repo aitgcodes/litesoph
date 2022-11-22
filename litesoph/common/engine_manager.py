@@ -16,7 +16,7 @@ class EngineManager(ABC):
         ...
 
     @abstractmethod
-    def get_default_task_param(self, name):
+    def get_default_task_param(self, name, dependent_task):
         ...
     
     def get_task_list(self):

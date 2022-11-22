@@ -22,7 +22,7 @@ class NWChemManager(EngineManager):
         self.check_task(task_info.name)
         return NwchemTask(config, task_info, dependent_tasks)
 
-    def get_default_task_param(self, name):
+    def get_default_task_param(self, name, dependent_tasks: Union[List[TaskInfo], None] = None):
         task_default_parameter_map = {
             tt.GROUND_STATE: td.get_gs_default_param,
             tt.RT_TDDFT: td.get_rt_tddft_default_param,
