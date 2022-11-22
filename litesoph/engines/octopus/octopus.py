@@ -11,7 +11,8 @@ class Octopus:
             self.infile = infile
         else:
             self.infile = 'inp'
-        self.outfile = outfile
+        if outfile:
+            self.outfile = outfile
         self.directory = directory
         self.cmd = cmd
         self.parameters = kwargs
