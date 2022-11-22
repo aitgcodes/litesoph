@@ -196,4 +196,4 @@ class ProjectInfo(Info):
 
 def factory_task_info(name: str) -> TaskInfo:
 
-    return TaskInfo(str(uuid.uuid1()), name)
+    return TaskInfo(str(uuid.uuid4()), name)

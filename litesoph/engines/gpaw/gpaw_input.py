@@ -242,7 +242,7 @@ task_map = {
 }
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
-    laser = kwargs.pop('laser')
+    laser = kwargs.pop('laser', None)
     if laser is not None:
         kwargs.update(laser)
         template = external_field_template.format(**kwargs)

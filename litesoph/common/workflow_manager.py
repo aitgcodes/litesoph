@@ -111,6 +111,7 @@ class WorkflowManager:
 
     def set_engine(self, engine):
         self.workflow_info.engine = engine
+        self.engine = self.workflow_info.engine
     
     def create_task_info(self):
         pass
@@ -190,7 +191,7 @@ class WorkflowMode(WorkflowManager):
         if not self.tasks:
             self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
             update_workflowinfo(self.workflow_from_db, workflow_info)
-
+        
     def choose_default_engine(self):
         self.workflow_info.engine = decide_engine(self.workflow_type)
         self.engine = self.workflow_info.engine        
@@ -209,23 +210,23 @@ class WorkflowMode(WorkflowManager):
         self.save()
 
         if not self.current_step:
-            container = self.containers[0]
+            self.current_container = self.containers[0]
             self.current_step.insert(0, 0)
-            task_id = container.task_uuid
+            task_id = self.current_container.task_uuid
         else:
-            container = self.containers[self.current_step[0]]
-            if container.next is None:
+            #container = self.containers[self.current_step[0]]
+            if self.current_container.next is None:
                 raise TaskSetupError('No more tasks in the workflow.')
-            task_id = container.next
+            task_id = self.current_container.next
             self.current_step[0] += 1
-            container  = self.containers[self.current_step[0]]
+            self.current_container  = self.containers[self.current_step[0]]
         self.current_task_info = self.tasks.get(task_id)
         
         if self.engine:
             self.current_task_info.engine = self.engine
             engine_manager = self._get_engine_manager(self.engine)
             param = engine_manager.get_default_task_param(self.current_task_info.name, self.get_task_dependencies())
-            param.update(container.env_parameters)
+            param.update(self.current_container.env_parameters)
             self.current_task_info.param.update(param)
         self.current_task_info.path = self.directory
         return self.current_task_info

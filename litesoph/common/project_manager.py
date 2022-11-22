@@ -52,21 +52,6 @@ class ProjectManager:
         if not self.current_workflow_info:
             raise WorkflowSetupError('Create workflow')
 
-        # if workflow_type == "user_defined":
-            
-        #     self.current_workflow_info.user_defined = True
-        #     engine = param.get('engine', None)
-        #     if engine and (engine != 'auto-mode'):
-        #          self.current_workflow_info.engine = engine
-        #     workflow_manager = WorkflowManager
-        
-        # elif workflow_type == "spectrum":
-        #     self.current_workflow_info.name = workflow_type
-        #     workflow_manager = WorkflowMode
-        #     self.current_workflow_info.engine = decide_engine(workflow_type)
-        
-        # else:
-        #     raise WorkflowSetupError(f'workflow:{workflow_type} is not Implemented.')
         workflow_manager = self._get_workflow_manager(workflow_type)
         self.current_workflow_info.name = workflow_type        
         self.current_workflow_info.param.update(param)

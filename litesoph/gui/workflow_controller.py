@@ -135,6 +135,7 @@ class WorkflowModeController(WorkflowController):
         self.workflow_manager = workflow_manager
         self.workmanager_page = self.project_controller.workmanager_page
         self.app.proceed_button.config(command= self.start_task)
+        
         self.start_task()        
         
 
@@ -153,5 +154,6 @@ class WorkflowModeController(WorkflowController):
         task_view = task_view_map.get(self.workflow_manager.current_task_info.name)
         if isinstance(task_view, list):
             task_view = task_view[0]
-        self.workflow_navigation_view.next()
+        block_id = self.workflow_manager.current_container.block_id
+        self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)

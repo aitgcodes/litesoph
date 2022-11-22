@@ -1,3 +1,5 @@
+from typing import Union, List, Dict
+
 from litesoph.engines.gpaw.task_data import gpaw_gs_param_data as gpaw_data
 from litesoph.engines.octopus.task_data import ground_state as octopus_data
 from litesoph.engines.nwchem.task_data import nwchem_gs_param_data as nwchem_data
@@ -128,3 +130,33 @@ def decide_engine(workflow_type:str,
         return engine_choice
     else:
         EngineDecisionError("Error in deciding engine")
+
+
+def choose_engine(input_param:dict)-> Union[str, List[str]]:
+    
+    basis_type = input_param.get('basis_type', None)
+
+    if basis_type is None:
+        raise EngineDecisionError("Basis type is not defined.")
+
+    boxshape = input_param.get('boxshape')
+    if boxshape:
+        if basis_type == "lcao":
+            if boxshape == "parallelepiped":
+                engine = "gpaw"
+                return engine
+            else:
+                raise EngineDecisionError(f"Box shape:{boxshape} is not supported in LCAO basis type.")
+        
+        if basis_type == "fd":
+            if boxshape == "parallelepiped":
+                return ['gpaw', 'octopus']
+            elif boxshape in ["minimum","sphere","cylinder"] : 
+                engine = "octopus"
+            return engine
+    else:
+        if basis_type == "pw":
+            engine = "gpaw"
+        elif basis_type == "gaussian":
+            engine = "nwchem"
+            return engine

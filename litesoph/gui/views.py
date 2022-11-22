@@ -305,14 +305,14 @@ class WorkManagerPage(ttk.Frame):
         self._task_frame2 = ttk.Frame(self.workflow_frame)
         self._task_frame2.grid(row=1, column=0, sticky='w')
 
-        self.engine_source_label = tk.Label(_task_frame1,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
-        self.engine_source_label['font'] = myfont()
-        self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
+        # self.engine_source_label = tk.Label(_task_frame1,text="Source",bg=label_design['bg'],fg=label_design['fg'], justify='left')
+        # self.engine_source_label['font'] = myfont()
+        # self.engine_source_label.grid(row= 1, column=0,  sticky='w',padx=4, pady=10)       
             
-        self.engine_source = ttk.Combobox(_task_frame1,width=20, textvariable= self.engine, values= self.engine_list)
-        self.engine_source['font'] = myfont()
-        self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
-        self.engine_source['state'] = 'readonly'
+        # self.engine_source = ttk.Combobox(_task_frame1,width=20, textvariable= self.engine, values= self.engine_list)
+        # self.engine_source['font'] = myfont()
+        # self.engine_source.grid(row= 1, column=1, columnspan=2, padx=4, pady=10)
+        # self.engine_source['state'] = 'readonly'
 
         self.label_job_type = tk.Label(_task_frame1,text="Job Type",bg=label_design['bg'],fg=label_design['fg'], justify='left')
         self.label_job_type['font'] = myfont()
