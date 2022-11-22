@@ -449,7 +449,16 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
 
     return _dict
 
+def calc_td_range(spacing:float):
+    """ calculates max limit for time step specific to Octopus engine"""
 
+    from litesoph.utilities.units import ang_to_au, au_to_as
+    h = spacing*ang_to_au
+    dt = 0.0426-0.207*h+0.808*h*h
+    max_dt_as = round(dt*au_to_as, 2)
+    print(dt)
+    return max_dt_as
+  
 #------------------------------------------------------------------------------------------------------------
 
 # class OctopusTask(Task):
