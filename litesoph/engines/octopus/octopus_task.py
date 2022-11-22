@@ -106,16 +106,17 @@ class OctopusTask(Task):
 
         self.setup_task(self.user_input) 
     
-    def setup_task(self, param:dict):
-        
+    def setup_task(self, param:dict):               
         if self.task_name in self.added_post_processing_tasks:
-            pass
+            relative_infile = None
+            relative_outfile = None
         self.pre_run()
-        self.update_task_param()
+        self.update_task_param()   
         self.update_task_info()
 
         relative_infile = self.input_filename
-        relative_outfile = Path(self.task_info.output['txt_out']).relative_to(self.engine_dir)
+        if self.task_info.output.get('txt_out'):
+            relative_outfile = Path(self.task_info.output['txt_out']).relative_to(self.engine_dir)
 
         self.octopus = Octopus(infile= relative_infile, outfile=relative_outfile,
                              directory=Path(self.engine_dir), **self.user_input)
@@ -134,6 +135,15 @@ class OctopusTask(Task):
 
         if self.task_name == tt.COMPUTE_SPECTRUM:
             td_info = self.dependent_tasks[0]
+            if td_info:
+                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
+                td_folder_path = str(Path(td_info.output['task_dir']) / 'td.general')
+                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+            return
+
+        elif self.task_name == tt.TCM:
+            
+            td_info = self.dependent_tasks[1]
             if td_info:
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
                 td_folder_path = str(Path(td_info.output['task_dir']) / 'td.general')
@@ -169,9 +179,17 @@ class OctopusTask(Task):
             param.update(get_oct_kw_dict(copy_input, task))
             self.user_input = param  
             return 
+
+        elif task == tt.TCM:
+            pass
     
     def update_task_info(self, **kwargs):
         """ Updates self.task_info with current task info"""
+        if self.task_name in self.added_post_processing_tasks:
+            # self.task_info.output['txt_out'] = str(Path(self.output_dir) / self.task_data.get('out_log'), '')
+            # self.task_info.output['out_files'] = str(Path(self.output_dir) / self.task_data.get('out_log'))
+            return
+            
         self.task_info.input['engine_input']['path'] = str(Path(self.engine_dir) / self.input_filename)
         self.task_info.output['txt_out'] = str(Path(self.output_dir) / self.task_data.get('out_log'))
     
@@ -206,13 +224,17 @@ class OctopusTask(Task):
                 shutil.copy(Path(self.engine_dir) / item, Path(self.copy_task_dir)/ item)
 
     def write_input(self, template=None):
-        self.copy_task_dir = get_new_directory(Path(self.task_dir))
-        self.task_info.output['task_dir'] = str(self.copy_task_dir)
         inp_filepath = self.task_info.input['engine_input']['path']
 
-        self.create_directory(self.copy_task_dir)               
+        self.create_task_dir()             
         self.octopus.write_input(self.template)        
         shutil.copy(inp_filepath, self.copy_task_dir / 'inp')
+    
+    def create_task_dir(self):
+        self.copy_task_dir = get_new_directory(Path(self.task_dir))
+        self.task_info.output['task_dir'] = str(self.copy_task_dir)
+
+        self.create_directory(self.copy_task_dir)   
 
     def create_template(self):
         self.template = self.octopus.create_input()
@@ -252,6 +274,7 @@ class OctopusTask(Task):
 
     def prepare_input(self):
         if self.task_name in self.added_post_processing_tasks:
+            self.create_task_dir()
             self.get_ksd_popln()
             return
         self.create_template()
@@ -276,7 +299,7 @@ class OctopusTask(Task):
             plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)", xlimit=(float(energy_min), float(energy_max)))
             return        
 
-        if self.task_name == 'tcm': 
+        if self.task_name == tt.TCM: 
             from litesoph.common.job_submit import execute
 
             fmin = kwargs.get('fmin')
@@ -287,7 +310,7 @@ class OctopusTask(Task):
             path_python = self.lsconfig.get('programs', 'python')['python']
             path_plotdmat = str(path.parents[2]/ 'visualization/octopus/plotdmat.py')
 
-            ksd_file = self.project_dir / self.task_data['ksd_file']
+            ksd_file = self.copy_task_dir / 'transwt.dat'
             cmd = f'{path_python} {path_plotdmat} {ksd_file} {fmin} {fmax} {axis_limit} -i'
         
             result = execute(cmd, self.task_dir)
@@ -324,18 +347,21 @@ class OctopusTask(Task):
         return job_script
 
     def run_job_local(self,cmd):
-        if self.task_name in ['tcm','mo_population']:
+        if self.task_name in [tt.TCM, tt.MO_POPULATION]:
             return
         cmd = cmd + ' ' + self.BASH_filename
         self.sumbit_local.run_job(cmd)
         if self.check_run_status()[0]:
             self.post_run()
 
-    def get_ksd_popln(self):        
-        _axis = self.get_pol_list(self.status)
-        max_step = self.status.get('octopus.rt_tddft_delta.param.TDMaxSteps')
-        output_freq = self.status.get('octopus.rt_tddft_delta.param.TDOutputComputeInterval') 
-        nt = int(max_step/output_freq) 
+    def get_ksd_popln(self):
+        td_info = self.dependent_tasks[1] 
+        if td_info:
+            _axis = td_info.param['polarization']
+            max_step = td_info.param['number_of_steps']
+            output_freq = td_info.param['output_freq']
+            nt = int(max_step/output_freq) 
+
         below_homo = self.user_input['num_occupied_mo']
         above_lumo = self.user_input['num_unoccupied_mo']
 
@@ -345,26 +371,28 @@ class OctopusTask(Task):
                                 number_of_proj_unoccupied=above_lumo,
                                 axis=_axis)
         try:            
-            if self.task_name == 'tcm':
-                self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
+            if self.task_name == tt.TCM:
+                self.octopus.compute_ksd(proj=proj_read, out_directory=self.copy_task_dir)
             elif self.task_name == 'mo_population':
                 from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
                 population_diff_file = self.task_dir/'population_diff.dat'
                 calc_population_diff(homo_index=occ,infile=population_file, outfile=population_diff_file)
-            self.local_cmd_out = [0]
+            self.task_info.local['returncode'] = 0
+            # self.local_cmd_out = [0]
         except Exception:
-            self.local_cmd_out = [1]
+            self.task_info.local['returncode'] = 1
+            # self.local_cmd_out = [1]
 
-    def get_pol_list(self, status):
-        e_pol = status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
-        assign_pol_list ={
-            1 : [1,0,0],
-            2 : [0,1,0],
-            3 : [0,0,1]
-        }
-        return(assign_pol_list.get(e_pol))
+    # def get_pol_list(self, status):
+    #     e_pol = status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
+    #     assign_pol_list ={
+    #         1 : [1,0,0],
+    #         2 : [0,1,0],
+    #         3 : [0,0,1]
+    #     }
+    #     return(assign_pol_list.get(e_pol))
 
 ##---------------------------------------------------------------------------------------------------------------
 

@@ -90,3 +90,9 @@ def get_compute_spec_param():
             'e_max':30.0,
             'e_min': 0.0,       
         }
+
+def get_tcm_param():
+    return{
+            'frequency_list' : [],
+            'axis_limit': 3,
+    } 
