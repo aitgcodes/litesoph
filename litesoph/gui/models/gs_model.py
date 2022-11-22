@@ -19,11 +19,11 @@ def choose_engine(input_param:dict):
                 return
         if basis == "fd":
             if boxshape == "parallelepiped":
-                check = messagebox.askyesno(title = 'Message',message= "The default engine for the input is gpaw, please click 'yes' to proceed with it. If no, octopus will be assigned")
+                check = messagebox.askyesno(title = 'Message',message= "The default engine for the input is ocotpus, please click 'yes' to proceed with it. If no, gpaw will be assigned")
                 if check is True:
-                    engine = "gpaw"
-                elif check is False:
                     engine = "octopus"
+                elif check is False:
+                    engine = "gpaw"
             elif boxshape in ["minimum","sphere","cylinder"] : 
                 engine = "octopus"
             return engine

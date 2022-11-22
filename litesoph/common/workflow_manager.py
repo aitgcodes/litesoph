@@ -241,7 +241,8 @@ class WorkflowMode(WorkflowManager):
     def set_engine(self, engine):
         check = self.check_engine(engine)
         if check:
-            self.engine = self.workflow_info.engine = engine
+            self.workflow_info.engine = engine
+            self.engine = self.workflow_info.engine
         else:
             raise EngineDecisionError(f'workflow: {self.workflow_type} is not supported implemented in {engine}')
 

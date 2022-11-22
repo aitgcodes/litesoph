@@ -85,6 +85,10 @@ class TaskController:
             except EngineDecisionError as e:
                 messagebox.showerror(title="Engine Error", message=e)
                 return
+
+        check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
+        if not check:
+            return
         
         self.task_info.param.update(inp_dict)
         self.task = self.workflow_manager.get_engine_task()
@@ -369,3 +373,17 @@ class TaskController:
                 self.view_panel.insert_text(log_txt, 'disabled')
             else:
                 return
+
+
+
+def input_param_report(engine, input_param):
+    pass            
+
+def dict2string(inp_dict):
+
+    txt = []
+    for key, value in inp_dict.items():
+        txt.append(f"{key} =  {value}")
+
+    return '\n'.join(txt)
+
