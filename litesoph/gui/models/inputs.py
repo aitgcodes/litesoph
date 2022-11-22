@@ -76,7 +76,7 @@ gs_input ={
                 "text": "Spin Polarisation",
                 "help": None,
                 "widget": Combobox,
-                "values": ["polarized","unpolarized"]
+                "values": ["unpolarized", "polarized"]
         },
 
         "spacing": {

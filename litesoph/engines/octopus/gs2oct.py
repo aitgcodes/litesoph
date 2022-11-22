@@ -44,6 +44,9 @@ def create_oct_gs_inp(gui_inp:dict):
                     _dict.update(sim_box)               
                 if key == "xc":
                     _dict.update(get_xc_pseudo(xc_str=xc)) 
+    
+    spacing_value = _dict.get("Spacing")
+    _dict.update({"Spacing": str(spacing_value)+'*angstrom'})
     return _dict
 
 def get_box_dim(_boxshape:str,_from_vacuum=False, **kwargs):
