@@ -6,7 +6,7 @@ from litesoph.gui.input_validation import Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 
 from litesoph.gui.engine_views import EngineViews
-from litesoph.simulations.models import NWchemModel
+from litesoph.common.models import NWchemModel
 
 
 class NWGSPage(EngineViews):

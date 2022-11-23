@@ -25,17 +25,29 @@ def myfont15():
     font15 = font.Font(family='Helvetica',size=15, weight='bold')
     return font15
 
+def config_widget(widget,config_dict:dict):
+    """ config dict : wrt the available parameters of the widget"""
+    widget.config(config_dict)
 
 f1=('Noto sans', 15, 'italic')
 mygreen = "#d2ffd2"
 myred = "#dd0202"   
 
-label_design={
+label_design= {}
+
+work_flow_ui_design = {}
+
+def create_design_feature():
+
+    label_design.update({
     'bg':"navy blue",
-    "fg": "white"
-}
+    "fg": "white",
+    "font": myfont()
+    })
+    
+    work_flow_ui_design.update({'highlightbackground':'red',
+                    'background':'light blue',
+                    'font': myfont()})
+button_design={}
 
-button_design={
-
-}
        
