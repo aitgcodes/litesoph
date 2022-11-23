@@ -79,10 +79,8 @@ calc.write('{gpw_out}', mode='all')
 delta_kick_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
 import numpy as np
-from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 
 td_calc = LCAOTDDFT(filename='{gfilename}',txt='{txt_out}')
-
 
 td_calc.absorption_kick({absorption_kick})
 # Propagate"
@@ -95,7 +93,6 @@ import numpy as np
 from ase.units import Hartree, Bohr
 from gpaw.external import ConstantElectricField
 from gpaw.lcaotddft import LCAOTDDFT
-from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter
 from gpaw.lcaotddft.laser import GaussianPulse
 pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
 ext = ConstantElectricField(Hartree / Bohr,{polarization} )
@@ -109,6 +106,26 @@ td_calc.propagate{propagate}
 # Save the state for restarting later"
 td_calc.write('{gpw_out}', mode='all')
 """
+
+mask_external_field_template = """
+import numpy as np
+from ase.units import Hartree, Bohr
+from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField
+from gpaw.lcaotddft import LCAOTDDFT
+from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter
+from gpaw.lcaotddft.laser import GaussianPulse
+pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
+mask = {mask}
+ext = MaskedElectricField(Hartree / Bohr,{polarization}, mask=mask )
+td_potential = {{'ext': ext, 'laser': pulse}}
+td_calc = LCAOTDDFT(filename='{gfilename}',
+                    td_potential=td_potential,
+                    txt='{txt_out}')
+# Propagate"
+td_calc.propagate{propagate}
+# Save the state for restarting later"
+td_calc.write('{gpw_out}', mode='all')
+    """
 
 dm2spec="""
 from gpaw.tddft.spectrum import photoabsorption_spectrum
@@ -243,17 +260,26 @@ task_map = {
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)
+    mask = kwargs.pop('mask', None)
+
     if laser is not None:
         kwargs.update(laser)
-        template = external_field_template.format(**kwargs)
+        
+        if mask is not None:
+            template = mask_external_field_template.format(**kwargs)
+        else:
+            template = external_field_template.format(**kwargs) 
     else:   
         template = delta_kick_template.format(**kwargs)
 
     tlines = template.splitlines()
     
     if 'dipole' in tools:
-        tlines.insert(0, 'from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter')
-        tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', interval={kwargs.get('output_freq', 1)})")
+        if mask is not None:
+            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', mask=ext.mask, interval={kwargs.get('output_freq', 1)})")
+        else:
+            tlines.insert(0, 'from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter')
+            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', interval={kwargs.get('output_freq', 1)})")
         
     if "wavefunction" in tools:  
         tlines.insert(0, "from gpaw.lcaotddft.wfwriter import WaveFunctionWriter")
@@ -275,7 +301,7 @@ def assemable_rt(**kwargs):
 def gpaw_create_input(**kwargs):
     task_name = kwargs.pop('task', tt.GROUND_STATE)
 
-    if 'rt_tddft' in task_name:
+    if tt.RT_TDDFT == task_name:
         return assemable_rt(**kwargs) 
 
     if tt.GROUND_STATE == task_name:
