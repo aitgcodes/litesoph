@@ -23,7 +23,6 @@ class GPAWManager(EngineManager):
                         dependent_tasks: Union[List[TaskInfo], None] =None ):
         self.check_task(task_info.name)
         if task_info.name==tt.MASKING:
-            print(task_info.name)
             return GpawPostProMasking(config, task_info, dependent_tasks)
         else:
             return GpawTask(config, task_info, dependent_tasks)
