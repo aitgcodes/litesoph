@@ -81,7 +81,7 @@ class InputFrame(ttk.Frame):
                     add_frame.grid(         
                         row=i,
                         column=0,
-                        columnspan=4,
+                        columnspan=2,
                         sticky="ew",
                         padx=self.padx,
                         pady=self.pady,
@@ -335,9 +335,10 @@ class InputFrame(ttk.Frame):
         self.fields[name]["visible"] = not self.fields[name]["visible"]
 
     def update_widgets(self, check_switch=True,*args,var_state:dict=None, **kwargs):
+
             """enable/disable widgets from switch if check_switch is True, 
             else from variable_state dict"""
-                      
+            
             if self.fields is None:
                 return
             
@@ -358,18 +359,18 @@ class InputFrame(ttk.Frame):
                         raise KeyError("Key not found")  
 
             visible_options = {}
-            if check_switch:
-                for name in self.variable:
+            if check_switch:                
+                for name in self.variable:                                       
                     if self.fields[name]["visible"]:
                         try:
                             visible_options[name] = self.variable[name].get()
                         except TclError:
                             visible_options[name] = self.fields[name]["default"]
-
+            
             if check_switch and visible_options is not None:
                 for name, desc in self.fields.items():
                         if "switch" in desc:
-                            if desc["switch"](visible_options):
+                            if desc["switch"](visible_options):                                
                                 self.enable(name)
                                 if "state_switch" in desc:
                                     if desc["state_switch"](visible_options) is not None:
@@ -437,12 +438,17 @@ class InputFrame(ttk.Frame):
         return values
 
     def trace_variables(self, *_):
+        # for name in name_list:
+        #     if name in self.variable.keys():
+        #         self.variable[name].trace("w", self.update_widgets) 
+
         for name, var in self.variable.items():
             var.trace("w", self.update_widgets) 
 
     def test_frame_template(self, parent_frame,row, column, padx, pady, fields:dict, **kwargs):
             obj = parent_frame
             obj.group = {}
+            obj.add_frame = {}
             obj.variable = {}     
             obj.label = {}      
             obj.widget = {}     
@@ -487,6 +493,28 @@ class InputFrame(ttk.Frame):
                     else:
                         group = obj.group[desc["group"]]
                     parent = group
+
+                if "add_frame" in desc:
+                    if desc["add_frame"] not in obj.add_frame:
+                        _parent = desc["parent"]
+                        add_frame = ttk.Frame(obj.group[_parent], 
+                        # text=desc["add_frame"].capitalize()
+                        )
+                        # group.columnconfigure(
+                        #     [0, 1], weight=1, minsize=self.column_minsize
+                        # )
+                        add_frame.grid(         
+                            row=i,
+                            column=0,
+                            columnspan=2,
+                            sticky="ew",
+                            # padx=self.padx,
+                            pady=self.pady,
+                        )
+                        obj.add_frame[desc["add_frame"]] = add_frame
+                    else:
+                        add_frame = obj.add_frame[desc["add_frame"]]
+                    parent = add_frame
 
                 if "values" in desc:
                     values = list(desc["values"])
@@ -554,11 +582,15 @@ class InputFrame(ttk.Frame):
                 if "widget_grid" in desc:
                     obj.widget[name].grid(
                     row=desc["widget_grid"]["row"], column=desc["widget_grid"]["column"], sticky="ew", padx=padx, pady=pady)
+                    obj.widget[name].config(
+                        width= 10
+                    )
                 else:
-
+                    
                     obj.widget[name].grid(
                         row=i, column=1, sticky="ew", padx=padx, pady=pady
                     )
+                    
                 if desc["widget"] is not ttk.Checkbutton:
                     if desc["widget"] is ttk.Button:
                         pass

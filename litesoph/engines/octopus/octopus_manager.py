@@ -27,6 +27,7 @@ class OCTOPUSManager(EngineManager):
             tt.RT_TDDFT: td.get_rt_tddft_default_param,
             tt.COMPUTE_SPECTRUM: td.get_compute_spec_param,
             tt.TCM: td.get_tcm_param,
+            tt.MO_POPULATION: td.get_mo_pop_param
         }
         self.check_task(name)
 

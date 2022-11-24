@@ -96,3 +96,9 @@ def get_tcm_param():
             'frequency_list' : [],
             'axis_limit': 3,
     } 
+
+def get_mo_pop_param():
+    return{
+            'num_occupied_mo': 1,
+            'num_unoccupied_mo': 1,
+    } 
