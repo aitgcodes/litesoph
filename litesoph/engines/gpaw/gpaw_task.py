@@ -73,7 +73,7 @@ class GpawTask(Task):
     NAME = 'gpaw'
 
     simulation_tasks =  [tt.GROUND_STATE, tt.RT_TDDFT]
-    post_processing_tasks = [tt.COMPUTE_SPECTRUM, tt.TCM, tt.MO_POPULATION, 'masking']
+    post_processing_tasks = [tt.COMPUTE_SPECTRUM, tt.TCM, tt.MO_POPULATION, tt.MASKING]
     implemented_task = simulation_tasks + post_processing_tasks
 
     def __init__(self, lsconfig, 
@@ -83,8 +83,6 @@ class GpawTask(Task):
         
         super().__init__(lsconfig, task_info, dependent_tasks)
 
-        if not self.task_name in self.implemented_task: 
-            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
         self.task_data = gpaw_data.get(self.task_name)
         self.params = copy.deepcopy(self.task_info.param)
         
@@ -95,7 +93,6 @@ class GpawTask(Task):
         else:
             self.user_input.update(self.params)
 
-        
         self.setup_task(self.user_input)
         
 
@@ -157,13 +154,6 @@ class GpawTask(Task):
             self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
             return
 
-        if 'masking' == self.task_name:
-            
-            self.sim_total_dm = Path(self.dependent_tasks[0].output.get('dm_file'))
-            self.state_mask_dm = False
-            from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
-            self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
-    
     def create_template(self):
         template = gpaw_create_input(**self.user_input)
         self.task_info.engine_param.update(self.user_input)
@@ -202,7 +192,6 @@ class GpawTask(Task):
         return self.job_script
 
     def prepare_input(self):
-        assert self.task_name != 'masking'
         self.create_template()
         self.write_input()
         
@@ -215,7 +204,6 @@ class GpawTask(Task):
         
 
     def run_job_local(self, cmd):
-        assert self.task_name != 'masking'
         self.write_job_script(self.job_script)
         try:
             super().run_job_local(cmd)
@@ -227,20 +215,6 @@ class GpawTask(Task):
                 calc_population_diff(homo_index=len(self.occupied_mo), infile=self.mo_populationfile,
                                         outfile=self.mo_population_diff_file)
    
-    def extract_masked_dm(self):
-        self.create_directory(self.task_dir)
-        self.state_mask_dm = True
-        self.masked_dm_analysis.extract_dipolemoment_data()
-
-
-    def get_energy_coupling_constant(self, **kwargs) -> str:
-        if not self.state_mask_dm:
-            self.extract_masked_dm()
-        region = kwargs.get('region')
-        axis = kwargs.get('direction')
-        return self.masked_dm_analysis.get_energy_coupling(region, axis)
-
-
     def plot(self, **kwargs):
         if self.task_name == tt.COMPUTE_SPECTRUM:
             img = self.spec_file.with_suffix('.png')
@@ -253,7 +227,7 @@ class GpawTask(Task):
                 image = Image.open(img_file)
                 image.show()
 
-        elif self.task_name == 'mo_population':
+        elif self.task_name == tt.MO_POPULATION:
             occ = self.occupied_mo
             unocc = self.unoccupied_mo
             below_homo = kwargs.get('num_occupied_mo_plot',1)
@@ -268,15 +242,6 @@ class GpawTask(Task):
             
             plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (as)')
 
-        elif self.task_name == 'masking':
-            if not self.state_mask_dm:
-                self.extract_masked_dm()
-            region = kwargs.get('region')
-            axis = kwargs.get('direction')
-            envelope = kwargs.get('envelope', False)
-            plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
-            plt.show()
-            
     @staticmethod
     def get_engine_network_job_cmd():
 
