@@ -138,11 +138,6 @@ class WorkManagerPage(ttk.Frame):
     Post_task = ["Compute Spectrum","Kohn Sham Decomposition","Population Tracking", "Masking", "Induced Density Analysis","Generalised Plasmonicity Index", "Plot"]
     engine_list = ['auto-mode','gpaw', 'nwchem', 'octopus']
 
-    workflow_list =['Spectrum',
-                'Averaged Spectrum', 
-                'Kohn Sham Decomposition',
-                'MO Population Tracking']
-                
     env_list = ['Gas Phase', 'Solvation Condition']
 
     def __init__(self, parent, *args, **kwargs):
@@ -163,7 +158,6 @@ class WorkManagerPage(ttk.Frame):
 
         self.parent = parent
         self.engine = tk.StringVar(value='auto-mode')
-
         self._var = var_define(self._default_var)
         
         self.plot_option = None
@@ -238,8 +232,8 @@ class WorkManagerPage(ttk.Frame):
             tk.Radiobutton(system_frame, text=txt, variable=self._var['select_wf_option'], font=myfont2(),
              justify='left',value=val, command=cmd).grid(row=4, column=val, ipady=5, sticky='w')    
         self._var['select_wf_option'].trace_add('write', self.choose_workflow_frame)
-        self.show_specific_workflow_frame(self.task_common_frame)
-
+        #self.show_specific_workflow_frame(self.task_common_frame)
+        self.choose_workflow_frame()
         #--------------------------------Button Frame------------------------------------------------------------------        
        
         # self.Frame3 = ttk.Frame(self)
@@ -280,9 +274,9 @@ class WorkManagerPage(ttk.Frame):
         self.label_workflow['font'] = myfont()
         self.label_workflow.grid(row=1, column=0, sticky='w', padx=5,  pady=10)       
 
-        self.entry_workflow = ttk.Combobox(self.workflow_frame, textvariable=self._var['workflow'],width=22, values= self.workflow_list)
+        self.entry_workflow = ttk.Combobox(self.workflow_frame, textvariable=self._var['workflow'],width=22)
         self.entry_workflow['font'] = myfont()
-        self.entry_workflow.current(0)
+        #self.entry_workflow.current(0)
         self.entry_workflow.config(state='readonly')
         self.entry_workflow.grid(row=1, column=1, padx=10, sticky='ew')
     

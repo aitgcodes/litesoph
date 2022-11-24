@@ -8,21 +8,13 @@ from litesoph.gui.visual_parameter import myfont
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 
 from litesoph.gui.task_controller import TaskController
-from litesoph.gui.workflow_navigation import WorkflowNavigation, pick_workflow
+from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui.views import WorkManagerPage
 from litesoph.gui import actions
 from litesoph.gui.workflow_controller import WorkflowController, WorkflowModeController
 from litesoph.common.project_manager import ProjectManager
 from litesoph.common.data_sturcture.data_classes import ProjectInfo
 from litesoph.common.workflows_data import predefined_workflow
-
-workflow_name_map = {
-    'user_defined' : 'user_defined',
-    'Spectrum' : 'spectrum',
-    'Averaged Spectrum' : "averaged_spectrum",
-    'Kohn Sham Decomposition': "kohn_sham_decomposition",
-    'MO Population Tracking' : "mo_population_tracking"
-}
 
 
 class ProjectController:
@@ -42,6 +34,10 @@ class ProjectController:
         self.workmanager_page = self.app.show_frame(WorkManagerPage)
         self.workmanager_page.button_select_geom.config(command=self._on_get_geometry_file)
         self.workmanager_page.button_view.config(command=self._on_visualize)
+        
+        if hasattr(self.workmanager_page, 'entry_workflow'):
+            self.workmanager_page.entry_workflow['value'] = get_predefined_workflow()
+        
         self.workmanager_page._var['workflow'].trace_add('write', self.create_workflow_ui)
         self.app.proceed_button.config(command= self.start_workflow)
         if self.engine:
@@ -58,7 +54,7 @@ class ProjectController:
                 return
             for widget in self.app.workflow_frame.winfo_children():
                 widget.destroy()
-            self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, pick_workflow(workflow))
+            self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow))
 
     def create_new_workflow(self):
         label = 'yes'
@@ -112,8 +108,9 @@ class ProjectController:
             workflow_type = "user_defined"
             if self.workflow_navigation_view:
                 self.workflow_navigation_view.clear()
+        else:
+            workflow_type = get_workflow_type(workflow_type)
             
-        workflow_type = workflow_name_map.get(workflow_type)
         if workflow_info.name:
             workflow_controller = self._get_workflow_controller(workflow_info.name)
             self.workflow_controller = workflow_controller(self, self.app)
@@ -128,3 +125,21 @@ class ProjectController:
         
         self.workflow_controller.start(self.workflow_manager)
     
+        
+def get_predefined_workflow():
+
+    workflows=[]
+    for workflow in predefined_workflow:
+        workflows.append(predefined_workflow[workflow]['name'])
+
+    return workflows
+
+def get_workflow_block(workflow_name):
+    workflow = get_workflow_type(workflow_name)
+    workflow_branch =  predefined_workflow.get(workflow)['blocks']
+    return workflow_branch
+
+def get_workflow_type(workflow_name):
+    for workflow in predefined_workflow:
+        if predefined_workflow[workflow]['name'] == workflow_name:
+            return workflow
