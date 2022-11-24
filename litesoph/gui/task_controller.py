@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 import copy
-from litesoph.common.workflow_manager import WorkflowManager
+from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.common.task import Task, TaskFailed
 from litesoph.common.task_data import TaskTypes as tt                                  
@@ -23,15 +23,25 @@ class TaskController:
         self.status_engine = app.status_engine
         self.task_info = None
         self.task_view = None
+        self.laser_design = None
 
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
         self.workflow_manager = workflow_manager
         self.task_info = workflow_manager.current_task_info
         self.task_name = self.task_info.name
         self.engine = self.task_info.engine
-        #self.status = workflow_manager.status
         self.task_view = task_view
         self.task = None
+
+        if self.task_name == tt.MASKING:
+            try:
+                self.task = self.workflow_manager.get_engine_task()
+            except TaskSetupError as e:
+                messagebox.showerror("Error", str(e))
+                return
+            self.task_view.submit_button.config(command = self._run_task_serial)
+            self.task_view.plot_button.config(command = self._run_task_serial)
+
         self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)
         
         self.main_window.bind_all(f'<<Generate{self.task_name}Script>>', self.generate_input)
@@ -42,10 +52,6 @@ class TaskController:
             self.task_view.plot_button.config(command = self._on_plot_button)
             self.task_view.back_button.config(command= self.workflow_controller.show_workmanager_page)
            
-        if self.task_name == tt.MASKING:
-            self.task = self.workflow_manager.start_task(user_input={})
-            self.task_view.submit_button.config(command = self._run_task_serial)
-            self.task_view.plot_button.config(command = self._run_task_serial)
         
         # if isinstance(self.task_view, v.TimeDependentPage):
         #     self.task_view.update_engine_default(self.engine)

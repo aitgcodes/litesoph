@@ -17,7 +17,6 @@ from litesoph.gui.logpanel import LogPanelManager
 from litesoph.gui.menubar import get_main_menu_for_os
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 from litesoph.gui.viewpanel import ViewPanelManager
-from litesoph.engines import TaskManager
 from litesoph.common.ls_manager import LSManager 
 from litesoph.common.project_manager import ProjectManager
 from litesoph.common import models as m

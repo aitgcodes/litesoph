@@ -269,6 +269,7 @@ def update_workflowinfo(workflow_dict:dict, workflowinfo: WorkflowInfo):
                                 wstep.task_type, 
                                 taskinfo.uuid, 
                                 workflowinfo.uuid,
+                                wstep.parameters,
                                 wstep.env_parameters)
         if prev_cont is not None:
             prev_cont.next = container.task_uuid

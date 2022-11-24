@@ -2,53 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from litesoph.gui import visual_parameter as v
 from litesoph.gui.visual_parameter import work_flow_ui_design, config_widget
-from litesoph.common.workflows_data import predefined_workflow
-_dict_task = {
-    'gs' : {'task_name':'gs',
-            'display_text':'Ground State'},
-    'rt_tddft_delta': {'task_name':'rt_tddft_delta',
-                        'display_text':'Delta Kick Perturbation'},
-    'extract_dm': {'task_name':'',
-                    'display_text':'Extracting Dipole Moment'},
-    'process_dm': {'task_name':'',
-                    'display_text':'Processing Dipole Moment'},
-    'spec_calc': {'task_name':'spectrum',
-                    'display_text':'Spectrum Calculation'},
-    'spec_plot': {'task_name':'spectrum_plot',
-                    'display_text':'Spectrum Plot'},
-    'ext_field_des': {'task_name':'laser_design',
-                        'display_text':'External Field Design'},
-    'rt_tddft_laser': {'task_name':'rt_tddft_laser',
-                       'display_text':'TD Perturbation'},
-    'rt_tddft_obs': {'task_name':'',
-                    'display_text':'TD Observable Analysis'},
-    'ksd_calc': {'task_name':'ksd',
-                    'display_text':'KSD Recipe'},
-    'ksd_plot': {'task_name':'ksd_plot',
-                'display_text':'KSD Plot'},
-    'pop_track_calc': {'task_name':'mo_population',
-                    'display_text':'Population Tracking Recipe'},
-    'pop_track_plot': {'task_name':'mo_population_plot',
-                    'display_text':'Population Tracking Plot'}    
-}
 
-workflows_ui_map = {'Spectrum': 'spectrum', 
-                'Averaged Spectrum': 'averaged_spectrum', 
-                'Kohn Sham Decomposition': 'kohn_sham_decomposition',
-                'MO Population Tracking': 'mo_population_tracking'}
-
-_workflow = {
-    
-    'Spectrum': ['gs', 'rt_tddft_delta','extract_dm','process_dm', 'spec_calc', 'spec_plot'],    
-    'Time Dependent Calculation': ['gs', 'ext_field_des', 'rt_tddft_laser', 'rt_tddft_obs'],
-    'Kohn Sham Decomposition': ['gs', 'rt_tddft_delta','extract_dm','process_dm', 'spec_calc', 'spec_plot', 'ksd_calc', 'ksd_plot'],
-    'MO Population Tracking': ['gs', 'ext_field_des', 'rt_tddft_laser', 'pop_track_calc', 'pop_track_plot'],
-   }
-
-def pick_workflow(workflow_var:str):
-    workflow = workflows_ui_map.get(workflow_var)
-    workflow_branch =  predefined_workflow.get(workflow)['blocks']
-    return workflow_branch
 
 class WorkflowNavigation:
         

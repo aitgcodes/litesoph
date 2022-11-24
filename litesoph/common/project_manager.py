@@ -131,6 +131,9 @@ class ProjectManager:
                 return
         self.workflow_list.append(workflow_info)
 
+    def get_predefined_workflow(self):
+        pass
+    
 def summary_of_current_project(project_data: dict):
 
     state = ["Summary of all the tasks performed."]
