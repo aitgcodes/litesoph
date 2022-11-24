@@ -4,7 +4,7 @@ from litesoph.common.task import TaskNotImplementedError
 from litesoph.common.task_data import TaskTypes as tt                    
 from litesoph.common.workflows_data import WorkflowTypes as wt        
 from litesoph.common.engine_manager import EngineManager
-from litesoph.engines.gpaw.gpaw_task import GpawTask
+from litesoph.engines.gpaw.gpaw_task import GpawTask, GpawPostProMasking
 from litesoph.engines.gpaw import task_data as td
 
 
@@ -16,13 +16,16 @@ class GPAWManager(EngineManager):
                                     tt.TCM, tt.MASKING, tt.MO_POPULATION]
 
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM, wt.AVERAGED_SPECTRUM,
-                                        wt.MO_POPULATION_TRACKING]
+                                        wt.MO_POPULATION_TRACKING, wt.MASKING]
 
 
     def get_task(self, config, task_info: TaskInfo, 
                         dependent_tasks: Union[List[TaskInfo], None] =None ):
         self.check_task(task_info.name)
-        return GpawTask(config, task_info, dependent_tasks)
+        if task_info.name==tt.MASKING:
+            return GpawPostProMasking(config, task_info, dependent_tasks)
+        else:
+            return GpawTask(config, task_info, dependent_tasks)
     
     def get_default_task_param(self, name, dependent_tasks: Union[List[TaskInfo], None] = None):
         task_default_parameter_map = {

@@ -420,3 +420,38 @@ def get_eigen_energy(td_out_file):
                     break
                 data.append([float(val) for val in vals])
         return data
+
+class GpawPostProMasking(GpawTask):
+
+
+    def setup_task(self, param):
+        task_dir = self.project_dir / 'gpaw' / self.task_name
+        self.task_dir = get_new_directory(task_dir)        
+        self.sim_total_dm = Path(self.dependent_tasks[0].output.get('dm_file'))
+        self.state_mask_dm = False
+        from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
+        self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
+
+    def extract_masked_dm(self):
+        self.create_directory(self.task_dir)
+        self.state_mask_dm = True
+        self.masked_dm_analysis.extract_dipolemoment_data()
+
+    def get_energy_coupling_constant(self, **kwargs) -> str:
+        
+        if not self.state_mask_dm:
+            self.extract_masked_dm()
+        region = kwargs.get('region')
+        axis = kwargs.get('direction')
+        return self.masked_dm_analysis.get_energy_coupling(region, axis)
+
+    def plot(self, **kwargs):
+
+        if not self.state_mask_dm:
+            self.extract_masked_dm()
+        region = kwargs.get('region')
+        axis = kwargs.get('direction')
+        envelope = kwargs.get('envelope', False)
+        plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
+        plt.show()
+
