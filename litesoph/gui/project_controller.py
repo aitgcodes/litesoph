@@ -32,11 +32,12 @@ class ProjectController:
         self.workflow_list = project_manager.workflow_list
         self.app.create_workflow_frames()
         self.workmanager_page = self.app.show_frame(WorkManagerPage)
+        self.workmanager_page.workflow_list = get_predefined_workflow()
         self.workmanager_page.button_select_geom.config(command=self._on_get_geometry_file)
         self.workmanager_page.button_view.config(command=self._on_visualize)
         
         if hasattr(self.workmanager_page, 'entry_workflow'):
-            self.workmanager_page.entry_workflow['value'] = get_predefined_workflow()
+            self.workmanager_page.entry_workflow['values'] = get_predefined_workflow()
         
         self.workmanager_page._var['workflow'].trace_add('write', self.create_workflow_ui)
         self.app.proceed_button.config(command= self.start_workflow)

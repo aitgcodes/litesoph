@@ -156,6 +156,7 @@ class WorkManagerPage(ttk.Frame):
             'multiplicity': ['int', 1]
         }
 
+        self.workflow_list = []
         self.parent = parent
         self.engine = tk.StringVar(value='auto-mode')
         self._var = var_define(self._default_var)
@@ -274,7 +275,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_workflow['font'] = myfont()
         self.label_workflow.grid(row=1, column=0, sticky='w', padx=5,  pady=10)       
 
-        self.entry_workflow = ttk.Combobox(self.workflow_frame, textvariable=self._var['workflow'],width=22)
+        self.entry_workflow = ttk.Combobox(self.workflow_frame, textvariable=self._var['workflow'],width=22, values= self.workflow_list)
         self.entry_workflow['font'] = myfont()
         #self.entry_workflow.current(0)
         self.entry_workflow.config(state='readonly')
