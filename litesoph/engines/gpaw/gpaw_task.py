@@ -421,34 +421,8 @@ def get_eigen_energy(td_out_file):
                 data.append([float(val) for val in vals])
         return data
 
-class GpawPostProMasking(Task):
+class GpawPostProMasking(GpawTask):
 
-    NAME = 'gpaw'
-
-    simulation_tasks =  [tt.GROUND_STATE, tt.RT_TDDFT]
-    post_processing_tasks = [tt.COMPUTE_SPECTRUM, tt.TCM, tt.MO_POPULATION, 'masking']
-    implemented_task = simulation_tasks + post_processing_tasks
-
-    def __init__(self, lsconfig, 
-                task_info: TaskInfo, 
-                dependent_tasks: Union[List[TaskInfo],None]= None
-                ) -> None:
-
-        super().__init__(lsconfig, task_info, dependent_tasks)
-
-        if not self.task_name in self.implemented_task: 
-            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
-        self.task_data = gpaw_data.get(self.task_name)
-        self.params = copy.deepcopy(self.task_info.param)
-
-        self.user_input = {}
-        self.user_input['task'] = self.task_name
-        if tt.GROUND_STATE == self.task_name:
-            self.user_input.update(format_gs_input(self.params))
-        else:
-            self.user_input.update(self.params)
-
-        self.setup_task(self.user_input)
 
     def setup_task(self, param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
@@ -481,15 +455,3 @@ class GpawPostProMasking(Task):
         plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
         plt.show()
 
-    @staticmethod
-    def get_engine_network_job_cmd():
-
-        job_script = """
-##### Please Provide the Excutable Path or environment of GPAW 
-##eval "$(conda shell.bash hook)"
-##conda activate <environment name>"""
-        return job_script
-
-def get_polarization_direction(task_info):
-    pol = task_info.param.get('polarization')
-    return get_direction(pol)
