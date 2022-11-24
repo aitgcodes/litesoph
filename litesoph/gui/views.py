@@ -508,7 +508,7 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
     obj.entry_out_frq['font'] = myFont
     obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
-class LaserDesignPageOld(View):
+class LaserDesignPage(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -916,8 +916,12 @@ class LaserDesignPageOld(View):
                 td_dict.update({'mask': self.get_mask()})
         
         return td_dict       
+    
+    def set_parameters(self, param):
+        pass
 
     def back_button(self):
+        return
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
 
     def set_label_msg(self,msg):
@@ -1863,7 +1867,7 @@ class GroundStatePage(View):
         self.inp.init_widgets(fields=self.inp.fields,
                         ignore_state=False,var_values=default_gui_dict)
 
-class LaserDesignPage(View):
+class LaserDesignPageNew(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)

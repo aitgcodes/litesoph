@@ -93,6 +93,20 @@ predefined_workflow = {
                             '2' : '1',
                             '3' : ['0', '1']}
     },
-
+    "masking": {
+        "name": "Masking",
+        "blocks": ['Ground State', 'RT TDDFT',],
+        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+                    step(1 ,1 ,tt.RT_TDDFT,{
+                                        'properties':['spectrum', 'ksd'],
+                                                }, {
+                                                'laser': True
+                                                }),
+                    step(2 ,2 ,tt.COMPUTE_SPECTRUM)],
+        
+        "dependency_map": {'0' : None,
+                            '1' : '0',
+                            '2' : '1'}
+    },
 }
 
