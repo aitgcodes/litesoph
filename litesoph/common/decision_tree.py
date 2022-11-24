@@ -19,6 +19,7 @@ workflow_compatibility = {
     "averaged_spectrum": ls_integrated_engines,
     "kohn_sham_decomposition": ["octopus","gpaw",],
     "mo_population_tracking": ls_integrated_engines,
+    "masking":["gpaw"]
     }
 
 xc_hybrid = ["B3LYP", "PBE0","CAMY-B3LYP","CAM-B3LYP",
