@@ -2280,7 +2280,7 @@ class LaserDesignPage(View):
         self.inp.grid(row=0, column=0)
         self.trace_variables()
         
-        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Laser Design", activebackground="#78d6ff")
+        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Laser Design", activebackground="#78d6ff", command=self.laser_button)
         self.button_laser_design['font'] = myFont
         self.button_laser_design.grid(column=1,padx=3)
 
@@ -2301,12 +2301,22 @@ class LaserDesignPage(View):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
 
+        set_state(self.inp.group["Masking Inputs"],'disabled')
+
     def trace_variables(self, *_):
         for name, var in self.inp.variable.items():
             if name in ["pump_probe", "probe_options"]:
                 var.trace("w", self.trace_pump_probe)          
+            elif name in ["masking"]:
+                var.trace("w", self.trace_masking_option) 
             else:
                 var.trace("w", self.inp.update_widgets)
+
+    def trace_masking_option(self, *_):
+        if self.inp.variable["masking"].get():
+            set_state(self.inp.group["Masking Inputs"],'normal' )
+        else:
+            set_state(self.inp.group["Masking Inputs"],'disabled')
 
     def trace_probe_option(self, *_):        
         if self.inp.variable["probe_options"].get() == "Delta Probe":
@@ -2343,11 +2353,111 @@ class LaserDesignPage(View):
                     child.grid_remove()
             self.inp.update_widgets()
     
+    def get_pol_list(self, pol_var:str):
+        assert pol_var in ["X", "Y", "Z"] 
+        if pol_var == "X":
+            pol_list = [1,0,0]         
+        elif pol_var == "Y":
+            pol_list = [0,1,0] 
+        elif pol_var == "Z":
+            pol_list = [0,0,1]                
+        return pol_list
+    
+    def get_property_list(self, gui_values:dict):
+        prop_list = ['spectrum']
+
+        if gui_values.get("ksd") is True:
+            prop_list.append("ksd")
+        if gui_values.get("mo_population") is True:
+            prop_list.append("mo_population")    
+        return prop_list   
+
+    def get_laser_details(self):
+        from litesoph.utilities.units import as_to_au
+
+        gui_dict = self.inp.get_values()
+        pump_probe = gui_dict.get("pump_probe")
+        laser_list = []
+
+        if pump_probe:
+            probe_laser = gui_dict.get("probe_options")
+            laser_input = None
+        else:
+            laser_input = {
+                "type":"gaussian",
+                "param":{
+                    "tin" : gui_dict.get("time_origin")*as_to_au,
+                    "inval" :  gui_dict.get("log_val"),
+                    "strength": gui_dict.get("laser_strength"),  
+                    "fwhm" :gui_dict.get("fwhm"),
+                    "frequency" :  gui_dict.get("freq"),
+                    "total_time" : gui_dict.get("laser_time")                    
+                    }
+            }
+        laser_list.append(laser_input)
+        return laser_list       
+
+    def get_laser_pulse(self):
+        list_of_laser_inp = self.get_laser_details()
+        if len(list_of_laser_inp)  == 1:
+            laser_pulse = list_of_laser_inp[0]["param"]
+            return laser_pulse
+        else:
+            #TODO Laser Module to handle multiple lasers
+            pass
+
+    def set_laser_design_dict(self, laser_calc_list:list):  
+        """ laser_calc_list: list of laser calc param"""
+        import copy
+
+        self.laser_calc_list = copy.deepcopy(laser_calc_list)
+        return self.laser_calc_list
+
+    # def calc_laser_design_param(self, laser_input_param:dict):
+    #     from litesoph.common.models import LaserDesignModel
+
+    #     self.laser_obj = LaserDesignModel(user_input = laser_input_param)
+    #     self.laser_obj.create_pulse()
+    #     print(self.laser_obj.l_design)        
+
     def get_parameters(self):
+        gui_dict = self.inp.get_values()
+        self.pol_list = self.get_pol_list(gui_dict.get("pol_dir"))
+
+        td_input = {
+            'strength': gui_dict.get("laser_strength"),
+            'polarization' : self.pol_list,
+            'time_step' : gui_dict.get("time_step"),
+            'number_of_steps' : gui_dict.get("number_of_steps"),
+            'output_freq': gui_dict.get("output_freq"),
+            'properties' : self.get_property_list(gui_dict),
+            # 'laser': [
+            #     {
+            #     "type": 'gaussian',
+            #     "param": {
+            #         "frequency": None,
+            #         "strength": None,    
+            #         "sigma": None,
+            #         "time0": None
+            #     }
+            # }],
+            'laser': self.laser_calc_list,
+            'masking': {},
+            "pump_probe" : False
+        }
+        return td_input
+
+    def set_parameters(self, default_param_dict:dict):
         pass
 
-    def set_parameters(self):
-        pass
+    def laser_button(self):
+        self.event_generate('<<DesignLaser>>')
+
+    def generate_input_button(self):
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
+
+    def save_button(self):
+        self.event_generate(f'<<Save{self.task_name}Script>>')
            
 class TimeDependentPage(View):           
     def __init__(self, parent, engine, task_name, *args, **kwargs):

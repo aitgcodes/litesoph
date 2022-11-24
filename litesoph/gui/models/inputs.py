@@ -286,6 +286,82 @@ gs_visible_default = {
         "bands": True,
 }
 
+td_delta_input ={
+        "laser_strength": {
+                "tab":"Delta Kick Input",
+                # "group": "laser details",
+                "text": "Laser Strength in a.u (Eo)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 1e-05,
+                # "switch": lambda k:
+                # k.get("pump_probe", False) is False
+                },
+       
+        "time_step": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Time step (in attosecond)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 10,
+                }, 
+        "number_of_steps": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Number of Steps",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 2000
+                },
+        "output_freq": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Frequency of data collection",
+                "help": None,
+                "widget": tk.Entry,
+                "type": int,
+                "default": 10
+                },
+        "pol_dir": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Polarization Direction",
+                "help": None,
+                "widget": Combobox,
+                "values": ["X","Y", "Z"],
+                "type": str
+                },
+        
+        "spectrum": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Absorption Spectrum",
+                "help": None,
+                "widget": Checkbutton,
+                "default": True
+                },
+        "ksd": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Kohn Sham Decomposition",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                }, 
+        "mo_population": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Population Correlation",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
+        }
+
 td_laser_input ={
         "pump_probe":{
                 "tab":"External Fields",
@@ -305,7 +381,7 @@ td_laser_input ={
                 "values": ["Delta Probe","Gaussian Probe"],
                 "switch": lambda k:
                 k.get("pump_probe", False) 
-                },
+                },       
         "time_origin": {
                 "tab":"External Fields",
                 "group": "laser details",
@@ -432,6 +508,121 @@ td_laser_input ={
                 "help": None,
                 "widget": Checkbutton,
                 "default": False
+                },
+        
+        "masking":{
+                "tab":"Masking",
+                "group": "Choose Masking",
+                "text": "Masked Electric Field",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
+        "mask_type": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Mask Type",
+                "help": None,
+                "widget": Combobox,
+                "values": ["Plane","Sphere"],
+                },
+        "boundary_type": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Boundary Type",
+                "help": None,
+                "widget": Combobox,
+                "values": ["Abrupt", "Smooth"],
+                },
+        "r_sig": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "RSig",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.1,
+                "switch": lambda k:
+                k.get("boundary_type")=="Abrupt"                  
+                
+                },
+        "mask_plane:axis": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Axis",
+                "help": None,
+                "widget": Combobox,
+                "values": ["X","Y", "Z"],
+                "switch": lambda k:
+                k.get("mask_type", '') == "Plane"
+                
+                },
+        "mask_plane:origin": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Origin",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Plane"
+                },        
+       
+        "mask_sphere:radius": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Radius (in angstrom)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+        "mask_sphere:origin": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Origin",
+                "help": None,
+                "widget": tk.Label,
+                "type": str,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+
+        "mask_sphere:origin_x": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "X",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+        "mask_sphere:origin_y": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Y",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+        "mask_sphere:origin_z": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Z",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
                 },
         }
 
@@ -592,79 +783,3 @@ button_frame_input = {
                 },
 
 }        
-
-td_delta_input ={
-        "laser_strength": {
-                "tab":"Delta Kick Input",
-                # "group": "laser details",
-                "text": "Laser Strength in a.u (Eo)",
-                "help": None,
-                "widget": tk.Entry,
-                "type": float,
-                "default": 1e-05,
-                # "switch": lambda k:
-                # k.get("pump_probe", False) is False
-                },
-       
-        "time_step": {
-                "tab":"Delta Kick Input",
-                # "group": "simulation ",
-                "text": "Time step (in attosecond)",
-                "help": None,
-                "widget": tk.Entry,
-                "type": float,
-                "default": 10,
-                }, 
-        "number_of_steps": {
-                "tab":"Delta Kick Input",
-                # "group": "simulation ",
-                "text": "Number of Steps",
-                "help": None,
-                "widget": tk.Entry,
-                "type": float,
-                "default": 2000
-                },
-        "output_freq": {
-                "tab":"Delta Kick Input",
-                # "group": "simulation ",
-                "text": "Frequency of data collection",
-                "help": None,
-                "widget": tk.Entry,
-                "type": int,
-                "default": 10
-                },
-        "pol_dir": {
-                "tab":"Delta Kick Input",
-                # "group": "simulation ",
-                "text": "Polarization Direction",
-                "help": None,
-                "widget": Combobox,
-                "values": ["X","Y", "Z"],
-                "type": str
-                },
-        
-        "spectrum": {
-                "tab":"Properties",
-                "group": "Observables to extract",
-                "text": "Absorption Spectrum",
-                "help": None,
-                "widget": Checkbutton,
-                "default": True
-                },
-        "ksd": {
-                "tab":"Properties",
-                "group": "Observables to extract",
-                "text": "Kohn Sham Decomposition",
-                "help": None,
-                "widget": Checkbutton,
-                "default": False
-                }, 
-        "mo_population": {
-                "tab":"Properties",
-                "group": "Observables to extract",
-                "text": "Population Correlation",
-                "help": None,
-                "widget": Checkbutton,
-                "default": False
-                },
-        }
