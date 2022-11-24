@@ -266,6 +266,7 @@ def assemable_rt(**kwargs):
         kwargs.update(laser)
         
         if mask is not None:
+            kwargs.update({'mask': mask})
             template = mask_external_field_template.format(**kwargs)
         else:
             template = external_field_template.format(**kwargs) 
