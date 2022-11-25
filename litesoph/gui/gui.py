@@ -195,7 +195,7 @@ class GUIAPP:
         self.show_project_summary()
         update_proj_list(path)
         self._get_engine()
-        self.navigation.create_project(path.name)
+        # self.navigation.create_project(path.name)
         
 
     def _on_open_project(self, *_):
