@@ -9,7 +9,7 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 
 from litesoph.gui.task_controller import TaskController
 from litesoph.gui.workflow_navigation import WorkflowNavigation
-from litesoph.gui.views import WorkManagerPage
+from litesoph.gui.views import WorkManagerPage, CreateWorkflowPage
 from litesoph.gui import actions
 from litesoph.gui.workflow_controller import WorkflowController, WorkflowModeController
 from litesoph.common.project_manager import ProjectManager
@@ -30,13 +30,43 @@ class ProjectController:
     def open_project(self, project_manager: ProjectManager):
         self.project_manager = project_manager
         self.workflow_list = project_manager.workflow_list
+        self.current_workflow_info = project_manager.current_workflow_info
+        self.open_workflow()
+        # self.app.create_workflow_frames()
+        # self.workmanager_page = self.app.show_frame(WorkManagerPage)
+        # self.workmanager_page.workflow_list = get_predefined_workflow()
+        # self.workmanager_page.button_select_geom.config(command=self._on_get_geometry_file)
+        # self.workmanager_page.button_view.config(command=self._on_visualize)
+        
+        # if hasattr(self.workmanager_page, 'entry_workflow'):
+        #     self.workmanager_page.entry_workflow['values'] = get_predefined_workflow()
+        
+        # self.workmanager_page._var['workflow'].trace_add('write', self.create_workflow_ui)
+        # self.app.proceed_button.config(command= self.start_workflow)
+        # if self.engine:
+        #     self.workmanager_page.engine.set(self.engine)
+
+    def open_workflow(self):
         self.app.create_workflow_frames()
+
+        if self.current_workflow_info.name:
+            
+            if not self.current_workflow_info.user_defined:
+                self._create_workflow_navigation(self.current_workflow_info.name)
+
+            workflow_controller = self._get_workflow_controller(self.current_workflow_info.name)
+            self.workflow_controller = workflow_controller(self, self.app)
+            self.workflow_manager = self.project_manager.open_workflow(self.current_workflow_info.uuid)
+            self.workflow_controller.start(self.workflow_manager)
+            return
+        
         self.workmanager_page = self.app.show_frame(WorkManagerPage)
+        self.workmanager_page.workflow_list = get_predefined_workflow()
         self.workmanager_page.button_select_geom.config(command=self._on_get_geometry_file)
         self.workmanager_page.button_view.config(command=self._on_visualize)
         
         if hasattr(self.workmanager_page, 'entry_workflow'):
-            self.workmanager_page.entry_workflow['value'] = get_predefined_workflow()
+            self.workmanager_page.entry_workflow['values'] = get_predefined_workflow()
         
         self.workmanager_page._var['workflow'].trace_add('write', self.create_workflow_ui)
         self.app.proceed_button.config(command= self.start_workflow)
@@ -55,17 +85,26 @@ class ProjectController:
             for widget in self.app.workflow_frame.winfo_children():
                 widget.destroy()
             self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow))
-
+    
+    def _create_workflow_navigation(self, workflow):
+        for widget in self.app.workflow_frame.winfo_children():
+                widget.destroy()
+        self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow))
+        
     def create_new_workflow(self):
-        label = 'yes'
-        self.project_manager.new_workflow(label)
+        workflow_label = self.workflow_create_window.get_value('workflow_name')
+        self.project_manager.new_workflow(workflow_label)
 
     def open_existing_workflow(self):
         pass
     
     def remove_workflow(self):
         pass
-
+    
+    def create_project_window(self, *_):
+        self.workflow_create_window = CreateWorkflowPage(self.main_window)
+        self.workflow_create_window.create_button.config(command= self.create_new_workflow)   
+    
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""
         try:

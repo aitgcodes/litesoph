@@ -63,11 +63,11 @@ octopus_data = {
     #         'dir': 'ksd',
     #         'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
 
-    # "mo_population":{'inp': None,
-    #         'req':[f'{engine_dir}/static/info',
-    #         f'{engine_dir}/td.general/projections'],
-    #         'dir': 'population',
-    #         'population_file': 'population.dat'}
+    tt.MO_POPULATION:{'inp': None,
+            # 'req':[f'{engine_dir}/static/info',
+            # f'{engine_dir}/td.general/projections'],
+            'dir': 'population',
+            'population_file': 'population.dat'}
 
 
     # "ksd": {'inp': f'{engine_dir}/ksd/oct.inp',
@@ -122,6 +122,7 @@ class OctopusTask(Task):
                              directory=Path(self.engine_dir), **self.user_input)
 
     def pre_run(self):
+
         self.input_filename = 'inp'
         self.task_input_filename = self.task_data.get('task_inp', 'inp')
         self.geom_file = str(self.project_dir / 'coordinate.xyz')
@@ -141,8 +142,7 @@ class OctopusTask(Task):
                 shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
             return
 
-        elif self.task_name == tt.TCM:
-            
+        elif self.task_name in self.added_post_processing_tasks:            
             td_info = self.dependent_tasks[1]
             if td_info:
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
@@ -182,12 +182,13 @@ class OctopusTask(Task):
 
         elif task == tt.TCM:
             pass
+
+        elif task == tt.MO_POPULATION:
+            pass
     
     def update_task_info(self, **kwargs):
         """ Updates self.task_info with current task info"""
         if self.task_name in self.added_post_processing_tasks:
-            # self.task_info.output['txt_out'] = str(Path(self.output_dir) / self.task_data.get('out_log'), '')
-            # self.task_info.output['out_files'] = str(Path(self.output_dir) / self.task_data.get('out_log'))
             return
             
         self.task_info.input['engine_input']['path'] = str(Path(self.engine_dir) / self.input_filename)
@@ -319,20 +320,20 @@ class OctopusTask(Task):
                 raise Exception(f"{result[cmd]['error']}")
             return
 
-        if self.task_name == 'mo_population':
+        if self.task_name == tt.MO_POPULATION:
             # first check if the file exists already 
             import numpy as np
             from litesoph.post_processing.mo_population import create_states_index
-            below_homo = kwargs.get('num_occupied_mo_plot',1)
-            above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
-            population_diff_file = self.task_dir/'population_diff.dat'
-            self.occ = self.octopus.read_info()[0]
-            
-            # time_unit = kwargs.get('time_unit')            
-            column_range = (self.occ-below_homo+1, self.occ+above_lumo)
-            legend_dict = create_states_index(num_below_homo=below_homo, num_above_lumo=above_lumo, homo_index=self.occ)
-            
-            population_data = np.loadtxt(population_diff_file)            
+            below_homo_plot = kwargs.get('num_occupied_mo_plot',1)
+            above_lumo_plot = kwargs.get('num_unoccupied_mo_plot',1)
+            population_diff_file = self.copy_task_dir/'population_diff.dat'
+            homo_index = self.user_input['num_occupied_mo']
+            # self.occ = self.octopus.read_info()[0] 
+
+            column_range = (homo_index-below_homo_plot+1, homo_index+above_lumo_plot)
+            legend_dict = create_states_index(num_below_homo=below_homo_plot, 
+                                            num_above_lumo=above_lumo_plot, homo_index=homo_index)            
+            population_data = np.loadtxt(population_diff_file)
             plot_multiple_column(population_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (in h_cut/eV)')
             return        
 
@@ -373,26 +374,18 @@ class OctopusTask(Task):
         try:            
             if self.task_name == tt.TCM:
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.copy_task_dir)
-            elif self.task_name == 'mo_population':
+            elif self.task_name == tt.MO_POPULATION:
                 from litesoph.post_processing.mo_population import calc_population_diff
-                population_file = self.task_dir/self.task_data.get('population_file')
+                population_file = self.copy_task_dir/self.task_data.get('population_file')
+                population_diff_file = self.copy_task_dir/'population_diff.dat'
                 [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
-                population_diff_file = self.task_dir/'population_diff.dat'
-                calc_population_diff(homo_index=occ,infile=population_file, outfile=population_diff_file)
+                
+                calc_population_diff(homo_index=below_homo,infile=population_file, outfile=population_diff_file)
             self.task_info.local['returncode'] = 0
             # self.local_cmd_out = [0]
         except Exception:
             self.task_info.local['returncode'] = 1
             # self.local_cmd_out = [1]
-
-    # def get_pol_list(self, status):
-    #     e_pol = status.get('octopus.rt_tddft_delta.param.TDPolarizationDirection')
-    #     assign_pol_list ={
-    #         1 : [1,0,0],
-    #         2 : [0,1,0],
-    #         3 : [0,0,1]
-    #     }
-    #     return(assign_pol_list.get(e_pol))
 
 ##---------------------------------------------------------------------------------------------------------------
 

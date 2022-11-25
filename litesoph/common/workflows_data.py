@@ -94,15 +94,16 @@ predefined_workflow = {
                             '3' : ['0', '1']}
     },
     "masking": {
-        "name": "Masking",
-        "blocks": ['Ground State', 'RT TDDFT',],
+        "name": "Masking", 
+        "blocks": ['Ground State', 'RT TDDFT', 'Diople Moment Analysis'],
         "steps" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1 ,1 ,tt.RT_TDDFT,{
-                                        'properties':['spectrum', 'ksd'],
-                                                }, {
+                                        'properties':['spectrum'],
+                                                }, 
+                                                {
                                                 'laser': True
                                                 }),
-                    step(2 ,2 ,tt.COMPUTE_SPECTRUM)],
+                    step(2 ,2 ,tt.MASKING)],
         
         "dependency_map": {'0' : None,
                             '1' : '0',

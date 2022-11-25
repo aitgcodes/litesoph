@@ -8,7 +8,10 @@ from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
-from litesoph.gui.task_controller import TaskController
+from litesoph.gui.task_controller import (TaskController,
+                                            LaserPageController,
+                                            PostProcessTaskController,
+                                            MaskingPageController)
 from litesoph.gui import views as v
 
 
@@ -16,9 +19,9 @@ task_view_map={
     tt.GROUND_STATE: v.GroundStatePage,
     tt.RT_TDDFT: [v.TimeDependentPage, v.LaserDesignPage],
     tt.COMPUTE_SPECTRUM: v.PlotSpectraPage,
-    tt.TCM: v.TcmPage,
+    tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
-    tt.MASKING: v.MaskingPage
+    tt.MASKING: v.MaskingPage,
 }
 
 class WorkflowController:
@@ -29,9 +32,8 @@ class WorkflowController:
         self.workflow_navigation_view = project_controller.workflow_navigation_view
         self.main_window = app.main_window
         self.view_panel = app.view_panel
-        self.task_controller = TaskController(self,  app)
-    
 
+        
     def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
         self.user_defined_workflow = self.workflow_manager.user_defined
@@ -56,6 +58,9 @@ class WorkflowController:
                 return
         task_name, task_view = task_and_view   
         self.workflow_manager.next(task_name)
+
+        self.task_controller = get_task_controller(task_view, self, self.app)
+        
         self.task_controller.set_task(self.workflow_manager, task_view)
 
     def _get_task(self) -> Union[tuple, None]:
@@ -125,7 +130,7 @@ class WorkflowController:
             return (tt.MASKING, v.MaskingPage)
             #self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
 
-
+    
 class WorkflowModeController(WorkflowController):
 
     def __init__(self, project_controller, app) -> None:
@@ -151,9 +156,33 @@ class WorkflowModeController(WorkflowController):
         except TaskSetupError as e:
             messagebox.showerror(title='Error', message=e)
             return
+        
         task_view = task_view_map.get(self.workflow_manager.current_task_info.name)
+
         if isinstance(task_view, list):
-            task_view = task_view[0]
+            env_param = self.workflow_manager.current_container.env_parameters
+            laser_option = env_param.get('laser', None)
+            if laser_option:
+                task_view = task_view[1]
+            else:
+                task_view = task_view[0]
+
+        self.task_controller = get_task_controller(task_view, self, self.app)
+
         block_id = self.workflow_manager.current_container.block_id
         self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)
+
+
+def get_task_controller( task_view, workflow_controller, app) -> TaskController:
+    
+    if task_view == v.LaserDesignPage:
+        task_controller = LaserPageController
+    elif task_view == v.MaskingPage:
+        task_controller = MaskingPageController
+    elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
+        task_controller = PostProcessTaskController
+    else:
+        task_controller = TaskController
+        
+    return task_controller(workflow_controller, app)

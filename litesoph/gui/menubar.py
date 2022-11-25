@@ -70,6 +70,7 @@ from tkinter import messagebox
 class GenericMainMenu(tk.Menu):
   """The Application's main menu"""
 
+
   accelerators = {
     'file_open': 'Ctrl+O',
     'quit': 'Ctrl+Q',
@@ -98,7 +99,14 @@ class GenericMainMenu(tk.Menu):
     menu.add_command(
       label='Select file…', command=self._event('<<FileSelect>>'),
       #image=self.icons.get('file'), compound=tk.LEFT
+
   )
+  def _add_new_Workflow(self, menu):
+
+        menu.add_command(
+        label='New Workflow…', command=self._event(actions.CREATE_NEW_WORKFLOW),
+        #image=self.icons.get('file'), compound=tk.LEFT
+    )
 
   def _add_new_project(self, menu):
 
@@ -224,6 +232,7 @@ class LinuxMainMenu(GenericMainMenu):
   def _build_menu(self):
     self._menus['File'] = tk.Menu(self, tearoff=False, **self.styles)
 #    self._add_file_open(self._menus['File'])
+    self._add_new_Workflow(self._menus['File'])
     self._add_new_project(self._menus['File'])
     self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
@@ -291,6 +300,9 @@ class MacOsMainMenu(GenericMainMenu):
 
     self._menus['File'] = tk.Menu(self, tearoff=False)
 #    self._add_file_open(self._menus['File'])
+    self._add_new_Workflow(self._menus['File'])
+    self._add_new_project(self._menus['File'])
+    self._add_open_project(self._menus['File'])
 
     self._menus['Edit'] = tk.Menu(self, tearoff=False)
     

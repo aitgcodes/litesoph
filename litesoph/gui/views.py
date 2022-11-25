@@ -156,6 +156,7 @@ class WorkManagerPage(ttk.Frame):
             'multiplicity': ['int', 1]
         }
 
+        self.workflow_list = []
         self.parent = parent
         self.engine = tk.StringVar(value='auto-mode')
         self._var = var_define(self._default_var)
@@ -274,7 +275,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_workflow['font'] = myfont()
         self.label_workflow.grid(row=1, column=0, sticky='w', padx=5,  pady=10)       
 
-        self.entry_workflow = ttk.Combobox(self.workflow_frame, textvariable=self._var['workflow'],width=22)
+        self.entry_workflow = ttk.Combobox(self.workflow_frame, textvariable=self._var['workflow'],width=22, values= self.workflow_list)
         self.entry_workflow['font'] = myfont()
         #self.entry_workflow.current(0)
         self.entry_workflow.config(state='readonly')
@@ -427,7 +428,67 @@ class WorkManagerPage(ttk.Frame):
                 self._var[key].set(value[1])
             except IndexError:
                 self._var[key].set('')    
+
+class SystemInfoPage(ttk.Frame):
+    
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self._default_var = {
+                'charge': ['int', 0],
+                'multiplicity': ['int', 1]
+            }
         
+        system_frame = ttk.Frame(self)
+        system_frame.grid(row=0, column=0, sticky='nsew')
+
+        self.label_upload_geom = tk.Label(system_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_upload_geom['font'] = myfont()
+        self.label_upload_geom.grid(row= 0,column=0, sticky='w', padx=5,  pady=5)       
+
+        self.button_select_geom = tk.Button(system_frame,text="Select",width=6,activebackground="#78d6ff",command=self._get_geometry_file)
+        self.button_select_geom['font'] = myfont()
+        self.button_select_geom.grid(row= 0,column=1, padx=5)       
+
+        self.label_message_upload = tk.Label(system_frame, text='', foreground='red')
+        self.label_message_upload['font'] = myfont()
+        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)       
+        
+        self.button_view = tk.Button(system_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
+        self.button_view['font'] = myfont()
+        self.button_view.grid(row= 0,column=3)
+
+        self.label_charge = tk.Label(system_frame, text="Charge",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_charge['font'] = myfont()
+        self.label_charge.grid(row=1,column=0, sticky='w', padx=5,  pady=5)       
+
+        self.entry_charge = tk.Entry(system_frame,width=6, textvariable=self._var['charge'])
+        self.entry_charge['font'] = myfont()
+        self.entry_charge.grid(row=1, column=1, padx=5,  pady=5)
+
+        self.label_multiplicity = tk.Label(system_frame, text="Multiplicity",  bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_multiplicity['font'] = myfont()
+        self.label_multiplicity.grid(row=2, column=0, sticky='w', padx=5,  pady=5)       
+
+        self.entry_multiplicity = tk.Entry(system_frame,width=6,  textvariable=self._var['multiplicity'])
+        self.entry_multiplicity['font'] = myfont()
+        self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
+
+    def _get_geometry_file(self):
+        self.event_generate(actions.GET_MOLECULE)
+        
+    def _geom_visual(self):
+        self.event_generate(actions.VISUALIZE_MOLECULE)
+
+    def show_upload_label(self):
+        show_message(self.label_message_upload,"Uploaded")
+
+    def get_parameters(self):
+        pass
+
+    def set_parameters(self):
+        pass
+    
 class View(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
@@ -1712,6 +1773,37 @@ class CreateProjectPage(tk.Toplevel):
     def get_value(self, key):
         return self._var[key].get()
 
+class CreateWorkflowPage(tk.Toplevel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self._default_var = {
+              'workflow_name' : ['str'],
+              
+          }
+
+        self._var = var_define(self._default_var)
+        self.attributes("-topmost", True)
+        self.grab_set()
+        self.lift()
+        self.title("Create New Workflow")     
+        self.geometry("550x200")
+        self.label_proj = tk.Label(self,text="Workflow Name",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_proj['font'] = label_design['font']
+        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+        self.entry_proj = tk.Entry(self,textvariable=self._var['proj_name'])
+        self.entry_proj['font'] = myfont()
+        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+        self.entry_proj.delete(0, tk.END)
+
+        self.create_button = tk.Button(self,text="Create",width=18, activebackground="#78d6ff")
+        self.create_button['font'] = myfont()
+        self.create_button.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
+            
+    def get_value(self, key):
+        return self._var[key].get()
     
 class GroundStatePage(View):
     
@@ -1883,7 +1975,7 @@ class LaserDesignPageNew(View):
         self.inp.grid(row=0, column=0)
         self.trace_variables()
         
-        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Laser Design", activebackground="#78d6ff")
+        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Laser Design", activebackground="#78d6ff", command=self.laser_button)
         self.button_laser_design['font'] = myFont
         self.button_laser_design.grid(column=1,padx=3)
 
@@ -1904,12 +1996,22 @@ class LaserDesignPageNew(View):
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
 
+        set_state(self.inp.group["Masking Inputs"],'disabled')
+
     def trace_variables(self, *_):
         for name, var in self.inp.variable.items():
             if name in ["pump_probe", "probe_options"]:
                 var.trace("w", self.trace_pump_probe)          
+            elif name in ["masking"]:
+                var.trace("w", self.trace_masking_option) 
             else:
                 var.trace("w", self.inp.update_widgets)
+
+    def trace_masking_option(self, *_):
+        if self.inp.variable["masking"].get():
+            set_state(self.inp.group["Masking Inputs"],'normal' )
+        else:
+            set_state(self.inp.group["Masking Inputs"],'disabled')
 
     def trace_probe_option(self, *_):        
         if self.inp.variable["probe_options"].get() == "Delta Probe":
@@ -1946,11 +2048,111 @@ class LaserDesignPageNew(View):
                     child.grid_remove()
             self.inp.update_widgets()
     
+    def get_pol_list(self, pol_var:str):
+        assert pol_var in ["X", "Y", "Z"] 
+        if pol_var == "X":
+            pol_list = [1,0,0]         
+        elif pol_var == "Y":
+            pol_list = [0,1,0] 
+        elif pol_var == "Z":
+            pol_list = [0,0,1]                
+        return pol_list
+    
+    def get_property_list(self, gui_values:dict):
+        prop_list = ['spectrum']
+
+        if gui_values.get("ksd") is True:
+            prop_list.append("ksd")
+        if gui_values.get("mo_population") is True:
+            prop_list.append("mo_population")    
+        return prop_list   
+
+    def get_laser_details(self):
+        from litesoph.utilities.units import as_to_au
+
+        gui_dict = self.inp.get_values()
+        pump_probe = gui_dict.get("pump_probe")
+        laser_list = []
+
+        if pump_probe:
+            probe_laser = gui_dict.get("probe_options")
+            laser_input = None
+        else:
+            laser_input = {
+                "type":"gaussian",
+                "param":{
+                    "tin" : gui_dict.get("time_origin")*as_to_au,
+                    "inval" :  gui_dict.get("log_val"),
+                    "strength": gui_dict.get("laser_strength"),  
+                    "fwhm" :gui_dict.get("fwhm"),
+                    "frequency" :  gui_dict.get("freq"),
+                    "total_time" : gui_dict.get("laser_time")                    
+                    }
+            }
+        laser_list.append(laser_input)
+        return laser_list       
+
+    def get_laser_pulse(self):
+        list_of_laser_inp = self.get_laser_details()
+        if len(list_of_laser_inp)  == 1:
+            laser_pulse = list_of_laser_inp[0]["param"]
+            return laser_pulse
+        else:
+            #TODO Laser Module to handle multiple lasers
+            pass
+
+    def set_laser_design_dict(self, laser_calc_list:list):  
+        """ laser_calc_list: list of laser calc param"""
+        import copy
+
+        self.laser_calc_list = copy.deepcopy(laser_calc_list)
+        return self.laser_calc_list
+
+    # def calc_laser_design_param(self, laser_input_param:dict):
+    #     from litesoph.common.models import LaserDesignModel
+
+    #     self.laser_obj = LaserDesignModel(user_input = laser_input_param)
+    #     self.laser_obj.create_pulse()
+    #     print(self.laser_obj.l_design)        
+
     def get_parameters(self):
+        gui_dict = self.inp.get_values()
+        self.pol_list = self.get_pol_list(gui_dict.get("pol_dir"))
+
+        td_input = {
+            'strength': gui_dict.get("laser_strength"),
+            'polarization' : self.pol_list,
+            'time_step' : gui_dict.get("time_step"),
+            'number_of_steps' : gui_dict.get("number_of_steps"),
+            'output_freq': gui_dict.get("output_freq"),
+            'properties' : self.get_property_list(gui_dict),
+            # 'laser': [
+            #     {
+            #     "type": 'gaussian',
+            #     "param": {
+            #         "frequency": None,
+            #         "strength": None,    
+            #         "sigma": None,
+            #         "time0": None
+            #     }
+            # }],
+            'laser': self.laser_calc_list,
+            'masking': {},
+            "pump_probe" : False
+        }
+        return td_input
+
+    def set_parameters(self, default_param_dict:dict):
         pass
 
-    def set_parameters(self):
-        pass
+    def laser_button(self):
+        self.event_generate('<<DesignLaser>>')
+
+    def generate_input_button(self):
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
+
+    def save_button(self):
+        self.event_generate(f'<<Save{self.task_name}Script>>')
            
 class TimeDependentPage(View):           
     def __init__(self, parent, engine, task_name, *args, **kwargs):
