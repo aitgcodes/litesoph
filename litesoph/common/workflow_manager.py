@@ -23,6 +23,9 @@ engine_classname = {
 class TaskSetupError(Exception):
     """Raised when unable to creating or opening task."""
 
+class WorkflowEnded(Exception):
+    """Raised when the workflow has ended."""
+
 class WorkflowManager:
 
     def __init__(self, 
@@ -216,7 +219,7 @@ class WorkflowMode(WorkflowManager):
         else:
             #container = self.containers[self.current_step[0]]
             if self.current_container.next is None:
-                raise TaskSetupError('No more tasks in the workflow.')
+                raise WorkflowEnded('No more tasks in the workflow.')
             task_id = self.current_container.next
             self.current_step[0] += 1
             self.current_container  = self.containers[self.current_step[0]]
