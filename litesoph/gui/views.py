@@ -428,7 +428,67 @@ class WorkManagerPage(ttk.Frame):
                 self._var[key].set(value[1])
             except IndexError:
                 self._var[key].set('')    
+
+class SystemInfoPage(ttk.Frame):
+    
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self._default_var = {
+                'charge': ['int', 0],
+                'multiplicity': ['int', 1]
+            }
         
+        system_frame = ttk.Frame(self)
+        system_frame.grid(row=0, column=0, sticky='nsew')
+
+        self.label_upload_geom = tk.Label(system_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_upload_geom['font'] = myfont()
+        self.label_upload_geom.grid(row= 0,column=0, sticky='w', padx=5,  pady=5)       
+
+        self.button_select_geom = tk.Button(system_frame,text="Select",width=6,activebackground="#78d6ff",command=self._get_geometry_file)
+        self.button_select_geom['font'] = myfont()
+        self.button_select_geom.grid(row= 0,column=1, padx=5)       
+
+        self.label_message_upload = tk.Label(system_frame, text='', foreground='red')
+        self.label_message_upload['font'] = myfont()
+        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)       
+        
+        self.button_view = tk.Button(system_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
+        self.button_view['font'] = myfont()
+        self.button_view.grid(row= 0,column=3)
+
+        self.label_charge = tk.Label(system_frame, text="Charge",bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_charge['font'] = myfont()
+        self.label_charge.grid(row=1,column=0, sticky='w', padx=5,  pady=5)       
+
+        self.entry_charge = tk.Entry(system_frame,width=6, textvariable=self._var['charge'])
+        self.entry_charge['font'] = myfont()
+        self.entry_charge.grid(row=1, column=1, padx=5,  pady=5)
+
+        self.label_multiplicity = tk.Label(system_frame, text="Multiplicity",  bg=label_design['bg'],fg=label_design['fg'])  
+        self.label_multiplicity['font'] = myfont()
+        self.label_multiplicity.grid(row=2, column=0, sticky='w', padx=5,  pady=5)       
+
+        self.entry_multiplicity = tk.Entry(system_frame,width=6,  textvariable=self._var['multiplicity'])
+        self.entry_multiplicity['font'] = myfont()
+        self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
+
+    def _get_geometry_file(self):
+        self.event_generate(actions.GET_MOLECULE)
+        
+    def _geom_visual(self):
+        self.event_generate(actions.VISUALIZE_MOLECULE)
+
+    def show_upload_label(self):
+        show_message(self.label_message_upload,"Uploaded")
+
+    def get_parameters(self):
+        pass
+
+    def set_parameters(self):
+        pass
+    
 class View(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
@@ -1713,6 +1773,37 @@ class CreateProjectPage(tk.Toplevel):
     def get_value(self, key):
         return self._var[key].get()
 
+class CreateWorkflowPage(tk.Toplevel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self._default_var = {
+              'workflow_name' : ['str'],
+              
+          }
+
+        self._var = var_define(self._default_var)
+        self.attributes("-topmost", True)
+        self.grab_set()
+        self.lift()
+        self.title("Create New Workflow")     
+        self.geometry("550x200")
+        self.label_proj = tk.Label(self,text="Workflow Name",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_proj['font'] = label_design['font']
+        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+        self.entry_proj = tk.Entry(self,textvariable=self._var['proj_name'])
+        self.entry_proj['font'] = myfont()
+        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+        self.entry_proj.delete(0, tk.END)
+
+        self.create_button = tk.Button(self,text="Create",width=18, activebackground="#78d6ff")
+        self.create_button['font'] = myfont()
+        self.create_button.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
+            
+    def get_value(self, key):
+        return self._var[key].get()
     
 class GroundStatePage(View):
     

@@ -17,7 +17,7 @@ GET_MOLECULE = '<<GetMolecule>>'
 VISUALIZE_MOLECULE = '<<VisualizeMolecule>>'
 CREATE_NEW_PROJECT = '<<CreateNewProject>>' 
 CREATE_PROJECT_WINDOW = '<<create_filemenu_project>>'
-
+CREATE_NEW_WORKFLOW = '<<CreateNewWorkflow>>'
 OPEN_PROJECT = '<<OpenExistingProject>>'
 ON_PROCEED = '<<SelectProceed>>' 
 ON_BACK_BUTTON = '<<ClickBackButton>>'
