@@ -47,7 +47,8 @@ class WorkflowManager:
         self.dependencies_map = workflow_info.dependencies_map
         self.user_defined = workflow_info.user_defined = True
         self.current_task_info = None
-        self.choose_default_engine()
+        if not self.workflow_info.engine:
+            self.choose_default_engine()
         
     def choose_default_engine(self):
         engine = self.workflow_info.param.get('engine', None)
@@ -195,6 +196,10 @@ class WorkflowMode(WorkflowManager):
             self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
             update_workflowinfo(self.workflow_from_db, workflow_info)
         
+        if self.current_step:
+            self.current_step[0] -= 1
+        self.current_container = self.containers[self.current_step[0]]
+    
     def choose_default_engine(self):
         self.workflow_info.engine = decide_engine(self.workflow_type)
         self.engine = self.workflow_info.engine        
@@ -224,7 +229,7 @@ class WorkflowMode(WorkflowManager):
             self.current_step[0] += 1
             self.current_container  = self.containers[self.current_step[0]]
         self.current_task_info = self.tasks.get(task_id)
-        
+
         if self.engine:
             self.current_task_info.engine = self.engine
             engine_manager = self._get_engine_manager(self.engine)

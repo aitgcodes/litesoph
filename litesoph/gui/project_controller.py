@@ -85,14 +85,12 @@ class ProjectController:
             workflow  = self.workmanager_page.get_value('workflow')
             if not workflow:
                 return
-            for widget in self.app.workflow_frame.winfo_children():
-                widget.destroy()
-            self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow))
+            self._create_workflow_navigation(workflow, True)
     
-    def _create_workflow_navigation(self, workflow):
+    def _create_workflow_navigation(self, workflow, name=False):
         for widget in self.app.workflow_frame.winfo_children():
                 widget.destroy()
-        self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow))
+        self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow, name))
         
     def create_new_workflow(self):
         workflow_label = self.workflow_create_window.get_value('workflow_name')
@@ -176,8 +174,11 @@ def get_predefined_workflow():
 
     return workflows
 
-def get_workflow_block(workflow_name):
-    workflow = get_workflow_type(workflow_name)
+def get_workflow_block(workflow, name=False):
+    
+    if name:
+        workflow = get_workflow_type(workflow)
+
     workflow_branch =  predefined_workflow.get(workflow)['blocks']
     return workflow_branch
 

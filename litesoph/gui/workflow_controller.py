@@ -138,7 +138,7 @@ class WorkflowModeController(WorkflowController):
 
     def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
-        self.workmanager_page = self.project_controller.workmanager_page
+        # self.workmanager_page = self.project_controller.workmanager_page
         self.app.proceed_button.config(command= self.start_task)
         
         self.start_task()        
