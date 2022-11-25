@@ -5,7 +5,7 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 
 from litesoph.common.task import Task, TaskFailed
 from litesoph.common.task_data import TaskTypes as tt
-from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
+from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError, WorkflowEnded
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
 from litesoph.gui.task_controller import (TaskController,
@@ -138,7 +138,7 @@ class WorkflowModeController(WorkflowController):
 
     def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
-        self.workmanager_page = self.project_controller.workmanager_page
+        # self.workmanager_page = self.project_controller.workmanager_page
         self.app.proceed_button.config(command= self.start_task)
         
         self.start_task()        
@@ -155,6 +155,11 @@ class WorkflowModeController(WorkflowController):
             self.workflow_manager.next()
         except TaskSetupError as e:
             messagebox.showerror(title='Error', message=e)
+            return
+        except WorkflowEnded as e:
+            messagebox.showinfo(title='Info', message="All the tasks in the workflow are completed successfully.")
+            block_id = self.workflow_manager.current_container.block_id
+            self.workflow_navigation_view.start(block_id + 1)
             return
         
         task_view = task_view_map.get(self.workflow_manager.current_task_info.name)

@@ -84,7 +84,8 @@ def set_state(widget, state):
                 set_state(child, state)
             else:
                 child.configure(state = state)      
-    
+    else:
+        widget.configure(state = state)   
 
 class StartPage(ttk.Frame):
 
@@ -1535,6 +1536,7 @@ class JobSubPage(ttk.Frame):
         self.network_job_type = tk.IntVar()
         self.sub_command = tk.StringVar()
         self.sub_job_type = tk.IntVar()
+        self.password_option = tk.IntVar()
 
         self.sub_job_type.trace_add(['write'], self._sub_command_option)
         self.sub_command.set('bash')
@@ -1650,50 +1652,59 @@ class JobSubPage(ttk.Frame):
         user_name_entry = tk.Entry(self.sub_job_frame,textvariable= self.username, width=20)
         user_name_entry['font'] = myfont()
         user_name_entry.grid(row=4, column=1,sticky='nsew', padx=2, pady=4)
- 
-        password_label = tk.Label(self.sub_job_frame, text= "Password", bg='gray', fg='black')
-        password_label['font'] = myfont()
-        password_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
 
-        password_entry = tk.Entry(self.sub_job_frame,textvariable= self.password, width=20, show = '*')
-        password_entry['font'] = myfont()
-        password_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
+        values = [0, 1]
+        txt=["With Password", "Password-less ssh"]
+        command = [lambda:[set_state(self.password_entry, 'normal')],
+                lambda:[set_state(self.password_entry, 'disabled')]]
+                
+        for (text, value, cmd) in zip(txt,values,command):            
+            tk.Radiobutton(self.sub_job_frame,  text=text,  variable=self.password_option, font=myfont2(),
+             justify='left',value=value,command=cmd).grid(row=value+5, column=0, ipady=5, sticky='w')
+ 
+        # password_label = tk.Label(self.sub_job_frame, text= "Password", bg='gray', fg='black')
+        # password_label['font'] = myfont()
+        # password_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
+
+        self.password_entry = tk.Entry(self.sub_job_frame,textvariable= self.password, width=20, show = '*')
+        self.password_entry['font'] = myfont()
+        self.password_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
 
         remote_path_label = tk.Label(self.sub_job_frame, text= "Remote Path", bg='gray', fg='black')
         remote_path_label['font'] = myfont()
-        remote_path_label.grid(row=6,column=0,sticky='nsew', padx=2, pady=4)
+        remote_path_label.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
 
         remote_path_entry = tk.Entry(self.sub_job_frame,textvariable= self.rpath, width=20)
         remote_path_entry['font'] = myfont()
-        remote_path_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
+        remote_path_entry.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)
 
         num_processor_label = tk.Label(self.sub_job_frame, text= "Number of Processors", bg='gray', fg='black')
         num_processor_label['font'] = myfont()
-        num_processor_label.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
+        num_processor_label.grid(row=8,column=0,sticky='nsew', padx=2, pady=4)
 
         num_processor_entry = Onlydigits(self.sub_job_frame,textvariable= self.processors, width=20)
         num_processor_entry['font'] = myfont()
-        num_processor_entry.grid(row=7,column=1,sticky='nsew', padx=2, pady=4)
+        num_processor_entry.grid(row=8,column=1,sticky='nsew', padx=2, pady=4)
 
         self.label_command = tk.Label(self.sub_job_frame, text="Submit command", bg='gray', fg='black')
         self.label_command['font'] = myfont()
-        self.label_command.grid(row=8, column=0,sticky='nsew', padx=5, pady=5)
+        self.label_command.grid(row=9, column=0,sticky='nsew', padx=5, pady=5)
 
         self.entry_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_command)
         self.entry_command['font'] = myfont()
-        self.entry_command.grid(row=8, column=1, ipadx=2, ipady=2)
+        self.entry_command.grid(row=9, column=1, ipadx=2, ipady=2)
       
         upload_button2 = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = self.create_job_script)
         upload_button2['font'] = myfont()
-        upload_button2.grid(row=9,column=0,sticky='nsew', padx=2, pady=4)
+        upload_button2.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)
 
         save_job_script = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = self.save_job_script)
         save_job_script['font'] = myfont()
-        save_job_script.grid(row=9,column=1,sticky='nsew', padx=2, pady=4)
+        save_job_script.grid(row=10,column=1,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=11,column=0,sticky='nsew', padx=2, pady=4)    
 
     def _sub_command_option(self, *_):
         if self.sub_job_type.get() == 0:
@@ -1727,6 +1738,12 @@ class JobSubPage(ttk.Frame):
         event = '<<Run'+self.task+'Network>>'
         self.event_generate(event)
         
+    def get_password_option(self):
+        password_enabled = False
+        if self.password_option.get() == 0:
+            password_enabled = True
+        return password_enabled
+
     def get_network_dict(self):
 
         network_job_dict = {

@@ -7,6 +7,7 @@ from typing import Union
 from litesoph.gui.visual_parameter import myfont
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 
+from litesoph.gui.navigation import ProjectTreeNavigation
 from litesoph.gui.task_controller import TaskController
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui.views import WorkManagerPage, CreateWorkflowPage
@@ -26,11 +27,13 @@ class ProjectController:
         self.main_window = app.main_window
         self.view_panel = app.view_panel
         self.workflow_navigation_view = None
+        self.project_tree_view = ProjectTreeNavigation(app)
 
     def open_project(self, project_manager: ProjectManager):
         self.project_manager = project_manager
         self.workflow_list = project_manager.workflow_list
         self.current_workflow_info = project_manager.current_workflow_info
+        self.project_tree_view.update(self.project_manager.project_info)
         self.open_workflow()
         # self.app.create_workflow_frames()
         # self.workmanager_page = self.app.show_frame(WorkManagerPage)
@@ -82,14 +85,12 @@ class ProjectController:
             workflow  = self.workmanager_page.get_value('workflow')
             if not workflow:
                 return
-            for widget in self.app.workflow_frame.winfo_children():
-                widget.destroy()
-            self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow))
+            self._create_workflow_navigation(workflow, True)
     
-    def _create_workflow_navigation(self, workflow):
+    def _create_workflow_navigation(self, workflow, name=False):
         for widget in self.app.workflow_frame.winfo_children():
                 widget.destroy()
-        self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow))
+        self.workflow_navigation_view = WorkflowNavigation(self.app.workflow_frame, get_workflow_block(workflow, name))
         
     def create_new_workflow(self):
         workflow_label = self.workflow_create_window.get_value('workflow_name')
@@ -173,8 +174,11 @@ def get_predefined_workflow():
 
     return workflows
 
-def get_workflow_block(workflow_name):
-    workflow = get_workflow_type(workflow_name)
+def get_workflow_block(workflow, name=False):
+    
+    if name:
+        workflow = get_workflow_type(workflow)
+
     workflow_branch =  predefined_workflow.get(workflow)['blocks']
     return workflow_branch
 

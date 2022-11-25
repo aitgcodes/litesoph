@@ -85,10 +85,12 @@ class TaskInfo(Info):
         output = data['output']
         network = data['network']
         local = data['local']
-
+        path = data.get('path')
+        if path is not None:
+            path = Path(path)
         return cls(_uuid = uuid, 
                     _name = name,
-                    path =Path(data['path']), 
+                    path =path, 
                     engine= engine, 
                     state= state,
                     param= param, 
