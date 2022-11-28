@@ -59,7 +59,7 @@ nwchem_data = {
 'restart': 'nwchem/restart'
 }
 
-class NwchemTask(Task):
+class BaseNwchemTask(Task):
 
     NAME = 'nwchem'
     simulation_tasks =  [tt.GROUND_STATE, tt.RT_TDDFT]
@@ -73,9 +73,6 @@ class NwchemTask(Task):
         
         super().__init__(lsconfig, task_info, dependent_tasks)
         
-        if not self.task_name in self.implemented_task: 
-            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
-
         self.task_data = nwchem_data.get(self.task_name)
         param = copy.deepcopy(self.task_info.param)
         if self.task_name == tt.GROUND_STATE:
@@ -84,6 +81,100 @@ class NwchemTask(Task):
             self.user_input = param
         self.create_engine(self.user_input)
     
+    def create_engine(self, param):
+        infile_ext = '.nwi'
+        outfile_ext = '.nwo'
+        task_dir = self.project_dir / 'nwchem' / self.task_name
+        self.task_dir = get_new_directory(task_dir)
+        label = str(self.project_dir.name)
+        file_name = self.task_data.get('file_name')
+        self.network_done_file = self.task_dir / 'Done'
+        self.task_info.input['engine_input']={}
+
+        if self.task_name in self.post_processing_tasks:
+
+            outfile = self.dependent_tasks[0].output.get('txt_out')
+            # self.engine_log = self.task_dir / self.outfile
+            if self.task_name == tt.MO_POPULATION:
+                outfile = self.dependent_tasks[1].output.get('txt_out')
+
+            self.nwchem = NWChem(outfile=outfile, 
+                            label=label, directory=self.task_dir)
+            return
+
+        param['perm'] = str(self.task_dir.parent / 'restart')
+        param['geometry'] = str(self.project_dir / 'coordinate.xyz')
+        
+        if self.task_name == tt.RT_TDDFT:
+            param['restart_kw'] = 'restart'
+            param['basis'] =self.dependent_tasks[0].engine_param.get('basis')
+            update_td_param(param)
+
+        file_name = self.task_data.get('file_name')
+        self.infile = file_name + infile_ext
+        self.outfile = file_name + outfile_ext
+        # self.engine_log = self.task_dir / self.outfile
+        self.task_info.input['engine_input']['path'] = str(self.task_dir / self.infile)
+        self.task_info.output['txt_out'] = str(self.task_dir / self.outfile)
+        self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
+                            label=label, directory=self.task_dir, **param)
+            
+    def write_input(self,):
+        if not self.task_dir.exists():
+            self.create_directory(self.task_dir)
+        template = self.task_info.input['engine_input']['data']
+        self.nwchem.write_input(template)
+
+    def create_template(self):
+        template = self.nwchem.create_input()
+        self.task_info.engine_param.update(self.user_input)
+        self.task_info.input['engine_input']['data'] = template
+
+    def create_job_script(self, np=1, remote_path=None) -> list:
+                
+        if remote_path:
+            self.engine_path = 'nwchem'
+
+        if self.task_name in self.simulation_tasks:
+            ofilename = self.outfile
+            ifilename =  self.infile
+            engine_cmd = self.engine_path + ' ' + str(ifilename) + ' ' + '>' + ' ' + str(ofilename)
+
+            if remote_path:
+                rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent.parent)
+                job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(rpath),
+                                        remote=True, module_load_block=self.get_engine_network_job_cmd())
+            else:
+                job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(self.task_dir),
+                                                mpi_path=self.mpi_path)
+        self.job_script = job_script
+        return self.job_script
+    
+    def prepare_input(self):
+        pass            
+
+    def get_engine_log(self):
+        if self.check_output():
+            return self.read_log(self.task_info.output['txt_out'])
+
+
+    def plot(self,**kwargs):
+        pass
+
+    @staticmethod
+    def get_engine_network_job_cmd():
+
+        job_script = """
+##### Please Provide the Excutable Path or environment of NWCHEM or load the module
+
+#eval "$(conda shell.bash hook)"
+#conda activate <environment name>
+
+#module load nwchem"""
+        return job_script
+    
+class NwchemTask(BaseNwchemTask):
+
     def create_engine(self, param):
         infile_ext = '.nwi'
         outfile_ext = '.nwo'
@@ -133,45 +224,6 @@ class NwchemTask(Task):
         template = self.nwchem.create_input()
         self.task_info.engine_param.update(self.user_input)
         self.task_info.input['engine_input']['data'] = template
-
-    def _create_spectrum_cmd(self, remote=False ):
-
-        td_out = self.dependent_tasks[0].output.get('txt_out')
-
-        self.pol, tag = get_pol_and_tag(self.dependent_tasks[0])
-
-        path = pathlib.Path(__file__)
-
-        if remote:
-            path_python = 'python3'
-        else:
-            path_python = self.python_path
-
-        nw_rtparse = str(path.parent /'nwchem_read_rt.py')
-        spectrum_file = str(path.parent / 'spectrum.py')
-        
-        dm_cmd = f'{path_python} {nw_rtparse} -x dipole -p {self.pol} -t {tag} {td_out} > {self.pol}.dat'
-
-        spec_cmd = f'{path_python} {spectrum_file} dipole.dat spec_{self.pol}.dat'
-        
-        return spec_cmd
-
-    def compute_spectrum(self):
-        self.create_directory(self.task_dir)
-        
-        td_out = self.dependent_tasks[0].output.get('txt_out')
-
-        self.pol, tag = get_pol_and_tag(self.dependent_tasks[0])
-        self.dipole_file = self.task_dir / 'dipole.dat'
-        self.spectra_file = self.task_dir / f'spec_{self.pol}.dat'
-        self.task_info.output['spectrum_file'] = str(self.spectra_file)
-        self.task_info.output['dm_file'] = str(self.dipole_file)
-        try:
-            self.nwchem.get_td_dipole(self.dipole_file, td_out, tag, polarization=self.pol)
-        except Exception:
-            raise
-        #else:
-        #    photoabsorption_spectrum(self.dipole_file, self.spectra_file,)
 
     def extract_mo_population(self):
         self.below_homo = below_homo = self.user_input['num_occupied_mo']
@@ -232,19 +284,12 @@ class NwchemTask(Task):
             else:
                 job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(self.task_dir),
                                                 mpi_path=self.mpi_path)
-        if self.task_name == 'spectrum':    
-            # self.compute_spectrum()
-            job_script = assemable_job_cmd(cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))
-
         self.job_script = job_script
         return self.job_script
     
     def prepare_input(self):
         if self.task_name == 'mo_population':
             return
-
-        if self.task_name == tt.COMPUTE_SPECTRUM:
-            self.compute_spectrum()
 
         if self.task_name in self.simulation_tasks:
             self.create_template()
@@ -276,11 +321,7 @@ class NwchemTask(Task):
 
     def plot(self,**kwargs):
 
-        if self.task_name == tt.COMPUTE_SPECTRUM:
-            img = self.spectra_file.parent / f"spec_{self.pol}.png"
-            plot_spectrum(self.spectra_file,img,0, 1, "Energy(eV)","Strength",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
-
-        elif self.task_name == 'mo_population':
+        if self.task_name == 'mo_population':
         
             below_homo = kwargs.get('num_occupied_mo_plot',1)
             above_lumo = kwargs.get('num_unoccupied_mo_plot',1)
@@ -293,17 +334,6 @@ class NwchemTask(Task):
             
             plot_multiple_column(pop_data, column_list=column_range, column_dict=legend_dict, xlabel='Time (au)')
     
-    @staticmethod
-    def get_engine_network_job_cmd():
-
-        job_script = """
-##### Please Provide the Excutable Path or environment of NWCHEM or load the module
-
-#eval "$(conda shell.bash hook)"
-#conda activate <environment name>
-
-#module load nwchem"""
-        return job_script
 
 def format_gs_param(gen_dict:dict) -> dict:
     param_data = nwchem_gs_param_data
