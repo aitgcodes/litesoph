@@ -198,7 +198,7 @@ class WorkflowMode(WorkflowManager):
         
         if self.current_step:
             self.current_step[0] -= 1
-        self.current_container = self.containers[self.current_step[0]]
+            self.current_container = self.containers[self.current_step[0]]
     
     def choose_default_engine(self):
         self.workflow_info.engine = decide_engine(self.workflow_type)
