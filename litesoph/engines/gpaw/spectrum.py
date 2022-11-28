@@ -88,7 +88,7 @@ class ComputeAveragedSpectrum(GpawTask):
             self.task_info.local.update({'returncode': 1,
                                         'output' : '',
                                         'error':str(e)})
-            raise
+    
         else:
             self.task_info.local.update({'returncode': 0,
                                         'output' : '',
@@ -96,4 +96,10 @@ class ComputeAveragedSpectrum(GpawTask):
 
     def plot(self, **kwargs):
         img = self.averaged_spec_file.with_suffix('.png')
-        plot_spectrum(str(self.averaged_spec_file),str(img),0, 1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
+        plot_spectrum(str(self.averaged_spec_file),
+                        str(img),
+                        0, 
+                        1, 
+                        "Energy (in eV)", 
+                        "Strength(in /eV)",
+                        xlimit=(self.user_input['e_min'], self.user_input['e_max']))
