@@ -39,7 +39,7 @@ predefined_workflow = {
 
     "averaged_spectrum": {
         "name": "Averaged Spectrum",
-        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum'],
+        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute Averaged Spectrum'],
         "steps" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1 ,1 ,tt.RT_TDDFT, {
                                         'polarization':[1,0,0],
@@ -52,7 +52,8 @@ predefined_workflow = {
                                                 }),
                     step(4 ,2 ,tt.COMPUTE_SPECTRUM),
                     step(5 ,2 ,tt.COMPUTE_SPECTRUM),
-                    step(6 ,2 ,tt.COMPUTE_SPECTRUM)],
+                    step(6 ,2 ,tt.COMPUTE_SPECTRUM),
+                    step(7, 3, tt.COMPUTE_AVERAGED_SPECTRUM)],
         
         "dependency_map": {'0' : None,
                             '1' : '0',
@@ -60,7 +61,8 @@ predefined_workflow = {
                             '3' : '0',
                             '4' : '1',
                             '5' : '2',
-                            '6' : '3' }
+                            '6' : '3',
+                            '7' : ['4', '5', '6'] }
     },
     "kohn_sham_decomposition": {
         "name" : "Kohn Sham Decomposition",

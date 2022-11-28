@@ -234,7 +234,7 @@ class WorkflowMode(WorkflowManager):
             self.current_task_info.engine = self.engine
             engine_manager = self._get_engine_manager(self.engine)
             param = engine_manager.get_default_task_param(self.current_task_info.name, self.get_task_dependencies())
-            param.update(self.current_container.env_parameters)
+            param.update(self.current_container.parameters)
             self.current_task_info.param.update(param)
         self.current_task_info.path = self.directory
         return self.current_task_info
