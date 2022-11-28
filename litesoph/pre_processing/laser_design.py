@@ -71,6 +71,7 @@ class GaussianPulse:
                          frequency=frequency,
                          sigma=sigma,
                          sincos=sincos)
+        self.name = "gaussian"
         self.s0 = strength
         self.t0 = time0 * as_to_au
         self.omega0 = frequency * eV_to_au
@@ -167,220 +168,28 @@ class GaussianPulse:
         np.savetxt(fname, np.stack((time_t, strength_t, derivative_t)).T,
                    fmt=fmt, header=header)
 
-
-
-class Laser(object):
-    def __init__(self):
-        pass
-
-    def strength(self, time):
-        return 0.0
-
-    def derivative(self, time):
-        return 0.0
-
-    def fourier(self, omega):
-        return 0.0
-
-    def write(self, fname, time_t):
+class DeltaPulse:
+    """ strength :au, time0: as, total_time:fs
         """
-        Write the values of the pulse to a file.
-
-        Parameters
-        ----------
-        fname
-            filename
-        time_t
-            times in attoseconds
-        """
-
-        time_t = time_t * as_to_au
-        strength_t = self.strength(time_t)
-        derivative_t = self.derivative(time_t)
-        fmt = '%12.6f %20.10e %20.10e'
-        header = '{:^10} {:^20} {:^20}'.format('time', 'strength',
-                                               'derivative')
-        np.savetxt(fname, np.stack((time_t, strength_t, derivative_t)).T,
-                   fmt=fmt, header=header)
-
-
-
-class G_DeltaPulse(Laser):
-    r"""
-    Laser pulse with Gaussian envelope:
-
-    .. math::
-
-        g(t) = s_0  \exp(-\sigma^2 (t - t_0)^2 / 2)
-
-
-    Parameters
-    ----------
-    strength: float
-        value of :math:`s_0` in atomic units
-    time0: float
-        value of :math:`t_0` in attoseconds
-    
-    
-    
-    """
-
-    def __init__(self, strength, time0,  sigma=200, 
-                 stoptime=np.inf):
-        self.dict = dict(name='G_DeltaPulse',
-                         strength=strength,
-                         time0=time0,
-  
-                         )
-        self.s0 = strength
-        self.t0 = time0 * as_to_au
-        
-        self.sigma = sigma * eV_to_au
-        self.stoptime = stoptime * as_to_au
-        
-
-    def strength(self, t):
-        
-        s = self.s0 * np.exp(-0.5 * self.sigma**2 * (t - self.t0)**2)
-        
-        flt = t < self.stoptime
-
-        return s * flt
-
-    def derivative(self, t):
-        
-        dt = t - self.t0
-        s = self.s0 * np.exp(-0.5 * self.sigma**2 * dt**2)
-        
-        return s
-
-    def fourier(self, omega):
-        
-        s = (self.s0 * np.sqrt(np.pi / 2) / self.sigma *
-             np.exp(-0.5 * (omega - self.omega0)**2 / self.sigma**2) *
-             np.exp(1.0j * self.t0 * omega))
-        if self.sincos == 'sin':
-            s *= 1.0j
-        return s
-
-    def todict(self):
-        return self.dict
-
-
-
-
-class DeltaLaser(Laser):
-    def __init__(self, strength, time0,stoptime=np.inf):
+    def __init__(self, strength, time0,total_time:float,stoptime=np.inf):
         self.dict = dict(name='DeltaLaser',
                          strength=strength,
                          time0=time0)
+        
+        self.name = "delta"
         self.s0 = strength
-        self.t0 = time0 * as_to_au
+        self.t0 = time0 
         self.stoptime = stoptime * as_to_au
+        self.total_time = total_time
 
+    def strength(self):
+        time_array = np.arange(self.total_time*1e3)        
+        strength_array = np.full_like(time_array, 0.0)
 
-    def strength(self, t):
-        """
-        Return the value of the pulse :math:`g(t)`.
-
-        Parameters
-        ----------
-        t
-            time in atomic units
-
-        Returns
-        -------
-        The value of the pulse.
-        """
-        # print(t)
-        # print(self.t0)
-        # lim=max(t)
-        # i,= np.where(np.isclose(t ,self.t0))
-        # j,= np.where(np.isclose(t ,lim))
-        # print(i)
-        # print(max(t))
-        # print(j)
-        # s=np.zeros(3000)
-        # if (t-self.t0).all() ==0:
-        delta=t-self.t0
-        
-        
-        
-        # print(self.stoptime)
-        if delta == 0:
-            # print('yes')
-            s = self.s0*1
-            # s[i]= s[i]+self.s0
-        else:
-        #     print('No')
-            s = self.s0*0
-        # s=np.zeros(np.inf)
-        # s[i]= s[i]+self.s0
-        # print(s)
-        # k==np.zeros(np.inf)
-        #print(self.t0)
-        #print(t)
-        #i#f self.t0 in t :
-        #   s = self.s0*1
-        #else:
-        #    s= self.s0*t*0
-
-        flt = t < self.stoptime
-        # * flt
-        # print(s)
-        # print(t,self.t0,delta,s)
-        return s * flt
-
-    # def strength(self, time):
-
-
-    #     return super().strength(time)
-
-
-    def derivative(self, t):
-        """
-        Return the derivative of the pulse :math:`g'(t)`.
-
-        Parameters
-        ----------
-        t
-            time in atomic units
-
-        Returns
-        -------
-        The derivative of the pulse.
-        """
-        s=0*t
-        # dt = t - self.t0
-        # s = self.s0 * np.exp(-0.5 * self.sigma**2 * dt**2)
-        # if self.sincos == 'sin':
-        #     s *= (-self.sigma**2 * dt * np.sin(self.omega0 * dt) +
-        #           self.omega0 * np.cos(self.omega0 * dt))
-        # else:
-        #     s *= (-self.sigma**2 * dt * np.cos(self.omega0 * dt) +
-        #           -self.omega0 * np.sin(self.omega0 * dt))
-        return s
-
-    def fourier(self, omega):
-        r"""
-        Return Fourier transform of the pulse :math:`g(\omega)`.
-
-        Parameters
-        ----------
-        omega
-            frequency in atomic units
-
-        Returns
-        -------
-        Fourier transform of the pulse.
-        """
-        s=0
-        # s = (self.s0 * np.sqrt(np.pi / 2) / self.sigma *
-        #      np.exp(-0.5 * (omega - self.omega0)**2 / self.sigma**2) *
-        #      np.exp(1.0j * self.t0 * omega))
-        # if self.sincos == 'sin':
-        #     s *= 1.0j
-        return s
-
-    def todict(self):
-        return self.dict    
+        for i in range(len(time_array)):
+            time_array[i]
+            delta = time_array[i]- self.t0
+            if abs(delta) == 0:
+                strength_array[i] = self.s0
+                break
+        return strength_array
