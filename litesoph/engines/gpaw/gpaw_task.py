@@ -123,18 +123,8 @@ class GpawTask(Task):
             self.task_info.output['dm_file'] = str(self.task_dir / param['dm_file'])
             if 'ksd' in param['properties'] or 'mo_population' in param['properties']:
                 param['wfile'] = 'wf.ulm'
-                print('here')
                 self.task_info.output['wfile'] = str(self.task_dir / param['wfile'])
             update_td_input(param)
-            return
-
-        if tt.COMPUTE_SPECTRUM == self.task_name:
-            param['dm_file'] = self.dependent_tasks[0].output.get('dm_file')
-            self.pol = get_polarization_direction(self.dependent_tasks[0])
-            param['spectrum_file'] = spec_file = f'spec_{self.pol[1]}.dat'
-            self.task_info.output['spectrum_file'] = str(self.task_dir / param['spectrum_file'])
-            update_spectrum_input(param)
-            self.spec_file = self.task_dir / spec_file
             return
 
         if tt.TCM == self.task_name:
@@ -216,9 +206,6 @@ class GpawTask(Task):
                                         outfile=self.mo_population_diff_file)
    
     def plot(self, **kwargs):
-        if self.task_name == tt.COMPUTE_SPECTRUM:
-            img = self.spec_file.with_suffix('.png')
-            plot_spectrum(str(self.spec_file),str(img),0, self.pol[0]+1, "Energy (in eV)", "Strength(in /eV)",xlimit=(self.user_input['e_min'], self.user_input['e_max']))
     
         if self.task_name == tt.TCM:
             from PIL import Image        

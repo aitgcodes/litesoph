@@ -19,6 +19,7 @@ task_view_map={
     tt.GROUND_STATE: v.GroundStatePage,
     tt.RT_TDDFT: [v.TimeDependentPage, v.LaserDesignPage],
     tt.COMPUTE_SPECTRUM: v.PlotSpectraPage,
+    tt.COMPUTE_AVERAGED_SPECTRUM: v.PlotSpectraPage,
     tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
     tt.MASKING: v.MaskingPage,
