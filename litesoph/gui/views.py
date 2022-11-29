@@ -2084,30 +2084,84 @@ class LaserDesignPageNew(View):
             prop_list.append("mo_population")    
         return prop_list   
 
+    def get_mask(self, gui_dict:dict):                        
+        mask_input = {
+            "Type": gui_dict.get("mask_type"),            
+            "Boundary": gui_dict.get("boundary_type")
+            }
+            
+        if gui_dict.get("mask_type") == 'Plane':
+            mask_input.update({"Axis": gui_dict.get("mask_plane:axis"),
+                                "X0"  : gui_dict.get("mask_plane:origin")})
+        else:
+            mask_input.update({"Radius" : gui_dict.get("mask_sphere:radius"),
+                            "Centre":[gui_dict.get("mask_sphere:origin_x"),
+                                    gui_dict.get("mask_sphere:origin_y"),
+                                    gui_dict.get("mask_sphere:origin_z")]})
+        if gui_dict.get("boundary_type") == 'Smooth':
+            mask_input.update({"Rsig" : gui_dict.get("r_sig")})
+        
+        return mask_input
+
     def get_laser_details(self):
         from litesoph.utilities.units import as_to_au
 
         gui_dict = self.inp.get_values()
         pump_probe = gui_dict.get("pump_probe")
-        laser_list = []
+        # laser_list = [gui_dict.get("laser_time")]
 
         if pump_probe:
+            laser_list = [gui_dict.get("pump_probe:laser_time")]
             probe_laser = gui_dict.get("probe_options")
-            laser_input = None
+            assert probe_laser in ["Delta Probe","Gaussian Probe"]
+            pump_input = {                
+                "type":"gaussian",
+                "tin" : gui_dict.get("pump:time_origin")*as_to_au,
+                "inval" :  gui_dict.get("pump:log_val"),
+                "strength": gui_dict.get("pump:laser_strength"),  
+                "fwhm" :gui_dict.get("pump:fwhm"),
+                "frequency" :  gui_dict.get("pump:freq"),
+                "delay_time" : 0   
+            }
+            laser_list.append(pump_input)
+            probe_input = self.get_probe_input(gui_dict, probe_laser)
+            laser_list.append(probe_input)
         else:
+            laser_list = [gui_dict.get("laser_time")]
             laser_input = {
                 "type":"gaussian",
-                "param":{
-                    "tin" : gui_dict.get("time_origin")*as_to_au,
-                    "inval" :  gui_dict.get("log_val"),
-                    "strength": gui_dict.get("laser_strength"),  
-                    "fwhm" :gui_dict.get("fwhm"),
-                    "frequency" :  gui_dict.get("freq"),
-                    "total_time" : gui_dict.get("laser_time")                    
-                    }
+                "tin" : gui_dict.get("time_origin")*as_to_au,
+                "inval" :  gui_dict.get("log_val"),
+                "strength": gui_dict.get("laser_strength"),  
+                "fwhm" :gui_dict.get("fwhm"),
+                "frequency" :  gui_dict.get("freq"),
+                "delay_time" : 0        
             }
-        laser_list.append(laser_input)
+            laser_list.append(laser_input)
+
         return laser_list       
+
+    def get_probe_input(self,gui_inp:dict, probe_type:str):
+        from litesoph.utilities.units import as_to_au
+
+        if probe_type == "Delta Probe":
+            probe_dict = {
+                "type":"delta",
+                "strength": gui_inp.get("probe:delta strength"),
+                "tin" : gui_inp.get("pump:time_origin")*as_to_au,
+                "delay_time" :gui_inp.get("pump_probe:delay_time"),
+            } 
+        if probe_type == "Gaussian Probe":
+            probe_dict = {
+                "type":"gaussian",
+                "tin" : gui_inp.get("pump:time_origin")*as_to_au,
+                "inval" :  gui_inp.get("probe:log_val"),
+                "strength": gui_inp.get("probe:laser_strength"),  
+                "fwhm" :gui_inp.get("probe:fwhm"),
+                "frequency" :  gui_inp.get("probe:freq"),
+                "delay_time" :gui_inp.get("pump_probe:delay_time"),
+            } 
+        return probe_dict
 
     def get_laser_pulse(self):
         list_of_laser_inp = self.get_laser_details()
@@ -2125,13 +2179,6 @@ class LaserDesignPageNew(View):
         self.laser_calc_list = copy.deepcopy(laser_calc_list)
         return self.laser_calc_list
 
-    # def calc_laser_design_param(self, laser_input_param:dict):
-    #     from litesoph.common.models import LaserDesignModel
-
-    #     self.laser_obj = LaserDesignModel(user_input = laser_input_param)
-    #     self.laser_obj.create_pulse()
-    #     print(self.laser_obj.l_design)        
-
     def get_parameters(self):
         gui_dict = self.inp.get_values()
         self.pol_list = self.get_pol_list(gui_dict.get("pol_dir"))
@@ -2143,20 +2190,18 @@ class LaserDesignPageNew(View):
             'number_of_steps' : gui_dict.get("number_of_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
-            # 'laser': [
-            #     {
-            #     "type": 'gaussian',
-            #     "param": {
-            #         "frequency": None,
-            #         "strength": None,    
-            #         "sigma": None,
-            #         "time0": None
-            #     }
-            # }],
-            'laser': self.laser_calc_list,
-            'masking': {},
-            "pump_probe" : False
+            # 'laser':  [{'sigma': 6407.79, 'time0': 33682.7, 
+                        # 'type': 'gaussian', 'frequency': 2.0, 
+                        # 'strength': 1e-05},
+                        #  {'type': 'delta', 
+                        # 'strength': 1e-05, 
+                        # 'time0': 3000.0}
+            'laser': self.laser_calc_list[0],
+            # 'masking': {},
+            "pump_probe" : gui_dict.get("pump_probe")
         }
+        if gui_dict.get("masking"):
+            td_input.update({"masking": self.get_mask(gui_dict)})
         return td_input
 
     def set_parameters(self, default_param_dict:dict):
