@@ -2084,6 +2084,25 @@ class LaserDesignPageNew(View):
             prop_list.append("mo_population")    
         return prop_list   
 
+    def get_mask(self, gui_dict:dict):                        
+        mask_input = {
+            "Type": gui_dict.get("mask_type"),            
+            "Boundary": gui_dict.get("boundary_type")
+            }
+            
+        if gui_dict.get("mask_type") == 'Plane':
+            mask_input.update({"Axis": gui_dict.get("mask_plane:axis"),
+                                "X0"  : gui_dict.get("mask_plane:origin")})
+        else:
+            mask_input.update({"Radius" : gui_dict.get("mask_sphere:radius"),
+                            "Centre":[gui_dict.get("mask_sphere:origin_x"),
+                                    gui_dict.get("mask_sphere:origin_y"),
+                                    gui_dict.get("mask_sphere:origin_z")]})
+        if gui_dict.get("boundary_type") == 'Smooth':
+            mask_input.update({"Rsig" : gui_dict.get("r_sig")})
+        
+        return mask_input
+
     def get_laser_details(self):
         from litesoph.utilities.units import as_to_au
 
@@ -2178,9 +2197,11 @@ class LaserDesignPageNew(View):
                         # 'strength': 1e-05, 
                         # 'time0': 3000.0}
             'laser': self.laser_calc_list[0],
-            'masking': {},
+            # 'masking': {},
             "pump_probe" : gui_dict.get("pump_probe")
         }
+        if gui_dict.get("masking"):
+            td_input.update({"masking": self.get_mask(gui_dict)})
         return td_input
 
     def set_parameters(self, default_param_dict:dict):
