@@ -47,6 +47,7 @@ class TaskController:
 
     def generate_input(self, *_):
         
+        self.task_info.param.clear()
         inp_dict = self.task_view.get_parameters()
         if not inp_dict:
             return
@@ -351,7 +352,7 @@ class LaserPageController(TaskController):
         self.main_window.bind_all('<<DesignLaser>>', self._on_design_laser)
 
     def generate_input(self, *_):
-        
+        self.task_info.param.clear()
         if not self._on_choose_laser():
             return
         # self.task_view.set_laser_design_dict(self.laser_design.l_design)
@@ -364,7 +365,7 @@ class LaserPageController(TaskController):
         check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
         if not check:
             return
-        
+        self.task_info.param.clear()
         self.task_info.param.update(inp_dict)
         self.task = self.workflow_manager.get_engine_task()
         self.task.create_input()

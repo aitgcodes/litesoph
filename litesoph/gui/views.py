@@ -226,7 +226,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_select_option.grid(row=4, column=0, sticky='w', padx=5,  pady=5)   
 
         values = [1,2]
-        text = ["Predefined Workflow mode"," Task mode"]
+        text = ["Workflow mode"," Task mode"]
         command = [lambda:self.show_specific_workflow_frame(self.task_common_frame),
                    lambda:self.show_general_workflow_frame(self.task_common_frame)]        
 
@@ -1976,7 +1976,7 @@ class GroundStatePage(View):
         self.inp.init_widgets(fields=self.inp.fields,
                         ignore_state=False,var_values=default_gui_dict)
 
-class LaserDesignPageNew(View):
+class LaserDesignPage(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2187,7 +2187,7 @@ class LaserDesignPageNew(View):
             'strength': gui_dict.get("laser_strength"),
             'polarization' : self.pol_list,
             'time_step' : gui_dict.get("time_step"),
-            'number_of_steps' : gui_dict.get("number_of_steps"),
+            'number_of_steps' : gui_dict.get("num_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
             # 'laser':  [{'sigma': 6407.79, 'time0': 33682.7, 
