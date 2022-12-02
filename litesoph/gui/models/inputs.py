@@ -422,7 +422,7 @@ td_laser_input ={
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
-                "default": 0.01,
+                "default": 1,
                 "switch": lambda k:
                 k.get("pump_probe", False) is False
                 },
@@ -661,7 +661,7 @@ pump_input = {
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
-                "default": 0.01,
+                "default": 1,
                 },
         "pump:freq": {
                 "tab":"External Fields",
@@ -682,20 +682,20 @@ probe_delta_input = {
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
-                "default": 0,
+                "default": 1e-05,
                 },
         }
 
 probe_gaussian_input ={
-        "probe:time_origin": {
-                "tab":"External Fields",
-                "group": "probe laser details",
-                "text": "Time Origin (tin) in attosecond",
-                "help": None,
-                "widget": tk.Entry,
-                "type": float,
-                "default": 0,
-                },
+        # "probe:time_origin": {
+        #         "tab":"External Fields",
+        #         "group": "probe laser details",
+        #         "text": "Time Origin (tin) in attosecond",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0,
+        #         },
         "probe:log_val": {
                 "tab":"External Fields",
                 "group": "probe laser details",
@@ -721,7 +721,7 @@ probe_gaussian_input ={
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
-                "default": 0.01,
+                "default": 1,
                 },
         "probe:freq": {
                 "tab":"External Fields",
@@ -747,29 +747,13 @@ pump_probe_extra_input = {
         "pump_probe:delay_time": {
                 "tab":"External Fields",
                 "group": "extra details",
-                "text": "Delay time as a list",
+                "text": "Delay time (in femtosecond)",
                 "help": None,
                 "widget": tk.Entry,
-                "type": str,
-                "default": '0',
+                "type": float,
+                "default": 0,
                 },
-        "pump_probe:delay_time": {
-                "tab":"External Fields",
-                "group": "extra details",
-                "text": "Delay time as a list",
-                "help": None,
-                "widget": tk.Entry,
-                "type": str,
-                "default": '0',
-                },
-        # "laser_design": {
-        #         "tab":"External Fields",
-        #         "group": "extra details",
-        #         "text": "Laser Design",
-        #         "help": None,
-        #         "widget": Button,
-        #         "type": str,
-        #         },
+       
         }
 
 button_frame_input = {

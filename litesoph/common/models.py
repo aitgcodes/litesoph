@@ -2,11 +2,12 @@ from dataclasses import dataclass
 import pathlib
 import os
 import json
+from matplotlib import pyplot as plt
 import numpy as np
 from typing import Any, Dict
 from litesoph.common.data_sturcture.data_types import DataTypes as  DT
 from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
-
+from litesoph.pre_processing.laser_design import laser_design, GaussianPulse, DeltaPulse
 
 @dataclass
 class AutoModeModel:
@@ -288,3 +289,149 @@ class LaserDesignModelNew:
     #     filename = pathlib.Path(filename) 
     #     self.pulse.write(filename, np.arange(self.range))
 
+
+class LaserDesignPlotModel:
+    """ laser_inputs: list of laser inputs
+        laser_profile_time: in femtosecond
+    """
+    
+    def __init__(self, laser_inputs:list, laser_profile_time) -> None:
+        self.laser_inputs  = laser_inputs
+        if laser_profile_time:
+            self.laser_profile_time = laser_profile_time       
+    
+    def compute_laser_design_param(self, laser_type:str, laser_param:dict):
+        """ Calculates laser parameters specific to laser type"""
+        assert laser_type in ["gaussian", "delta"]
+
+        t_in=laser_param['tin']  #au unit
+        # delay wrt the time origin of first laser 
+        delay_time_fs = laser_param['delay_time']          
+        strength_au = laser_param['strength']
+
+        if laser_type == "gaussian":
+            freq_eV=laser_param['frequency']
+            strength_au = laser_param['strength']
+            inval=laser_param['inval']
+
+            # fwhm in frequency space 
+            fwhm_eV=laser_param['fwhm']
+
+            # Calculates fwhm/sigma(in time) and pulse centre(in time)
+            # creates gaussian pulse with given inval,fwhm value """
+            t_in_plus_delay = t_in + delay_time_fs*1e3*as_to_au
+            l_design = laser_design(inval,t_in_plus_delay,fwhm_eV)
+            l_design.update(
+                {'type': 'gaussian', 
+                # 'tin': t_in,
+                'frequency': freq_eV,
+                'strength': strength_au
+                })
+                
+            sigma_eV = round(autime_to_eV/l_design['sigma'], 2)
+            time0_fs = round(l_design['time0']*au_to_fs,2) 
+            pulse = GaussianPulse(strength= strength_au,
+                                time0= time0_fs*1e3,frequency= freq_eV,
+                                 sigma= sigma_eV, sincos='sin')
+            return (pulse, l_design) 
+
+        elif laser_type == "delta":  
+            time0=t_in*au_to_as + delay_time_fs *1e3
+            pulse = DeltaPulse(strength= strength_au,
+            time0= time0, total_time=self.laser_profile_time)
+
+            l_design={
+            'type': 'delta', 
+            "strength": strength_au,
+            "time0": time0,
+            } 
+            return (pulse, l_design)
+       
+    def get_laser_pulse_list(self):
+
+        self.list_of_pulse = []
+        self.list_of_laser_param = []
+
+        for n, laser in enumerate (self.laser_inputs):
+            laser_type = laser.get('type')
+            pulse_info = self.compute_laser_design_param(laser_type, laser)
+            self.list_of_pulse.append(pulse_info[0])
+            self.list_of_laser_param.append(pulse_info[1])
+            
+        return self.list_of_pulse
+
+    def get_time_strength(self, list_of_pulse:list):
+        """Plots single/multiple lasers given the delay"""
+
+        if list_of_pulse:
+            self.pulse_sets = list_of_pulse
+        else:
+            self.pulse_sets = self.get_laser_pulse()
+
+        laser_profile_time_fs = self.laser_profile_time
+        laser_profile_time_as = laser_profile_time_fs*1e3
+        time_array = np.arange(laser_profile_time_as)
+
+        laser_strengths = []        
+        for pulse in self.pulse_sets:
+            if pulse.name == "delta":
+                strength_value = pulse.strength()
+            if pulse.name == "gaussian":
+                strength_value = pulse.strength(time_array*as_to_au)
+            laser_strengths.append(strength_value)
+        self.time = time_array
+        self.strengths = laser_strengths
+
+        return (time_array,laser_strengths)     
+                
+    def write(self, fname, time_t, laser_strengths:list):
+        """
+        Write the values of the pulse to a file.
+
+        Parameters
+        ----------
+        fname
+            filename
+        time_t
+            times in attoseconds
+        """
+        time_t = time_t * as_to_au
+        fmt = '%20.10e'
+        # fmt = '%12.6f'
+        header = '{:^10}'
+
+        # fmt_str = '%12.6f %20.10e %20.10e'
+        fmt_str = '%12.6f'
+        header_str = ''
+
+        for i in range(len(laser_strengths)):
+            fmt_str = fmt_str + ' '+ fmt
+            header_str = header_str+header
+        
+        # Format header_string            
+        np.savetxt(fname, np.stack((time_t, *laser_strengths)).T,
+                   fmt=fmt_str, 
+                #    header=header
+                   )
+
+    def plot_laser(self, fname= None):
+        from litesoph.visualization.plot_spectrum import plot_multiple_column
+        if fname:
+            data = np.loadtxt(str(fname))
+        else:
+            data = np.stack((self.time, *self.strengths)).T
+        num_of_lasers = len(self.strengths)
+        data[:,0] = data[:,0]*as_to_au*au_to_fs
+
+        plot_multiple_column(data_array=data,
+        column_list=(1,num_of_lasers), xlabel= 'Time (in fs)', ylabel= 'Pulse Strength (in au)', xcolumn=0,        
+        column_dict = format_laser_label(num_of_lasers)
+        )
+
+def format_laser_label(number_of_lasers:int):
+    laser_label_dict = {}
+    
+    for i in range(number_of_lasers):
+        laser_label_dict.update({(i+1): "laser"+ str(i+1)})
+
+    return laser_label_dict

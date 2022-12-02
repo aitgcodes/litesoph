@@ -161,6 +161,7 @@ class WorkflowModeController(WorkflowController):
             messagebox.showinfo(title='Info', message="All the tasks in the workflow are completed successfully.")
             block_id = self.workflow_manager.current_container.block_id
             self.workflow_navigation_view.start(block_id + 1)
+            self.workflow_navigation_view.start(block_id + 2)
             return
         
         task_view = task_view_map.get(self.workflow_manager.current_task_info.name)
