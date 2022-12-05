@@ -178,7 +178,6 @@ class Task:
             check = self.task_info.network.get('sub_returncode', None)
         else:
             check = self.task_info.local.get('returncode', None)
-        print(check)
         if check is None:
             raise TaskFailed("Job not completed.")
         return True
