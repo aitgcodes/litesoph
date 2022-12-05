@@ -6,6 +6,7 @@ class TaskTypes(str, Enum):
     GROUND_STATE: str = 'ground_state'
     RT_TDDFT: str = 'rt_tddft'
     COMPUTE_SPECTRUM: str = 'spectrum'
+    COMPUTE_AVERAGED_SPECTRUM: str = 'compute_average_spectrum'
     TCM: str = 'tcm'
     MO_POPULATION: str = 'mo_population'
     MASKING: str = 'masking'

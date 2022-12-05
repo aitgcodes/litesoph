@@ -19,6 +19,7 @@ task_view_map={
     tt.GROUND_STATE: v.GroundStatePage,
     tt.RT_TDDFT: [v.TimeDependentPage, v.LaserDesignPage],
     tt.COMPUTE_SPECTRUM: v.PlotSpectraPage,
+    tt.COMPUTE_AVERAGED_SPECTRUM: v.PlotSpectraPage,
     tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
     tt.MASKING: v.MaskingPage,
@@ -160,6 +161,7 @@ class WorkflowModeController(WorkflowController):
             messagebox.showinfo(title='Info', message="All the tasks in the workflow are completed successfully.")
             block_id = self.workflow_manager.current_container.block_id
             self.workflow_navigation_view.start(block_id + 1)
+            self.workflow_navigation_view.start(block_id + 2)
             return
         
         task_view = task_view_map.get(self.workflow_manager.current_task_info.name)

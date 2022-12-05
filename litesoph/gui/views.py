@@ -226,7 +226,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_select_option.grid(row=4, column=0, sticky='w', padx=5,  pady=5)   
 
         values = [1,2]
-        text = ["Predefined Workflow mode"," Task mode"]
+        text = ["Workflow mode"," Task mode"]
         command = [lambda:self.show_specific_workflow_frame(self.task_common_frame),
                    lambda:self.show_general_workflow_frame(self.task_common_frame)]        
 
@@ -1976,7 +1976,7 @@ class GroundStatePage(View):
         self.inp.init_widgets(fields=self.inp.fields,
                         ignore_state=False,var_values=default_gui_dict)
 
-class LaserDesignPageNew(View):
+class LaserDesignPage(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2084,6 +2084,25 @@ class LaserDesignPageNew(View):
             prop_list.append("mo_population")    
         return prop_list   
 
+    def get_mask(self, gui_dict:dict):                        
+        mask_input = {
+            "Type": gui_dict.get("mask_type"),            
+            "Boundary": gui_dict.get("boundary_type")
+            }
+            
+        if gui_dict.get("mask_type") == 'Plane':
+            mask_input.update({"Axis": gui_dict.get("mask_plane:axis"),
+                                "X0"  : gui_dict.get("mask_plane:origin")})
+        else:
+            mask_input.update({"Radius" : gui_dict.get("mask_sphere:radius"),
+                            "Centre":[gui_dict.get("mask_sphere:origin_x"),
+                                    gui_dict.get("mask_sphere:origin_y"),
+                                    gui_dict.get("mask_sphere:origin_z")]})
+        if gui_dict.get("boundary_type") == 'Smooth':
+            mask_input.update({"Rsig" : gui_dict.get("r_sig")})
+        
+        return mask_input
+
     def get_laser_details(self):
         from litesoph.utilities.units import as_to_au
 
@@ -2168,7 +2187,7 @@ class LaserDesignPageNew(View):
             'strength': gui_dict.get("laser_strength"),
             'polarization' : self.pol_list,
             'time_step' : gui_dict.get("time_step"),
-            'number_of_steps' : gui_dict.get("number_of_steps"),
+            'number_of_steps' : gui_dict.get("num_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
             # 'laser':  [{'sigma': 6407.79, 'time0': 33682.7, 
@@ -2178,9 +2197,11 @@ class LaserDesignPageNew(View):
                         # 'strength': 1e-05, 
                         # 'time0': 3000.0}
             'laser': self.laser_calc_list[0],
-            'masking': {},
+            # 'masking': {},
             "pump_probe" : gui_dict.get("pump_probe")
         }
+        if gui_dict.get("masking"):
+            td_input.update({"masking": self.get_mask(gui_dict)})
         return td_input
 
     def set_parameters(self, default_param_dict:dict):
