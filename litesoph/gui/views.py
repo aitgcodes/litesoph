@@ -1810,7 +1810,7 @@ class CreateWorkflowPage(tk.Toplevel):
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
 
-        self.entry_proj = tk.Entry(self,textvariable=self._var['proj_name'])
+        self.entry_proj = tk.Entry(self,textvariable=self._var['workflow_name'])
         self.entry_proj['font'] = myfont()
         self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
         self.entry_proj.delete(0, tk.END)
