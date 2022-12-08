@@ -570,7 +570,7 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
     obj.entry_out_frq['font'] = myFont
     obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
-class LaserDesignPage(View):
+class LaserDesignPageold(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2108,7 +2108,6 @@ class LaserDesignPage(View):
 
         gui_dict = self.inp.get_values()
         pump_probe = gui_dict.get("pump_probe")
-        # laser_list = [gui_dict.get("laser_time")]
 
         if pump_probe:
             laser_list = [gui_dict.get("pump_probe:laser_time")]
@@ -2163,15 +2162,6 @@ class LaserDesignPage(View):
             } 
         return probe_dict
 
-    def get_laser_pulse(self):
-        list_of_laser_inp = self.get_laser_details()
-        if len(list_of_laser_inp)  == 1:
-            laser_pulse = list_of_laser_inp[0]["param"]
-            return laser_pulse
-        else:
-            #TODO Laser Module to handle multiple lasers
-            pass
-
     def set_laser_design_dict(self, laser_calc_list:list):  
         """ laser_calc_list: list of laser calc param"""
         import copy
@@ -2196,8 +2186,7 @@ class LaserDesignPage(View):
                         #  {'type': 'delta', 
                         # 'strength': 1e-05, 
                         # 'time0': 3000.0}
-            'laser': self.laser_calc_list[0],
-            # 'masking': {},
+            'laser': self.laser_calc_list,
             "pump_probe" : gui_dict.get("pump_probe")
         }
         if gui_dict.get("masking"):
