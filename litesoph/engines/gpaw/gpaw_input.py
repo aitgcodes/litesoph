@@ -263,7 +263,8 @@ def assemable_rt(**kwargs):
     mask = kwargs.pop('masking', None)
 
     if laser is not None:
-        kwargs.update(laser)
+        #TODO: update for multiple lasers
+        kwargs.update(laser[0])
         
         if mask is not None:
             kwargs.update({'mask': mask})

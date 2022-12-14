@@ -93,10 +93,14 @@ class BaseNwchemTask(Task):
 
         if self.task_name in self.post_processing_tasks:
 
-            outfile = self.dependent_tasks[0].output.get('txt_out')
-            # self.engine_log = self.task_dir / self.outfile
+             # TODO:relative paths
+            outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
+            # outfile = self.dependent_tasks[0].output.get('txt_out')
+                # self.engine_log = self.task_dir / self.outfile
             if self.task_name == tt.MO_POPULATION:
-                outfile = self.dependent_tasks[1].output.get('txt_out')
+                 # TODO:relative paths
+                outfile = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
+                # outfile = self.dependent_tasks[1].output.get('txt_out')
 
             self.nwchem = NWChem(outfile=outfile, 
                             label=label, directory=self.task_dir)
@@ -114,8 +118,12 @@ class BaseNwchemTask(Task):
         self.infile = file_name + infile_ext
         self.outfile = file_name + outfile_ext
         # self.engine_log = self.task_dir / self.outfile
-        self.task_info.input['engine_input']['path'] = str(self.task_dir / self.infile)
-        self.task_info.output['txt_out'] = str(self.task_dir / self.outfile)
+
+         # TODO:relative paths
+        self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.infile)
+        self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.project_dir) / self.outfile)
+        # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.infile)
+        # self.task_info.output['txt_out'] = str(self.task_dir / self.outfile)
         self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
                             label=label, directory=self.task_dir, **param)
             
@@ -155,7 +163,11 @@ class BaseNwchemTask(Task):
 
     def get_engine_log(self):
         if self.check_output():
-            return self.read_log(self.task_info.output['txt_out'])
+            # TODO:relative paths
+
+            log_file_path = str(self.project_dir/self.task_info.output['txt_out'])
+            return self.read_log(log_file_path)
+            # return self.read_log(self.task_info.output['txt_out'])
 
 
     def plot(self,**kwargs):
@@ -187,10 +199,14 @@ class NwchemTask(BaseNwchemTask):
 
         if self.task_name in self.post_processing_tasks:
 
-            outfile = self.dependent_tasks[0].output.get('txt_out')
-            # self.engine_log = self.task_dir / self.outfile
+             # TODO:relative paths
+            outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
+            # outfile = self.dependent_tasks[0].output.get('txt_out')
+                # self.engine_log = self.task_dir / self.outfile
             if self.task_name == tt.MO_POPULATION:
-                outfile = self.dependent_tasks[1].output.get('txt_out')
+                 # TODO:relative paths
+                outfile = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
+                # outfile = self.dependent_tasks[1].output.get('txt_out')
 
             self.nwchem = NWChem(outfile=outfile, 
                             label=label, directory=self.task_dir)
@@ -230,7 +246,9 @@ class NwchemTask(BaseNwchemTask):
         self.above_lumo = above_lumo = self.user_input['num_unoccupied_mo']
 
         self.create_directory(self.task_dir)
-        td_out = self.dependent_tasks[1].output.get('txt_out')
+         # TODO:relative paths
+        td_out = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
+        # td_out = self.dependent_tasks[1].output.get('txt_out')
 
         #self.energy_file = self.task_dir / 'energy_format.dat'
         eigen_data = self.nwchem.get_eigen_energy(td_out)
@@ -372,7 +390,7 @@ def update_td_param(param):
     out_freq = param.pop('output_freq')
     properties = param.pop('properties')
     laser = param.pop('laser', None)
-    masking = param.pop('masking')
+    # masking = param.pop('masking')
     
     param['rt_tddft'] = {'tmax': round(num_step * time_step * as_to_au,2),
                         'dt': round(time_step * as_to_au, 2),
