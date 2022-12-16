@@ -1844,24 +1844,34 @@ class GroundStatePage(View):
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
+        # self.button_clear = tk.Button(self.save_button_frame, text="Clear", activebackground="#78d6ff", command=lambda: self.clear_button())
+        # self.button_clear['font'] = myFont
+        # self.button_clear.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
+
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
-        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.button_view.grid(row=0, column=3,padx=3, pady=3,sticky='nsew')
+        # self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
         self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
-        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.button_save.grid(row=0, column=5, padx=3, pady=3,sticky='nsew')
+        # self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid(row=0, column=4, sticky='nsew')
+        # self.label_msg.grid(row=0, column=3, sticky='nsew')
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
         
     def back_button(self):
         return
-        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
+    
+    def clear_button(self):
+        self.event_generate(f'<<Clear{self.task_name}Script>>')
     
     def generate_input_button(self):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
