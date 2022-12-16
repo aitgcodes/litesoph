@@ -53,10 +53,7 @@ octopus_data = {
 
     tt.TCM: {'inp': None,
             'ksd_file': 'ksd/transwt.dat'},
-            # 'req':[f'{engine_dir}/static/info',
-            # f'{engine_dir}/td.general/projections'],
-            # 'dir': 'ksd',
-            # 'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
+            
     # "tcm": {'inp': None,
     #         'req':[f'{engine_dir}/static/info',
     #         f'{engine_dir}/td.general/projections'],
@@ -67,8 +64,7 @@ octopus_data = {
             # 'req':[f'{engine_dir}/static/info',
             # f'{engine_dir}/td.general/projections'],
             'dir': 'population',
-            'population_file': 'population.dat'}
-
+            'population_file': 'population.dat'},
 
     # "ksd": {'inp': f'{engine_dir}/ksd/oct.inp',
     #     'req':[f'{engine_dir}/static/info',
@@ -98,6 +94,8 @@ class OctopusTask(Task):
         if dependent_tasks:
             self.dependent_tasks = dependent_tasks
 
+        self.wf_dir = self.project_dir
+
         self.task_data = octopus_data.get(self.task_name)
         self.params = copy.deepcopy(self.task_info.param)        
         self.user_input = {}
@@ -106,6 +104,56 @@ class OctopusTask(Task):
 
         self.setup_task(self.user_input) 
     
+    def pre_run(self):
+
+        self.input_filename = 'inp'
+        self.task_input_filename = self.task_data.get('task_inp', 'inp')
+        self.geom_file = str(self.wf_dir / 'coordinate.xyz')
+
+        # absolute path attributes
+        self.engine_dir = str(self.wf_dir / 'octopus')
+        self.task_dir = str(Path(self.engine_dir) / self.task_name)
+        self.output_dir = str(Path(self.engine_dir) / 'log')
+        
+        self.task_info.input['engine_input']={}
+
+        for dir in [self.engine_dir, self.output_dir]:
+            self.create_directory(Path(dir))
+
+        if self.task_name == tt.COMPUTE_SPECTRUM:
+            td_info = self.dependent_tasks[0]
+            if td_info:
+                # TODO
+                # modify relative paths to absolute path 
+                # by prefixing wf_dir
+                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
+                td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
+                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+            return
+
+        elif self.task_name in self.added_post_processing_tasks:            
+            td_info = self.dependent_tasks[1]
+            if td_info:
+                # TODO
+                # modify relative paths to absolute path 
+                # by prefixing wf_dir
+                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
+                td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
+                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+
+
+    def update_task_info(self, **kwargs):
+        """ Updates self.task_info with current task info"""
+        if self.task_name in self.added_post_processing_tasks:
+            return
+        
+        # TODO:relative paths
+        self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
+        self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+            
+        # self.task_info.input['engine_input']['path'] = str(Path(self.engine_dir) / self.input_filename)
+        # self.task_info.output['txt_out'] = str(Path(self.output_dir) / self.task_data.get('out_log'))
+
     def setup_task(self, param:dict):               
         if self.task_name in self.added_post_processing_tasks:
             relative_infile = None
@@ -115,40 +163,16 @@ class OctopusTask(Task):
         self.update_task_info()
 
         relative_infile = self.input_filename
+
+        # TODO:relative paths
         if self.task_info.output.get('txt_out'):
-            relative_outfile = Path(self.task_info.output['txt_out']).relative_to(self.engine_dir)
+            # relative_outfile = Path(self.task_info.output['txt_out']).relative_to(self.engine_dir)
+            relative_outfile = Path(self.task_info.output['txt_out'])
 
         self.octopus = Octopus(infile= relative_infile, outfile=relative_outfile,
                              directory=Path(self.engine_dir), **self.user_input)
 
-    def pre_run(self):
-
-        self.input_filename = 'inp'
-        self.task_input_filename = self.task_data.get('task_inp', 'inp')
-        self.geom_file = str(self.project_dir / 'coordinate.xyz')
-        self.engine_dir = str(self.project_dir / 'octopus')
-        self.task_dir = str(Path(self.engine_dir) / self.task_name)
-        self.output_dir = str(Path(self.engine_dir) / 'log')
-        self.task_info.input['engine_input']={}
-
-        for dir in [self.engine_dir, self.output_dir]:
-            self.create_directory(Path(dir))
-
-        if self.task_name == tt.COMPUTE_SPECTRUM:
-            td_info = self.dependent_tasks[0]
-            if td_info:
-                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
-                td_folder_path = str(Path(td_info.output['task_dir']) / 'td.general')
-                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
-            return
-
-        elif self.task_name in self.added_post_processing_tasks:            
-            td_info = self.dependent_tasks[1]
-            if td_info:
-                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
-                td_folder_path = str(Path(td_info.output['task_dir']) / 'td.general')
-                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
-
+    
     def update_task_param(self):
         """ Updates param for the task and returns"""
         task = self.task_name
@@ -186,13 +210,7 @@ class OctopusTask(Task):
         elif task == tt.MO_POPULATION:
             pass
     
-    def update_task_info(self, **kwargs):
-        """ Updates self.task_info with current task info"""
-        if self.task_name in self.added_post_processing_tasks:
-            return
-            
-        self.task_info.input['engine_input']['path'] = str(Path(self.engine_dir) / self.input_filename)
-        self.task_info.output['txt_out'] = str(Path(self.output_dir) / self.task_data.get('out_log'))
+    
     
     def check_run_status(self):
         run_status = False
@@ -225,7 +243,7 @@ class OctopusTask(Task):
                 shutil.copy(Path(self.engine_dir) / item, Path(self.copy_task_dir)/ item)
 
     def write_input(self, template=None):
-        inp_filepath = self.task_info.input['engine_input']['path']
+        inp_filepath = self.wf_dir / str(self.task_info.input['engine_input']['path'])
 
         self.create_task_dir()             
         self.octopus.write_input(self.template)        
@@ -233,7 +251,10 @@ class OctopusTask(Task):
     
     def create_task_dir(self):
         self.copy_task_dir = get_new_directory(Path(self.task_dir))
-        self.task_info.output['task_dir'] = str(self.copy_task_dir)
+
+        # TODO:relative paths
+        self.task_info.output['task_dir'] = str(self.copy_task_dir.relative_to(self.wf_dir))
+        # self.task_info.output['task_dir'] = str(self.copy_task_dir)
 
         self.create_directory(self.copy_task_dir)   
 
@@ -249,12 +270,12 @@ class OctopusTask(Task):
        
         engine_path = copy.deepcopy(self.engine_path)
         mpi_path = copy.deepcopy(self.mpi_path)
-        cd_path = self.project_dir / self.engine_dir
+        cd_path = self.wf_dir / self.engine_dir
 
         if remote_path:
             mpi_path = 'mpirun'
             engine_path = 'octopus'
-            cd_path = Path(remote_path) / self.project_dir.parents[0].name / self.project_dir.name / 'octopus'
+            cd_path = Path(remote_path) / self.wf_dir.parents[0].name / self.wf_dir.name / 'octopus'
         
         extra_cmd = None
         if self.task_name == tt.GROUND_STATE and self.user_input['ExtraStates'] != 0:
@@ -398,7 +419,6 @@ property_dict = {
     "ksd": ["td_occup"],
     "mo_population": ["td_occup"]}
 
-
 def get_oct_kw_dict(inp_dict:dict, task_name:str):
     """ Acts on the input dictionary to return Octopus specifc keyword dictionary
         inp_dict: dictionary from gui
@@ -411,6 +431,7 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
         t_step = inp_dict.pop('time_step')
         property_list = inp_dict.pop('properties')
         laser = inp_dict.pop('laser', None)
+        pump_probe = inp_dict.get("pump_probe", False)
                   
         ### add appropriate keywords from property list
         _list = []
@@ -433,17 +454,60 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
         }
 
         if laser:
-            _dict2update = {'TDFunctions':[[str('"'+"envelope_gauss"+'"'),
-                                    'tdf_gaussian',
-                                    inp_dict.get('strength'),
-                                    laser['sigma'],
-                                    laser['time0']
-                                    ]],
-                    'TDExternalFields':[['electric_field',
-                                        pol_list[0],pol_list[1],pol_list[2],
-                                        str(laser['frequency'])+"*eV",
-                                        str('"'+"envelope_gauss"+'"')
-                                        ]] }
+            assert isinstance(laser, list)
+            if pump_probe is True:
+                # for multiple gaussian lasers 
+                _dict2update = {"task": "rt_tddft_pump_probe"}
+                
+                td_functions_list = []
+                td_ext_fields_list = []
+                for i, laser_inp in enumerate(laser):
+                    laser_type = laser_inp.get("type")                    
+                    if laser_type != "delta":
+                        # for laser other than delta pulse
+                        # Construct the td_functions, ext fields block
+                        laser_str = "laser"+str(i)
+                        td_functions_list.append(get_td_function(laser_dict=laser_inp,
+                                                laser_type= laser_type,
+                                                td_function_name=laser_str
+                                             ))
+                        td_ext_field = ['electric_field',
+                                    pol_list[0],pol_list[1],pol_list[2],
+                                    str(laser[i]['frequency'])+"*eV",
+                                    str('"'+laser_str+'"')
+                                    ]
+                        td_ext_fields_list.append(td_ext_field)
+
+                        _dict2update.update({
+                'TDFunctions': td_functions_list,
+                'TDExternalFields': td_ext_fields_list
+                    })
+
+                    else:
+                        # Get dict for delta pulse
+                        td_laser_dict = laser[i]
+                        if isinstance(pol_list, list):      
+                            for item in pol_list2dir:
+                                if item[0] == pol_list:
+                                    pol_dir = item[1]
+                        _dict2update.update({
+                        "TDDeltaStrength": td_laser_dict.get('strength'),
+                        "TDPolarizationDirection": pol_dir,
+                        "TDDeltaKickTime":td_laser_dict.get('time0'),
+                    })
+               
+            else:
+                _dict2update = {'TDFunctions':[[str('"'+"envelope_gauss"+'"'),
+                                        'tdf_gaussian',
+                                        inp_dict.get('strength'),
+                                        laser[0]['sigma'],
+                                        laser[0]['time0']
+                                        ]],
+                        'TDExternalFields':[['electric_field',
+                                            pol_list[0],pol_list[1],pol_list[2],
+                                            str(laser[0]['frequency'])+"*eV",
+                                            str('"'+"envelope_gauss"+'"')
+                                            ]] }
         else:
             if isinstance(pol_list, list):      
                 for item in pol_list2dir:
@@ -467,7 +531,6 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
         "PropagationSpectrumMaxEnergy": str(e_max)+"*eV",
         "PropagationSpectrumMinEnergy": str(e_min)+"*eV"
         }
-
     return _dict
 
 def calc_td_range(spacing:float):
@@ -479,7 +542,20 @@ def calc_td_range(spacing:float):
     max_dt_as = round(dt*au_to_as, 2)
     print(dt)
     return max_dt_as
-  
+
+def get_td_function(laser_dict:dict,laser_type:str,td_function_name:str = "envelope_gauss"):
+    laser_td_function_map = {
+        "gaussian": "tdf_gaussian"
+    }
+    # td_function block for gaussian pulse
+    td_func = [str('"'+td_function_name+'"'),
+                    laser_td_function_map.get(laser_type),
+                    laser_dict.get('strength'),
+                    laser_dict['sigma'],
+                    laser_dict['time0']
+                    ]
+    return td_func
+
 #------------------------------------------------------------------------------------------------------------
 
 # class OctopusTask(Task):

@@ -343,7 +343,7 @@ class LaserDesignPlotModel:
             l_design={
             'type': 'delta', 
             "strength": strength_au,
-            "time0": time0,
+            "time0": round(time0*as_to_au,2)
             } 
             return (pulse, l_design)
        

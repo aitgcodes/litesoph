@@ -396,7 +396,7 @@ td_laser_input ={
         "log_val": {
                 "tab":"External Fields",
                 "group": "laser details",
-                "text": "-log((E at tin)/Eo)",
+                "text": "-Relative strength at time origin (-ve powers of 10)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -407,7 +407,7 @@ td_laser_input ={
         "laser_strength": {
                 "tab":"External Fields",
                 "group": "laser details",
-                "text": "Laser Strength in a.u (Eo)",
+                "text": "Peak Strength in a.u (Eo)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
