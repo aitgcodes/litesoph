@@ -1,3 +1,4 @@
+import copy
 import tkinter as tk
 from tkinter import Tk
 from tkinter.ttk import Spinbox, Checkbutton, Combobox, Button
@@ -766,4 +767,436 @@ button_frame_input = {
                 "type": str,
                 },
 
-}        
+}   
+
+laser_td_input = {
+        "field_type":{
+                "tab":"External Fields",
+                "group": "Choose Options",
+                "text": "Type of fields",
+                "help": None,
+                "widget": Combobox,
+                "default": "Electric Field",
+                "values": ["None","Electric Field"],
+                },
+              
+        "exp_type": {
+                "tab":"External Fields",
+                "group": "Choose Options",
+                "text": "Type of Experiment",
+                "help": None,
+                "widget": Combobox,
+                "default": "Pump-Probe",
+                "values": ["State Preparation", "Pump-Probe"],
+                },
+
+        "delay_list": {
+                "tab":"External Fields",
+                "group": "Choose Options",
+                "text": "Delay time list in fs",
+                "help": None,
+                "widget": tk.Entry,
+                "type": str,
+                "default": "0",
+                "switch": lambda k:
+                k.get("exp_type") == "Pump-Probe"
+                },
+
+                
+
+        # "masking_option": {
+        #         "tab":"External Fields",
+        #         "group": "Choose Options",
+        #         "text": "Masking",
+        #         "help": None,
+        #         "widget": Checkbutton,
+        #         "default": False,
+                
+        #         }, 
+        # "log_val": {
+        #         "tab":"External Fields",
+        #         "group": "laser details",
+        #         "text": "-log((E at tin)/Eo)",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 6,
+        #         "switch": lambda k:
+        #         k.get("pump_probe", False) is False
+        #         },
+        # "laser_strength": {
+        #         "tab":"External Fields",
+        #         "group": "laser details",
+        #         "text": "Laser Strength in a.u (Eo)",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 1e-05,
+        #         "switch": lambda k:
+        #         k.get("pump_probe", False) is False
+        #         },
+        # "fwhm": {
+        #         "tab":"External Fields",
+        #         "group": "laser details",
+        #         "text": "Full Width Half Max (FWHM in eV)",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 1,
+        #         "switch": lambda k:
+        #         k.get("pump_probe", False) is False
+        #         },
+        # "freq": {
+        #         "tab":"External Fields",
+        #         "group": "laser details",
+        #         "text": "Frequency (in eV)",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0.0,
+        #         "switch": lambda k:
+        #         k.get("pump_probe", False) is False
+        #         },
+        # "laser_time": {
+        #         "tab":"External Fields",
+        #         "group": "laser details",
+        #         "text": "Laser profile time (in femtosecond)",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 10,
+        #         "switch": lambda k:
+        #         k.get("pump_probe", False) is False
+        #         }, 
+        "time_step": {
+                "tab":"Simulation Parameters",
+                "group": "simulation ",
+                "text": "Time step (in attosecond)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 10,
+                }, 
+        "num_steps": {
+                "tab":"Simulation Parameters",
+                "group": "simulation ",
+                "text": "Number of Steps",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 2000
+                },
+        "output_freq": {
+                "tab":"Simulation Parameters",
+                "group": "simulation ",
+                "text": "Frequency of data collection",
+                "help": None,
+                "widget": tk.Entry,
+                "type": int,
+                "default": 10
+                },
+        "pol_dir": {
+                "tab":"Simulation Parameters",
+                "group": "simulation ",
+                "text": "Polarization Direction",
+                "help": None,
+                "widget": Combobox,
+                "values": ["X","Y", "Z"],
+                "type": str
+                },
+        
+        "spectrum": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Absorption Spectrum",
+                "help": None,
+                "widget": Checkbutton,
+                "default": True
+                },
+        "ksd": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Kohn Sham Decomposition",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                }, 
+        "population": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Population Correlation",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
+        
+        # "masking":{
+        #         "tab":"Masking",
+        #         "group": "Choose Masking",
+        #         "text": "Masked Electric Field",
+        #         "help": None,
+        #         "widget": Checkbutton,
+        #         "default": False
+        #         },
+        # "mask_type": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Mask Type",
+        #         "help": None,
+        #         "widget": Combobox,
+        #         "values": ["Plane","Sphere"],
+        #         },
+        # "boundary_type": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Boundary Type",
+        #         "help": None,
+        #         "widget": Combobox,
+        #         "values": ["Abrupt", "Smooth"],
+        #         },
+        # "r_sig": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "RSig",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0.1,
+        #         "switch": lambda k:
+        #         k.get("boundary_type")=="Abrupt"                  
+                
+        #         },
+        # "mask_plane:axis": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Axis",
+        #         "help": None,
+        #         "widget": Combobox,
+        #         "values": ["X","Y", "Z"],
+        #         "switch": lambda k:
+        #         k.get("mask_type", '') == "Plane"
+                
+        #         },
+        # "mask_plane:origin": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Origin",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0.5,
+        #         "switch": lambda k:
+        #         k.get("mask_type", '') == "Plane"
+        #         },        
+       
+        # "mask_sphere:radius": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Radius (in angstrom)",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0.5,
+        #         "switch": lambda k:
+        #         k.get("mask_type", '') == "Sphere"
+        #         },
+        # "mask_sphere:origin": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Origin",
+        #         "help": None,
+        #         "widget": tk.Label,
+        #         "type": str,
+        #         "switch": lambda k:
+        #         k.get("mask_type", '') == "Sphere"
+        #         },
+
+        # "mask_sphere:origin_x": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "X",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0.5,
+        #         "switch": lambda k:
+        #         k.get("mask_type", '') == "Sphere"
+        #         },
+        # "mask_sphere:origin_y": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Y",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0.5,
+        #         "switch": lambda k:
+        #         k.get("mask_type", '') == "Sphere"
+        #         },
+        # "mask_sphere:origin_z": {
+        #         "tab":"Masking",
+        #         "group": "Masking Inputs",
+        #         "text": "Z",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0.5,
+        #         "switch": lambda k:
+        #         k.get("mask_type", '') == "Sphere"
+        #         },
+        }
+
+laser_design_input = {
+        "laser_type":{
+                "tab":"Laser Design",
+                "group": "Choose Options",
+                "text": "Type of laser",
+                "help": None,
+                "widget": Combobox,
+                "default": "Gaussian Pulse",
+                "values": ["Delta Pulse","Gaussian Pulse"],
+                },
+        "pump-probe_tag":{
+                "tab":"Laser Design",
+                "group": "Choose Options",
+                "text": "Laser Tag",
+                "help": None,
+                "widget": Combobox,
+                "default": "Pump",
+                "values": ["Pump", "Probe"],
+                },
+        "time_origin": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Time Origin in attosecond",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0,
+                # "switch": lambda k:
+                # k.get("laser_type") == "Gaussian Pulse"
+                },
+        "log_val": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Relative strength at time origin(10e-(value))",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 6,
+                "switch": lambda k:
+                k.get("laser_type") == "Gaussian Pulse"
+                },
+        "laser_strength": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Peak Strength in au",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 1e-05,
+                "switch": lambda k:
+                k.get("laser_type") == "Gaussian Pulse"
+                },
+        "fwhm": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Full Width Half Max (FWHM in eV)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 1,
+                "switch": lambda k:
+                k.get("laser_type") == "Gaussian Pulse"
+                },
+        "freq": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Frequency (in eV)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.0,
+                "switch": lambda k:
+                k.get("laser_type") == "Gaussian Pulse"
+                },
+
+        "delta strength": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Delta Kick Strength (in au)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 1e-05,
+                "switch": lambda k:
+                k.get("laser_type") == "Delta Pulse"
+                },
+        "masking_option": {
+                "tab":"Masking",
+                # "group": "Choose Options",
+                "text": "Masking",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False,                
+                },      
+}
+
+plot_laser_input ={
+        "delay_time": {
+                "tab":"Plot Laser",
+                # "group": "extra details",
+                "text": "Delay time (in femtosecond)",
+                "help": None,
+                "widget": Combobox,
+                "type": float,
+                "default": 0,
+                # "switch": lambda k:
+                # k.get("laser_type") == "Delta Pulse"
+                },   
+}
+
+def get_td_laser_w_delay():
+        copy_laser_td = copy.deepcopy(laser_td_input)
+        copy_laser_td.update(
+                {"delay_values": {
+                        "tab":"External Fields",
+                        "group": "Choose Options",
+                        "text": "Delay time value",
+                        "help": None,
+                        "widget": Combobox,
+                        "type": float,
+                        # "default": "0",
+                        "switch": lambda k:
+                        k.get("exp_type") == "Pump-Probe"
+                        }})
+        copy_laser_td.pop("delay_list")
+        return copy_laser_td              
+
+def update_widget_laser_details(laser_labels:list):
+        # copy_input_widget_dict = copy.deeepcopy(input_widget_dict)
+        _dict = dict()
+        # _dict.update({ 
+        #         "Laser Added": {
+        #         "tab":"External Fields",
+        #         "group": "Details",
+        #         "text": "Origin",
+        #         "help": None,
+        #         "widget": tk.Label,
+        #         "type": str,
+        #         }, } )
+       
+        for i, label in enumerate(laser_labels):
+            _dict.update(
+                {label: {
+                "tab":"External Fields",
+                "group": "Laser Details",
+                "text": label,
+                "help": None,
+                "widget": Checkbutton,
+                "default": True
+                },}
+            )
+        return _dict
+        
+
