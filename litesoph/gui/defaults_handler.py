@@ -93,3 +93,7 @@ def update_td_delta_defaults(td_default:dict):
         
     }
     return gui_default_dict
+
+def update_td_laser_defaults(td_default:dict):
+    #TODO: update widget defined input defaults to set initial set of param
+    pass
