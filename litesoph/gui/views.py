@@ -2364,7 +2364,7 @@ class TDPage(View):
         # self.button_laser_design['font'] = self.myFont
         self.label_delay_entry.grid(column=1,padx=3)
 
-        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Design Laser", activebackground="#78d6ff", command=self.laser_button)
+        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Design/Edit Laser", activebackground="#78d6ff", command=self.laser_button)
         self.button_laser_design['font'] = self.myFont
         self.button_laser_design.grid(column=1,padx=3) 
     
@@ -2381,6 +2381,9 @@ class TDPage(View):
         for name, var in self.inp.variable.items():
             if name == "field_type":
                 var.trace("w", self.trace_field)
+
+            if name == "exp_type":
+                var.trace("w", self.trace_exp)
             var.trace("w", self.inp.update_widgets)
 
     def trace_field(self, *_):
@@ -2396,6 +2399,16 @@ class TDPage(View):
             self.button_save.config(state='disabled')
             self.button_laser_design.config(state='active')
             self.inp.update_widgets()
+
+    def trace_exp(self, *_):
+        if self.inp.variable["exp_type"].get() == "State Preparation":
+            if self.label_delay_entry:
+                self.label_delay_entry.grid_remove()
+        if self.inp.variable["exp_type"].get() == "Pump-Probe":
+            if self.label_delay_entry:
+                self.label_delay_entry.grid()
+
+        self.inp.update_widgets()
 
     def laser_button(self):
         self.event_generate('<<ShowLaserPage>>')
@@ -2496,6 +2509,7 @@ class TDPage(View):
         if gui_dict.get('delay_list') is not None:
             td_input.update({'delay': self.get_delay_list(gui_dict.get('delay_list'))})
 
+        # if gui_dict.get()
 
         # if gui_dict.get("masking"):
         #     td_input.update({"masking": self.get_mask(gui_dict)})
@@ -2617,6 +2631,8 @@ class LaserDesignPage(View):
 
         gui_dict = self.inp.get_values()
         laser_type = gui_dict.get('laser_type')
+        tag_val =  gui_dict.get("pump-probe_tag")
+
         if laser_type == "Gaussian Pulse":
             l_type = "gaussian"
         elif laser_type == "Delta Pulse":
@@ -2624,15 +2640,38 @@ class LaserDesignPage(View):
         
         laser_input = {
             "type": l_type,
-            "tag": gui_dict.get("pump-probe_tag"),
-            "tin" : gui_dict.get("time_origin")*as_to_au,
+            # "tag": tag,
+            # "tin" : gui_dict.get("time_origin")*as_to_au,
             "inval" :  gui_dict.get("log_val"),
             "strength": gui_dict.get("laser_strength"),  
             "fwhm" :gui_dict.get("fwhm"),
             "frequency" :  gui_dict.get("freq"),
             # "delay_time" : 0        
         }
+
+        laser_input.update({
+                    "tag": tag_val})
+        if tag_val is not None:
+            if tag_val == "Pump":
+                laser_input.update({
+                    # "tag": tag,
+                    "tin" : gui_dict.get("time_origin:pump")*as_to_au,
+                })
+            elif tag_val == "Probe":
+                laser_input.update({
+                    # "tag": tag,
+                    "tin" : gui_dict.get("time_origin:probe")*as_to_au,
+                })
+        else:
+           laser_input.update({
+                    # "tag": tag,
+                    "tin" : gui_dict.get("time_origin")*as_to_au,
+                }) 
+
         return laser_input    
+
+    def get_td_param(self):
+        pass
 
 class LaserInfoPage(tk.Toplevel):
 
@@ -2681,9 +2720,17 @@ class LaserInfoPage(tk.Toplevel):
 
         # self.entry_proj.delete(0, tk.END)
 
-        self.button_project = tk.Button(self,text="Select",width=18, activebackground="#78d6ff", command=lambda: self.choose_values())
-        self.button_project['font'] = myfont()
-        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
+        # self.button_select = tk.Button(self,text="Select",width=18, activebackground="#78d6ff", command=lambda: self.choose_values())
+        # self.button_select['font'] = myfont()
+        # self.button_select.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
+
+        self.button_edit = tk.Button(self,text="Edit",width=18, activebackground="#78d6ff", command=lambda: self.choose_and_edit())
+        self.button_edit['font'] = myfont()
+        self.button_edit.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
+
+        self.button_remove = tk.Button(self,text="Remove",width=18, activebackground="#78d6ff", command=lambda: self.choose_and_remove())
+        self.button_remove['font'] = myfont()
+        self.button_remove.grid(column=2, row= 4, sticky=tk.W, padx= 10, pady=10)
 
     def plot_w_delay(self):
         self.event_generate('<<PlotwithDelay>>')
@@ -2694,3 +2741,9 @@ class LaserInfoPage(tk.Toplevel):
     def choose_values(self):
         #TODO: store values from the page
         pass
+
+    def choose_and_edit(self):
+        self.event_generate('<<Choose&EditLaser>>')
+
+    def choose_and_remove(self):
+        self.event_generate('<<Choose&RemoveLaser>>')

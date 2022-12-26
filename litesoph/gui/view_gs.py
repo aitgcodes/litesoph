@@ -344,9 +344,12 @@ class InputFrame(ttk.Frame):
                     visible_options[name] = self.fields[name]["default"]
         return visible_options
 
-    def freeze_widgets(self, state):
+    def freeze_widgets(self, state, input_keys: list= None):
         visibles = self.get_visible_options()
         for name in visibles.keys():
+            if input_keys is not None:
+                if name in input_keys:
+                    self.widget[name].configure(state = state)   
             self.widget[name].configure(state = state)   
         
 

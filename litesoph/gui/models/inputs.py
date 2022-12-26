@@ -1076,6 +1076,28 @@ laser_design_input = {
                 # "switch": lambda k:
                 # k.get("laser_type") == "Gaussian Pulse"
                 },
+        "time_origin:pump": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Time Origin wrt pump 1 in as",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0,
+                "switch": lambda k:
+                k.get("pump-probe_tag") == "Pump"
+                },
+        "time_origin:probe": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Time Origin wrt probe 1 in as",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0,
+                "switch": lambda k:
+                k.get("pump-probe_tag") == "Probe"
+                },
         "log_val": {
                 "tab":"Laser Design",
                 "group": "laser details",
