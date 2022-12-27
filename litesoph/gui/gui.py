@@ -107,9 +107,7 @@ class GUIAPP:
         self.ls_manager.save()
 
     def update_project_tree(self):
-        print('before')
         if self.curent_project_manager:
-            print('here')
             self.project_tree_view.update(self.curent_project_manager.project_info)
         self.main_window.after(1000, self.update_project_tree)
         
