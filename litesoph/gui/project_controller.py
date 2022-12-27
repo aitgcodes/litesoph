@@ -13,7 +13,7 @@ from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui.views import WorkManagerPage, CreateWorkflowPage
 from litesoph.gui import actions
 from litesoph.gui.workflow_controller import WorkflowController, WorkflowModeController
-from litesoph.common.project_manager import ProjectManager
+from litesoph.common.project_manager import ProjectManager, WorkflowSetupError
 from litesoph.common.data_sturcture.data_classes import ProjectInfo
 from litesoph.common.workflows_data import predefined_workflow
 
@@ -27,39 +27,33 @@ class ProjectController:
         self.main_window = app.main_window
         self.view_panel = app.view_panel
         self.workflow_navigation_view = None
-        self.project_tree_view = ProjectTreeNavigation(app)
+        self.project_tree_view = app.project_tree_view
 
     def open_project(self, project_manager: ProjectManager):
+        self._bind_event_callbacks()
         self.project_manager = project_manager
         self.workflow_list = project_manager.workflow_list
-        self.current_workflow_info = project_manager.current_workflow_info
         self.project_tree_view.update(self.project_manager.project_info)
         self.open_workflow()
-        # self.app.create_workflow_frames()
-        # self.workmanager_page = self.app.show_frame(WorkManagerPage)
-        # self.workmanager_page.workflow_list = get_predefined_workflow()
-        # self.workmanager_page.button_select_geom.config(command=self._on_get_geometry_file)
-        # self.workmanager_page.button_view.config(command=self._on_visualize)
-        
-        # if hasattr(self.workmanager_page, 'entry_workflow'):
-        #     self.workmanager_page.entry_workflow['values'] = get_predefined_workflow()
-        
-        # self.workmanager_page._var['workflow'].trace_add('write', self.create_workflow_ui)
-        # self.app.proceed_button.config(command= self.start_workflow)
-        # if self.engine:
-        #     self.workmanager_page.engine.set(self.engine)
+
+    def _bind_event_callbacks(self):
+        event_callbacks = {
+            actions.CREATE_NEW_WORKFLOW : self.create_workflow_window
+        }
+        for event, callback in event_callbacks.items():
+            self.main_window.bind_all(event, callback)          
 
     def open_workflow(self):
         self.app.create_workflow_frames()
-
-        if self.current_workflow_info.name:
+        workflow_info = self.project_manager.current_workflow_info
+        if workflow_info.name:
             
-            if not self.current_workflow_info.user_defined:
-                self._create_workflow_navigation(self.current_workflow_info.name)
+            if not workflow_info.user_defined:
+                self._create_workflow_navigation(workflow_info.name)
 
-            workflow_controller = self._get_workflow_controller(self.current_workflow_info.name)
+            workflow_controller = self._get_workflow_controller(workflow_info.name)
             self.workflow_controller = workflow_controller(self, self.app)
-            self.workflow_manager = self.project_manager.open_workflow(self.current_workflow_info.uuid)
+            self.workflow_manager = self.project_manager.open_workflow(workflow_info.uuid)
             self.workflow_controller.start(self.workflow_manager)
             return
         
@@ -94,7 +88,13 @@ class ProjectController:
         
     def create_new_workflow(self):
         workflow_label = self.workflow_create_window.get_value('workflow_name')
-        self.project_manager.new_workflow(workflow_label)
+        try:
+            self.project_manager.new_workflow(workflow_label)
+        except WorkflowSetupError as e:
+            messagebox.showerror(title='Error creating workflow', message=e)
+            return
+        self.workflow_create_window.destroy()
+        self.open_workflow()
 
     def open_existing_workflow(self):
         pass
@@ -102,7 +102,7 @@ class ProjectController:
     def remove_workflow(self):
         pass
     
-    def create_project_window(self, *_):
+    def create_workflow_window(self, *_):
         self.workflow_create_window = CreateWorkflowPage(self.main_window)
         self.workflow_create_window.create_button.config(command= self.create_new_workflow)   
     
@@ -134,7 +134,7 @@ class ProjectController:
             messagebox.showerror(message=f'Workflow: {name} not implemented')
 
     def start_workflow(self, *_):
-        workflow_info = self.workflow_list[-1]
+        workflow_info = self.project_manager.current_workflow_info
         param_view  = self.workmanager_page.get_parameters()
             
         param ={}

@@ -273,7 +273,7 @@
                           <object class="ttk.Label" id="current_engine">
                             <property name="state">normal</property>
                             <property name="takefocus">true</property>
-                            <property name="text" translatable="yes">Enigne</property>
+                            <property name="text" translatable="yes">Engine</property>
                             <property name="textvariable">string:cengine_var</property>
                             <layout manager="pack">
                               <property name="padx">5</property>
