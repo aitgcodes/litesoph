@@ -366,6 +366,18 @@ class LaserDesignPlotModel:
             
         return self.list_of_pulse
 
+    def get_laser_param_pulse(self, laser_input:dict):
+
+        # self.list_of_pulse = []
+        # self.list_of_laser_param = []
+
+        laser_type = laser_input.get('type')
+        self.pulse_info = self.compute_laser_design_param(laser_type, laser_input)
+        # self.list_of_pulse.append(pulse_info[0])
+        # self.list_of_laser_param.append(pulse_info[1])
+            
+        return self.pulse_info
+
     def get_time_strength(self, list_of_pulse:list):
         """Plots single/multiple lasers"""
 
