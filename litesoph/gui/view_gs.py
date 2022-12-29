@@ -334,6 +334,25 @@ class InputFrame(ttk.Frame):
                 self.label[name].grid_remove()
         self.fields[name]["visible"] = not self.fields[name]["visible"]
 
+    def get_visible_options(self):
+        visible_options = {}              
+        for name in self.variable:                                       
+            if self.fields[name]["visible"]:
+                try:
+                    visible_options[name] = self.variable[name].get()
+                except TclError:
+                    visible_options[name] = self.fields[name]["default"]
+        return visible_options
+
+    def freeze_widgets(self, state, input_keys: list= None):
+        visibles = self.get_visible_options()
+        for name in visibles.keys():
+            if input_keys is not None:
+                if name in input_keys:
+                    self.widget[name].configure(state = state)   
+            self.widget[name].configure(state = state)   
+        
+
     def update_widgets(self, check_switch=True,*args,var_state:dict=None, **kwargs):
 
             """enable/disable widgets from switch if check_switch is True, 

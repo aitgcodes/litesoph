@@ -25,7 +25,7 @@ from litesoph.gui import views as v
 from litesoph.gui.views import StartPage
 from litesoph.gui import actions
 from litesoph.common.task import Task, TaskFailed
-from litesoph.gui.navigation import ProjectList 
+from litesoph.gui.navigation import ProjectTreeNavigation
 
 
 TITLE_FONT = ("Helvetica", 18, "bold")
@@ -55,11 +55,11 @@ class GUIAPP:
 
         self.project_window = None
 
-        self.navigation = ProjectList(self)
-        
+        # self.navigation = ProjectList(self)
+        self.project_tree_view = ProjectTreeNavigation(self)
         self.view_panel = ViewPanelManager(self)
         self.ls_manager = LSManager()
-
+        self.curent_project_manager = None
         self.engine = None
 
         self.setup_bottom_panel()
@@ -79,7 +79,7 @@ class GUIAPP:
         self._bind_event_callbacks()
         self.show_start_page()
         self.main_window.after(5000, self.save_data_repeat)
-        #self.main_window.after(1000, self.update_project_dir_tree)
+        self.main_window.after(1000, self.update_project_tree)
 
     def run(self):
         self.main_window.protocol("WM_DELETE_WINDOW", self.__on_window_close)
@@ -106,11 +106,10 @@ class GUIAPP:
     def save_data(self):
         self.ls_manager.save()
 
-    def update_project_dir_tree(self):
-        directory = self.ls_manager.current_project
-        if directory:
-            self.navigation.populate(directory)
-        self.main_window.after(1000, self.update_project_dir_tree)
+    def update_project_tree(self):
+        if self.curent_project_manager:
+            self.project_tree_view.update(self.curent_project_manager.project_info)
+        self.main_window.after(1000, self.update_project_tree)
         
     def on_bpanel_button_clicked(self):
         self.log_panel.on_bpanel_button_clicked()
@@ -205,12 +204,12 @@ class GUIAPP:
             return
 
         try:
-            project_manager = self.ls_manager.open_project(pathlib.Path(project_path))
+            self.curent_project_manager = self.ls_manager.open_project(pathlib.Path(project_path))
         except Exception as e:
             messagebox.showerror(title='Error', message = 'Unable open Project', detail =e)
             return
         self._init_project(pathlib.Path(project_path))
-        self.show_project(project_manager)
+        self.show_project(self.curent_project_manager)
         
     def create_project_window(self, *_):
         self.project_window = v.CreateProjectPage(self.main_window)
@@ -236,7 +235,7 @@ class GUIAPP:
         project_path = pathlib.Path(project_path) / project_name
         
         try:
-            project_manager = self.ls_manager.new_project(project_path.name, project_path.parent)
+            self.curent_project_manager = self.ls_manager.new_project(project_path.name, project_path.parent)
         except PermissionError as e:
             messagebox.showerror(title='Error', message = 'Premission denied', detail = e)
         except FileExistsError as e:
@@ -247,7 +246,7 @@ class GUIAPP:
             self._init_project(project_path)
             self.engine = None
             self.project_window.destroy()
-            self.show_project(project_manager)
+            self.show_project(self.curent_project_manager)
                 
 
     def show_project(self, project_manager: ProjectManager):

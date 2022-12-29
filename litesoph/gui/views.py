@@ -1,3 +1,4 @@
+import copy
 import tkinter as tk
 
 from tkinter import ttk
@@ -226,7 +227,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_select_option.grid(row=4, column=0, sticky='w', padx=5,  pady=5)   
 
         values = [1,2]
-        text = ["Predefined Workflow mode"," Task mode"]
+        text = ["Workflow mode"," Task mode"]
         command = [lambda:self.show_specific_workflow_frame(self.task_common_frame),
                    lambda:self.show_general_workflow_frame(self.task_common_frame)]        
 
@@ -570,7 +571,7 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
     obj.entry_out_frq['font'] = myFont
     obj.entry_out_frq.grid(row=0, column=1,sticky='w')
 
-class LaserDesignPage(View):
+class LaserDesignPageold(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -1810,7 +1811,7 @@ class CreateWorkflowPage(tk.Toplevel):
         self.label_proj['font'] = label_design['font']
         self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
 
-        self.entry_proj = tk.Entry(self,textvariable=self._var['proj_name'])
+        self.entry_proj = tk.Entry(self,textvariable=self._var['workflow_name'])
         self.entry_proj['font'] = myfont()
         self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
         self.entry_proj.delete(0, tk.END)
@@ -1844,24 +1845,34 @@ class GroundStatePage(View):
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
+        # self.button_clear = tk.Button(self.save_button_frame, text="Clear", activebackground="#78d6ff", command=lambda: self.clear_button())
+        # self.button_clear['font'] = myFont
+        # self.button_clear.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
+
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
-        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.button_view.grid(row=0, column=3,padx=3, pady=3,sticky='nsew')
+        # self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
         self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
-        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.button_save.grid(row=0, column=5, padx=3, pady=3,sticky='nsew')
+        # self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid(row=0, column=4, sticky='nsew')
+        # self.label_msg.grid(row=0, column=3, sticky='nsew')
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
         
     def back_button(self):
         return
-        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
+    
+    def clear_button(self):
+        self.event_generate(f'<<Clear{self.task_name}Script>>')
     
     def generate_input_button(self):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
@@ -1976,7 +1987,7 @@ class GroundStatePage(View):
         self.inp.init_widgets(fields=self.inp.fields,
                         ignore_state=False,var_values=default_gui_dict)
 
-class LaserDesignPageNew(View):
+class LaserDesignPagePP(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -2108,7 +2119,6 @@ class LaserDesignPageNew(View):
 
         gui_dict = self.inp.get_values()
         pump_probe = gui_dict.get("pump_probe")
-        # laser_list = [gui_dict.get("laser_time")]
 
         if pump_probe:
             laser_list = [gui_dict.get("pump_probe:laser_time")]
@@ -2163,15 +2173,6 @@ class LaserDesignPageNew(View):
             } 
         return probe_dict
 
-    def get_laser_pulse(self):
-        list_of_laser_inp = self.get_laser_details()
-        if len(list_of_laser_inp)  == 1:
-            laser_pulse = list_of_laser_inp[0]["param"]
-            return laser_pulse
-        else:
-            #TODO Laser Module to handle multiple lasers
-            pass
-
     def set_laser_design_dict(self, laser_calc_list:list):  
         """ laser_calc_list: list of laser calc param"""
         import copy
@@ -2187,7 +2188,7 @@ class LaserDesignPageNew(View):
             'strength': gui_dict.get("laser_strength"),
             'polarization' : self.pol_list,
             'time_step' : gui_dict.get("time_step"),
-            'number_of_steps' : gui_dict.get("number_of_steps"),
+            'number_of_steps' : gui_dict.get("num_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
             # 'laser':  [{'sigma': 6407.79, 'time0': 33682.7, 
@@ -2196,8 +2197,7 @@ class LaserDesignPageNew(View):
                         #  {'type': 'delta', 
                         # 'strength': 1e-05, 
                         # 'time0': 3000.0}
-            'laser': self.laser_calc_list[0],
-            # 'masking': {},
+            'laser': self.laser_calc_list,
             "pump_probe" : gui_dict.get("pump_probe")
         }
         if gui_dict.get("masking"):
@@ -2300,6 +2300,450 @@ class TimeDependentPage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def save_button(self):
-        self.event_generate(f'<<Save{self.task_name}Script>>')
-    
+        self.event_generate(f'<<Save{self.task_name}Script>>')    
 
+# class LaserDesignPage(View):
+
+class TDPage(View):
+
+    def __init__(self, parent, engine, task_name, *args, **kwargs):
+        super().__init__(parent, *args)
+        from litesoph.gui.view_gs import InputFrame        
+
+        self.parent = parent
+        self.task_name = task_name
+        self.engine = tk.StringVar(value=engine)
+        self.laser_defined = False
+        self.delay_value = tk.DoubleVar()
+        self.delay_options = []
+
+        self.input_widget_dict = kwargs.get('input_widget_dict', None)
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        
+        # self.inp = InputFrame(self.input_param_frame,fields=inp.laser_td_input, padx=5, pady=5)        
+        # self.inp.grid(row=0, column=0)        
+
+        # self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Design Laser", activebackground="#78d6ff", command=self.laser_button)
+        # self.button_laser_design['font'] = myFont
+        # self.button_laser_design.grid(column=1,padx=3)
+        self.add_widgets(self.input_widget_dict)
+
+        add_job_frame(self, self.submit_button_frame, task_name, column=1)
+
+        # self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        # self.button_back['font'] = myFont
+        # self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+
+        self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
+        self.button_view['font'] = myFont
+        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.button_view.config(state='disabled')
+        
+        self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
+        self.button_save['font'] = myFont
+        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.button_save.config(state='disabled')
+
+        self.label_msg = tk.Label(self.save_button_frame,text="")
+        self.label_msg['font'] = myFont
+        self.label_msg.grid(row=0, column=3, sticky='nsew')
+
+        self.trace_variables()
+
+    def add_widgets(self, input_widget_dict:dict):
+        from litesoph.gui.view_gs import InputFrame
+        if input_widget_dict is None:
+            input_widget_dict = inp.laser_td_input
+
+        copy_input_widget_dict = copy.deepcopy(input_widget_dict)
+        self.inp = InputFrame(self.input_param_frame,fields=copy_input_widget_dict, padx=5, pady=5)        
+        self.inp.grid(row=0, column=0) 
+
+        self.label_delay_entry = tk.Label(self.inp.tab["External Fields"], text="Delay Entries should be separated by ' ' or ','")
+        # self.button_laser_design['font'] = self.myFont
+        self.label_delay_entry.grid(column=1,padx=3)
+
+        self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Design/Edit Laser", activebackground="#78d6ff", command=self.laser_button)
+        self.button_laser_design['font'] = self.myFont
+        self.button_laser_design.grid(column=1,padx=3) 
+    
+    def back_button(self):
+        pass
+
+    def generate_input_button(self):
+        self.event_generate(f'<<Generate{self.task_name}Script>>')
+
+    def save_button(self):
+        self.event_generate(f'<<Save{self.task_name}Script>>')
+
+    def trace_variables(self,*_):
+        for name, var in self.inp.variable.items():
+            if name == "field_type":
+                var.trace("w", self.trace_field)
+
+            if name == "exp_type":
+                var.trace("w", self.trace_exp)
+            var.trace("w", self.inp.update_widgets)
+
+    def trace_field(self, *_):
+        if self.inp.variable["field_type"].get() == "None":
+            self.laser_defined = True
+            self.button_view.config(state='active')
+            self.button_save.config(state='active')
+            self.button_laser_design.config(state='disabled')
+            self.inp.update_widgets()
+        else:
+            self.laser_defined = False
+            self.button_view.config(state='disabled')
+            self.button_save.config(state='disabled')
+            self.button_laser_design.config(state='active')
+            self.inp.update_widgets()
+
+    def trace_exp(self, *_):
+        if self.inp.variable["exp_type"].get() == "State Preparation":
+            if self.label_delay_entry:
+                self.label_delay_entry.grid_remove()
+        if self.inp.variable["exp_type"].get() == "Pump-Probe":
+            if self.label_delay_entry:
+                self.label_delay_entry.grid()
+
+        self.inp.update_widgets()
+
+    def laser_button(self):
+        self.event_generate('<<ShowLaserPage>>')
+
+    def get_pol_list(self, pol_var:str):
+        assert pol_var in ["X", "Y", "Z"] 
+        if pol_var == "X":
+            pol_list = [1,0,0]         
+        elif pol_var == "Y":
+            pol_list = [0,1,0] 
+        elif pol_var == "Z":
+            pol_list = [0,0,1]                
+        return pol_list
+    
+    def get_property_list(self, gui_values:dict):
+        prop_list = ['spectrum']
+
+        if gui_values.get("ksd") is True:
+            prop_list.append("ksd")
+        if gui_values.get("mo_population") is True:
+            prop_list.append("mo_population")    
+        return prop_list  
+
+    def get_delay_list(self, delay_str:str):
+
+        delay_values = str(delay_str)
+        delay_list = []
+        try:
+            delays = delay_values.split()
+        except:
+            delays = delay_values.split(sep=',') 
+
+        for delay in delays:
+            delay_list.append(float(delay))
+
+        return delay_list
+
+    # def get_mask(self, gui_dict:dict):                        
+    #     mask_input = {
+    #         "Type": gui_dict.get("mask_type"),            
+    #         "Boundary": gui_dict.get("boundary_type")
+    #         }
+            
+    #     if gui_dict.get("mask_type") == 'Plane':
+    #         mask_input.update({"Axis": gui_dict.get("mask_plane:axis"),
+    #                             "X0"  : gui_dict.get("mask_plane:origin")})
+    #     else:
+    #         mask_input.update({"Radius" : gui_dict.get("mask_sphere:radius"),
+    #                         "Centre":[gui_dict.get("mask_sphere:origin_x"),
+    #                                 gui_dict.get("mask_sphere:origin_y"),
+    #                                 gui_dict.get("mask_sphere:origin_z")]})
+    #     if gui_dict.get("boundary_type") == 'Smooth':
+    #         mask_input.update({"Rsig" : gui_dict.get("r_sig")})
+        
+    #     return mask_input
+
+    def check_expt_type(self):
+        gui_dict = self.inp.get_values()
+        if gui_dict.get("exp_type" ) == "Pump-Probe":
+            return True
+        else:
+            return False
+
+    def set_laser_design_dict(self, laser_calc_list:list):  
+        """ laser_calc_list: list of laser calc param"""
+        import copy
+
+        self.laser_calc_list = copy.deepcopy(laser_calc_list)
+        return self.laser_calc_list
+    
+    def get_parameters(self):
+        gui_dict = self.inp.get_values()
+        self.pol_list = self.get_pol_list(gui_dict.get("pol_dir"))
+
+        td_input = {
+            # 'strength': gui_dict.get("laser_strength"),
+            "field_type" : gui_dict.get("field_type"),
+            "exp_type" : gui_dict.get("exp_type"),
+            'polarization' : self.pol_list,
+            'time_step' : gui_dict.get("time_step"),
+            'number_of_steps' : gui_dict.get("num_steps"),
+            'output_freq': gui_dict.get("output_freq"),
+            'properties' : self.get_property_list(gui_dict),
+            # 'laser': self.laser_calc_list,
+            "pump_probe" : self.check_expt_type()
+
+            # 'delay': self.get_delay_list(gui_dict.get('delay_list'))
+            # 'laser':  [{'sigma': 6407.79, 'time0': 33682.7, 
+                        # 'type': 'gaussian', 'frequency': 2.0, 
+                        # 'strength': 1e-05},
+                        #  {'type': 'delta', 
+                        # 'strength': 1e-05, 
+                        # 'time0': 3000.0}
+            # 'laser': self.laser_calc_list,          
+        }       
+
+        # TODO: Categorize exp-type and collect inputs
+        if gui_dict.get('delay_list') is not None:
+            td_input.update({'delay': self.get_delay_list(gui_dict.get('delay_list'))})
+
+        # if gui_dict.get()
+
+        # if gui_dict.get("masking"):
+        #     td_input.update({"masking": self.get_mask(gui_dict)})
+        return td_input
+
+    def set_parameters(self, default_param_dict:dict):
+        pass
+
+
+class LaserDesignPage(View):
+
+    def __init__(self, parent, engine, task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        from litesoph.gui.view_gs import InputFrame        
+
+        self.parent = parent
+        self.task_name = task_name
+        self.engine = tk.StringVar(value=engine)
+
+        myFont = font.Font(family='Helvetica', size=10, weight='bold')
+        
+        self.inp = InputFrame(self.input_param_frame,fields=inp.laser_design_input, padx=5, pady=5)        
+        self.inp.grid(row=0, column=0)
+
+        # self.button_add = tk.Button(self.inp.tab["Laser Design"], text="Add Laser", activebackground="#78d6ff", command=lambda: self.add_laser())
+        # self.button_add['font'] = myFont
+        # self.button_add.grid(
+        #     # row=0, 
+        #     column=1, padx=3, pady=3,sticky='nsew')
+
+        # self.button_edit = ttk.Combobox(self.inp.tab["Laser Design"], values=['Edit Laser'])
+        # self.button_edit['font'] = myFont
+        # self.button_edit.grid(
+        #     # row=0, 
+        #     column=2,padx=3, pady=3,sticky='nsew')
+        
+        # self.button_save = tk.Button(self.inp.tab["Laser Design"], text="Save Laser", activebackground="#78d6ff", command=lambda: self.save_laser())
+        # self.button_save['font'] = myFont
+        # self.button_save.grid(
+        #     # row=0, 
+        #     column=4, padx=3, pady=3,sticky='nsew')
+
+        # self.plot_inp = InputFrame(self.save_button_frame,fields=inp.plot_laser_input, padx=5, pady=5)        
+        # self.plot_inp.grid(row=1, column=0)
+
+        # self.button_plot = tk.Button(self.plot_inp.tab["Plot Laser"], text="Plot", activebackground="#78d6ff", command=lambda: self.plot_button())
+        
+        self.button_add = tk.Button(self.property_frame, text="Add Laser", activebackground="#78d6ff", command=lambda: self.add_laser())
+        self.button_add['font'] = myFont
+        self.button_add.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+
+        self.button_edit = tk.Button(self.property_frame, text="Edit Laser", activebackground="#78d6ff", command=lambda: self.edit_laser())
+        self.button_edit['font'] = myFont
+        self.button_edit.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
+        
+        self.button_save = tk.Button(self.property_frame, text="Save Laser", activebackground="#78d6ff", command=lambda: self.save_laser())
+        self.button_save['font'] = myFont
+        self.button_save.grid(row=0, column=3, padx=3, pady=3,sticky='nsew')
+
+        self.button_plot = tk.Button(self.property_frame, text="Plot Laser", activebackground="#78d6ff", command=lambda: self.plot_button())
+        self.button_plot['font'] = myFont
+        self.button_plot.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+
+
+        # self.cb_laser = ttk.Combobox(self.property_frame, values=['--lasers---'])
+        # self.cb_laser['font'] = myFont
+        # self.cb_laser.grid(row=1, column=0,padx=3, pady=3,sticky='nsew')
+        # self.cb_laser.current(0)
+
+        # self.button_edit = tk.Button(self.property_frame, text="Edit Laser", activebackground="#78d6ff", command=lambda: self.edit_laser())
+        # self.button_edit['font'] = myFont
+        # self.button_edit.grid(row=1, column=2,padx=3, pady=3,sticky='nsew')
+
+        self.trace_variables()
+
+    def trace_variables(self,*_):
+        for name, var in self.inp.variable.items():
+            var.trace("w", self.inp.update_widgets)
+
+    def add_laser(self):
+        self.event_generate('<<AddLaser>>')
+
+    def edit_laser(self):
+        self.event_generate('<<EditLaser>>')
+
+    def save_laser(self):
+        self.event_generate('<<SaveLaser>>')
+
+    def plot_button(self):
+        self.event_generate('<<PlotLaser>>')
+
+    def get_laser_details(self):
+        from litesoph.utilities.units import as_to_au
+
+        gui_dict = self.inp.get_values()
+        laser_type = gui_dict.get('laser_type')
+        if laser_type == "Gaussian Pulse":
+            l_type = "gaussian"
+        elif laser_type == "Delta Pulse":
+            l_type = "delta" 
+
+        laser_list = []
+        laser_input = {
+            "type": l_type,
+            "tag": gui_dict.get("pump-probe_tag"),
+            "tin" : gui_dict.get("time_origin")*as_to_au,
+            "inval" :  gui_dict.get("log_val"),
+            "strength": gui_dict.get("laser_strength"),  
+            "fwhm" :gui_dict.get("fwhm"),
+            "frequency" :  gui_dict.get("freq"),
+            # "delay_time" : 0        
+        }
+
+        laser_list.append(laser_input)
+        return laser_list      
+
+    def get_parameters(self):
+        from litesoph.utilities.units import as_to_au
+
+        gui_dict = self.inp.get_values()
+        laser_type = gui_dict.get('laser_type')
+        tag_val =  gui_dict.get("pump-probe_tag")
+
+        if laser_type == "Gaussian Pulse":
+            l_type = "gaussian"
+        elif laser_type == "Delta Pulse":
+            l_type = "delta" 
+        
+        laser_input = {
+            "type": l_type,
+            # "tag": tag,
+            # "tin" : gui_dict.get("time_origin")*as_to_au,
+            "inval" :  gui_dict.get("log_val"),
+            "strength": gui_dict.get("laser_strength"),  
+            "fwhm" :gui_dict.get("fwhm"),
+            "frequency" :  gui_dict.get("freq"),
+            # "delay_time" : 0        
+        }
+
+        laser_input.update({
+                    "tag": tag_val})
+        if tag_val is not None:
+            if tag_val == "Pump":
+                laser_input.update({
+                    # "tag": tag,
+                    "tin" : gui_dict.get("time_origin:pump")*as_to_au,
+                })
+            elif tag_val == "Probe":
+                laser_input.update({
+                    # "tag": tag,
+                    "tin" : gui_dict.get("time_origin:probe")*as_to_au,
+                })
+        else:
+           laser_input.update({
+                    # "tag": tag,
+                    "tin" : gui_dict.get("time_origin")*as_to_au,
+                }) 
+
+        return laser_input    
+
+    def get_td_param(self):
+        pass
+
+class LaserInfoPage(tk.Toplevel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self._default_var = {
+              'delay' : ['float'],
+              
+          }
+        self.delay_list = [0]
+        self.laser_list = ['laser 1']
+
+        self._var = var_define(self._default_var)
+        self.attributes("-topmost", True)
+        self.grab_set()
+        self.lift()
+        self.title("Laser Details")     
+        self.geometry("550x200")
+            
+    def show_plot_widgets(self):
+        self.label_delay = tk.Label(self,text="Delay to consider:",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_delay['font'] = label_design['font']
+        self.label_delay.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+        self.cb_delay = ttk.Combobox(self,textvariable=self._var['delay'], values= self.delay_list)
+        self.cb_delay['font'] = myfont()
+        self.cb_delay.grid(column=1, row= 3, sticky=tk.W)
+        self.cb_delay.current(0)
+
+        # self.entry_proj.delete(0, tk.END)
+
+        self.button_project = tk.Button(self,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
+        self.button_project['font'] = myfont()
+        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
+    
+    def show_edit_widgets(self):
+        self.label_lasers = tk.Label(self,text="Laser added",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_lasers['font'] = label_design['font']
+        self.label_lasers.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+        self.cb_lasers = ttk.Combobox(self,textvariable=self._var['delay'], values= self.laser_list)
+        self.cb_lasers['font'] = myfont()
+        self.cb_lasers.grid(column=1, row= 3, sticky=tk.W)
+        self.cb_lasers.current(0)
+
+        # self.entry_proj.delete(0, tk.END)
+
+        # self.button_select = tk.Button(self,text="Select",width=18, activebackground="#78d6ff", command=lambda: self.choose_values())
+        # self.button_select['font'] = myfont()
+        # self.button_select.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
+
+        self.button_edit = tk.Button(self,text="Edit",width=18, activebackground="#78d6ff", command=lambda: self.choose_and_edit())
+        self.button_edit['font'] = myfont()
+        self.button_edit.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
+
+        self.button_remove = tk.Button(self,text="Remove",width=18, activebackground="#78d6ff", command=lambda: self.choose_and_remove())
+        self.button_remove['font'] = myfont()
+        self.button_remove.grid(column=2, row= 4, sticky=tk.W, padx= 10, pady=10)
+
+    def plot_w_delay(self):
+        self.event_generate('<<PlotwithDelay>>')
+    
+    def get_value(self, key):
+        return self._var[key].get()
+
+    def choose_values(self):
+        #TODO: store values from the page
+        pass
+
+    def choose_and_edit(self):
+        self.event_generate('<<Choose&EditLaser>>')
+
+    def choose_and_remove(self):
+        self.event_generate('<<Choose&RemoveLaser>>')

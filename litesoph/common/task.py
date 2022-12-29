@@ -71,8 +71,9 @@ class Task:
         self.task_info = task_info
         self.task_name = task_info.name
         self.dependent_tasks = dependent_tasks       
-        self.project_dir = task_info.path
-    
+        self.directory = task_info.path
+        # self.project_dir is deprecated and should be removed.
+        self.project_dir = self.directory     
         self.engine_name = task_info.engine
         self.engine_path = self.lsconfig['engine'].get(self.engine_name , self.engine_name)
         mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
@@ -135,7 +136,7 @@ class Task:
     def write_job_script(self, job_script=None):
         if job_script:
             self.job_script = job_script
-        self.bash_file = self.project_dir / self.BASH_filename
+        self.bash_file = self.directory / self.BASH_filename
         with open(self.bash_file, 'w+') as f:
             f.write(self.job_script)
 
@@ -148,8 +149,8 @@ class Task:
         if not template:
             return
 
-        if str(self.project_dir.parent) in template:
-            text = re.sub(str(self.project_dir.parent), str(path), template)
+        if str(self.directory.parent.parent) in template:
+            text = re.sub(str(self.directory.parent.parent), str(path), template)
             self.task_info.input['engine_input']['data'] = text        
             self.write_input()
 
@@ -177,7 +178,6 @@ class Task:
             check = self.task_info.network.get('sub_returncode', None)
         else:
             check = self.task_info.local.get('returncode', None)
-        print(check)
         if check is None:
             raise TaskFailed("Job not completed.")
         return True

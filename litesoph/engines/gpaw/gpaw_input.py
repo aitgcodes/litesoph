@@ -260,10 +260,11 @@ task_map = {
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)
-    mask = kwargs.pop('mask', None)
+    mask = kwargs.pop('masking', None)
 
     if laser is not None:
-        kwargs.update(laser)
+        #TODO: update for multiple lasers
+        kwargs.update(laser[0])
         
         if mask is not None:
             kwargs.update({'mask': mask})

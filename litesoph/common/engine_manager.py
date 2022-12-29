@@ -28,8 +28,8 @@ class EngineManager(ABC):
         ...
     
     def get_workflow_list(self):
-        task_list = copy.deepcopy(self.implemented_workflows)
-        return task_list
+        workflow_list = copy.deepcopy(self.implemented_workflows)
+        return workflow_list
 
     def check_task(self, name):
         if not name in self.implemented_tasks:

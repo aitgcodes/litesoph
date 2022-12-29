@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from typing import Any, Dict
 from litesoph.common.data_sturcture.data_types import DataTypes as  DT
-from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
+from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs, fs_to_au
 from litesoph.pre_processing.laser_design import laser_design, GaussianPulse, DeltaPulse
 
 @dataclass
@@ -304,9 +304,11 @@ class LaserDesignPlotModel:
         """ Calculates laser parameters specific to laser type"""
         assert laser_type in ["gaussian", "delta"]
 
-        t_in=laser_param['tin']  #au unit
+        t_in=laser_param['tin'] # in au unit
+        tag = laser_param.get('tag', None)
+
         # delay wrt the time origin of first laser 
-        delay_time_fs = laser_param['delay_time']          
+        # delay_time_fs = laser_param['delay_time']          
         strength_au = laser_param['strength']
 
         if laser_type == "gaussian":
@@ -319,10 +321,12 @@ class LaserDesignPlotModel:
 
             # Calculates fwhm/sigma(in time) and pulse centre(in time)
             # creates gaussian pulse with given inval,fwhm value """
-            t_in_plus_delay = t_in + delay_time_fs*1e3*as_to_au
+            t_in_plus_delay = t_in
+            # t_in_plus_delay = t_in + delay_time_fs*1e3*as_to_au
             l_design = laser_design(inval,t_in_plus_delay,fwhm_eV)
             l_design.update(
                 {'type': 'gaussian', 
+                'tag': tag,
                 # 'tin': t_in,
                 'frequency': freq_eV,
                 'strength': strength_au
@@ -336,14 +340,16 @@ class LaserDesignPlotModel:
             return (pulse, l_design) 
 
         elif laser_type == "delta":  
-            time0=t_in*au_to_as + delay_time_fs *1e3
+            # time0=t_in*au_to_as + delay_time_fs *1e3
+            time0=t_in*au_to_as
             pulse = DeltaPulse(strength= strength_au,
             time0= time0, total_time=self.laser_profile_time)
 
             l_design={
-            'type': 'delta', 
+            'type': 'delta',
+            'tag': tag, 
             "strength": strength_au,
-            "time0": time0,
+            "time0": round(time0*as_to_au,2)
             } 
             return (pulse, l_design)
        
@@ -361,24 +367,48 @@ class LaserDesignPlotModel:
         return self.list_of_pulse
 
     def get_time_strength(self, list_of_pulse:list):
-        """Plots single/multiple lasers given the delay"""
+        """Plots single/multiple lasers"""
 
         if list_of_pulse:
-            self.pulse_sets = list_of_pulse
+            self.laser_sets = list_of_pulse
         else:
-            self.pulse_sets = self.get_laser_pulse()
-
+            self.laser_sets = self.get_laser_pulse_list()
+        
         laser_profile_time_fs = self.laser_profile_time
         laser_profile_time_as = laser_profile_time_fs*1e3
         time_array = np.arange(laser_profile_time_as)
 
-        laser_strengths = []        
-        for pulse in self.pulse_sets:
-            if pulse.name == "delta":
+        laser_strengths = []   
+
+        for i,laser in enumerate(self.laser_sets):                     
+            if laser.get('type') == "delta": 
+                time0 = laser.get('time0')*au_to_as
+                pulse = DeltaPulse(strength= laser.get('strength'),
+                                    time0 = time0, 
+                                #    time0= laser.get('time0')*au_to_as, 
+                                   total_time=self.laser_profile_time)
                 strength_value = pulse.strength()
-            if pulse.name == "gaussian":
+
+            if laser.get('type') == "gaussian": 
+                time0 = laser.get('time0')*au_to_as                 
+                sigma_eV = round(autime_to_eV/laser['sigma'], 2)
+                # time0_fs = round(laser['time0']*au_to_fs,2) 
+                freq_eV = laser.get('frequency')
+                pulse = GaussianPulse(strength= laser.get('strength'),
+                                    # time0= time0_fs*1e3,
+                                    time0= time0,
+                                    frequency= freq_eV,
+                                    sigma= sigma_eV, 
+                                    sincos='sin')              
                 strength_value = pulse.strength(time_array*as_to_au)
-            laser_strengths.append(strength_value)
+            laser_strengths.append(strength_value)  
+
+        # for pulse in self.pulse_sets:
+        #     if pulse.name == "delta":
+        #         strength_value = pulse.strength()
+        #     if pulse.name == "gaussian":                
+        #         strength_value = pulse.strength(time_array*as_to_au)
+        #     laser_strengths.append(strength_value)
         self.time = time_array
         self.strengths = laser_strengths
 
