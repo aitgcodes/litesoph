@@ -1065,6 +1065,15 @@ laser_design_input = {
                 "default": "Pump",
                 "values": ["Pump", "Probe"],
                 },
+        "laser_label": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Laser Label",
+                "help": None,
+                "widget": tk.Entry,
+                "type": str,
+                "default": "Laser1",
+                },
         "time_origin": {
                 "tab":"Laser Design",
                 "group": "laser details",

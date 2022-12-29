@@ -2411,7 +2411,7 @@ class TDPage(View):
         self.inp.update_widgets()
 
     def laser_button(self):
-        self.event_generate('<<ShowLaserPage>>')
+        self.event_generate('<<Design&EditLaser>>')
 
     def get_pol_list(self, pol_var:str):
         assert pol_var in ["X", "Y", "Z"] 
@@ -2556,14 +2556,18 @@ class LaserDesignPage(View):
         # self.plot_inp.grid(row=1, column=0)
 
         # self.button_plot = tk.Button(self.plot_inp.tab["Plot Laser"], text="Plot", activebackground="#78d6ff", command=lambda: self.plot_button())
-        
+
+        self.button_back = tk.Button(self.property_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.button_back['font'] = myFont
+        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+
         self.button_add = tk.Button(self.property_frame, text="Add Laser", activebackground="#78d6ff", command=lambda: self.add_laser())
         self.button_add['font'] = myFont
-        self.button_add.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+        self.button_add.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
 
-        self.button_edit = tk.Button(self.property_frame, text="Edit Laser", activebackground="#78d6ff", command=lambda: self.edit_laser())
-        self.button_edit['font'] = myFont
-        self.button_edit.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
+        # self.button_edit = tk.Button(self.property_frame, text="Edit Laser", activebackground="#78d6ff", command=lambda: self.edit_laser())
+        # self.button_edit['font'] = myFont
+        # self.button_edit.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
         
         self.button_save = tk.Button(self.property_frame, text="Save Laser", activebackground="#78d6ff", command=lambda: self.save_laser())
         self.button_save['font'] = myFont
@@ -2589,6 +2593,9 @@ class LaserDesignPage(View):
         for name, var in self.inp.variable.items():
             var.trace("w", self.inp.update_widgets)
 
+    def back_button(self):
+        pass
+
     def add_laser(self):
         self.event_generate('<<AddLaser>>')
 
@@ -2611,7 +2618,7 @@ class LaserDesignPage(View):
         elif laser_type == "Delta Pulse":
             l_type = "delta" 
 
-        laser_list = []
+        # laser_list = []
         laser_input = {
             "type": l_type,
             "tag": gui_dict.get("pump-probe_tag"),
@@ -2623,8 +2630,9 @@ class LaserDesignPage(View):
             # "delay_time" : 0        
         }
 
-        laser_list.append(laser_input)
-        return laser_list      
+        # laser_list.append(laser_input)
+        # return laser_list   
+        return laser_input   
 
     def get_parameters(self):
         from litesoph.utilities.units import as_to_au
@@ -2747,3 +2755,52 @@ class LaserInfoPage(tk.Toplevel):
 
     def choose_and_remove(self):
         self.event_generate('<<Choose&RemoveLaser>>')
+
+class LaserEditPage(tk.Toplevel):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self._default_var = {
+              'delay' : ['float'],
+              
+          }
+        self.delay_list = [0]
+        self.laser_list = ['laser 1']
+
+        self._var = var_define(self._default_var)
+        self.attributes("-topmost", True)
+        self.grab_set()
+        self.lift()
+        self.title("Laser Details")     
+        self.geometry("550x200")
+
+        self.button_add = tk.Button(self,text="Add",width=18, activebackground="#78d6ff", command=lambda: self.add_button())
+        self.button_add['font'] = myfont()
+        self.button_add.grid(column=1, row= 1, sticky=tk.W, padx= 10, pady=10)
+
+        self.button_edit = tk.Button(self,text="Edit",width=18, activebackground="#78d6ff", command=lambda: self.edit_button())
+        self.button_edit['font'] = myfont()
+        self.button_edit.grid(column=2, row= 1, sticky=tk.W, padx= 10, pady=10)
+
+        self.button_remove = tk.Button(self,text="Remove",width=18, activebackground="#78d6ff", command=lambda: self.remove_button())
+        self.button_remove['font'] = myfont()
+        self.button_remove.grid(column=3, row= 1, sticky=tk.W, padx= 10, pady=10)
+            
+    def add_button(self):
+        self.event_generate('<<Add&ShowLaserPage>>')
+
+    def edit_button(self):
+        self.event_generate('<<Choose&EditLaser>>')
+
+    def remove_button(self):
+        self.event_generate('<<Choose&RemoveLaser>>')
+    
+    def get_value(self, key):
+        return self._var[key].get()
+
+    def choose_values(self):
+        #TODO: store values from the page
+        pass
+
+    
