@@ -37,7 +37,7 @@ class WorkflowController:
         
     def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
-        self.user_defined_workflow = self.workflow_manager.user_defined
+        self.task_mode_workflow = self.workflow_manager.task_mode
         self.workmanager_page = self.project_controller.workmanager_page
         self.start_task()        
         
@@ -50,7 +50,7 @@ class WorkflowController:
     def start_task(self, *_):
         
         task_name = None
-        if self.user_defined_workflow:
+        if self.task_mode_workflow:
             task_and_view = self._get_task()
             if not task_and_view:
                 return 

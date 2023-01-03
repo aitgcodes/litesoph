@@ -48,7 +48,7 @@ class ProjectController:
         workflow_info = self.project_manager.current_workflow_info
         if workflow_info.name:
             
-            if not workflow_info.user_defined:
+            if not workflow_info.task_mode:
                 self._create_workflow_navigation(workflow_info.name)
 
             workflow_controller = self._get_workflow_controller(workflow_info.name)
@@ -126,7 +126,7 @@ class ProjectController:
             messagebox.showerror(title='Error', message=msg, detail=e) 
     
     def _get_workflow_controller(self, name):
-        if name == 'user_defined':
+        if name == 'task_mode':
             return WorkflowController
         elif name in list(predefined_workflow.keys()):
             return WorkflowModeController
@@ -145,7 +145,7 @@ class ProjectController:
         workflow_option = self.workmanager_page.get_value('select_wf_option')
         check_user_workflow = (workflow_option == 2)
         if check_user_workflow:
-            workflow_type = "user_defined"
+            workflow_type = "task_mode"
             if self.workflow_navigation_view:
                 self.workflow_navigation_view.clear()
         else:

@@ -37,7 +37,7 @@ class WorkflowManager:
         self.config = config
         self.workflow_info = workflow_info
         self.workflow_type = workflow_info.name
-        self.user_defined = workflow_info.user_defined
+        self.task_mode = workflow_info.task_mode
         self.engine = workflow_info.engine
         self.steps = workflow_info.steps
         self.containers = workflow_info.containers
@@ -45,7 +45,7 @@ class WorkflowManager:
         self.directory = workflow_info.path
         self.current_step = workflow_info.current_step
         self.dependencies_map = workflow_info.dependencies_map
-        self.user_defined = workflow_info.user_defined = True
+        self.task_mode = workflow_info.task_mode = True
         self.current_task_info = None
         if not self.workflow_info.engine:
             self.choose_default_engine()
@@ -131,7 +131,7 @@ class WorkflowManager:
             raise TaskSetupError("Task in not defined.")
         
         if not self.current_step:
-            self.current_step.insert(0, 'user_defined')
+            self.current_step.insert(0, 'task_mode')
             self.current_step.insert(1, task_name)
             self.current_step.insert(2, 0)
         else:
@@ -191,7 +191,7 @@ class WorkflowMode(WorkflowManager):
         super().__init__(project_manager,
                         workflow_info,
                         config)
-        self.workflow_info.user_defined = False
+        self.workflow_info.task_mode = False
         if not self.tasks:
             self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
             update_workflowinfo(self.workflow_from_db, workflow_info)

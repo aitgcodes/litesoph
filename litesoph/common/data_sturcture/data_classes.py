@@ -134,7 +134,7 @@ class WorkflowInfo(Info):
     _name: str = field(default='')
     description: str = field(default='')
     engine: Union[str, None] = field(default=None)
-    user_defined: bool = field(default=False)
+    task_mode: bool = field(default=False)
     param: Dict[Any, Any] = field(default_factory=dict)
     steps: List[str] = field(default_factory=list)
     containers: List[Container] = field(default_factory=list)
@@ -163,13 +163,13 @@ class WorkflowInfo(Info):
         current_step = data['current_step']
         return cls(_uuid = data['_uuid'],
                      _name=data['_name'], 
-                    description= data['description'], 
+                    description= data.get('description'), 
                     path= Path(data['path']),
-                    label =data['label'],
-                    engine = data['engine'],
-                    param= data['param'], 
+                    label =data.get('label'),
+                    engine = data.get('engine'),
+                    param= data.get('param'), 
                     state= state, 
-                    user_defined = data['user_defined'],
+                    task_mode = data.get('task_mode', False),
                     steps = data['steps'],
                     containers = containers,
                     tasks= tasks, 
