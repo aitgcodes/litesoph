@@ -22,16 +22,24 @@ def _get_set(**params):
 def _get_field(key, val):
     
     prefix = '      '
-    name = val.pop('name', 'kick')
-    _lines = [f'    {key} "{name}"']
-    
-    geo_name = val.pop('geo_name', 'system')
+    fields = []
+    if isinstance(val, dict):
+        fields.append(val)
+    else:
+        fields.extend(val)
+    lines = []
+    for field in fields:
+        name = field.pop('name', 'kick')
+        lines.append(f'    {key} "{name}"')
+        
+        geo_name = val.pop('geo_name', 'system')
 
-    for subkey, subval in val.items():
-        _lines.append(prefix + _format_line(subkey, subval))
-    _lines.append('  ' + 'end')
-    _lines.append('  ' + f'excite "{geo_name}" with "{name}"')
-    return _lines
+        for subkey, subval in field.items():
+            lines.append(prefix + _format_line(subkey, subval))
+        lines.append('  ' + 'end')
+        lines.append('  ' + f'excite "{geo_name}" with "{name}"')
+        
+    return lines
 
 def _format_block(key, val, nindent=0):
     prefix = '  ' * nindent
