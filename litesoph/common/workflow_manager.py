@@ -123,6 +123,9 @@ class WorkflowManager:
     def get_engine(param: dict):
         pass
     
+    def start(self):
+        pass
+
     def next(self, task_name:str= None) -> TaskInfo:
         
         self.save()
@@ -229,10 +232,6 @@ class WorkflowMode(WorkflowManager):
             self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
             update_workflowinfo(self.workflow_from_db, workflow_info)
         
-        if self.current_step:
-            self.current_step[0] -= 1
-            self.current_container = self.containers[self.current_step[0]]
-    
     def choose_default_engine(self):
         self.workflow_info.engine = decide_engine(self.workflow_type)
         self.engine = self.workflow_info.engine        
@@ -246,23 +245,31 @@ class WorkflowMode(WorkflowManager):
         elif isinstance(denpendices_uuid, list):
             return [self.tasks.get(task_uuid) for task_uuid in denpendices_uuid]
 
-    def next(self) -> TaskInfo:
-        
+    def start(self):
         self.save()
-
         if not self.current_step:
             self.current_container = self.containers[0]
             self.current_step.insert(0, 0)
             task_id = self.current_container.task_uuid
+            self.current_task_info = self.tasks.get(task_id)
+            self.prepare_task()
         else:
-            #container = self.containers[self.current_step[0]]
-            if self.current_container.next is None:
-                raise WorkflowEnded('No more tasks in the workflow.')
-            task_id = self.current_container.next
-            self.current_step[0] += 1
-            self.current_container  = self.containers[self.current_step[0]]
-        self.current_task_info = self.tasks.get(task_id)
+            self.current_container = self.containers[self.current_step[0]]
+            self.current_task_info = self.tasks.get(self.current_container.task_uuid)
 
+    def next(self):
+        
+        self.save()
+        if self.current_container.next is None:
+            raise WorkflowEnded('No more tasks in the workflow.')
+        task_id = self.current_container.next
+        self.current_step[0] += 1
+        self.current_container  = self.containers[self.current_step[0]]
+        self.current_task_info = self.tasks.get(task_id)
+        self.prepare_task()
+
+
+    def prepare_task(self):
         if self.engine:
             self.current_task_info.engine = self.engine
             engine_manager = self._get_engine_manager(self.engine)
@@ -270,7 +277,11 @@ class WorkflowMode(WorkflowManager):
             param.update(self.current_container.parameters)
             self.current_task_info.param.update(param)
         self.current_task_info.path = self.directory
-        return self.current_task_info
+
+    def get_continer(self, task_uuid):
+        for container in self.containers:
+            if container.task_uuid == task_uuid:
+                return container
 
     def check_engine(self, engine)-> bool:
         engine_manager = self._get_engine_manager(engine)

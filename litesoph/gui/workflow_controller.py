@@ -137,32 +137,22 @@ class WorkflowModeController(WorkflowController):
     def __init__(self, project_controller, app) -> None:
         super().__init__(project_controller, app)
 
+
     def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
         # self.workmanager_page = self.project_controller.workmanager_page
-        self.app.proceed_button.config(command= self.start_task)
-        
+        self.app.proceed_button.config(command= self.next_task)
+        self.workflow_manager.start()
         self.start_task()        
         
 
     def show_workmanager_page(self, *_):
         self.workmanager_page._var['select_wf_option'].set(value=1)
         self.workmanager_page.tkraise()
-        self.app.proceed_button.config(command= self.start_task)
+        self.app.proceed_button.config(command= self.next_task)
     
+
     def start_task(self, *_):
-        
-        try:
-            self.workflow_manager.next()
-        except TaskSetupError as e:
-            messagebox.showerror(title='Error', message=e)
-            return
-        except WorkflowEnded as e:
-            messagebox.showinfo(title='Info', message="All the tasks in the workflow are completed successfully.")
-            block_id = self.workflow_manager.current_container.block_id
-            self.workflow_navigation_view.start(block_id + 1)
-            self.workflow_navigation_view.start(block_id + 2)
-            return
         
         task_view = task_view_map.get(self.workflow_manager.current_task_info.name)
 
@@ -179,6 +169,23 @@ class WorkflowModeController(WorkflowController):
         block_id = self.workflow_manager.current_container.block_id
         self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)
+
+    
+    def next_task(self):
+
+        try:
+            self.workflow_manager.next()
+        except TaskSetupError as e:
+            messagebox.showerror(title='Error', message=e)
+            return
+        except WorkflowEnded as e:
+            messagebox.showinfo(title='Info', message="All the tasks in the workflow are completed successfully.")
+            block_id = self.workflow_manager.current_container.block_id
+            self.workflow_navigation_view.start(block_id + 1)
+            self.workflow_navigation_view.start(block_id + 2)
+            return
+        
+        self.start_task()
 
 
 def get_task_controller( task_view, workflow_controller, app) -> TaskController:
