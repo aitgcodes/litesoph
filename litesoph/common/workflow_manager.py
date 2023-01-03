@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 import os
-from typing import Dict, Union, List, Any
+from typing import Dict, Union, List, Any, Union 
 import uuid
 from dataclasses import dataclass, field
 from litesoph.common.task import Task, TaskFailed
@@ -155,8 +155,41 @@ class WorkflowManager:
     def add_task(self, task_name,
                          block_id, 
                          step_id,
-                         dependent_task_step_id):
-        pass
+                         parameters: dict,
+                         env_parameters: dict,
+                         dependent_tasks_uuid: Union[str, list]):
+
+        task_info = factory_task_info(task_name)
+        self.tasks[task_info.uuid] = task_info
+        
+        new_container = Container(step_id,
+                                block_id,
+                                task_name,
+                                task_info.uuid,
+                                self.workflow_info.uuid,
+                                parameters,
+                                env_parameters)
+                                 
+        self.containers.insert(step_id, new_container)
+        new_container.next = self.containers[step_id-1].next
+        self.containers[step_id-1].next = new_container.task_uuid
+        
+        for container in self.containers[step_id+1:]:
+            container.step_id += 1
+
+        self.add_dependency(task_info.uuid, dependent_tasks_uuid)
+
+
+    def add_dependency(self, task_uuid: str, 
+                        dependent_tasks_uuid: Union[str, list]):
+        
+        dependent_tasks=[]
+        if isinstance(dependent_tasks_uuid, str):
+            dependent_tasks.append(dependent_tasks_uuid)
+        else:
+            dependent_tasks_uuid.extend(dependent_tasks_uuid)
+
+        self.dependencies_map.update({task_uuid: dependent_tasks})
 
     def add_block(self, block_id, block_name):
         pass
