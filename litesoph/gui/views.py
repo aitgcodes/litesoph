@@ -2538,11 +2538,6 @@ class LaserDesignPage(View):
 
         self.tree = self.create_laser_tree_view(parent=self.input_param_frame, pump_probe=pump_probe)       
         
-        # self.update_tree_view(pump_probe=pump_probe,
-        # pumps=['l1', 'l2'],
-        # probes = ['l1', 'l2']
-        # )
-
         self.button_back = tk.Button(self.property_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
@@ -2554,10 +2549,6 @@ class LaserDesignPage(View):
         self.button_edit = tk.Button(self.property_frame, text="Edit", activebackground="#78d6ff", command=lambda: self.edit_laser())
         self.button_edit['font'] = myFont
         self.button_edit.grid(row=0, column=3, padx=3, pady=3,sticky='nsew')
-        
-        # self.button_save = tk.Button(self.property_frame, text="Save", activebackground="#78d6ff", command=lambda: self.save_button())
-        # self.button_save['font'] = myFont
-        # self.button_save.grid(row=0, column=3, padx=3, pady=3,sticky='nsew')
 
         self.button_del = tk.Button(self.property_frame, text="Remove", activebackground="#78d6ff", command=lambda: self.remove_button())
         self.button_del['font'] = myFont
@@ -2616,49 +2607,49 @@ class LaserDesignPage(View):
                        'probe':[]}
         return tree
 
-    def update_tree_view(self, count:int, pump_probe:bool = False, **kwargs):   
-        if not pump_probe:
-            # get the number of lasers present
-            pass
-        if pump_probe:
+    # def update_tree_view(self, count:int, pump_probe:bool = False, **kwargs):   
+    #     if not pump_probe:
+    #         # get the number of lasers present
+    #         pass
+    #     if pump_probe:
             
-            print("before updating....")
-            print(self.ids)
-            # print(self.count)
+    #         print("before updating....")
+    #         print(self.ids)
+    #         # print(self.count)
 
-            pump = kwargs.get('pumps', None)
-            probe = kwargs.get('probes', None)
+    #         pump = kwargs.get('pumps', None)
+    #         probe = kwargs.get('probes', None)
 
-            # for i,laser in enumerate(pump_lasers):
-            if pump:
-                # id = self.tree.insert('',str(self.count), text= pump)
-                id = self.tree.insert('',str(count), text= pump)
-                self.ids['pump'].append(id)
-                # self.count +=1
-                self.tree.move(id, 'pump', 'end')
+    #         # for i,laser in enumerate(pump_lasers):
+    #         if pump:
+    #             # id = self.tree.insert('',str(self.count), text= pump)
+    #             id = self.tree.insert('',str(count), text= pump)
+    #             self.ids['pump'].append(id)
+    #             # self.count +=1
+    #             self.tree.move(id, 'pump', 'end')
 
-                # id_values = self.ids['pump']
-                # for value in id_values:
-                #     self.tree.move(value,'pump', 'end') 
+    #             # id_values = self.ids['pump']
+    #             # for value in id_values:
+    #             #     self.tree.move(value,'pump', 'end') 
 
-            if probe:
-                id = self.tree.insert('',str(count), text= probe)
-                # id = self.tree.insert('',str(self.count), text= probe)
-                self.ids['probe'].append(id)
-                # self.count +=1
-                self.tree.move(id, 'probe', 'end') 
+    #         if probe:
+    #             id = self.tree.insert('',str(count), text= probe)
+    #             # id = self.tree.insert('',str(self.count), text= probe)
+    #             self.ids['probe'].append(id)
+    #             # self.count +=1
+    #             self.tree.move(id, 'probe', 'end') 
 
-                # id_values = self.ids['probe']
-                # for value in id_values:
-                #     self.tree.move(value, 'probe', 'end') 
+    #             # id_values = self.ids['probe']
+    #             # for value in id_values:
+    #             #     self.tree.move(value, 'probe', 'end') 
 
-            print("after updating......")
-            print(self.ids)
-            print(self.count)
+    #         print("after updating......")
+    #         print(self.ids)
+    #         print(self.count)
 
-            # for key, values in self.ids.items():
-                # for value in values:
-                #     self.tree.move(value, key, 'end')            
+    #         # for key, values in self.ids.items():
+    #             # for value in values:
+    #             #     self.tree.move(value, key, 'end')            
 
     def laser_selected(self, *_):
         pass

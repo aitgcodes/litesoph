@@ -511,7 +511,6 @@ class LaserInfo:
                     except IndexError:
                         raise IndexError('List index:{} is not found'.format(index))     
 
-                # existing_lasers.append(laser_param)
                 self.data[system_key]['lasers'] = existing_lasers
             except KeyError:
                 self.data[system_key]['lasers'] = []
@@ -521,13 +520,7 @@ class LaserInfo:
     def add_pulse(self, system_key:str, laser_pulse, index:int=None):
         """ Adds laser pulse object to laser database"""
 
-        # self.laser_design_model = self.get_laser_design_model(laser_input=input_dict)
-        # pulse_info = laser_model.pulse_info
-        # laser_pulse = pulse_info[0]
-        # laser_param = pulse_info[1]
-
         pulse_info = laser_pulse
-
         try:
             laser_pulses =self.data[system_key]['pulses']
             assert isinstance(laser_pulses, list)
@@ -545,7 +538,6 @@ class LaserInfo:
 
     def remove_info(self, system_key:str, laser_index:int):
         """Removes laser details from laser_database"""
-        print(self.data)
         
         if system_key in self.data.keys():
             laser_system = self.data[system_key]
@@ -561,8 +553,6 @@ class LaserInfo:
                 self.data[system_key]['pulses'] = pulses
             except IndexError:
                 raise IndexError('List index:{} is not found'.format(laser_index))
-
-            print('after removing....\n', self.data)
 
     def check_laser_exists(self, system_tag:str):
         lasers_exist = False
