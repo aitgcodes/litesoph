@@ -895,15 +895,15 @@ laser_td_input = {
                 "type": int,
                 "default": 10
                 },
-        "pol_dir": {
-                "tab":"Simulation Parameters",
-                "group": "simulation ",
-                "text": "Polarization Direction",
-                "help": None,
-                "widget": Combobox,
-                "values": ["X","Y", "Z"],
-                "type": str
-                },
+        # "pol_dir": {
+        #         "tab":"Simulation Parameters",
+        #         "group": "simulation ",
+        #         "text": "Polarization Direction",
+        #         "help": None,
+        #         "widget": Combobox,
+        #         "values": ["X","Y", "Z"],
+        #         "type": str
+        #         },
         
         "spectrum": {
                 "tab":"Properties",
@@ -1065,19 +1065,19 @@ laser_design_input = {
                 "default": "Pump",
                 "values": ["Pump", "Probe"],
                 },
-        "laser_label": {
-                "tab":"Laser Design",
-                "group": "laser details",
-                "text": "Laser Label",
-                "help": None,
-                "widget": tk.Entry,
-                "type": str,
-                "default": "Laser1",
-                },
+        # "laser_label": {
+        #         "tab":"Laser Design",
+        #         "group": "laser details",
+        #         "text": "Laser Label",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": str,
+        #         "default": "Laser1",
+        #         },
         "time_origin": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Time Origin in attosecond",
+                "text": "Time Origin w.r.t. laser 1 in as",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -1088,7 +1088,7 @@ laser_design_input = {
         "time_origin:pump": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Time Origin wrt pump 1 in as",
+                "text": "Time Origin w.r.t. pump 1 in as",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -1099,7 +1099,7 @@ laser_design_input = {
         "time_origin:probe": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Time Origin wrt probe 1 in as",
+                "text": "Time Origin w.r.t. probe 1 in as",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -1110,7 +1110,7 @@ laser_design_input = {
         "log_val": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Relative strength at time origin(10e-(value))",
+                "text": "Relative strength at time origin,10e-",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -1150,6 +1150,15 @@ laser_design_input = {
                 "default": 0.0,
                 "switch": lambda k:
                 k.get("laser_type") == "Gaussian Pulse"
+                },
+        "pol_dir": {
+                "tab":"Laser Design",
+                "group": "laser details",
+                "text": "Polarization Direction",
+                "help": None,
+                "widget": Combobox,
+                "values": ["X","Y", "Z"],
+                "type": str
                 },
 
         "delta strength": {
