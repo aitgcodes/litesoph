@@ -351,7 +351,6 @@ class TDPageController(TaskController):
 
     def __init__(self, workflow_controller, app) -> None:
         super().__init__(workflow_controller, app)
-        # self.laser_design_bool = False
         self.pump_probe = False
         self.get_laser_data()
 
@@ -391,99 +390,110 @@ class TDPageController(TaskController):
     def _on_back(self, *_):
         """ Shows the WorkFlowManager Page"""
         self.wm_view = self.app._show_workmanager_page()
-        # self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)     
-        # self.task_controller = TDPageController(self.workflow_controller, self.app)  
-        # self.task_controller.set_task( self.workflow_manager, v.TDPage)
 
     def _on_design_edit_laser(self, *_):
         """ On Laser design button, decides on showing LaserDesignPage and binds the widgets"""
-        
-        # TODO: Same LaserDesignPage to be compatible with handling edit/update/add/remove 
+        # TODO:Add the msg on whether to modify existing laser sets
 
-        self.task_param = self.task_view.get_parameters() 
-        field_type = self.task_param.get('field_type')
-        exp_type = self.task_param.get('exp_type')
-        self.pump_probe = bool(exp_type == "Pump-Probe")
-        self.state_prepare = bool(exp_type == "State Preparation")
+        laser_defined = False
+        current_task_view_param = self.task_view.get_parameters()
+        exp_type = current_task_view_param.get('exp_type')        
+        laser_defined = validate_laser_defined(laser_data = self.laser_data, exp_type= exp_type) 
 
-        # if self.laser_design_bool:  
-        #     # TODO:Remove this method/Toplevel for these options   
-        #     #    Show a message on available lasers        
-        #     self.laser_edit_view = v.LaserEditPage(self.main_window)
-        #     self.main_window.bind_all('<<Add&ShowLaserPage>>', self._on_show_and_add_laser)
-        #     self.main_window.bind_all('<<Choose&EditLaser>>', self._on_edit_laser)
-        #     self.main_window.bind_all('<<Choose&RemoveLaser>>', self._on_remove_laser)
-        #     return
+        if laser_defined:
+            pass
+        else:
+            if len(self.laser_data) > 0:
+                check = messagebox.askyesno(message="Previously designed laser will be removed. \nDo you want to continue?")
+                if check:
+                    self.laser_data ={}            
 
-            # TODO:Add the msg on whether to modify existing laser sets
-            # check = messagebox.askyesno(message= "Laser is already designed.\n Do you want to edit again?")
-            # if not check:
-            #     return
-
-        self._on_show_laser_page(show_stored= False)
+        # check = messagebox.askyesno(message= "Laser is already designed.\n Do you want to edit again?")
+        # if not check:
+        #     return   
+        self._on_show_laser_page(show_stored= False)             
 
     def _on_show_laser_page(self, show_stored:bool, *_):
         """ Assigns LaserDesignController and shows the LaserDesignPage """
 
         # Collects TD input parameters from task_view
         self.task_param = self.task_view.get_parameters() 
-         # TODO: get pump_probe bool
-        self.pump_probe = (self.task_param.get("pump_probe"))
+        # TODO: remove pump_probe bool from task_param dict
+        # self.pump_probe = (self.task_param.get("pump_probe"))
 
         # TODO: Collect pump-probe bool
-        self.laser_view = self.app.show_frame(v.LaserDesignPage, self.task_info.engine, self.task_info.name, pump_probe = self.pump_probe)        
+        self.laser_view = self.app.show_frame(v.LaserDesignPage, self.task_info.engine, self.task_info.name)        
         self.laser_controller = LaserDesignController(app= self.app, view=self.laser_view, 
                                                     td_param= self.task_param,
                                                     laser_data= self.laser_data) 
         
         self.laser_controller.bind_events_and_update_default_view()  
         self.laser_controller.view.button_next.config(command=self.show_TDPage_and_update)
-       
-        self.laser_controller.update_labels_on_tree(pump_probe= self.pump_probe)
+        self.laser_controller.view.button_back.config(command=self._back_on_laser_design_page)
 
+        self.laser_controller.update_labels_on_tree()
+
+    def _back_on_laser_design_page(self, *_):
+        """ Shows the TDPage"""   
+        self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name,        
+                                                # input_widget_dict=copy_widget_dict
+                                                )
 
     def show_TDPage_and_update(self, *_):
         from litesoph.gui.models import inputs as inp
 
-        check = messagebox.askyesno(message= "Do you want to proceed with this laser setup?")
-        if check:
-            copy_widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
-            self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name,
-                                             input_widget_dict=copy_widget_dict)
-            # self.task_view.tkraise()
-            self.laser_design_bool = True
-            self.update_laser_on_td_page()
+        exp_type = self.task_param.get('exp_type')        
+        self.laser_defined = validate_laser_defined(self.laser_controller.laser_info.data, exp_type) 
 
+        # Showing message before finalise the laser setup if laser defined is True
+        if self.laser_defined:
+            check = messagebox.askyesno(message= "Do you want to proceed with this laser setup?")
+            if check:
+                # With new widgets added to consider delays as combo box entries
+                copy_widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
+                self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name,
+                                                input_widget_dict=copy_widget_dict)
+                self.update_laser_on_td_page()
         else:
-            pass
+            if exp_type == 'pump_probe':
+                pump_bool = self.laser_controller.laser_info.check_laser_exists(system_tag='pump')
+                probe_bool = self.laser_controller.laser_info.check_laser_exists(system_tag='probe')
+                if not pump_bool:
+                    messagebox.showerror(message="Please add one pump laser.")
+                    return
+                if not probe_bool:
+                    messagebox.showerror(message="Please add one probe laser.")
+                    return 
+            else:
+                messagebox.showinfo(message= "Laser is not set. Please add lasers first.")       
 
     def update_laser_on_td_page(self):
-        """ Checks condition for laser designed/present"""
-        
+        """ Checks condition for laser designed and updates TDPage view"""        
 
-        if not self.laser_design_bool:
+        if not self.laser_defined:
             #TODO: Resets the page
             pass 
-        else:            
-            #TODO: disable delay entry if pump-probe is chosen and delays are present
-            # Choose one delay to generate and save input
-            # input_stored = self.workflow_manager.current_task_info.input
+        else: 
+            # GUI entries from previous td view
+            gui_inp_stored = self.task_view.inp.get_values()
+            # TD param from previous td view
+            td_param_stored = self.task_param
 
-            input_stored = self.task_param
+            # TODO: modify pump_probe bool
             if self.pump_probe:         
-                self.task_view.inp.widget["delay_values"].config(values= input_stored.get('delay'))
+                self.task_view.inp.widget["delay_values"].config(values= td_param_stored.get('delay'))
                 self.task_view.inp.widget["delay_values"].config(state = 'readonly')
                 self.task_view.inp.widget["delay_values"].current(0)
 
                 self.task_view.label_delay_entry.grid_remove()
 
-            default_gui_dict = {
-                "field_type": input_stored.get("field_type"),
-                "exp_type" : input_stored.get("exp_type")
+            _gui_dict = {
+                "field_type": gui_inp_stored.get("field_type"),
+                "exp_type" : gui_inp_stored.get("exp_type")
             }
 
             self.task_view.inp.init_widgets(fields=self.task_view.inp.fields,
-                        ignore_state=False,var_values=default_gui_dict)
+                        ignore_state=False,var_values=_gui_dict)
 
             self.task_view.button_view.config(state='active')
             self.task_view.button_save.config(state='active')
@@ -493,35 +503,20 @@ class TDPageController(TaskController):
             #TODO: freeze required input entries
             # self.task_view.inp.freeze_widgets(state= 'disabled', input_keys = ["field_type","exp_type"])
 
-    def _on_edit_laser(self, *_):
-        # TODO: Remove this method once LaserDesignPage is updated
+    # def _on_edit_laser(self, *_):
+    #     # TODO: Remove this method once LaserDesignPage is updated
 
-        self.laser_info_view = v.LaserInfoPage(self.main_window)
-        self.laser_info_view.show_edit_widgets()
-        currrent_lasers = self.workflow_manager.current_task_info.input['current_lasers']
-        self.laser_labels = get_laser_labels(laser_defined = True, 
-                                            num_lasers = len(currrent_lasers))
+    #     self.laser_info_view = v.LaserInfoPage(self.main_window)
+    #     self.laser_info_view.show_edit_widgets()
+    #     currrent_lasers = self.workflow_manager.current_task_info.input['current_lasers']
+    #     self.laser_labels = get_laser_labels(laser_defined = True, 
+    #                                         num_lasers = len(currrent_lasers))
         
-        self.laser_info_view.cb_lasers.config(values=self.laser_labels)
-        self.laser_info_view.cb_lasers.current(0)
+    #     self.laser_info_view.cb_lasers.config(values=self.laser_labels)
+    #     self.laser_info_view.cb_lasers.current(0)
 
-        self.main_window.bind_all('<<Choose&EditLaser>>', self.choose_and_update_laser)   
-        self.main_window.bind_all('<<Choose&RemoveLaser>>', self.choose_and_remove_laser)
-
-    def _on_remove_laser(self, *_):        
-        pass
-
-    # def choose_and_update_laser(self):
-    #     laser_index = str(self.laser_info_view.cb_lasers.get())
-    #     pass
-
-    # def choose_and_remove_laser(self):
-    #     pass
-
-    def _on_show_and_add_laser(self, *_):
-        """ shows the laser Design Page with updated"""    
-        self._on_show_laser_page(show_stored= True)  
-        # self.task_controller.add_existing_lasers()
+    #     self.main_window.bind_all('<<Choose&EditLaser>>', self.choose_and_update_laser)   
+    #     self.main_window.bind_all('<<Choose&RemoveLaser>>', self.choose_and_remove_laser)
         
     def generate_input(self, *_):
         """ Checks experiment type and generate respective inputs"""
@@ -592,32 +587,24 @@ class LaserDesignController:
 
     def bind_events_and_update_default_view(self):
         # TODO: update these event bindings
-        self.state_prepare = False
-        self.pump_probe = False
 
-        self.main_window.bind_all('<<BackOnLaserDesignPage>>', self._on_back)
         self.main_window.bind_all('<<AddLaser>>', self._on_add_laser)
         self.main_window.bind_all('<<EditLaser>>', self._on_edit_laser)
         self.main_window.bind_all('<<RemoveLaser>>', self._on_remove_laser)
-        self.main_window.bind_all('<<SaveLaser>>', self._on_save_laser)
-        
-        # self.main_window.bind_all('<<NextonLaserDesignPage>>', self._on_next)
         self.main_window.bind_all('<<PlotLaser>>', self._on_plot_laser)
-        self.main_window.bind_all('<<SelectLaser>>', self._on_select_laser)
+        self.main_window.bind_all('<<SelectLaser&UpdateView>>', self._on_select_laser)
 
         # Collecting exp_type from td_data passed from TDPage
         # TODO: decide on to retain previous exp_type sets
         exp_type = self.td_data.get('exp_type')
 
-        if exp_type == "State Preparation":
-            self.state_prepare = True
+        if exp_type == "state_prepare":
             self.view.inp.widget["pump-probe_tag"].configure(state = 'disabled')
+            self.view.inp.fields["pump-probe_tag"]["visible"] = False
             self.view.inp.label["time_origin:pump"].grid_remove()
             self.view.inp.widget["time_origin:pump"].grid_remove()
             
-        if exp_type == "Pump-Probe":
-            self.pump_probe = True
-            self.view.inp.widget["pump-probe_tag"].configure(values = ["Pump"])
+        if exp_type == "pump_probe":
             self.view.inp.label["time_origin"].grid_remove()
             self.view.inp.widget["time_origin"].grid_remove() 
         
@@ -668,30 +655,10 @@ class LaserDesignController:
         laser_design_model = self.get_laser_design_model(laser_design_inp)
         pulse = laser_design_model.pulse_info
 
-        # TODO: combine the conditions 
-        if self.state_prepare:
-            self.laser_info.add_laser(system_key='state_prepare', laser_param= laser_gui_inp, index=index)
-            self.laser_info.add_pulse(system_key='state_prepare', laser_pulse=pulse, index=index)
-            self.update_labels_on_tree(pump_probe=False)        
-            
-        if self.pump_probe:
-            tag = laser_gui_inp.get("pump-probe_tag")
-            assert tag in ["Pump", "Probe"]
-
-            if tag == 'Pump':
-                self.laser_info.add_laser(system_key='pump', laser_param= laser_gui_inp, index=index)
-                self.laser_info.add_pulse(system_key='pump', laser_pulse=pulse, index=index)
-                self.update_labels_on_tree(pump_probe= True)
-            if tag == 'Probe':
-                self.laser_info.add_laser(system_key='probe', laser_param= laser_gui_inp, index=index)
-                self.laser_info.add_pulse(system_key='probe', laser_pulse=pulse, index=index)
-                self.update_labels_on_tree(pump_probe= True)
-
-    def _on_back(self, *_):
-        """ Shows the TDPage"""
-
-        self.task_controller = TDPageController(self.workflow_controller, self.app)  
-        self.task_controller.set_task( self.workflow_manager, v.TDPage)
+        _tag = str(laser_design_inp.get('tag', 'State Preparation'))
+        self.laser_info.add_laser(system_key=_tag, laser_param= laser_gui_inp, index=index)
+        self.laser_info.add_pulse(system_key=_tag, laser_pulse=pulse, index=index)
+        self.update_labels_on_tree()  
 
     def _on_edit_laser(self, *_):
         """On Edit Button:
@@ -714,8 +681,7 @@ class LaserDesignController:
         else:
             pass
 
-    def get_laser_details(self, tag:str, index:int):
-        
+    def populate_laser_details(self, tag:str, index:int):        
         lasers = self.laser_info.data[tag]['lasers']
         laser_selected = lasers[index]
         self.view.inp.init_widgets(var_values=laser_selected)
@@ -728,122 +694,67 @@ class LaserDesignController:
         else:
             messagebox.showerror(message="Select laser first.")
             return
-
-        pump_probe = False     
-        if parent == 'pump':
-            tag = 'pump'
-            pump_probe = True
-        elif parent == 'probe':
-            tag = 'probe'
-            pump_probe = True
-        else:
-            tag = 'state_prepare'
-
-        remove_check = messagebox.askyesno(message="This laser will be removed. Click OK to continue?")
+        remove_check = messagebox.askyesno(message="This laser:{} will be removed. Click OK to continue?".format(index+1))
         if remove_check:
-            self.laser_info.remove_info(system_key=tag, laser_index=index)
-            self.update_labels_on_tree(pump_probe)
+            self.laser_info.remove_info(system_key=parent, laser_index=index)
+            self.update_labels_on_tree()
             self.focus = None
         else:
-            pass        
-        
-        #     self.laser_info.remove_info(system_key=tag, laser_index=index)
-        #     self.update_labels_on_tree(pump_probe= True)
-
-        # if parent == 'probe':
-        #     tag = 'probe'
-        #     self.laser_info.remove_info(system_key=tag, laser_index=index)
-        #     self.update_labels_on_tree(pump_probe= True)
-
-        # else:
-        #     tag = 'state_prepare'
-        #     self.laser_info.remove_info(system_key=tag, laser_index=index)
-        #     self.update_labels_on_tree(pump_probe= False)
-
-        # self.focus = None
+            pass     
 
     def _on_select_laser(self, *_):
-        """ Populates the laser entries"""
+        """ Populates the selected laser entries"""
 
         item = self.view.tree.selection()[0]
         label = str(self.view.tree.item(item,"text"))
         parent = str(self.view.tree.parent(item))
         index = int(label[-1]) -1
         self.focus = (parent, index)
-       
-        if parent == 'pump':
-            self.get_laser_details(tag='pump', index=index)
-            return (parent,index)
-        if parent == 'probe':
-            self.get_laser_details(tag='probe', index=index)
-            return (parent,index)
-        else:
-            self.get_laser_details(tag='state_prepare', index=index)
-            return (parent,index)
-            
-        # return (parent,index)
+        self.populate_laser_details(tag=parent, index=index)
+        return (parent,index)
 
-    def _on_save_laser(self,*_):
-        """ On Save Laser Button:
-        Checks laser bools 
-        and sets laser_defined bool"""
-        
-        self.laser_defined = False
-        laser_check = self.validate_laser_defined() 
+    def update_labels_on_tree(self):
+        """Method to update treeview"""
+        _parents_under_root = self.view.tree.get_children()
 
-        tag = self.view.get_parameters().get('tag')
-
-        pump_tag = (tag == "Pump")
-        probe_tag = (tag == "Probe")
-
-        # adding message if laser not defined
-        if self.pump_probe:
-            pump_defined = laser_check[0]
-            probe_defined = laser_check[1]
-
-            if all([pump_defined, probe_defined]):
-                self.laser_defined = True
-
-                return
-
+        # Clearing treeview for existing parents
+        for i, system_name in enumerate(self.laser_info.data.keys()):
+            if system_name in _parents_under_root:
+                if self.view.tree.get_children(system_name):
+                    for child in self.view.tree.get_children(system_name):
+                        self.view.tree.delete(child) 
             else:
-                if pump_tag:
-                    if pump_defined:
-                        check = messagebox.askokcancel(message= "Do you want to proceed with this pump laser set up?")
-                
-                        if check:
-                            ## Change tag to probe
-                            self.view.inp.widget["pump-probe_tag"].configure(values = ["Probe"])
-                            self.view.inp.widget["pump-probe_tag"].current(0) 
-                        else:
-                            pass
-                    else:                
-                        messagebox.showerror(message="Please add one pump laser.")
-                        return
-                if probe_tag:
-                    if probe_defined:
-                        check = messagebox.askokcancel(message= "Do you want to proceed with this probe laser set up?") 
-                        if check:
-                            pass
-                        else:
-                            pass                   
-                    else:
-                        messagebox.showerror(message="Please add one probe laser.")
-                        return
+                # Add the parents if not already present
+                self.view.tree.insert('', str(i), str(system_name), text=str(system_name))
 
-        if self.state_prepare:
-            if laser_check:
-                self.laser_defined = True 
+        # Attaching child to parent
+        for parent in self.view.tree.get_children():
+            num_lasers = self.laser_info.get_number_lasers(system_tag= parent)
+            laser_labels = get_laser_labels(laser_defined=True, num_lasers= num_lasers)
 
-    def _plot_laser_w_delay(self,*_):
-        delay = self.laser_info_view.get_value('delay')
-        updated_laser_params = self.update_pump_probe_delay(self.list_of_laser_params, delay= delay)
-        (time_arr, list_strength_arr) = self.laser_design.get_time_strength(updated_laser_params)
-        self.laser_design.plot_laser()
+            if laser_labels is not None:
+                for i, label in enumerate(laser_labels):
+                    id = self.view.tree.insert('', 'end', text=str(label))
+                    self.view.tree.move(id, str(parent), 'end')
+
+    # def _plot_laser_w_delay(self,*_):
+    #     delay = self.laser_info_view.get_value('delay')
+    #     updated_laser_params = self.update_pump_probe_delay(self.list_of_laser_params, delay= delay)
+    #     (time_arr, list_strength_arr) = self.laser_design.get_time_strength(updated_laser_params)
+    #     self.laser_design.plot_laser()
+
+    # def show_laser_delay(self, *_):
+    #     self.laser_info_view = v.LaserPlotPage(self.main_window)
+    #     self.laser_info_view.show_plot_widgets()
+    #     self.laser_info_view.cb_delay.config(values=self.task_param.get('delay'))
+    #     self.laser_info_view.cb_delay.current(0)
+
+    #     self.main_window.bind_all('<<PlotwithDelay>>', self._plot_laser_w_delay)  
 
     def _on_plot_laser(self, *_):
-        
-        pass
+        """ On Plot Button: Shows toplevel for plotting
+        and updates the binding"""
+
         # if len(self.list_of_laser_params) > 0:
         #     self.laser_defined = True
         # else:
@@ -856,110 +767,49 @@ class LaserDesignController:
         # else:
         #     (time_arr, list_strength_arr) = self.laser_design.get_time_strength(self.list_of_laser_params)
         #     self.laser_design.plot_laser()
+        pass           
 
-    def update_labels_on_tree(self, pump_probe:bool=False):
-        """Updating tree views after each addition/deletion"""
+    # def update_pump_probe_delay(self, list_of_laser_params:list, delay:float):
+    #     for i,laser in enumerate(list_of_laser_params):        
+    #         laser_tag = laser.get('tag')
 
-        if pump_probe:
-            # TODO:validate if pumps and probes exist or not
-            num_pumps = self.laser_info.get_number_lasers('pump')
-            num_probes = self.laser_info.get_number_lasers('probe')
-
-            pump_labels = get_laser_labels(laser_defined= True, num_lasers= num_pumps)
-            probe_labels = get_laser_labels(laser_defined=True, num_lasers= num_probes)
-
-            if pump_labels is not None:
-                if self.view.tree.get_children('pump') is not None:
-                    for child in self.view.tree.get_children('pump'):
-                        self.view.tree.delete(child)
-                for i,label in enumerate(pump_labels):
-                    id = self.view.tree.insert('','end', text= label)
-                    self.view.tree.move(id, 'pump', 'end')
-
-            if probe_labels is not None:
-                if self.view.tree.get_children('probe') is not None:
-                    for child in self.view.tree.get_children('probe'):
-                        self.view.tree.delete(child)
-                
-                for i,label in enumerate(probe_labels):
-                    id = self.view.tree.insert('','end', text= label)
-                    self.view.tree.move(id, 'probe', 'end')
-
-        if not pump_probe:
-            num_lasers = self.laser_info.get_number_lasers('state_prepare')
-            laser_labels = get_laser_labels(laser_defined=True, num_lasers= num_lasers)
-            if laser_labels:
-                if self.view.tree.get_children() is not None:
-                    for child in self.view.tree.get_children():
-                        self.view.tree.delete(child)
-
-                for label in laser_labels:
-                    id = self.view.tree.insert('','end', text= label)
-                    # self.view.update_tree_view(pump_probe, probes = label)             
-
-    def update_pump_probe_delay(self, list_of_laser_params:list, delay:float):
-        for i,laser in enumerate(list_of_laser_params):        
-            laser_tag = laser.get('tag')
-
-            # TODO: alternatively, use respective list of pumps/probes
-            if laser_tag is not None:
-                assert laser_tag in ["Pump", "Probe"]
-                if laser_tag == "Pump":
-                    pump_id = i                   
+    #         # TODO: alternatively, use respective list of pumps/probes
+    #         if laser_tag is not None:
+    #             assert laser_tag in ["Pump", "Probe"]
+    #             if laser_tag == "Pump":
+    #                 pump_id = i                   
                     
-                if laser_tag == "Probe":
-                    probe_id = i
-                    break
+    #             if laser_tag == "Probe":
+    #                 probe_id = i
+    #                 break
 
-        pump_param_on_delay = list_of_laser_params[pump_id]
-        probe_param_on_delay = list_of_laser_params[probe_id]
-        pump_on_delay_t0 = float(pump_param_on_delay.get('time0'))
-        probe_on_delay_t0 = float(probe_param_on_delay.get('time0'))
+    #     pump_param_on_delay = list_of_laser_params[pump_id]
+    #     probe_param_on_delay = list_of_laser_params[probe_id]
+    #     pump_on_delay_t0 = float(pump_param_on_delay.get('time0'))
+    #     probe_on_delay_t0 = float(probe_param_on_delay.get('time0'))
 
-        probe_t0_with_delay = pump_on_delay_t0 + delay + probe_on_delay_t0
-        list_of_laser_params[probe_id].update({'time0': probe_t0_with_delay})
+    #     probe_t0_with_delay = pump_on_delay_t0 + delay + probe_on_delay_t0
+    #     list_of_laser_params[probe_id].update({'time0': probe_t0_with_delay})
 
-        return list_of_laser_params
+    #     return list_of_laser_params
 
-    def validate_laser_defined(self):
-        check = False
-        if self.state_prepare:
-            check = self.laser_info.check_laser_exists('state_prepare')
+def validate_laser_defined(laser_data:dict, exp_type:str):
+    """ Validates laser_defined wrt exp_type and returns the bool"""
+
+    check = False
+    assert exp_type in ['pump_probe', 'state_prepare']
+    laser_info = m.LaserInfo(laser_data)
+
+    if exp_type == 'pump_probe':
+        pump_defined = laser_info.check_laser_exists('Pump')
+        probe_defined = laser_info.check_laser_exists('Probe')
+        if all([pump_defined, probe_defined]):
+            check = True
+    if exp_type == 'state_prepare':
+        check = laser_info.check_laser_exists('State Preparation')
+
+    return check
             
-        if self.pump_probe:
-            check_on_pump = self.laser_info.check_laser_exists('pump')
-            check_on_probe = self.laser_info.check_laser_exists('probe')
-            check = [check_on_pump, check_on_probe]
-        return check
-
-    # def _on_choose_laser(self, *_):
-    #     from litesoph.gui.models import inputs as inp
-    #     check =False
-    #     if not self.laser_defined:
-    #         messagebox.showerror(message="Laser is not set. Please add lasers to save.")
-    #         return
-    #     ##TODO: Get the pump-tag
-    #     if self.pump_probe:
-    #         if self.pump_tag:
-    #             check = messagebox.askokcancel(message= "Do you want to proceed with this pump laser set up?")
-    #         elif self.probe_tag:
-    #             check = messagebox.askokcancel(message= "Do you want to proceed with this probe laser set up?")
-    #     else:
-    #         check = messagebox.askokcancel(message= "Do you want to proceed with this laser set up?")
-        
-    #     if self.pump_probe:
-    #         if self.pump_tag and self.pump_defined:
-    #             if check is True:
-    #                 # self.task_view.inp.widget["pump-probe_tag"].current(1)   
-    #                 self.task_view.inp.widget["pump-probe_tag"].configure(values = ["Probe"])
-    #                 self.task_view.inp.widget["pump-probe_tag"].current(0) 
-    #             else:
-    #                 pass
-    #         if self.probe_tag and self.probe_defined:
-    #             self.save_lasers_and_proceed(check=check)
-    #     if not self.pump_probe:
-    #         self.save_lasers_and_proceed(check=check)
-    
 
     # def _on_add_laser(self, *_):  
     #     """On add laser button:
@@ -1008,28 +858,6 @@ class LaserDesignController:
     #                 self.append_lasers(tag)
 
     
-
-
-
-            # current_laser_label = "laser"+str(len(self.list_of_laser_params))
-            # next_laser_label = "laser"+str(len(self.list_of_laser_params)+1)
-            # if tag is not None:
-            #     if tag == "Pump":
-            #         self.pump_lasers.extend(laser_model.list_of_laser_param)
-            #         # label = "laser"+str(len(self.pump_lasers)+1)
-            #         # self.task_view.inp.variable["laser_label"].set(label)
-            #     elif tag == "Probe":
-            #         self.probe_lasers.extend(laser_model.list_of_laser_param) 
-            #         # label = "laser"+str(len(self.probe_lasers)+1)
-            #         # self.task_view.inp.variable["laser_label"].set(label)
-            # # else:
-            # self.task_view.inp.variable["laser_label"].set(next_laser_label)
-
-            # self.workflow_manager.current_task_info.input["gui_input"].update({
-            #     current_laser_label: self.task_view.inp.get_values()
-            # })
-            # return
-
     # def _on_edit_laser(self, *_):
     #     # Remove this method at this level
     #     # TODO: Validation on available lasers
@@ -1042,20 +870,7 @@ class LaserDesignController:
     #     self.laser_info_view.cb_lasers.current(0)
 
     #     self.main_window.bind_all('<<Choose&EditLaser>>', self.choose_and_update_laser)   
-    #     self.main_window.bind_all('<<Choose&RemoveLaser>>', self.choose_and_remove_laser)
-
-    
-    
-    def show_laser_delay(self, *_):
-        self.laser_info_view = v.LaserInfoPage(self.main_window)
-        self.laser_info_view.show_plot_widgets()
-        self.laser_info_view.cb_delay.config(values=self.task_param.get('delay'))
-        self.laser_info_view.cb_delay.current(0)
-
-        self.main_window.bind_all('<<PlotwithDelay>>', self._plot_laser_w_delay)        
-
-
-
+    #     self.main_window.bind_all('<<Choose&RemoveLaser>>', self.choose_and_remove_laser)      
 
 
 class PostProcessTaskController(TaskController):
