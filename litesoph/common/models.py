@@ -337,7 +337,11 @@ class LaserDesignPlotModel:
             pulse = GaussianPulse(strength= strength_au,
                                 time0= time0_fs*1e3,frequency= freq_eV,
                                  sigma= sigma_eV, sincos='sin')
-            return (pulse, l_design) 
+            pulse.laser_design =l_design
+            # print(pulse.laser_design)
+            # return (pulse, l_design) 
+            return pulse
+            
 
         elif laser_type == "delta":  
             # time0=t_in*au_to_as + delay_time_fs *1e3
@@ -351,7 +355,9 @@ class LaserDesignPlotModel:
             "strength": strength_au,
             "time0": round(time0*as_to_au,2)
             } 
-            return (pulse, l_design)
+            pulse.laser_design =l_design
+            return pulse
+            # return (pulse, l_design)
        
     def get_laser_pulse_list(self):
 
@@ -365,6 +371,18 @@ class LaserDesignPlotModel:
             self.list_of_laser_param.append(pulse_info[1])
             
         return self.list_of_pulse
+
+    def get_laser_param_pulse(self, laser_input:dict):
+
+        # self.list_of_pulse = []
+        # self.list_of_laser_param = []
+
+        laser_type = laser_input.get('type')
+        self.pulse_info = self.compute_laser_design_param(laser_type, laser_input)
+        # self.list_of_pulse.append(pulse_info[0])
+        # self.list_of_laser_param.append(pulse_info[1])
+            
+        return self.pulse_info
 
     def get_time_strength(self, list_of_pulse:list):
         """Plots single/multiple lasers"""
@@ -465,3 +483,125 @@ def format_laser_label(number_of_lasers:int):
         laser_label_dict.update({(i+1): "laser"+ str(i+1)})
 
     return laser_label_dict
+
+
+class LaserInfo:
+    def __init__(self, laser_dict:dict) -> None:
+        self.data = laser_dict
+
+    def add_systems_to_laser_data(self, system_tag:str, laser_list:list=[]):
+        system_key = system_tag
+        system_dict = {'tag': system_tag,
+                        'lasers': laser_list}
+
+        self.data.update({system_key:system_dict})
+
+    def add_laser(self, system_key:str, laser_param:dict, index:int = None):
+        """ Adds lasers to laser database"""
+
+        if system_key in self.data.keys():
+            try:
+                existing_lasers = self.data[system_key]['lasers']
+                assert isinstance(existing_lasers, list)  
+                if index is None:
+                    existing_lasers.append(laser_param)
+                else:
+                    try:
+                        existing_lasers[index] = laser_param
+                    except IndexError:
+                        raise IndexError('List index:{} is not found'.format(index))     
+
+                self.data[system_key]['lasers'] = existing_lasers
+            except KeyError:
+                self.data[system_key]['lasers'] = []
+        else:
+            self.add_systems_to_laser_data(system_tag=system_key,laser_list=[laser_param])
+
+    def add_pulse(self, system_key:str, laser_pulse, index:int=None):
+        """ Adds laser pulse object to laser database"""
+
+        pulse_info = laser_pulse
+        try:
+            laser_pulses =self.data[system_key]['pulses']
+            assert isinstance(laser_pulses, list)
+            if index is None:
+                laser_pulses.append(pulse_info)
+            else:
+                try:
+                    laser_pulses[index] = pulse_info
+                except IndexError:
+                    raise IndexError('List index:{} is not found'.format(index))
+            self.data[system_key]['pulses'] = laser_pulses
+
+        except KeyError:
+            self.data[system_key]['pulses'] = [pulse_info]
+
+    def remove_info(self, system_key:str, laser_index:int):
+        """Removes laser details from laser_database"""
+        
+        if system_key in self.data.keys():
+            laser_system = self.data[system_key]
+            lasers = laser_system.get('lasers')
+            pulses = laser_system.get('pulses')
+
+            assert isinstance(lasers, list)
+            assert isinstance(pulses, list)
+            try:
+                lasers.pop(laser_index)
+                pulses.pop(laser_index)
+                self.data[system_key]['lasers'] = lasers
+                self.data[system_key]['pulses'] = pulses
+            except IndexError:
+                raise IndexError('List index:{} is not found'.format(laser_index))
+
+    def check_laser_exists(self, system_tag:str):
+        lasers_exist = False
+        pulses_exist = False
+        if system_tag in self.data.keys():
+            laser_system = self.data[system_tag]
+            lasers = laser_system.get('lasers')
+            pulses = laser_system.get('pulses')
+            assert isinstance(lasers, list)
+            assert isinstance(pulses, list)
+
+            if len(lasers)> 0:
+                lasers_exist = True
+            if len(pulses)> 0:
+                pulses_exist = True
+        else:
+            # TODO: handle this keyerror
+            return False
+            # raise KeyError("{} key is missing".format(system_tag))            
+
+        if all([lasers_exist, pulses_exist]):
+            return True
+        else:
+            # TODO: add condition to get the false condition
+            return False
+        # return (lasers_exist, pulses_exist)
+
+    def get_number_lasers(self, system_tag):
+        try:
+            lasers = self.data[system_tag]['lasers']
+            num_lasers = len(lasers)
+        except KeyError:
+            num_lasers=0
+
+        return num_lasers
+
+        
+
+     # def update_laser_data(self, system_key:str, laser_index:int):
+
+    #     if system_key in self.laser_data.keys():
+    #         laser_system = self.laser_data[system_key]
+    #         lasers = copy.deepcopy(laser_system.get('lasers'))
+    #         pulses = copy.deepcopy(laser_system.get('pulses'))
+
+    #         assert isinstance(lasers, list)
+    #         assert isinstance(pulses, list)
+            
+    #         laser_to_update = lasers[laser_index]
+    #         pulses_to_update = pulses[laser_index]
+
+   
