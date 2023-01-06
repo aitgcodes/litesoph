@@ -78,7 +78,7 @@ class ProjectManager:
         if not workflow_type:
             raise WorkflowSetupError(f'Workflow:{name} not defined.')
         
-        return WorkflowMode
+        return WorkflowManager
         
 
     def list(self) -> list:

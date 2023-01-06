@@ -15,6 +15,7 @@ engine_data_base = {
 }   
 
 workflow_compatibility = {
+    "task_mode":ls_integrated_engines,
     "spectrum": ls_integrated_engines,
     "averaged_spectrum": ls_integrated_engines,
     "kohn_sham_decomposition": ["octopus","gpaw",],
