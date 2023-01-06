@@ -13,6 +13,8 @@ from litesoph.gui.task_controller import (TaskController,
                                             PostProcessTaskController,
                                             MaskingPageController)
 from litesoph.gui import views as v
+from litesoph.common.task_data import (task_dependencies_map,
+                                    check_properties_dependencies)
 
 
 task_view_map={
@@ -47,6 +49,33 @@ class WorkflowController:
         self.workmanager_page.tkraise()
         self.app.proceed_button.config(command= self.start_task)
     
+    def get_task_dependencies(self, task_name):
+        
+        #TODO: Function needs to be reimplemented to get only the uuids of 
+        # dependent tasks
+        dependencies_data = task_dependencies_map.get(task_name)
+        if not dependencies_data:
+            return 
+
+        dependent_tasks = []
+        for task in dependencies_data:
+            if isinstance(task, str):
+                dependent_tasks.append(task)
+            elif isinstance(task, dict):
+                dependent_tasks.extend([key for key  in task.keys()])
+
+        task_list = self.workflow_manager.get_taskinfo(dependent_tasks[0])
+        
+        if not task_list:
+            messagebox.showwarning(message = f"Dependent task:{dependent_tasks} not done")
+
+        check, msg = check_properties_dependencies(task_name, task_list[0])
+        if not check:
+            raise messagebox.showerror(message=msg)
+        
+        tasks_uuids= [task_info.uuid for task_info in task_list]
+        return tasks_uuids
+
     def start_task(self, *_):
         
         task_name = None
@@ -57,8 +86,20 @@ class WorkflowController:
         else:
             if not self.workflow_navigation_view:
                 return
-        task_name, task_view = task_and_view   
-        self.workflow_manager.next(task_name)
+        task_name, task_view = task_and_view
+        step_id = self.workflow_manager.current_step
+        
+        if not step_id:
+            step_id = 0
+        else:
+            step_id = step_id[0] + 1
+
+        self.workflow_manager.add_task(task_name,
+                                        block_id=0,
+                                        step_id= step_id,
+                                        dependent_tasks_uuid= self.get_task_dependencies(task_name))   
+        
+        self.workflow_manager.next()
 
         self.task_controller = get_task_controller(task_view, self, self.app)
         
@@ -142,7 +183,6 @@ class WorkflowModeController(WorkflowController):
         self.workflow_manager = workflow_manager
         # self.workmanager_page = self.project_controller.workmanager_page
         self.app.proceed_button.config(command= self.next_task)
-        self.workflow_manager.start()
         self.start_task()        
         
 

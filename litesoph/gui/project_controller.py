@@ -46,17 +46,16 @@ class ProjectController:
     def open_workflow(self):
         self.app.create_workflow_frames()
         workflow_info = self.project_manager.current_workflow_info
-        if workflow_info.name:
-            
-            if not workflow_info.task_mode:
-                self._create_workflow_navigation(workflow_info.name)
+        
+        if workflow_info.name and not workflow_info.task_mode:
+            self._create_workflow_navigation(workflow_info.name)
 
             workflow_controller = self._get_workflow_controller(workflow_info.name)
             self.workflow_controller = workflow_controller(self, self.app)
             self.workflow_manager = self.project_manager.open_workflow(workflow_info.uuid)
             self.workflow_controller.start(self.workflow_manager)
             return
-        
+
         self.workmanager_page = self.app.show_frame(WorkManagerPage)
         self.workmanager_page.workflow_list = get_predefined_workflow()
         self.workmanager_page.button_select_geom.config(command=self._on_get_geometry_file)
@@ -69,6 +68,7 @@ class ProjectController:
         self.app.proceed_button.config(command= self.start_workflow)
         if self.engine:
             self.workmanager_page.engine.set(self.engine)
+
 
     def create_workflow_ui(self, *_):
         
@@ -147,7 +147,9 @@ class ProjectController:
         if check_user_workflow:
             workflow_type = "task_mode"
             if self.workflow_navigation_view:
-                self.workflow_navigation_view.clear()
+                for widget in self.app.workflow_frame.winfo_children():
+                    widget.destroy()
+                # self.workflow_navigation_view.clear()
         else:
             workflow_type = get_workflow_type(workflow_type)
             
