@@ -445,3 +445,75 @@ class GpawPostProMasking(GpawTask):
         plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
         plt.show()
 
+class PumpProbePostpro(GpawTask):
+
+    """
+    Step 1: get all the dipole moment files from different td task with corresponding delay from taskinfo
+    Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
+    Step 3: generate x,y,z data for contour plot from spectrum file and delay data
+    """        
+    def setup_task(self,param):
+        task_dir = self.project_dir / 'gpaw' / self.task_name
+        self.task_dir = get_new_directory(task_dir)
+        
+    def get_direction(direction:list):
+        pol_map = {'0' : 'x', '1' : 'y', '2': 'z'}
+        index = direction.index(1)
+        return index , pol_map[str(index)]
+
+    def extract_gpaw_dm(self, gpaw_dm_file, index):
+        data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
+        dm_axis_data=data[:,[0,index]]  
+        return dm_axis_data
+
+    def generate_spectrum_file(self,**kwargs):
+        """generate spectrum file from dipole moment data"""
+        
+        for i in range(len(self.dependent_tasks)):
+            axis=1
+            sim_total_dm = (self.project_dir / (self.dependent_tasks[i].output.get('dm_file')))   
+            delay=self.dependent_tasks[i].param.get('delay')             
+            out_spectrum_file= sim_total_dm.parent /f'spec_delay_{delay}.dat'
+            self.dependent_tasks[i].output['spec_delay']=out_spectrum_file
+            
+            gen_standard_dm_file=self.extract_gpaw_dm(sim_total_dm, axis)
+            out_standard_dm_file= sim_total_dm.parent /f'std_dm_delay_{delay}.dat'
+            np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
+                       
+            from litesoph.post_processing.spectrum import photoabsorption_spectrum            
+            photoabsorption_spectrum(out_standard_dm_file, out_spectrum_file,  process_zero=False, damping=None,padding=None)
+                        
+    def generate_contour_plot(self):
+        """function to generate x,y,z data required by contour plot and plotting contour plot"""
+
+        delay_list=[]
+        spectrum_data_list=[]
+
+        for i in range(len(self.dependent_tasks)):
+            spec_file = (self.project_dir / (self.dependent_tasks[i].output.get('spec_delay')))   
+            delay=self.dependent_tasks[i].param.get('delay')    
+            spectrum_data_list.append(spec_file)
+            delay_list.append(delay)         
+
+        data0=np.loadtxt(spectrum_data_list[0], comments="#")
+        Omega = data0[:,0]
+        data=np.zeros(((len(Omega.transpose()),len(spectrum_data_list))))
+
+        for i, dat in enumerate(spectrum_data_list):
+            dat=np.loadtxt(dat,comments="#")
+            data[:,i] = (dat[:len(Omega),1])
+            if i ==0:
+                delta_data=data
+            else:
+                delta_data[:,i]=data[:,i]-data[:,0]
+
+        x_data,y_data= np.meshgrid(delay_list,Omega)
+        z_data=(np.abs(data))
+
+        try:
+            if len(spectrum_data_list)==len(delay_list):
+                from litesoph.visualization.plot_spectrum import contour_plot
+                plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis')
+                return plot
+        except:
+            print("numbers of delays are not equal to number of spec files")
