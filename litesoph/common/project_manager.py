@@ -7,7 +7,7 @@ import os
 from litesoph.common.utils import create_dir, PROJECT_DATA_FILE_RELATIVE_PATH, PROJECT_DATA_FILE_NAME, WORKFLOW_DATA_FILE_NAME
 from litesoph.common.data_sturcture.data_classes import ProjectInfo, WorkflowInfo
 from litesoph.visualization.visualize_geometry import VisualizeGeometry
-from litesoph.common.workflow_manager import WorkflowManager, WorkflowMode, factory_task_info
+from litesoph.common.workflow_manager import WorkflowManager
 from litesoph.common.workflows_data import predefined_workflow
 from litesoph.common.decision_tree import decide_engine
 
