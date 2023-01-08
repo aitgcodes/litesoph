@@ -389,21 +389,24 @@ def update_td_param(param):
     num_step = param.pop('number_of_steps')
     out_freq = param.pop('output_freq')
     properties = param.pop('properties')
-    laser = param.pop('laser', None)
+    lasers = param.pop('laser', None)
     masking = param.pop('masking', None)
     
     param['rt_tddft'] = {'tmax': round(num_step * time_step * as_to_au,2),
                         'dt': round(time_step * as_to_au, 2),
                         'print':out_print(properties)}
 
-    if laser:     
-        param['rt_tddft']['field'] = {'name': 'gpulse_'  + read_pol_dir(pol)[1],
-                                'type': 'gaussian',
-                                'frequency' : laser['frequency'],
-                                'center': laser['time0'],
-                                'width': laser['sigma'],
-                                'polarization':read_pol_dir(pol)[1],
-                                'max':laser['strength']}
+    if lasers:
+        param['rt_tddft']['laser'] = laser_list = []     
+        
+        for laser in lasers:
+            laser_list.append({'name': 'gpulse_'  + read_pol_dir(pol)[1],
+                                    'type': 'gaussian',
+                                    'frequency' : laser['frequency'],
+                                    'center': laser['time0'],
+                                    'width': laser['sigma'],
+                                    'polarization':read_pol_dir(pol)[1],
+                                    'max':laser['strength']})
 
     else:
         param['rt_tddft']['field'] = {'name': 'kick_' + read_pol_dir(pol)[1],
