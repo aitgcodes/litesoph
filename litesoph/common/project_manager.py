@@ -71,14 +71,14 @@ class ProjectManager:
         raise WorkflowSetupError("Workflow with uuid:{uuid} doest exists.")
 
     def _get_workflow_manager(self, name):
-        if name == 'user_defined':
+        if name == 'task_mode':
             return WorkflowManager
 
         workflow_type = predefined_workflow.get(name, None)
         if not workflow_type:
             raise WorkflowSetupError(f'Workflow:{name} not defined.')
         
-        return WorkflowMode
+        return WorkflowManager
         
 
     def list(self) -> list:

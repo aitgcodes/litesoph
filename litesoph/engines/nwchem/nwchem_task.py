@@ -390,7 +390,7 @@ def update_td_param(param):
     out_freq = param.pop('output_freq')
     properties = param.pop('properties')
     laser = param.pop('laser', None)
-    # masking = param.pop('masking')
+    masking = param.pop('masking', None)
     
     param['rt_tddft'] = {'tmax': round(num_step * time_step * as_to_au,2),
                         'dt': round(time_step * as_to_au, 2),
