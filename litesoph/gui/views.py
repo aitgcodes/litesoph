@@ -2286,13 +2286,12 @@ class TimeDependentPage(View):
 
 class TDPage(View):
 
-    def __init__(self, parent, engine, task_name, *args, **kwargs):
+    def __init__(self, parent, task_name, *args, **kwargs):
         super().__init__(parent, *args)
         from litesoph.gui.view_gs import InputFrame        
 
         self.parent = parent
         self.task_name = task_name
-        self.engine = tk.StringVar(value=engine)
         self.laser_defined = False
         self.delay_value = tk.DoubleVar()
         self.delay_options = []
@@ -2487,13 +2486,11 @@ class TDPage(View):
 
 class LaserDesignPage(View):
 
-    def __init__(self, parent, engine, task_name, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args)
         from litesoph.gui.view_gs import InputFrame        
 
         self.parent = parent
-        self.task_name = task_name
-        self.engine = tk.StringVar(value=engine)
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
