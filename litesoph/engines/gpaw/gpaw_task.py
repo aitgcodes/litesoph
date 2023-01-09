@@ -456,27 +456,20 @@ class PumpProbePostpro(GpawTask):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
         
-    def get_direction(direction:list):
-        pol_map = {'0' : 'x', '1' : 'y', '2': 'z'}
-        index = direction.index(1)
-        return index , pol_map[str(index)]
-
-    def extract_gpaw_dm(self, gpaw_dm_file, index):
+    def extract_dm(self, gpaw_dm_file, index):
         data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
         dm_axis_data=data[:,[0,index]]  
         return dm_axis_data
 
     def generate_spectrum_file(self,**kwargs):
         """generate spectrum file from dipole moment data"""
-        
         for i in range(len(self.dependent_tasks)):
-            axis=1
+            axis_index,_=get_polarization_direction(self.dependent_tasks[i])
             sim_total_dm = (self.project_dir / (self.dependent_tasks[i].output.get('dm_file')))   
             delay=self.dependent_tasks[i].param.get('delay')             
             out_spectrum_file= sim_total_dm.parent /f'spec_delay_{delay}.dat'
-            self.dependent_tasks[i].output['spec_delay']=out_spectrum_file
-            
-            gen_standard_dm_file=self.extract_gpaw_dm(sim_total_dm, axis)
+            self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
+            gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
             out_standard_dm_file= sim_total_dm.parent /f'std_dm_delay_{delay}.dat'
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
                        
@@ -487,15 +480,18 @@ class PumpProbePostpro(GpawTask):
         """function to generate x,y,z data required by contour plot and plotting contour plot"""
 
         delay_list=[]
-        spectrum_data_list=[]
 
         for i in range(len(self.dependent_tasks)):
-            spec_file = (self.project_dir / (self.dependent_tasks[i].output.get('spec_delay')))   
-            delay=self.dependent_tasks[i].param.get('delay')    
-            spectrum_data_list.append(spec_file)
-            delay_list.append(delay)         
+            delay=self.dependent_tasks[i].param.get('delay')   
+            delay_list.append(delay) 
+            
+        spectrum_data_list=[]
 
+        for delay in delay_list:
+            spec_file = (self.project_dir / (self.task_info.output.get(f'spec_delay_{delay}')))                
+            spectrum_data_list.append(spec_file)
         data0=np.loadtxt(spectrum_data_list[0], comments="#")
+
         Omega = data0[:,0]
         data=np.zeros(((len(Omega.transpose()),len(spectrum_data_list))))
 
