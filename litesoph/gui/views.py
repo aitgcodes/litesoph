@@ -2301,13 +2301,10 @@ class TDPage(View):
 
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
-        # self.inp = InputFrame(self.input_param_frame,fields=inp.laser_td_input, padx=5, pady=5)        
-        # self.inp.grid(row=0, column=0)        
-
-        # self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Design Laser", activebackground="#78d6ff", command=self.laser_button)
-        # self.button_laser_design['font'] = myFont
-        # self.button_laser_design.grid(column=1,padx=3)
         self.add_widgets(self.input_widget_dict)
+
+        # self.laser_details = tk.Label(self.input_param_frame, text='None')
+        # self.laser_details.grid(row=1, column=0, sticky='we')
 
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
 
@@ -2452,16 +2449,6 @@ class TDPage(View):
         else:
             return False
     
-    def get_exp_type(self):
-        """ Returns exp_type"""
-
-        gui_dict = self.inp.get_values()
-        if gui_dict.get("exp_type" ) == "Pump-Probe":
-            return 'pump_probe'
-        elif gui_dict.get("exp_type" ) == "State Preparation":
-            return 'state_prepare'
-        
-
     def set_laser_design_dict(self, laser_calc_list:list):  
         """ laser_calc_list: list of laser calc param"""
         import copy
@@ -2469,38 +2456,27 @@ class TDPage(View):
         self.laser_calc_list = copy.deepcopy(laser_calc_list)
         return self.laser_calc_list
     
+    def get_td_gui_inp(self):
+        gui_dict = copy.deepcopy(self.inp.get_values())
+
+        # TODO: Check
+        if gui_dict.get('delay_list') is not None:
+            gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
+        return gui_dict
+
     def get_parameters(self):
-        gui_dict = self.inp.get_values()
-        # self.pol_list = self.get_pol_list(gui_dict.get("pol_dir"))
+        gui_dict = copy.deepcopy(self.inp.get_values())
 
         td_input = {
-            # 'strength': gui_dict.get("laser_strength"),
-            "field_type" : gui_dict.get("field_type"),
-            "exp_type" : self.get_exp_type(),
             # 'polarization' : self.pol_list,
             'time_step' : gui_dict.get("time_step"),
             'number_of_steps' : gui_dict.get("num_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
-            # 'laser': self.laser_calc_list,
-            "pump_probe" : self.check_expt_type()
-
-            # 'delay': self.get_delay_list(gui_dict.get('delay_list'))
-            # 'laser':  [{'sigma': 6407.79, 'time0': 33682.7, 
-                        # 'type': 'gaussian', 'frequency': 2.0, 
-                        # 'strength': 1e-05},
-                        #  {'type': 'delta', 
-                        # 'strength': 1e-05, 
-                        # 'time0': 3000.0}
-            # 'laser': self.laser_calc_list,          
         }       
 
-        # TODO: Categorize exp-type and collect inputs
-        if gui_dict.get('delay_list') is not None:
-            td_input.update({'delay': self.get_delay_list(gui_dict.get('delay_list'))})
-
-        # if gui_dict.get()
-
+        # TODO: Add delay and list of lasers
+       
         # if gui_dict.get("masking"):
         #     td_input.update({"masking": self.get_mask(gui_dict)})
         return td_input
@@ -2527,31 +2503,14 @@ class LaserDesignPage(View):
 
         self.tree = self.create_laser_tree_view(parent=self.input_param_frame)      
         self.tree.bind('<<TreeviewSelect>>', self.OnSingleClick)
-        # self.tree.bind("<Double-1>", self.OnDoubleClick)
 
         self.button_back = tk.Button(self.property_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
-        # self.button_add = tk.Button(self.property_frame, text="Add", activebackground="#78d6ff", command=lambda: self.add_button())
-        # self.button_add['font'] = myFont
-        # self.button_add.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
-
-        # self.button_edit = tk.Button(self.property_frame, text="Edit", activebackground="#78d6ff", command=lambda: self.edit_laser())
-        # self.button_edit['font'] = myFont
-        # self.button_edit.grid(row=0, column=3, padx=3, pady=3,sticky='nsew')
-
-        # self.button_del = tk.Button(self.property_frame, text="Remove", activebackground="#78d6ff", command=lambda: self.remove_button())
-        # self.button_del['font'] = myFont
-        # self.button_del.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
-
         self.button_plot = tk.Button(self.property_frame, text="Plot", activebackground="#78d6ff", command=lambda: self.plot_button())
         self.button_plot['font'] = myFont
         self.button_plot.grid(row=0, column=5, padx=3, pady=3,sticky='nsew')
-
-        # self.button_save = tk.Button(self.property_frame, text="Save", activebackground="#78d6ff", command=lambda: self.save_button())
-        # self.button_save['font'] = myFont
-        # self.button_save.grid(row=0, column=6, padx=3, pady=3,sticky='nsew')
 
         self.button_next = tk.Button(self.property_frame, text="Finalise", activebackground="#78d6ff", command=lambda: self.next_button())
         self.button_next['font'] = myFont
@@ -2575,10 +2534,6 @@ class LaserDesignPage(View):
         tree.heading('#0', text='Lasers Added')
         tree.grid(row=0, column=1,columnspan=3, sticky=tk.NSEW)
 
-        # self.button_select = tk.Button(parent, text="Select", activebackground="#78d6ff", command=lambda: self.select_button())
-        # self.button_select['font'] = self.myFont
-        # self.button_select.grid(row=1, column=1, padx=3, pady=3,sticky='nsew')
-
         self.button_add = tk.Button(parent, text="Add", activebackground="#78d6ff", command=lambda: self.add_button())
         self.button_add['font'] = self.myFont
         self.button_add.grid(row=1, column=1, padx=3, pady=3,sticky='nsew')
@@ -2596,9 +2551,6 @@ class LaserDesignPage(View):
         tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=0, column=4, sticky='ns')
         return tree
-
-    # def OnDoubleClick(self, *_):
-    #     self.event_generate('<<SelectLaser&UpdateView>>')  
 
     def OnSingleClick(self, *_):
         self.event_generate('<<SelectLaser&UpdateView>>')       
@@ -2743,11 +2695,6 @@ class LaserPlotPage(tk.Toplevel):
         # Create a treeview to list existing laser systems
         self.tree = self.create_laser_tree_view(parent= self.tree_frame)
 
-        # self.cb_laser_system = ttk.Combobox(self,textvariable=self._var['laser_system'], values= self.laser_systems)
-        # self.cb_laser_system['font'] = myfont()
-        # self.cb_laser_system.grid(column=1, row= 3, sticky=tk.W)
-        # self.cb_laser_system.current(0)
-
         self.button_plot = tk.Button(self.tree_frame,text="Plot",width=18, activebackground="#78d6ff", command=lambda: self.plot_button())
         self.button_plot['font'] = myfont()
         self.button_plot.grid(row=1, column=1, sticky=tk.W, padx= 10, pady=10)  
@@ -2779,19 +2726,13 @@ class LaserPlotPage(tk.Toplevel):
         return tree
     
     def show_delay_widgets(self):
-        self.label_delay = tk.Label(self,text="Delay to consider:",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_delay = tk.Label(self,text="Delay to consider(in fs):",bg=label_design['bg'],fg=label_design['fg'])
         self.label_delay['font'] = label_design['font']
         self.label_delay.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10) 
 
         self.entry_delay = ttk.Combobox(self,textvariable=self._var['delay'])
         self.entry_delay['font'] = myfont()
         self.entry_delay.grid(column=1, row= 3, sticky=tk.W)
-        # self.cb_delay.current(0) 
-
-        # self.cb_delay = ttk.Combobox(self,textvariable=self._var['delay'], values= self.delay_list)
-        # self.cb_delay['font'] = myfont()
-        # self.cb_delay.grid(column=1, row= 3, sticky=tk.W)
-        # self.cb_delay.current(0)
 
         self.button_plot_w_delay = tk.Button(self,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
         self.button_plot_w_delay['font'] = myfont()
@@ -2810,12 +2751,7 @@ class LaserPlotPage(tk.Toplevel):
             laser = str(self.tree.item(item,"text"))
             _list_of_lasers.append(laser)
         return _list_of_lasers
-            
-        # self.event_generate('<<OnSelection>>')
-    
+                
     def get_value(self, key):
         return self._var[key].get()
 
-    def choose_values(self):
-        #TODO: store values from the page
-        pass

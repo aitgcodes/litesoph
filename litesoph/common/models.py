@@ -384,42 +384,48 @@ class LaserDesignPlotModel:
             
         return self.pulse_info
 
-    def get_time_strength(self, list_of_pulse:list):
-        """Plots single/multiple lasers"""
+def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
+    """Plots single/multiple lasers,\n
+    laser_profile_time(in fs): total time"""
 
-        if list_of_pulse:
-            self.laser_sets = list_of_pulse
-        else:
-            self.laser_sets = self.get_laser_pulse_list()
-        
-        laser_profile_time_fs = self.laser_profile_time
-        laser_profile_time_as = laser_profile_time_fs*1e3
-        time_array = np.arange(laser_profile_time_as)
+    # if list_of_pulse:
+    #     self.laser_sets = list_of_pulse
+    # else:
+    #     self.laser_sets = self.get_laser_pulse_list()
 
-        laser_strengths = []   
+    laser_sets = list_of_laser_params
+    
+    # laser_profile_time_fs = self.laser_profile_time
+    laser_profile_time_fs = laser_profile_time
+    laser_profile_time_as = laser_profile_time_fs*1e3
+    time_array = np.arange(laser_profile_time_as)
 
-        for i,laser in enumerate(self.laser_sets):                     
-            if laser.get('type') == "delta": 
-                time0 = laser.get('time0')*au_to_as
-                pulse = DeltaPulse(strength= laser.get('strength'),
-                                    time0 = time0, 
-                                #    time0= laser.get('time0')*au_to_as, 
-                                   total_time=self.laser_profile_time)
-                strength_value = pulse.strength()
+    laser_strengths = []   
 
-            if laser.get('type') == "gaussian": 
-                time0 = laser.get('time0')*au_to_as                 
-                sigma_eV = round(autime_to_eV/laser['sigma'], 2)
-                # time0_fs = round(laser['time0']*au_to_fs,2) 
-                freq_eV = laser.get('frequency')
-                pulse = GaussianPulse(strength= laser.get('strength'),
-                                    # time0= time0_fs*1e3,
-                                    time0= time0,
-                                    frequency= freq_eV,
-                                    sigma= sigma_eV, 
-                                    sincos='sin')              
-                strength_value = pulse.strength(time_array*as_to_au)
-            laser_strengths.append(strength_value)  
+    for i,laser in enumerate(laser_sets):                     
+        if laser.get('type') == "delta": 
+            time0 = laser.get('time0')*au_to_as
+            pulse = DeltaPulse(strength= laser.get('strength'),
+                                time0 = time0, 
+                            #    time0= laser.get('time0')*au_to_as, 
+                                total_time=laser_profile_time)
+            strength_value = pulse.strength()
+
+        if laser.get('type') == "gaussian": 
+            time0 = laser.get('time0')*au_to_as                 
+            sigma_eV = round(autime_to_eV/laser['sigma'], 2)
+            # time0_fs = round(laser['time0']*au_to_fs,2) 
+            freq_eV = laser.get('frequency')
+            pulse = GaussianPulse(strength= laser.get('strength'),
+                                # time0= time0_fs*1e3,
+                                time0= time0,
+                                frequency= freq_eV,
+                                sigma= sigma_eV, 
+                                sincos='sin')              
+            strength_value = pulse.strength(time_array*as_to_au)
+        laser_strengths.append(strength_value)  
+
+    return (time_array,laser_strengths)
 
         # for pulse in self.pulse_sets:
         #     if pulse.name == "delta":
@@ -427,54 +433,57 @@ class LaserDesignPlotModel:
         #     if pulse.name == "gaussian":                
         #         strength_value = pulse.strength(time_array*as_to_au)
         #     laser_strengths.append(strength_value)
-        self.time = time_array
-        self.strengths = laser_strengths
-
-        return (time_array,laser_strengths)     
-                
-    def write(self, fname, time_t, laser_strengths:list):
-        """
-        Write the values of the pulse to a file.
-
-        Parameters
-        ----------
-        fname
-            filename
-        time_t
-            times in attoseconds
-        """
-        time_t = time_t * as_to_au
-        fmt = '%20.10e'
-        # fmt = '%12.6f'
-        header = '{:^10}'
-
-        # fmt_str = '%12.6f %20.10e %20.10e'
-        fmt_str = '%12.6f'
-        header_str = ''
-
-        for i in range(len(laser_strengths)):
-            fmt_str = fmt_str + ' '+ fmt
-            header_str = header_str+header
         
-        # Format header_string            
-        np.savetxt(fname, np.stack((time_t, *laser_strengths)).T,
-                   fmt=fmt_str, 
-                #    header=header
-                   )
+        # self.time = time_array
+        # self.strengths = laser_strengths
 
-    def plot_laser(self, fname= None):
-        from litesoph.visualization.plot_spectrum import plot_multiple_column
-        if fname:
-            data = np.loadtxt(str(fname))
-        else:
-            data = np.stack((self.time, *self.strengths)).T
-        num_of_lasers = len(self.strengths)
-        data[:,0] = data[:,0]*as_to_au*au_to_fs
+             
+                
+def write(fname, time_t, laser_strengths:list):
+    """
+    Write the values of the pulse to a file.
 
-        plot_multiple_column(data_array=data,
-        column_list=(1,num_of_lasers), xlabel= 'Time (in fs)', ylabel= 'Pulse Strength (in au)', xcolumn=0,        
-        column_dict = format_laser_label(num_of_lasers)
-        )
+    Parameters
+    ----------
+    fname
+        filename
+    time_t
+        times in attoseconds
+    """
+    time_t = time_t * as_to_au
+    fmt = '%20.10e'
+    # fmt = '%12.6f'
+    header = '{:^10}'
+
+    # fmt_str = '%12.6f %20.10e %20.10e'
+    fmt_str = '%12.6f'
+    header_str = ''
+
+    for i in range(len(laser_strengths)):
+        fmt_str = fmt_str + ' '+ fmt
+        header_str = header_str+header
+    
+    # Format header_string            
+    np.savetxt(fname, np.stack((time_t, *laser_strengths)).T,
+                fmt=fmt_str, 
+            #    header=header
+                )
+
+def plot_laser(time_arr, strength_arr,fname= None):
+    from litesoph.visualization.plot_spectrum import plot_multiple_column
+    if fname:
+        data = np.loadtxt(str(fname))
+    else:
+        data = np.stack((time_arr, *strength_arr)).T
+        # data = np.stack((self.time, *self.strengths)).T
+    num_of_lasers = len(strength_arr)
+    # num_of_lasers = len(self.strengths)
+    data[:,0] = data[:,0]*as_to_au*au_to_fs
+
+    plot_multiple_column(data_array=data,
+    column_list=(1,num_of_lasers), xlabel= 'Time (in fs)', ylabel= 'Pulse Strength (in au)', xcolumn=0,        
+    column_dict = format_laser_label(num_of_lasers)
+    )
 
 def format_laser_label(number_of_lasers:int):
     laser_label_dict = {}

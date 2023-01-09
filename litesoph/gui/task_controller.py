@@ -354,12 +354,10 @@ class MaskingPageController(TaskController):
         inp_dict = self.task_view.get_parameters()
         self.task.plot(**inp_dict)
 
-# class LaserPageController(TaskController):
 class TDPageController(TaskController):
 
     def __init__(self, workflow_controller, app) -> None:
         super().__init__(workflow_controller, app)
-        self.pump_probe = False
         self.get_laser_data()
 
     def get_laser_data(self, laser_exists:bool=False):
@@ -386,7 +384,6 @@ class TDPageController(TaskController):
         self.main_window.bind_all(f'<<Generate{self.task_name}Script>>', self.generate_input)
         self.main_window.bind_all('<<Design&EditLaser>>', self._on_design_edit_laser)         
         self.task_view.set_sub_button_state('disable')
-        self.task_param = self.task_view.get_parameters()  
 
         # TODO: set initial parameters
         # if hasattr(self.task_view, 'set_parameters'):
@@ -401,11 +398,14 @@ class TDPageController(TaskController):
 
     def _on_design_edit_laser(self, *_):
         """ On Laser design button, decides on showing LaserDesignPage and binds the widgets"""
-        # TODO:Add the msg on whether to modify existing laser sets
+        
+        # View specific parameters
+        self.task_view_param = self.task_view.get_td_gui_inp()
+        # Task specific parameters
+        self.task_param = self.task_view.get_parameters()  
 
         laser_defined = False
-        current_task_view_param = self.task_view.get_parameters()
-        exp_type = current_task_view_param.get('exp_type')        
+        exp_type = self.task_view_param.get('exp_type') 
         laser_defined = validate_laser_defined(laser_data = self.laser_data, exp_type= exp_type) 
 
         if laser_defined:
@@ -424,15 +424,9 @@ class TDPageController(TaskController):
     def _on_show_laser_page(self, show_stored:bool, *_):
         """ Assigns LaserDesignController and shows the LaserDesignPage """
 
-        # Collects TD input parameters from task_view
-        self.task_param = self.task_view.get_parameters() 
-        # TODO: remove pump_probe bool from task_param dict
-        # self.pump_probe = (self.task_param.get("pump_probe"))
-
-        # TODO: Collect pump-probe bool
         self.laser_view = self.app.show_frame(v.LaserDesignPage, self.task_info.engine, self.task_info.name)        
         self.laser_controller = LaserDesignController(app= self.app, view=self.laser_view, 
-                                                    td_param= self.task_param,
+                                                    td_param= self.task_view_param,
                                                     laser_data= self.laser_data) 
         
         self.laser_controller.bind_events_and_update_default_view()  
@@ -443,14 +437,13 @@ class TDPageController(TaskController):
 
     def _back_on_laser_design_page(self, *_):
         """ Shows the TDPage"""   
-        self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name,        
-                                                # input_widget_dict=copy_widget_dict
+        self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name
                                                 )
 
     def show_TDPage_and_update(self, *_):
         from litesoph.gui.models import inputs as inp
 
-        exp_type = self.task_param.get('exp_type')        
+        exp_type = self.task_view_param.get('exp_type') 
         self.laser_defined = validate_laser_defined(self.laser_controller.laser_info.data, exp_type) 
 
         # Showing message before finalise the laser setup if laser defined is True
@@ -463,7 +456,7 @@ class TDPageController(TaskController):
                                                 input_widget_dict=copy_widget_dict)
                 self.update_laser_on_td_page()
         else:
-            if exp_type == 'pump_probe':
+            if exp_type == 'Pump-Probe':
                 pump_bool = self.laser_controller.laser_info.check_laser_exists(system_tag='pump')
                 probe_bool = self.laser_controller.laser_info.check_laser_exists(system_tag='probe')
                 if not pump_bool:
@@ -482,22 +475,23 @@ class TDPageController(TaskController):
             #TODO: Resets the page
             pass 
         else: 
-            # GUI entries from previous td view
-            gui_inp_stored = self.task_view.inp.get_values()
-            # TD param from previous td view
-            td_param_stored = self.task_param
+            # TODO: use these to show laser details
+            # laser_text = self.get_laser_details()[0]
+            # self.task_view.laser_details.configure(text= '')
+            # self.task_view.laser_details.configure(text= laser_text)
 
-            # TODO: modify pump_probe bool
-            if self.pump_probe:         
-                self.task_view.inp.widget["delay_values"].config(values= td_param_stored.get('delay'))
+            # GUI entries from previous td view
+            td_param_stored = self.task_view_param
+
+            if self.task_view_param.get('exp_type') == 'Pump-Probe':     
+                self.task_view.inp.widget["delay_values"].config(values= td_param_stored.get('delay_list'))
                 self.task_view.inp.widget["delay_values"].config(state = 'readonly')
                 self.task_view.inp.widget["delay_values"].current(0)
-
                 self.task_view.label_delay_entry.grid_remove()
 
             _gui_dict = {
-                "field_type": gui_inp_stored.get("field_type"),
-                "exp_type" : gui_inp_stored.get("exp_type")
+                "field_type": td_param_stored.get("field_type"),
+                "exp_type" : td_param_stored.get("exp_type")
             }
 
             self.task_view.inp.init_widgets(fields=self.task_view.inp.fields,
@@ -510,6 +504,23 @@ class TDPageController(TaskController):
 
             #TODO: freeze required input entries
             # self.task_view.inp.freeze_widgets(state= 'disabled', input_keys = ["field_type","exp_type"])
+
+    def get_laser_details(self):
+        details = []
+        for i,l_name in enumerate(self.laser_data.keys()):
+            l_system = self.laser_data[l_name]
+            tag = l_system.get('tag')
+            details.append(f'{tag}')
+            pulses = l_system.get('pulses')
+            laser_params = extract_lasers_from_pulses(pulses)
+
+            for laser_index,laser in enumerate(laser_params):
+                details.append(f'   Laser {laser_index+1}:')
+                for key, value in laser.items():                    
+                    details.append(f"{key} =  {value}")
+
+        txt =  '\n'.join(details)
+        return(txt, details)           
 
     # def _on_edit_laser(self, *_):
     #     # TODO: Remove this method once LaserDesignPage is updated
@@ -585,13 +596,21 @@ class TDPageController(TaskController):
 class LaserDesignController:
 
     def __init__(self, app, view, td_param:dict, laser_data:dict):
+        """ td_param: GUI view inputs"""
 
         # Data extracted from TD page
-        self.td_data = td_param
+        self.td_data = td_param  # GUI inputs extracted
         self.laser_info = m.LaserInfo(laser_data)
         self.main_window = app.main_window
         self.view = view
         self.focus = None
+        self.assign_laser_profile_time()
+
+    def assign_laser_profile_time(self):
+        """Sets td simulation time to laser profile time(in as)"""
+        time_step = self.td_data.get('time_step')
+        num_steps = self.td_data.get('num_steps')
+        self.total_time = float(time_step)* num_steps
 
     def bind_events_and_update_default_view(self):
         # TODO: update these event bindings
@@ -606,28 +625,25 @@ class LaserDesignController:
         # TODO: decide on to retain previous exp_type sets
         exp_type = self.td_data.get('exp_type')
 
-        if exp_type == "state_prepare":
+        if exp_type == "State Preparation":
             self.view.inp.widget["pump-probe_tag"].configure(state = 'disabled')
             self.view.inp.fields["pump-probe_tag"]["visible"] = False
             self.view.inp.label["time_origin:pump"].grid_remove()
             self.view.inp.widget["time_origin:pump"].grid_remove()
             
-        if exp_type == "pump_probe":
+        if exp_type == "Pump-Probe":
             self.view.inp.label["time_origin"].grid_remove()
             self.view.inp.widget["time_origin"].grid_remove() 
         
         # if hasattr(self.task_view, 'set_parameters'):
         #     self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
 
+
     def get_laser_design_model(self, laser_input:dict):
         """Collects inputs to compute laser parameters 
         and returns LaserDesignPlotModel object"""
 
         from litesoph.utilities.units import as_to_au, au_to_fs
-        time_step = self.td_data.get('time_step')
-        num_steps = self.td_data.get('number_of_steps')
-        self.total_time = time_step* num_steps
-
         laser_total_time_fs = self.total_time*as_to_au*au_to_fs
         self.laser_design = m.LaserDesignPlotModel(laser_inputs = [laser_input],
                 laser_profile_time= laser_total_time_fs)
@@ -782,49 +798,72 @@ class LaserDesignController:
             messagebox.showerror(message="Please add lasers to plot.")
             return 
 
-        # if self.pump_probe:
-        #     #TODO: Validate for atleast one pump and probe
-        #     self.show_laser_delay()            
-        # else:
-        #     (time_arr, list_strength_arr) = self.laser_design.get_time_strength(self.list_of_laser_params)
-        #     self.laser_design.plot_laser()
-        pass           
+    def _on_plot_button(self, *_):
+        """On Plot Button in PlotPage"""
+        from litesoph.utilities.units import as_to_au, au_to_fs
 
-    # def update_pump_probe_delay(self, list_of_laser_params:list, delay:float):
-    #     for i,laser in enumerate(list_of_laser_params):        
-    #         laser_tag = laser.get('tag')
+        systems_selected = self.laser_plot_view.laser_selected()        
+        lasers = []
+        for laser_system in systems_selected:
+            _lasers = self.extract_laser_param_from_system(laser_system)
+            lasers.extend(_lasers)
 
-    #         # TODO: alternatively, use respective list of pumps/probes
-    #         if laser_tag is not None:
-    #             assert laser_tag in ["Pump", "Probe"]
-    #             if laser_tag == "Pump":
-    #                 pump_id = i                   
-                    
-    #             if laser_tag == "Probe":
-    #                 probe_id = i
-    #                 break
+        (time_arr, list_strength_arr) = m.get_time_strength(list_of_laser_params=lasers,
+                                                                laser_profile_time= self.total_time*as_to_au*au_to_fs)
+        m.plot_laser(time_arr, list_strength_arr)
 
-        (time_arr, list_strength_arr) = self.laser_design.get_time_strength(laser_systems_to_plot)
-        self.laser_design.plot_laser() 
+    def extract_laser_param_from_system(self, laser_system:str):
+        """ Specific to LaserPlotPage/ Returns list of laser 
+        parameters to plot"""
 
-    #     probe_t0_with_delay = pump_on_delay_t0 + delay + probe_on_delay_t0
-    #     list_of_laser_params[probe_id].update({'time0': probe_t0_with_delay})
+        pulses = []    
+        if laser_system in self.laser_info.data.keys():
+            _pulses = self.laser_info.data[laser_system].get('pulses')
+            pulses.extend(_pulses)
+        lasers = extract_lasers_from_pulses(pulses)
 
-    #     return list_of_laser_params
+        return lasers   
+
+    def _on_plot_w_delay_button(self, *_):
+        from litesoph.utilities.units import fs_to_au, as_to_au, au_to_fs
+        systems_selected = self.laser_plot_view.laser_selected()
+        if len(systems_selected) == 0:
+            systems_selected = self.laser_plot_view.tree.get_children()
+
+        assert len(systems_selected) == 2
+
+        name_1 = systems_selected[0]
+        name_2 = systems_selected[1]
+
+        laser_data_1 = copy.deepcopy(self.laser_info.data[name_1])
+        laser_data_2 = copy.deepcopy(self.laser_info.data[name_2])
+
+        delay_in_fs = self.laser_plot_view._var['delay'].get()
+        delay_in_au = float(delay_in_fs)*fs_to_au        
+        laser_list = list(add_delay_to_lasers(system_1= laser_data_1, 
+                                system_2= laser_data_2, delay=delay_in_au))        
+
+        lasers_to_plot = []
+        for laser in laser_list:
+            lasers_to_plot.extend(laser)
+
+        (time_arr, list_strength_arr) = m.get_time_strength(lasers_to_plot,
+                                            laser_profile_time= self.total_time*as_to_au*au_to_fs)
+        m.plot_laser(time_arr, list_strength_arr)  
 
 def validate_laser_defined(laser_data:dict, exp_type:str):
     """ Validates laser_defined wrt exp_type and returns the bool"""
 
     check = False
-    assert exp_type in ['pump_probe', 'state_prepare']
+    assert exp_type in ["Pump-Probe", "State Preparation"]
     laser_info = m.LaserInfo(laser_data)
 
-    if exp_type == 'pump_probe':
+    if exp_type == "Pump-Probe":
         pump_defined = laser_info.check_laser_exists('Pump')
         probe_defined = laser_info.check_laser_exists('Probe')
         if all([pump_defined, probe_defined]):
             check = True
-    if exp_type == 'state_prepare':
+    if exp_type == "State Preparation":
         check = laser_info.check_laser_exists('State Preparation')
 
     return check
@@ -838,21 +877,28 @@ def extract_lasers_from_pulses(list_of_pulses:list):
             lasers.append(_laser)  
     return lasers
 
-def add_delay_to_lasers(laser_system_1:dict, laser_system_2:dict, delay:float):
-    """Adds delay between the laser systems and returns the updated ones"""
+def add_delay_to_lasers(system_1:dict, system_2:dict, delay:float):
+    """Adds delay between the laser systems and returns the updated ones,\n
+    delay(in au) defined between last laser pulse centre of system 1 and\n
+    first laser pulse centre of system 2"""
 
-    sys1 = laser_system_1
-    sys2 = laser_system_2
+    sys1 = system_1
+    sys2 = system_2
 
-    last_on_system_1 = sys1['lasers'][-1]
-    time0_ref_1 = last_on_system_1.get('time0')
+    pulses_sys1 = sys1['pulses']
+    pulses_sys2 = sys2['pulses']
+
+    lasers_sys1 = extract_lasers_from_pulses(pulses_sys1)
+    lasers_sys2 = extract_lasers_from_pulses(pulses_sys2)
+
+    last_params_sys1 = lasers_sys1[-1]
+    time0_ref_1 = last_params_sys1.get('time0')
     delay_to_add = float(time0_ref_1) + delay
 
-    for laser_param in sys2:
+    for laser_param in lasers_sys2:
         _time0 = float(laser_param.get('time0'))
         laser_param['time0'] = _time0 + delay_to_add
-
-    return (sys1, sys2)
+    return (lasers_sys1, lasers_sys2)
 
     # def _on_add_laser(self, *_):  
     #     """On add laser button:
