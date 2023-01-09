@@ -12,6 +12,7 @@ from litesoph.common.utils import get_new_directory
 from litesoph.engines.octopus.octopus_input import get_task
 from litesoph import config
 from litesoph.engines.octopus.gs2oct import create_oct_gs_inp
+import numpy as np
 
 
 engine_log_dir = 'octopus/log'
@@ -796,3 +797,85 @@ def get_td_function(laser_dict:dict,laser_type:str,td_function_name:str = "envel
 #         }
 #         return(assign_pol_list.get(e_pol))
 
+class PumpProbePostpro(OctopusTask):
+
+    """
+    Step 1: get all the dipole moment files from different td task with corresponding delay from taskinfo
+    Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
+    Step 3: generate x,y,z data for contour plot from spectrum file and delay data
+    """        
+    def setup_task(self,param):
+        task_dir = self.project_dir / 'octopus' / self.task_name
+        self.task_dir = get_new_directory(task_dir)
+        
+    def extract_dm(self, dm_file, index):
+        data = np.loadtxt(str(dm_file),comments="#",usecols=(1,3,4,5))      
+        dm_axis_data=data[:,[0,index]]  
+        return dm_axis_data
+
+    def generate_spectrum_file(self):
+        """generate spectrum file from dipole moment data"""
+        from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
+        for i in range(len(self.dependent_tasks)):
+            axis_index,_=get_polarization_direction(self.dependent_tasks[i])
+            sim_total_dm = (self.project_dir / (self.dependent_tasks[i].output.get('dm_file')))   
+            delay=self.dependent_tasks[i].param.get('delay')             
+            spectrum_file= sim_total_dm.parent /f'spec_delay_{delay}.dat'            
+            out_spectrum_file = str(spectrum_file).replace(str(self.project_dir.parent), '')
+            self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
+            gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
+            out_standard_dm_file= sim_total_dm.parent /f'std_dm_delay_{delay}.dat'            
+            np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
+                       
+            from litesoph.post_processing.spectrum import photoabsorption_spectrum            
+            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False, damping=None,padding=None)
+                        
+    def generate_contour_data(self):
+        """function to generate x,y,z data required by contour plot and plotting contour plot"""
+
+        delay_list=[]
+        for i in range(len(self.dependent_tasks)):
+            delay=self.dependent_tasks[i].param.get('delay')   
+            delay_list.append(delay) 
+            
+        spectrum_data_list=[]
+        for delay in delay_list:
+            spec_file = (self.project_dir / (self.task_info.output.get(f'spec_delay_{delay}')))                
+            spectrum_data_list.append(spec_file)
+        data0=np.loadtxt(f'{self.project_dir.parent}{spectrum_data_list[0]}', comments="#")
+
+        Omega = data0[:,0]
+        data=np.zeros(((len(Omega.transpose()),len(spectrum_data_list))))
+
+        for i, dat in enumerate(spectrum_data_list):
+            dat=np.loadtxt(f'{self.project_dir.parent}{dat}',comments="#")
+            data[:,i] = (dat[:len(Omega),1])
+            if i ==0:
+                delta_data=data
+            else:
+                delta_data[:,i]=data[:,i]-data[:,0]
+
+        x_data,y_data= np.meshgrid(delay_list,Omega)
+        z_data=(np.abs(data))
+        
+        contour_x_data_file= Path(self.project_dir.name) /'octopus' / self.task_name/ 'contour_x_data.dat' 
+        contour_y_data_file= Path(self.project_dir.name) /'octopus' / self.task_name/ 'contour_y_data.dat' 
+        contour_z_data_file= Path(self.project_dir.name) /'octopus' / self.task_name/ 'contour_z_data.dat' 
+        self.task_info.output['contour_x_data']=contour_x_data_file       
+        self.task_info.output['contour_y_data']=contour_y_data_file             
+        self.task_info.output['contour_z_data']=contour_z_data_file             
+      
+        np.savetxt(f'{self.project_dir.parent}/{contour_x_data_file}', x_data)  
+        np.savetxt(f'{self.project_dir.parent}/{contour_y_data_file}', y_data)  
+        np.savetxt(f'{self.project_dir.parent}/{contour_z_data_file}', z_data)  
+                
+    def generate_contour_plot(self):     
+
+        from litesoph.visualization.plot_spectrum import contour_plot
+        x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
+        y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
+        z_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_z_data')))
+              
+        plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis')
+        return plot
+    
