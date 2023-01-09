@@ -42,17 +42,18 @@ class WorkflowManager:
         if not self.workflow_info.engine:
             self.choose_default_engine()
 
-        if self.workflow_type == 'task_mode':
-            self.task_mode = workflow_info.task_mode = True
-            return
-        
         if not self.current_step:
-            self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
-            update_workflowinfo(self.workflow_from_db, workflow_info)
-            self.current_container = self.containers[0]
-            self.current_step.insert(0, 0)
-            self.current_task_info = self.tasks.get(self.current_container.task_uuid)
-            self.prepare_task()
+            
+            if self.workflow_type == 'task_mode':
+                self.task_mode = workflow_info.task_mode = True
+            
+            else:
+                self.workflow_from_db  = predefined_workflow.get(self.workflow_type)
+                update_workflowinfo(self.workflow_from_db, workflow_info)
+                self.current_container = self.containers[0]
+                self.current_step.insert(0, 0)
+                self.current_task_info = self.tasks.get(self.current_container.task_uuid)
+                self.prepare_task()
         else:
             self.current_container = self.containers[self.current_step[0]]
             self.current_task_info = self.tasks.get(self.current_container.task_uuid)
