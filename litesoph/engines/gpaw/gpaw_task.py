@@ -461,7 +461,7 @@ class PumpProbePostpro(GpawTask):
         dm_axis_data=data[:,[0,index]]  
         return dm_axis_data
 
-    def generate_spectrum_file(self,**kwargs):
+    def generate_spectrum_file(self):
         """generate spectrum file from dipole moment data"""
         for i in range(len(self.dependent_tasks)):
             axis_index,_=get_polarization_direction(self.dependent_tasks[i])
@@ -476,17 +476,15 @@ class PumpProbePostpro(GpawTask):
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
             photoabsorption_spectrum(out_standard_dm_file, out_spectrum_file,  process_zero=False, damping=None,padding=None)
                         
-    def generate_contour_plot(self):
+    def generate_contour_data(self):
         """function to generate x,y,z data required by contour plot and plotting contour plot"""
 
         delay_list=[]
-
         for i in range(len(self.dependent_tasks)):
             delay=self.dependent_tasks[i].param.get('delay')   
             delay_list.append(delay) 
             
         spectrum_data_list=[]
-
         for delay in delay_list:
             spec_file = (self.project_dir / (self.task_info.output.get(f'spec_delay_{delay}')))                
             spectrum_data_list.append(spec_file)
@@ -505,11 +503,27 @@ class PumpProbePostpro(GpawTask):
 
         x_data,y_data= np.meshgrid(delay_list,Omega)
         z_data=(np.abs(data))
+        
+        contour_x_data_file= self.project_dir /'gpaw' / self.task_name/ 'contour_x_data.dat' 
+        contour_y_data_file= self.project_dir /'gpaw' / self.task_name/ 'contour_y_data.dat' 
+        contour_z_data_file= self.project_dir /'gpaw' / self.task_name/ 'contour_z_data.dat' 
 
-        try:
-            if len(spectrum_data_list)==len(delay_list):
-                from litesoph.visualization.plot_spectrum import contour_plot
-                plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis')
-                return plot
-        except:
-            print("numbers of delays are not equal to number of spec files")
+        self.task_info.output['contour_x_data']=contour_x_data_file       
+        self.task_info.output['contour_y_data']=contour_y_data_file             
+        self.task_info.output['contour_z_data']=contour_z_data_file             
+      
+        np.savetxt(contour_x_data_file, x_data)  
+        np.savetxt(contour_y_data_file, y_data)  
+        np.savetxt(contour_z_data_file, z_data)  
+        
+        
+    def generate_contour_plot(self):     
+
+        from litesoph.visualization.plot_spectrum import contour_plot
+        x_data = np.loadtxt(self.project_dir / (self.task_info.output.get('contour_x_data')))
+        y_data = np.loadtxt(self.project_dir / (self.task_info.output.get('contour_y_data')))
+        z_data = np.loadtxt(self.project_dir / (self.task_info.output.get('contour_z_data')))
+              
+        plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis')
+        return plot
+    
