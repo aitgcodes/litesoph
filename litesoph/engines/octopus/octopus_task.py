@@ -540,7 +540,6 @@ def calc_td_range(spacing:float):
     h = spacing*ang_to_au
     dt = 0.0426-0.207*h+0.808*h*h
     max_dt_as = round(dt*au_to_as, 2)
-    print(dt)
     return max_dt_as
 
 def get_td_function(laser_dict:dict,laser_type:str,td_function_name:str = "envelope_gauss"):
