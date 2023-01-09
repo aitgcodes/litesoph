@@ -599,7 +599,7 @@ class LaserDesignController:
         self.main_window.bind_all('<<AddLaser>>', self._on_add_laser)
         self.main_window.bind_all('<<EditLaser>>', self._on_edit_laser)
         self.main_window.bind_all('<<RemoveLaser>>', self._on_remove_laser)
-        self.main_window.bind_all('<<PlotLaser>>', self._on_plot_laser)
+        self.main_window.bind_all('<<PlotLaser>>', self._on_plottting)
         self.main_window.bind_all('<<SelectLaser&UpdateView>>', self._on_select_laser)
 
         # Collecting exp_type from td_data passed from TDPage
@@ -712,14 +712,17 @@ class LaserDesignController:
 
     def _on_select_laser(self, *_):
         """ Populates the selected laser entries"""
-
         item = self.view.tree.selection()[0]
         label = str(self.view.tree.item(item,"text"))
         parent = str(self.view.tree.parent(item))
-        index = int(label[-1]) -1
-        self.focus = (parent, index)
-        self.populate_laser_details(tag=parent, index=index)
-        return (parent,index)
+        try:
+            index = int(label[-1]) -1
+            self.focus = (parent, index)
+            self.populate_laser_details(tag=parent, index=index)
+            return (parent,index)
+        except ValueError:
+            # Error when the label does not end with an index
+            raise  ValueError('Error when the label does not end with an index')      
 
     def update_labels_on_tree(self):
         """Method to update treeview"""
@@ -745,29 +748,39 @@ class LaserDesignController:
                     id = self.view.tree.insert('', 'end', text=str(label))
                     self.view.tree.move(id, str(parent), 'end')
 
-    # def _plot_laser_w_delay(self,*_):
-    #     delay = self.laser_info_view.get_value('delay')
-    #     updated_laser_params = self.update_pump_probe_delay(self.list_of_laser_params, delay= delay)
-    #     (time_arr, list_strength_arr) = self.laser_design.get_time_strength(updated_laser_params)
-    #     self.laser_design.plot_laser()
+    def show_and_update_plot_page(self, *_):
+        self.laser_plot_view = v.LaserPlotPage(self.main_window)
+        self.update_tree_and_view_on_plot()
 
-    # def show_laser_delay(self, *_):
-    #     self.laser_info_view = v.LaserPlotPage(self.main_window)
-    #     self.laser_info_view.show_plot_widgets()
-    #     self.laser_info_view.cb_delay.config(values=self.task_param.get('delay'))
-    #     self.laser_info_view.cb_delay.current(0)
+    def update_tree_and_view_on_plot(self):
+        """Method to update treeview on Plotting page"""
+        _parents_under_root = self.laser_plot_view.tree.get_children()
 
-    #     self.main_window.bind_all('<<PlotwithDelay>>', self._plot_laser_w_delay)  
+        # Clearing treeview for existing parents
+        for i, system_name in enumerate(self.laser_info.data.keys()):
+            if len(self.laser_info.data[system_name]['lasers']) > 0:
+                if system_name in _parents_under_root:
+                    pass
+                else:
+                    # Add the parents if not already present
+                    self.laser_plot_view.tree.insert('', str(i), str(system_name), text=str(system_name))
 
-    def _on_plot_laser(self, *_):
-        """ On Plot Button: Shows toplevel for plotting
+        if len(self.laser_plot_view.tree.get_children()) == 1:
+            self.laser_plot_view.widget_frame.grid_remove()
+        else:
+            self.laser_plot_view.widget_frame.grid()
+
+    def _on_plottting(self, *_):
+        """ On Plotting Button: Shows toplevel for plotting
         and updates the binding"""
 
-        # if len(self.list_of_laser_params) > 0:
-        #     self.laser_defined = True
-        # else:
-        #     messagebox.showerror(message="Please add lasers to plot.")
-        #     return
+        if len(self.laser_info.data) > 0:
+            self.show_and_update_plot_page()
+            self.laser_plot_view.bind('<<PlotLasers>>', self._on_plot_button)
+            self.laser_plot_view.button_plot_w_delay.configure(command=self._on_plot_w_delay_button)           
+        else:
+            messagebox.showerror(message="Please add lasers to plot.")
+            return 
 
         # if self.pump_probe:
         #     #TODO: Validate for atleast one pump and probe
@@ -791,10 +804,8 @@ class LaserDesignController:
     #                 probe_id = i
     #                 break
 
-    #     pump_param_on_delay = list_of_laser_params[pump_id]
-    #     probe_param_on_delay = list_of_laser_params[probe_id]
-    #     pump_on_delay_t0 = float(pump_param_on_delay.get('time0'))
-    #     probe_on_delay_t0 = float(probe_param_on_delay.get('time0'))
+        (time_arr, list_strength_arr) = self.laser_design.get_time_strength(laser_systems_to_plot)
+        self.laser_design.plot_laser() 
 
     #     probe_t0_with_delay = pump_on_delay_t0 + delay + probe_on_delay_t0
     #     list_of_laser_params[probe_id].update({'time0': probe_t0_with_delay})
@@ -817,7 +828,31 @@ def validate_laser_defined(laser_data:dict, exp_type:str):
         check = laser_info.check_laser_exists('State Preparation')
 
     return check
-            
+
+def extract_lasers_from_pulses(list_of_pulses:list):
+    """ Gets laser_design parameters from pulse objects"""
+    lasers = []
+    if len(list_of_pulses)> 0:
+        for pulse in list_of_pulses:
+            _laser = pulse.laser_design
+            lasers.append(_laser)  
+    return lasers
+
+def add_delay_to_lasers(laser_system_1:dict, laser_system_2:dict, delay:float):
+    """Adds delay between the laser systems and returns the updated ones"""
+
+    sys1 = laser_system_1
+    sys2 = laser_system_2
+
+    last_on_system_1 = sys1['lasers'][-1]
+    time0_ref_1 = last_on_system_1.get('time0')
+    delay_to_add = float(time0_ref_1) + delay
+
+    for laser_param in sys2:
+        _time0 = float(laser_param.get('time0'))
+        laser_param['time0'] = _time0 + delay_to_add
+
+    return (sys1, sys2)
 
     # def _on_add_laser(self, *_):  
     #     """On add laser button:
@@ -864,21 +899,6 @@ def validate_laser_defined(laser_data:dict, exp_type:str):
     #                     return
     #             else:
     #                 self.append_lasers(tag)
-
-    
-    # def _on_edit_laser(self, *_):
-    #     # Remove this method at this level
-    #     # TODO: Validation on available lasers
-    #     self.laser_info_view = v.LaserInfoPage(self.main_window)
-    #     self.laser_info_view.show_edit_widgets()
-    #     self.laser_labels = get_laser_labels(laser_defined = True, 
-    #                                             num_lasers = len(self.workflow_manager.current_task_info.input['current_lasers']))
-        
-    #     self.laser_info_view.cb_lasers.config(values=self.laser_labels)
-    #     self.laser_info_view.cb_lasers.current(0)
-
-    #     self.main_window.bind_all('<<Choose&EditLaser>>', self.choose_and_update_laser)   
-    #     self.main_window.bind_all('<<Choose&RemoveLaser>>', self.choose_and_remove_laser)      
 
 
 class PostProcessTaskController(TaskController):

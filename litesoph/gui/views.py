@@ -2525,8 +2525,9 @@ class LaserDesignPage(View):
         self.inp = InputFrame(self.input_param_frame,fields=copy_laser_design_input, padx=5, pady=5)       
         self.inp.grid(row=0, column=0)
 
-        self.tree = self.create_laser_tree_view(parent=self.input_param_frame)       
-        self.tree.bind("<Double-1>", self.OnDoubleClick)
+        self.tree = self.create_laser_tree_view(parent=self.input_param_frame)      
+        self.tree.bind('<<TreeviewSelect>>', self.OnSingleClick)
+        # self.tree.bind("<Double-1>", self.OnDoubleClick)
 
         self.button_back = tk.Button(self.property_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.button_back['font'] = myFont
@@ -2572,7 +2573,6 @@ class LaserDesignPage(View):
 
         # define headings
         tree.heading('#0', text='Lasers Added')
-        tree.bind('<<TreeviewSelect>>', self.laser_selected)
         tree.grid(row=0, column=1,columnspan=3, sticky=tk.NSEW)
 
         # self.button_select = tk.Button(parent, text="Select", activebackground="#78d6ff", command=lambda: self.select_button())
@@ -2597,8 +2597,11 @@ class LaserDesignPage(View):
         scrollbar.grid(row=0, column=4, sticky='ns')
         return tree
 
-    def OnDoubleClick(self, *_):
-        self.event_generate('<<SelectLaser&UpdateView>>')      
+    # def OnDoubleClick(self, *_):
+    #     self.event_generate('<<SelectLaser&UpdateView>>')  
+
+    def OnSingleClick(self, *_):
+        self.event_generate('<<SelectLaser&UpdateView>>')       
 
     def laser_selected(self, *_):
         pass
@@ -2722,109 +2725,93 @@ class LaserPlotPage(tk.Toplevel):
           }
         self.delay_list = [0]
         self.laser_list = ['laser 1']
+        self.laser_systems = []
 
         self._var = var_define(self._default_var)
         self.attributes("-topmost", True)
         self.grab_set()
         self.lift()
-        self.title("Laser Details")     
-        self.geometry("550x200")
+        self.title("Laser Plot Page")     
+        self.geometry("550x400")
+
+        self.tree_frame = tk.Frame(self)
+        self.tree_frame.grid(row=0, column=0)
+
+        self.widget_frame = tk.Frame(self)
+        self.widget_frame.grid(row=1, column=0)
+
+        # Create a treeview to list existing laser systems
+        self.tree = self.create_laser_tree_view(parent= self.tree_frame)
+
+        # self.cb_laser_system = ttk.Combobox(self,textvariable=self._var['laser_system'], values= self.laser_systems)
+        # self.cb_laser_system['font'] = myfont()
+        # self.cb_laser_system.grid(column=1, row= 3, sticky=tk.W)
+        # self.cb_laser_system.current(0)
+
+        self.button_plot = tk.Button(self.tree_frame,text="Plot",width=18, activebackground="#78d6ff", command=lambda: self.plot_button())
+        self.button_plot['font'] = myfont()
+        self.button_plot.grid(row=1, column=1, sticky=tk.W, padx= 10, pady=10)  
+
+        self.label_delay = tk.Label(self.widget_frame,text="Delay to consider:",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_delay['font'] = label_design['font']
+        self.label_delay.grid(row=1, column=0,sticky=tk.W,  pady=10, padx=10) 
+
+        self.entry_delay = ttk.Entry(self.widget_frame,textvariable=self._var['delay'])
+        self.entry_delay['font'] = myfont()
+        self.entry_delay.grid(row=1, column=1, sticky=tk.W)
+
+        self.button_plot_w_delay = tk.Button(self.widget_frame,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
+        self.button_plot_w_delay['font'] = myfont()
+        self.button_plot_w_delay.grid(row=1, column=2, sticky=tk.W, padx= 10, pady=10) 
             
-    def show_plot_widgets(self):
+    def create_laser_tree_view(self, parent):
+        tree = ttk.Treeview(parent)
+
+        # define headings
+        tree.heading('#0', text='Lasers Added')
+        # tree.bind('<<TreeviewSelect>>', self.laser_selected)
+        tree.grid(row=0, column=1,columnspan=2, sticky=tk.NSEW)
+
+        # add a scrollbar
+        # scrollbar = ttk.Scrollbar(parent, orient=tk.VERTICAL, command=tree.yview)
+        # tree.configure(yscroll=scrollbar.set)
+        # scrollbar.grid(row=0, column=2, sticky='ns')
+        return tree
+    
+    def show_delay_widgets(self):
         self.label_delay = tk.Label(self,text="Delay to consider:",bg=label_design['bg'],fg=label_design['fg'])
         self.label_delay['font'] = label_design['font']
-        self.label_delay.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+        self.label_delay.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10) 
 
-        self.cb_delay = ttk.Combobox(self,textvariable=self._var['delay'], values= self.delay_list)
-        self.cb_delay['font'] = myfont()
-        self.cb_delay.grid(column=1, row= 3, sticky=tk.W)
-        self.cb_delay.current(0)
+        self.entry_delay = ttk.Combobox(self,textvariable=self._var['delay'])
+        self.entry_delay['font'] = myfont()
+        self.entry_delay.grid(column=1, row= 3, sticky=tk.W)
+        # self.cb_delay.current(0) 
 
-        # self.entry_proj.delete(0, tk.END)
+        # self.cb_delay = ttk.Combobox(self,textvariable=self._var['delay'], values= self.delay_list)
+        # self.cb_delay['font'] = myfont()
+        # self.cb_delay.grid(column=1, row= 3, sticky=tk.W)
+        # self.cb_delay.current(0)
 
-        self.button_project = tk.Button(self,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
-        self.button_project['font'] = myfont()
-        self.button_project.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
-    
-    def show_edit_widgets(self):
-        self.label_lasers = tk.Label(self,text="Laser added",bg=label_design['bg'],fg=label_design['fg'])
-        self.label_lasers['font'] = label_design['font']
-        self.label_lasers.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+        self.button_plot_w_delay = tk.Button(self,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
+        self.button_plot_w_delay['font'] = myfont()
+        self.button_plot_w_delay.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
 
-        self.cb_lasers = ttk.Combobox(self,textvariable=self._var['delay'], values= self.laser_list)
-        self.cb_lasers['font'] = myfont()
-        self.cb_lasers.grid(column=1, row= 3, sticky=tk.W)
-        self.cb_lasers.current(0)
-
-        # self.entry_proj.delete(0, tk.END)
-
-        # self.button_select = tk.Button(self,text="Select",width=18, activebackground="#78d6ff", command=lambda: self.choose_values())
-        # self.button_select['font'] = myfont()
-        # self.button_select.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
-
-        self.button_edit = tk.Button(self,text="Edit",width=18, activebackground="#78d6ff", command=lambda: self.choose_and_edit())
-        self.button_edit['font'] = myfont()
-        self.button_edit.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)
-
-        self.button_remove = tk.Button(self,text="Remove",width=18, activebackground="#78d6ff", command=lambda: self.choose_and_remove())
-        self.button_remove['font'] = myfont()
-        self.button_remove.grid(column=2, row= 4, sticky=tk.W, padx= 10, pady=10)
+    def plot_button(self):
+        self.event_generate('<<PlotLasers>>')
 
     def plot_w_delay(self):
         self.event_generate('<<PlotwithDelay>>')
-    
-    def get_value(self, key):
-        return self._var[key].get()
 
-    def choose_values(self):
-        #TODO: store values from the page
-        pass
-
-    def choose_and_edit(self):
-        self.event_generate('<<Choose&EditLaser>>')
-
-    def choose_and_remove(self):
-        self.event_generate('<<Choose&RemoveLaser>>')
-
-class LaserEditPage(tk.Toplevel):
-
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-
-        self._default_var = {
-              'delay' : ['float'],
-              
-          }
-        self.delay_list = [0]
-        self.laser_list = ['laser 1']
-
-        self._var = var_define(self._default_var)
-        self.attributes("-topmost", True)
-        self.grab_set()
-        self.lift()
-        self.title("Laser Details")     
-        self.geometry("550x200")
-
-        self.button_add = tk.Button(self,text="Add",width=18, activebackground="#78d6ff", command=lambda: self.add_button())
-        self.button_add['font'] = myfont()
-        self.button_add.grid(column=1, row= 1, sticky=tk.W, padx= 10, pady=10)
-
-        self.button_edit = tk.Button(self,text="Edit",width=18, activebackground="#78d6ff", command=lambda: self.edit_button())
-        self.button_edit['font'] = myfont()
-        self.button_edit.grid(column=2, row= 1, sticky=tk.W, padx= 10, pady=10)
-
-        self.button_remove = tk.Button(self,text="Remove",width=18, activebackground="#78d6ff", command=lambda: self.remove_button())
-        self.button_remove['font'] = myfont()
-        self.button_remove.grid(column=3, row= 1, sticky=tk.W, padx= 10, pady=10)
+    def laser_selected(self, *_):
+        items = self.tree.selection()
+        _list_of_lasers = []
+        for item in items:
+            laser = str(self.tree.item(item,"text"))
+            _list_of_lasers.append(laser)
+        return _list_of_lasers
             
-    def add_button(self):
-        self.event_generate('<<Add&ShowLaserPage>>')
-
-    def edit_button(self):
-        self.event_generate('<<Choose&EditLaser>>')
-
-    def remove_button(self):
-        self.event_generate('<<Choose&RemoveLaser>>')
+        # self.event_generate('<<OnSelection>>')
     
     def get_value(self, key):
         return self._var[key].get()
@@ -2832,5 +2819,3 @@ class LaserEditPage(tk.Toplevel):
     def choose_values(self):
         #TODO: store values from the page
         pass
-
-    
