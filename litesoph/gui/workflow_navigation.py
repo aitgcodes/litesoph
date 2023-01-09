@@ -28,30 +28,30 @@ class WorkflowNavigation:
         canvas_workflow.grid(row=1, column=0)
 
         i = 0
-        for task_name in workflow_list:
-            self.widgets[task_name] = []
+        for n ,task_name in enumerate(workflow_list):
+            self.widgets[str(n)] = []
             widget= tk.Button(canvas_workflow, text = task_name, width=25)
-            self.widgets[task_name].append(widget)
-            self.widgets[task_name].append(self.default_state)
-            config_widget(self.widgets[task_name][0], config_dict=self.config_default)
-            self.widgets[task_name][0].grid(row=i, column=0, sticky='nsew', padx=5, pady=5)
+            self.widgets[str(n)].append(widget)
+            self.widgets[str(n)].append(self.default_state)
+            config_widget(self.widgets[str(n)][0], config_dict=self.config_default)
+            self.widgets[str(n)][0].grid(row=i, column=0, sticky='nsew', padx=5, pady=5)
             i+=3
 
     def _update_widgets(self, current_index:int):
         """Updates the current index and state"""
         self.current_index = current_index
         if current_index == len(self.workflow_list):
-            task_item = self.workflow_list[current_index-1]
-            self.widgets[task_item][1] = 'done'
+            # task_item = self.workflow_list[current_index-1]
+            self.widgets[str(current_index-1)][1] = 'done'
         else:    
             for i in range(0, current_index):
                 task_item = self.workflow_list[i]
-                self.widgets[task_item][1] = 'done'
+                self.widgets[str(i)][1] = 'done'
             for i in range(current_index, len(self.workflow_list)):
                 task_item = self.workflow_list[i]
-                self.widgets[task_item][1] = 'default'
+                self.widgets[str(i)][1] = 'default'
             current_task = self.workflow_list[current_index]
-            self.widgets[current_task][1] = 'current'
+            self.widgets[str(current_index)][1] = 'current'
 
     def prev(self):
         """ Shifts the current state to previous"""
