@@ -454,7 +454,7 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
         if laser:
             # State Preparation/Pump-Probe
             assert isinstance(laser, list)
-            _dict2update = {}
+            _dict2update = {'task': 'rt_tddft_laser'}
                 
             td_functions_list = []
             td_ext_fields_list = []
@@ -485,17 +485,17 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
 
                 else:
                     # Get dict for delta pulse
-                    td_laser_dict = laser[i]
-                    pol_list = td_laser_dict.get('polarization') 
+                    # td_laser_dict = laser[i]
+                    pol_list = laser_inp.get('polarization') 
 
                     if isinstance(pol_list, list):      
                         for item in pol_list2dir:
                             if item[0] == pol_list:
                                 pol_dir = item[1]
                     _dict2update.update({
-                    "TDDeltaStrength": td_laser_dict.get('strength'),
+                    "TDDeltaStrength": laser_inp.get('strength'),
                     "TDPolarizationDirection": pol_dir,
-                    "TDDeltaKickTime":td_laser_dict.get('time0'),
+                    "TDDeltaKickTime":laser_inp.get('time0'),
                 })
                
             # else:

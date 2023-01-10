@@ -1161,7 +1161,7 @@ laser_design_input = {
                 "type": str
                 },
 
-        "delta strength": {
+        "delta_strength": {
                 "tab":"Laser Design",
                 "group": "laser details",
                 "text": "Delta Kick Strength (in au)",
