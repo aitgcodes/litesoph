@@ -8,7 +8,7 @@ import subprocess
 import re
 from scp import SCPClient
 import pexpect
-
+from litesoph.common import lfm_remote_to_local as lfm_rtl
 
 def execute(command, directory):
     
@@ -66,7 +66,8 @@ class SubmitNetwork:
                     username: str,
                     password: str,
                     port: int,
-                    remote_path: str) -> None:
+                    remote_path: str,
+                    ls_file_mgmt_mode=True) -> None:
 
         self.task = task
         self.task_info = task.task_info
@@ -77,6 +78,7 @@ class SubmitNetwork:
         self.password = password
         self.port = port
         self.remote_path = remote_path
+        self.ls_file_mgmt_mode=ls_file_mgmt_mode
         
         self.network_sub = NetworkJobSubmission(hostname, self.port)
         self.network_sub.ssh_connect(username, password)
@@ -101,9 +103,14 @@ class SubmitNetwork:
         """Downloads entire project directory to local project dir."""
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
         #self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
-        (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
+        if (self.ls_file_mgmt_mode==False):
+            (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
                                                 source_dir=str(remote_path), dst_dir=str(self.project_dir.parent))
-        if error != 0:
+        
+        elif (self.ls_file_mgmt_mode==True):
+            (error, message)=lfm_rtl.download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir)
+
+        elif error != 0:
             raise Exception(message)
 
     def get_output_log(self):
@@ -143,11 +150,13 @@ class NetworkJobSubmission:
     uploadig and downloading of files and also to execute command on the remote cluster."""
     def __init__(self,
                 host,
-                port):
+                port,
+                ls_file_mgmt_mode=True):
         
         self.client = None
         self.host = host
         self.port = port
+        self.ls_file_mgmt_mode=ls_file_mgmt_mode
              
     def ssh_connect(self, username, password=None, pkey=None):
         "connects to the cluster through ssh."
@@ -290,14 +299,14 @@ def rsync_cmd(ruser, rhost, port, password, source_dir, dst_dir,include=None, ex
     return (error, message)
 
 def execute_rsync(cmd,passwd, timeout=3600):
-    intitial_response = ['Are you sure', 'password:', pexpect.EOF]
+    intitial_response = ['Are you sure', 'assword','[#\$] ', pexpect.EOF]
     
     ssh = pexpect.spawn(cmd,timeout=timeout)
     i = ssh.expect(intitial_response, timeout=10)
     if i == 0 :
         T = ssh.read(100)
         ssh.sendline('yes')
-        ssh.expect('password:', Timeout=10)
+        ssh.expect('assword:', Timeout=10)
         ssh.sendline(passwd)
     elif i == 1:
         ssh.sendline(passwd)
@@ -305,7 +314,7 @@ def execute_rsync(cmd,passwd, timeout=3600):
         str1 = str(ssh.before)
         return (-3, 'Error: Unknown:'+ str1)
 
-    possible_response = ['password:', pexpect.EOF]
+    possible_response = ['assword:', pexpect.EOF]
     i = ssh.expect(possible_response, timeout=5)
 
     if i == 0:
