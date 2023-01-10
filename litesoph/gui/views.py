@@ -2522,6 +2522,10 @@ class LaserDesignPage(View):
         self.button_next['font'] = myFont
         self.button_next.grid(row=0, column=7, padx=3, pady=3,sticky='nsew')
 
+        self.button_reset = tk.Button(self.property_frame, text="Reset", activebackground="#78d6ff", command=lambda: self.reset_button())
+        self.button_reset['font'] = myFont
+        self.button_reset.grid(row=0, column=8, padx=3, pady=3,sticky='nsew')
+
         self.trace_variables()
 
     def trace_variables(self,*_):
@@ -2564,6 +2568,9 @@ class LaserDesignPage(View):
     def laser_selected(self, *_):
         pass
     
+    def reset_button(self):
+        self.inp.init_widgets(ignore_state=True)
+
     def back_button(self):
         self.event_generate('<<BackOnLaserDesignPage>>')
 
@@ -2596,45 +2603,41 @@ class LaserDesignPage(View):
         else:
             return laser_tag 
 
-    def get_pol_list(self, pol_var:str):
-        assert pol_var in ["X", "Y", "Z"] 
-        if pol_var == "X":
-            pol_list = [1,0,0]         
-        elif pol_var == "Y":
-            pol_list = [0,1,0] 
-        elif pol_var == "Z":
-            pol_list = [0,0,1]                
-        return pol_list
-
     def get_laser_details(self):
         from litesoph.utilities.units import as_to_au
 
         gui_dict = copy.deepcopy(self.inp.get_values())
         pol_var = gui_dict.get("pol_dir")
-        self.pol_list = self.get_pol_list(pol_var)
+        self.pol_list = get_pol_list(pol_var)
+
+        laser_input = {}
 
         laser_type = gui_dict.get('laser_type')
         if laser_type == "Gaussian Pulse":
             l_type = "gaussian"
+            strength = gui_dict.get("laser_strength")  
+            
         elif laser_type == "Delta Pulse":
             l_type = "delta" 
+            strength = gui_dict.get("delta_strength")
+
+        laser_input.update({
+            "type": l_type,
+            "strength": strength  
+            })
 
         laser_list = []
-        laser_input = {
-            "type": l_type,
-            # "tag": self.get_tag(),
+        laser_input.update({
             "tin" : gui_dict.get("time_origin")*as_to_au,
             "inval" :  gui_dict.get("log_val"),
-            "strength": gui_dict.get("laser_strength"),  
             "fwhm" :gui_dict.get("fwhm"),
             "frequency" :  gui_dict.get("freq"),
             'polarization': self.pol_list
             # "delay_time" : 0        
-        }
+        })
 
         if self.get_tag() is not None:
             laser_input["tag"] = self.get_tag()
-
         laser_list.append(laser_input)
         return laser_list   
         # return laser_input   
@@ -2653,8 +2656,6 @@ class LaserDesignPage(View):
         
         laser_input = {
             "type": l_type,
-            # "tag": tag,
-            # "tin" : gui_dict.get("time_origin")*as_to_au,
             "inval" :  gui_dict.get("log_val"),
             "strength": gui_dict.get("laser_strength"),  
             "fwhm" :gui_dict.get("fwhm"),
@@ -2716,9 +2717,13 @@ class LaserPlotPage(tk.Toplevel):
         # Create a treeview to list existing laser systems
         self.tree = self.create_laser_tree_view(parent= self.tree_frame)
 
+        # self.cb_pol = ttk.Combobox(self,textvariable=self._var['pol'], values = ['X', 'Y', 'Z'])
+        # self.cb_pol['font'] = myfont()
+        # self.cb_pol.grid(row=1, column=1, sticky=tk.W)
+
         self.button_plot = tk.Button(self.tree_frame,text="Plot",width=18, activebackground="#78d6ff", command=lambda: self.plot_button())
         self.button_plot['font'] = myfont()
-        self.button_plot.grid(row=1, column=1, sticky=tk.W, padx= 10, pady=10)  
+        self.button_plot.grid(row=1, column=2, sticky=tk.W, padx= 10, pady=10)          
 
         self.label_delay = tk.Label(self.widget_frame,text="Delay to consider:",bg=label_design['bg'],fg=label_design['fg'])
         self.label_delay['font'] = label_design['font']
@@ -2776,3 +2781,21 @@ class LaserPlotPage(tk.Toplevel):
     def get_value(self, key):
         return self._var[key].get()
 
+def get_pol_list(pol_var:str):
+    assert pol_var in ["X", "Y", "Z"] 
+    if pol_var == "X":
+        pol_list = [1,0,0]         
+    elif pol_var == "Y":
+        pol_list = [0,1,0] 
+    elif pol_var == "Z":
+        pol_list = [0,0,1]                
+    return pol_list
+
+def get_pol_var(pol_list:list):
+    if pol_list == [1,0,0]:
+        pol_var = "X"          
+    elif pol_list == [0,1,0]:
+        pol_var = "Y" 
+    elif pol_list == [0,0,1]    :
+        pol_var = "Z"                
+    return pol_var

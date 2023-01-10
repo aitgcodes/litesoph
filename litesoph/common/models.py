@@ -302,11 +302,16 @@ class LaserDesignPlotModel:
     
     def compute_laser_design_param(self, laser_type:str, laser_param:dict):
         """ Calculates laser parameters specific to laser type"""
+
+        from litesoph.gui import views as v
+
         assert laser_type in ["gaussian", "delta"]
 
         t_in=laser_param['tin'] # in au unit
         tag = laser_param.get('tag', None)
         pol_list = laser_param.get('polarization')
+        pol_var = v.get_pol_var(pol_list)
+        laser_param.update({'polarization': pol_var})
 
         # delay wrt the time origin of first laser 
         # delay_time_fs = laser_param['delay_time']          
@@ -339,6 +344,7 @@ class LaserDesignPlotModel:
             pulse = GaussianPulse(strength= strength_au,
                                 time0= time0_fs*1e3,frequency= freq_eV,
                                  sigma= sigma_eV, sincos='sin')
+            pulse.laser_input = laser_param                   
             pulse.laser_design =l_design
             # print(pulse.laser_design)
             # return (pulse, l_design) 
@@ -357,6 +363,7 @@ class LaserDesignPlotModel:
             "time0": round(time0*as_to_au,2),
             'polarization': pol_list
             } 
+            pulse.laser_input = laser_param 
             pulse.laser_design =l_design
             return pulse
             # return (pulse, l_design)

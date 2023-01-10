@@ -530,12 +530,16 @@ class TDPageController(TaskController):
         for i,l_name in enumerate(self.laser_data.keys()):
             l_system = self.laser_data[l_name]
             tag = l_system.get('tag')
-            details.append(f'{tag}')
+            details.append(f'\n{tag}')
             pulses = l_system.get('pulses')
-            laser_params = extract_lasers_from_pulses(pulses)
+            laser_sets = extract_lasers_from_pulses(pulses)
+            laser_params = []
+
+            for laser in laser_sets:
+                laser_params.append(laser[1])            
 
             for laser_index,laser in enumerate(laser_params):
-                details.append(f'   Laser {laser_index+1}:')
+                details.append(f'\n#Laser {laser_index+1}:')
                 for key, value in laser.items():                    
                     details.append(f"{key} =  {value}")
 
@@ -586,15 +590,31 @@ class TDPageController(TaskController):
 
         if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
             pulses = self.laser_data['State Preparation']['pulses']
-            laser_data = extract_lasers_from_pulses(pulses)
+            laser_sets = extract_lasers_from_pulses(pulses)
+            laser_data = []
+            for laser in laser_sets:
+                laser_data.append(laser[0])  
+            # laser_data = extract_lasers_from_pulses(pulses)
             inp_dict.update({'laser': laser_data})
         
         else:
-            lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
-            delay = self.task_view.inp.variable["delay_values"].get()
-            lasers_list = []
-            for laser in lasers:
-                lasers_list.extend(laser)
+            try:
+                delay = self.task_view.inp.variable["delay_values"].get()
+            except tk.TclError:
+                pulses = self.laser_data['Pump']['pulses']
+                laser_sets = extract_lasers_from_pulses(pulses)
+                lasers_list = []
+                for laser in laser_sets:
+                    lasers_list.append(laser[0]) 
+                # lasers_list = extract_lasers_from_pulses(pulses)
+                delay = "No Probe"
+            else:
+                lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
+                
+                lasers_list = []
+                for laser in lasers:
+                    lasers_list.extend(laser)
+
 
             inp_dict.update({'laser': lasers_list,
                             'delay': delay})
@@ -873,9 +893,11 @@ class LaserDesignController:
         if laser_system in self.laser_info.data.keys():
             _pulses = self.laser_info.data[laser_system].get('pulses')
             pulses.extend(_pulses)
-        lasers = extract_lasers_from_pulses(pulses)
-
-        return lasers   
+        laser_sets = extract_lasers_from_pulses(pulses)
+        laser_params =[]
+        for laser in laser_sets:
+            laser_params.append(laser[0])
+        return laser_params  
 
     def _on_plot_w_delay_button(self, *_):
         from litesoph.utilities.units import fs_to_au, as_to_au, au_to_fs
@@ -902,7 +924,8 @@ class LaserDesignController:
 
         (time_arr, list_strength_arr) = m.get_time_strength(lasers_to_plot,
                                             laser_profile_time= self.total_time*as_to_au*au_to_fs)
-        m.plot_laser(time_arr, list_strength_arr)  
+        m.plot_laser(time_arr, list_strength_arr) 
+
 
 def validate_laser_defined(laser_data:dict, exp_type:str):
     """ Validates laser_defined wrt exp_type and returns the bool"""
@@ -919,15 +942,17 @@ def validate_laser_defined(laser_data:dict, exp_type:str):
     if exp_type == "State Preparation":
         check = laser_info.check_laser_exists('State Preparation')
 
-    return check
+    return check    
 
 def extract_lasers_from_pulses(list_of_pulses:list):
-    """ Gets laser_design parameters from pulse objects"""
+    """ Gets (laser_design,input parameters)
+    \n from pulse objects as list of tuples"""
     lasers = []
     if len(list_of_pulses)> 0:
         for pulse in list_of_pulses:
-            _laser = pulse.laser_design
-            lasers.append(_laser)  
+            _laser_design = pulse.laser_design
+            _laser_input = pulse.laser_input
+            lasers.append((_laser_design, _laser_input))  
     return lasers
 
 def add_delay_to_lasers(system_1:dict, system_2:dict, delay:float):
@@ -941,8 +966,17 @@ def add_delay_to_lasers(system_1:dict, system_2:dict, delay:float):
     pulses_sys1 = sys1['pulses']
     pulses_sys2 = sys2['pulses']
 
-    lasers_sys1 = extract_lasers_from_pulses(pulses_sys1)
-    lasers_sys2 = extract_lasers_from_pulses(pulses_sys2)
+    set_sys1 = extract_lasers_from_pulses(pulses_sys1)
+    set_sys2 = extract_lasers_from_pulses(pulses_sys2)
+
+    lasers_sys1 = []
+    lasers_sys2 = []
+
+    for laser_set in set_sys1:
+        lasers_sys1.append(laser_set[0])
+
+    for laser_set in set_sys2:
+        lasers_sys2.append(laser_set[0])
 
     last_params_sys1 = lasers_sys1[-1]
     time0_ref_1 = last_params_sys1.get('time0')
