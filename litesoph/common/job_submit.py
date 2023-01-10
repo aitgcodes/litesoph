@@ -67,7 +67,9 @@ class SubmitNetwork:
                     password: str,
                     port: int,
                     remote_path: str,
-                    ls_file_mgmt_mode=True) -> None:
+                    pkey_file=pathlib.Path('/home/anandsahu/.ssh/id_rsa'),
+                    ls_file_mgmt_mode=True,
+                    passwordless_ssh=False) -> None:
 
         self.task = task
         self.task_info = task.task_info
@@ -76,17 +78,30 @@ class SubmitNetwork:
         self.username = username
         self.hostname = hostname
         self.password = password
+        self.pkey_file=pkey_file
         self.port = port
         self.remote_path = remote_path
         self.ls_file_mgmt_mode=ls_file_mgmt_mode
+        self.passwordless_ssh=passwordless_ssh
         
         self.network_sub = NetworkJobSubmission(hostname, self.port)
-        self.network_sub.ssh_connect(username, password)
-        if self.network_sub.check_file(self.remote_path):
-            self.task.add_proper_path(self.remote_path)
-            self.upload_files()
-        else:
-            raise FileNotFoundError(f"Remote path: {self.remote_path} not found.")
+        
+        if passwordless_ssh==False:
+            self.network_sub.ssh_connect(username, password)
+            if self.network_sub.check_file(self.remote_path):
+                self.task.add_proper_path(self.remote_path)
+                self.upload_files()
+            else:
+                raise FileNotFoundError(f"Remote path: {self.remote_path} not found.")
+        
+        if passwordless_ssh==True:
+            self.network_sub.ssh_connect(username,pkey_file)
+            if self.network_sub.check_file(self.remote_path):
+                self.task.add_proper_path(self.remote_path)
+                self.upload_files()
+            else:
+                raise FileNotFoundError(f"Remote path: {self.remote_path} not found.")
+
 
     def upload_files(self):
         """uploads entire project directory to remote path"""
@@ -124,8 +139,7 @@ class SubmitNetwork:
         "This method creates the job submission command and executes the command on the cluster"
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.relative_to(self.project_dir.parent)
         self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"
-        
-        
+                
         exit_status, ssh_output, ssh_error = self.network_sub.execute_command(self.command)
         if exit_status != 0:
             print("Error...")
@@ -151,22 +165,26 @@ class NetworkJobSubmission:
     def __init__(self,
                 host,
                 port,
-                ls_file_mgmt_mode=True):
+                ls_file_mgmt_mode=True,
+                passwordless_ssh=True):
         
         self.client = None
         self.host = host
         self.port = port
         self.ls_file_mgmt_mode=ls_file_mgmt_mode
-             
-    def ssh_connect(self, username, password=None, pkey=None):
+        self.passwordless_ssh=passwordless_ssh
+                 
+    def ssh_connect(self, username, password=None, pkey_file=None):
         "connects to the cluster through ssh."
         try:
             print("Establishing ssh connection")
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
-            if pkey:
-                private_key = paramiko.RSAKey.from_private_key(pkey)
+            if pkey_file:
+                # private_key = paramiko.RSAKey.from_private_key(pkey)
+                private_key = paramiko.RSAKey.from_private_key_file(pkey_file)
+                
                 self.client.connect(hostname=self.host, port=self.port, username=username, pkey=private_key)
                 print("connected to the server", self.host)
             else:    
@@ -310,6 +328,10 @@ def execute_rsync(cmd,passwd, timeout=3600):
         ssh.sendline(passwd)
     elif i == 1:
         ssh.sendline(passwd)
+    elif i==2:
+        print('Connected Successfully.')
+        prompt = ssh.after
+        print('Shell Command Prompt:', prompt.decode(encoding='utf-8'))    
     else:
         str1 = str(ssh.before)
         return (-3, 'Error: Unknown:'+ str1)
