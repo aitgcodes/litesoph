@@ -136,7 +136,9 @@ predefined_workflow = {
         
         "dependency_map": {'0' : None,
                             '1' : '0',
-                            '2' : '1'}
+                            '2' : '1',
+                            '3' : '0',
+                            '4' : '3'}
     }
 }
 

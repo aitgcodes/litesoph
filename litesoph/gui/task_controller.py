@@ -590,11 +590,18 @@ class TDPageController(TaskController):
             inp_dict.update({'laser': laser_data})
         
         else:
-            lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
-            delay = self.task_view.inp.variable["delay_values"].get()
-            lasers_list = []
-            for laser in lasers:
-                lasers_list.extend(laser)
+            try:
+                delay = self.task_view.inp.variable["delay_values"].get()
+            except tk.TclError:
+                pulses = self.laser_data['Pump']['pulses']
+                lasers_list = extract_lasers_from_pulses(pulses)
+                delay = "No Probe"
+            else:
+                lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
+                
+                lasers_list = []
+                for laser in lasers:
+                    lasers_list.extend(laser)
 
             inp_dict.update({'laser': lasers_list,
                             'delay': delay})
