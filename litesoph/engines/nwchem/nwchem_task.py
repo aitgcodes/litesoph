@@ -365,8 +365,7 @@ def format_gs_param(gen_dict:dict) -> dict:
     return gs_input
 
 def update_td_param(param):
-    strength = param.pop('strength')
-    pol = param.pop('polarization')
+    
     time_step = param.pop('time_step')
     num_step = param.pop('number_of_steps')
     out_freq = param.pop('output_freq')
@@ -379,22 +378,41 @@ def update_td_param(param):
                         'print':out_print(properties)}
 
     if lasers:
-        param['rt_tddft']['laser'] = laser_list = []     
+        delay = param.pop('delay', None)
+        param['rt_tddft']['field'] = laser_list = []     
         
         for laser in lasers:
-            laser_list.append({'name': 'gpulse_'  + read_pol_dir(pol)[1],
-                                    'type': 'gaussian',
-                                    'frequency' : laser['frequency'],
-                                    'center': laser['time0'],
-                                    'width': laser['sigma'],
-                                    'polarization':read_pol_dir(pol)[1],
-                                    'max':laser['strength']})
+            if laser['type'] == 'gaussian':
+                laser_dict = add_gaussian_laser(laser)
+            elif laser['type'] == 'delta':
+                laser_dict = add_delta_laser(laser)
 
+            laser_list.append(laser_dict)
     else:
+        strength = param.pop('strength')
+        pol = param.pop('polarization')
         param['rt_tddft']['field'] = {'name': 'kick_' + read_pol_dir(pol)[1],
                                         'type': 'delta',
                                         'polarization':read_pol_dir(pol)[1],
                                         'max': strength}
+def add_gaussian_laser(laser):
+    laser_dict = {'name': 'gpulse_'  + read_pol_dir(laser['polarization'])[1],
+                    'type': 'gaussian',
+                    'frequency' : laser['frequency'],
+                    'center': laser['time0'],
+                    'width': laser['sigma'],
+                    'polarization':read_pol_dir(laser['polarization'])[1],
+                    'max':laser['strength']}
+
+                    
+    return laser_dict
+
+def add_delta_laser(laser):
+    laser_dict = {'name': 'kick_' + read_pol_dir(laser['polarization'])[1],
+                'type': 'delta',
+                'polarization':read_pol_dir(laser['polarization'])[1],
+                'max': laser['strength']}
+    return laser_dict
 
 def out_print(property):
         p = [] 
