@@ -606,7 +606,6 @@ class TDPageController(TaskController):
                 lasers_list = []
                 for laser in laser_sets:
                     lasers_list.append(laser[0]) 
-                # lasers_list = extract_lasers_from_pulses(pulses)
                 delay = "No Probe"
             else:
                 lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
@@ -614,7 +613,6 @@ class TDPageController(TaskController):
                 lasers_list = []
                 for laser in lasers:
                     lasers_list.extend(laser)
-
 
             inp_dict.update({'laser': lasers_list,
                             'delay': delay})

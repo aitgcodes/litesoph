@@ -15,7 +15,7 @@ class NWChemManager(EngineManager):
                                     tt.TCM, tt.MASKING, tt.MO_POPULATION, tt.COMPUTE_AVERAGED_SPECTRUM]
 
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM,
-                                        wt.MO_POPULATION_TRACKING]
+                                        wt.MO_POPULATION_TRACKING, wt.PUMP_PROBE]
 
     def get_task(self, config, task_info: TaskInfo, 
                         dependent_tasks: Union[List[TaskInfo], None] =None ):
