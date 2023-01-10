@@ -2328,6 +2328,8 @@ class TDPage(View):
         self.trace_variables()
 
     def add_widgets(self, input_widget_dict:dict):
+        for widget in self.input_param_frame.winfo_children():
+            widget.destroy()
         from litesoph.gui.view_gs import InputFrame
         if input_widget_dict is None:
             input_widget_dict = inp.laser_td_input

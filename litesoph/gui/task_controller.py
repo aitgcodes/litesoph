@@ -373,19 +373,18 @@ class TDPageController(TaskController):
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
         
         self.workflow_manager = workflow_manager
-        self.task_info = workflow_manager.current_task_info
-        self.task_name = self.task_info.name
-        self.engine = self.task_info.engine
+        self.task_name = tt.RT_TDDFT
         self.task_view = task_view
         self.task = None
+        self.current_delay_index = 0
+        self.app.proceed_button.config(command=self._on_proceed)
 
         self.job_sub_page = v.JobSubPage(self.app.task_input_frame)
         self.job_sub_page.grid(row=0, column=0, sticky ="nsew")
 
-        self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)
+        self.task_view = self.app.show_frame(task_view, self.task_name)
         self.job_sub_page.back2task.config(command= self.show_task_view)
 
-        self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)
         self.main_window.bind_all('<<BackonTDPage>>', self._on_back)
         self.main_window.bind_all(f'<<Generate{self.task_name}Script>>', self.generate_input)
         self.main_window.bind_all('<<Design&EditLaser>>', self._on_design_edit_laser)         
@@ -436,7 +435,7 @@ class TDPageController(TaskController):
                                                     laser_data= self.laser_data) 
         
         self.laser_controller.bind_events_and_update_default_view()  
-        self.laser_controller.view.button_next.config(command=self.show_TDPage_and_update)
+        self.laser_controller.view.button_next.config(command=self.show_tdpage_and_update)
         self.laser_controller.view.button_back.config(command=self.show_task_view)
 
         self.laser_controller.update_labels_on_tree()
@@ -445,7 +444,7 @@ class TDPageController(TaskController):
     #     """ Shows the TDPage"""   
     #     self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name
     #                                             )
-    def show_TDPage_and_update(self, *_):
+    def show_tdpage_and_update(self, *_):
         from litesoph.gui.models import inputs as inp
 
         exp_type = self.task_view_param.get('exp_type') 
@@ -489,23 +488,32 @@ class TDPageController(TaskController):
 
             # GUI entries from previous td view
             td_param_stored = self.task_view_param
+            if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
+                pass
+            
+            else:
+                widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
+                self.task_view.add_widgets(widget_dict)
 
-            widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
-            self.task_view.add_widgets(widget_dict)
+                if self.task_view_param.get('exp_type') == 'Pump-Probe':  
+                    delays = td_param_stored.get('delay_list') 
+                    delays.insert(0, 'No Probe')  
+                    self.task_view.inp.widget["delay_values"].config(values= delays)
+                    self.task_view.inp.widget["delay_values"].config(state = 'readonly')
+                    # self.task_view.inp.widget["delay_values"].set(delays[0])
+                    
+                    self.task_view.label_delay_entry.grid_remove()
 
-            if self.task_view_param.get('exp_type') == 'Pump-Probe':     
-                self.task_view.inp.widget["delay_values"].config(values= td_param_stored.get('delay_list'))
-                self.task_view.inp.widget["delay_values"].config(state = 'readonly')
-                self.task_view.inp.widget["delay_values"].current(0)
-                self.task_view.label_delay_entry.grid_remove()
+                _gui_dict = {
+                    "field_type": td_param_stored.get("field_type"),
+                    "exp_type" : td_param_stored.get("exp_type")
+                }
 
-            _gui_dict = {
-                "field_type": td_param_stored.get("field_type"),
-                "exp_type" : td_param_stored.get("exp_type")
-            }
+                self.task_view.inp.init_widgets(fields=self.task_view.inp.fields,
+                            ignore_state=False, var_values=_gui_dict)
 
-            self.task_view.inp.init_widgets(fields=self.task_view.inp.fields,
-                        ignore_state=False, var_values=_gui_dict)
+                self.task_view.inp.variable['delay_values'].set(delays[0])
+                self.add_task(td_param_stored.get("delay_list"))
 
             self.task_view.button_view.config(state='active')
             self.task_view.button_save.config(state='active')
@@ -548,59 +556,47 @@ class TDPageController(TaskController):
     #     self.main_window.bind_all('<<Choose&RemoveLaser>>', self.choose_and_remove_laser)
     def get_laser(self):
         pass
+    
+    def add_task(self, delays):
+        block_id = self.workflow_manager.current_container.block_id
+        step_id = self.workflow_manager.current_container.id
+        
+        step = step_id+1
+        for delay in delays:
+            if delay == 'No Probe':
+                continue
+            self.workflow_manager.add_task(self.task_name,
+                                            block_id,
+                                            step_id=step,
+                                            dependent_tasks_uuid= self.workflow_controller.get_task_dependencies(self.task_name))
+            step += 1
 
     def generate_input(self, *_):
         """ Checks experiment type and generate respective inputs"""
         #TODO: Condition for State preparation/pump-probe input 
         # Introduce delay when required
-        delay = self.task_view.inp.widget["delay_values"].get()
-        print(delay)
-        print(self.laser_data)
-        print(self.task_view.get_parameters())
-        laser = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
-        print(laser)
-        return
+        
+        self.task_info = self.workflow_manager.current_task_info
 
         self.task_info.param.clear()
-        self.task_view.set_laser_design_dict(self.workflow_manager.current_task_info.input['current_lasers'])
 
         inp_dict = self.task_view.get_parameters()
-        current_lasers = copy.deepcopy(self.workflow_manager.current_task_info.input['current_lasers'])       
 
-        for i,laser in enumerate(current_lasers):        
-            laser_tag = laser.get('tag')
-
-            # TODO: alternatively, use respective list of pumps/probes
-            if laser_tag is not None:
-                assert laser_tag in ["Pump", "Probe"]
-                # if laser_tag == "Pump":
-                #     pump_id = i                  
-                    
-                if laser_tag == "Probe":
-                    probe_id = i
-                    break
-
-        if inp_dict.get('pump_probe'):
-            delay = self.task_view.inp.variable["delay_values"].get()
-            pumps = self.workflow_manager.current_task_info.input['pump_lasers']
-            copy_pumps = copy.deepcopy(pumps)
-            probes = self.workflow_manager.current_task_info.input['probe_lasers']
-            copy_probes = copy.deepcopy(probes)
-
-            pump_param_on_delay = copy_pumps.pop()
-            probe_param_on_delay = copy_probes[0]
-            pump_on_delay_t0 = float(pump_param_on_delay.get('time0'))
-            probe_on_delay_t0 = float(probe_param_on_delay.get('time0'))
-
-            probe_t0_with_delay = pump_on_delay_t0 + delay + probe_on_delay_t0
-            current_lasers[probe_id].update({'time0': probe_t0_with_delay})
-
-            inp_dict.update({'laser': current_lasers})
+        if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
+            pulses = self.laser_data['State Preparation']['pulses']
+            laser_data = extract_lasers_from_pulses(pulses)
+            inp_dict.update({'laser': laser_data})
+        
         else:
-            inp_dict.update({'laser': current_lasers})
+            lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
+            delay = self.task_view.inp.variable["delay_values"].get()
+            lasers_list = []
+            for laser in lasers:
+                lasers_list.extend(laser)
 
-        if not inp_dict:
-            return
+            inp_dict.update({'laser': lasers_list,
+                            'delay': delay})
+
         check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
         if not check:
             return
@@ -611,6 +607,27 @@ class TDPageController(TaskController):
         txt = self.task.get_engine_input()
         self.view_panel.insert_text(text=txt, state='normal')
         self.bind_task_events()
+
+    def _on_proceed(self, *_):
+            
+        if self.task_view.inp.variable['exp_type'].get() == "Pump-Probe":
+            
+            delays = self.task_view_param.get('delay_list') 
+            if self.current_delay_index == (len(delays)-1):
+                self.workflow_controller.next_task()
+            else:
+                self.workflow_manager.next()
+                self.task_view.tkraise()
+                
+                self.current_delay_index += 1
+                self.task_view.inp.widget["delay_values"].set(delays[self.current_delay_index])
+
+        else:
+            
+            self.workflow_controller.next_task()
+            
+
+        
 
 class LaserDesignController:
 
