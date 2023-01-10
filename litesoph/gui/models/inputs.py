@@ -1202,7 +1202,7 @@ def get_td_laser_w_delay():
                 {"delay_values": {
                         "tab":"External Fields",
                         "group": "Choose Options",
-                        "text": "Delay time value",
+                        "text": "Delay time (in fs)",
                         "help": None,
                         "widget": Combobox,
                         "type": float,
