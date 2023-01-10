@@ -2,7 +2,6 @@ import pexpect
 from subprocess import Popen, PIPE
 import pathlib
 from pathlib import Path
-import sys
 
 file_tag_dict={ 
                 '.out':{'file_relevance':'very_impt','file_lifetime':'None', 'transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':'500k'}},
@@ -161,6 +160,9 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     
     for file in list(priority1_files_dict.keys()):
         (error, message)=file_transfer(file,priority1_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
+    
+    for file in list(priority2_files_dict.keys()):
+        (error, message)=file_transfer(file,priority2_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
 
     return (error, message)
     
