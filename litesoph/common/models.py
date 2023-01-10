@@ -306,6 +306,7 @@ class LaserDesignPlotModel:
 
         t_in=laser_param['tin'] # in au unit
         tag = laser_param.get('tag', None)
+        pol_list = laser_param.get('polarization')
 
         # delay wrt the time origin of first laser 
         # delay_time_fs = laser_param['delay_time']          
@@ -329,7 +330,8 @@ class LaserDesignPlotModel:
                 'tag': tag,
                 # 'tin': t_in,
                 'frequency': freq_eV,
-                'strength': strength_au
+                'strength': strength_au,
+                'polarization': pol_list
                 })
                 
             sigma_eV = round(autime_to_eV/l_design['sigma'], 2)
@@ -342,7 +344,6 @@ class LaserDesignPlotModel:
             # return (pulse, l_design) 
             return pulse
             
-
         elif laser_type == "delta":  
             # time0=t_in*au_to_as + delay_time_fs *1e3
             time0=t_in*au_to_as
@@ -353,7 +354,8 @@ class LaserDesignPlotModel:
             'type': 'delta',
             'tag': tag, 
             "strength": strength_au,
-            "time0": round(time0*as_to_au,2)
+            "time0": round(time0*as_to_au,2),
+            'polarization': pol_list
             } 
             pulse.laser_design =l_design
             return pulse

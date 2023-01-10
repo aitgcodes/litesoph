@@ -387,7 +387,8 @@ class TDPageController(TaskController):
 
         self.main_window.bind_all('<<BackonTDPage>>', self._on_back)
         self.main_window.bind_all(f'<<Generate{self.task_name}Script>>', self.generate_input)
-        self.main_window.bind_all('<<Design&EditLaser>>', self._on_design_edit_laser)         
+        self.main_window.bind_all('<<Design&EditLaser>>', self._on_design_edit_laser)    
+        self.main_window.bind_all('<<ViewLaserSummary>>', self._on_view_lasers)    
         self.task_view.set_sub_button_state('disable')
 
         # TODO: set initial parameters
@@ -429,7 +430,8 @@ class TDPageController(TaskController):
     def _on_show_laser_page(self, show_stored:bool, *_):
         """ Assigns LaserDesignController and shows the LaserDesignPage """
 
-        self.laser_view = self.app.show_frame(v.LaserDesignPage)        
+        self.laser_view = self.app.show_frame(v.LaserDesignPage)   
+        self.view_panel.clear_text()
         self.laser_controller = LaserDesignController(app= self.app, view=self.laser_view, 
                                                     td_param= self.task_view_param,
                                                     laser_data= self.laser_data) 
@@ -628,6 +630,12 @@ class TDPageController(TaskController):
             
 
         
+    def _on_view_lasers(self, *_):
+        if len(self.laser_data) >0:
+            laser_txt = self.get_laser_details()[0]
+            self.view_panel.insert_text(text=laser_txt, state='normal')
+        else:
+            messagebox.showinfo(message='No Laser is designed.')
 
 class LaserDesignController:
 
@@ -766,17 +774,22 @@ class LaserDesignController:
 
     def _on_select_laser(self, *_):
         """ Populates the selected laser entries"""
-        item = self.view.tree.selection()[0]
-        label = str(self.view.tree.item(item,"text"))
-        parent = str(self.view.tree.parent(item))
-        try:
-            index = int(label[-1]) -1
-            self.focus = (parent, index)
-            self.populate_laser_details(tag=parent, index=index)
-            return (parent,index)
-        except ValueError:
-            # Error when the label does not end with an index
-            raise  ValueError('Error when the label does not end with an index')      
+
+        item = None
+        if len(self.view.tree.selection())>0:
+            item = self.view.tree.selection()[0]
+        
+        if item is not None:
+            label = str(self.view.tree.item(item,"text"))
+            parent = str(self.view.tree.parent(item))
+            try:
+                index = int(label[-1]) -1
+                self.focus = (parent, index)
+                self.populate_laser_details(tag=parent, index=index)
+                return (parent,index)
+            except ValueError:
+                # Error when the label does not end with an index
+                self.focus = None               
 
     def update_labels_on_tree(self):
         """Method to update treeview"""
@@ -847,7 +860,9 @@ class LaserDesignController:
             lasers.extend(_lasers)
 
         (time_arr, list_strength_arr) = m.get_time_strength(list_of_laser_params=lasers,
-                                                                laser_profile_time= self.total_time*as_to_au*au_to_fs)
+                                                laser_profile_time= self.total_time*as_to_au*au_to_fs)
+        # TODO: Modify plot method to add tag of laser
+        # Add polarization as variable to filter out strengths
         m.plot_laser(time_arr, list_strength_arr)
 
     def extract_laser_param_from_system(self, laser_system:str):

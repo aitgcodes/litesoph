@@ -2344,7 +2344,11 @@ class TDPage(View):
 
         self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Design/Edit Laser", activebackground="#78d6ff", command=self.laser_button)
         self.button_laser_design['font'] = self.myFont
-        self.button_laser_design.grid(column=1,padx=3) 
+        self.button_laser_design.grid(column=1,padx=3)
+
+        self.button_show_lasers = tk.Button(self.inp.tab["External Fields"], text="Laser Details", activebackground="#78d6ff", command=self.show_laser_summary)
+        self.button_show_lasers['font'] = self.myFont
+        self.button_show_lasers.grid(column=1,padx=3)  
     
     def back_button(self):
         self.event_generate('<<BackonTDPage>>')
@@ -2354,6 +2358,9 @@ class TDPage(View):
 
     def save_button(self):
         self.event_generate(f'<<Save{self.task_name}Script>>')
+
+    def show_laser_summary(self):
+        self.event_generate('<<ViewLaserSummary>>')
 
     def trace_variables(self,*_):
         for name, var in self.inp.variable.items():
@@ -2391,15 +2398,15 @@ class TDPage(View):
     def laser_button(self):
         self.event_generate('<<Design&EditLaser>>')
 
-    def get_pol_list(self, pol_var:str):
-        assert pol_var in ["X", "Y", "Z"] 
-        if pol_var == "X":
-            pol_list = [1,0,0]         
-        elif pol_var == "Y":
-            pol_list = [0,1,0] 
-        elif pol_var == "Z":
-            pol_list = [0,0,1]                
-        return pol_list
+    # def get_pol_list(self, pol_var:str):
+    #     assert pol_var in ["X", "Y", "Z"] 
+    #     if pol_var == "X":
+    #         pol_list = [1,0,0]         
+    #     elif pol_var == "Y":
+    #         pol_list = [0,1,0] 
+    #     elif pol_var == "Z":
+    #         pol_list = [0,0,1]                
+    #     return pol_list
     
     def get_property_list(self, gui_values:dict):
         prop_list = ['spectrum']
@@ -2589,10 +2596,23 @@ class LaserDesignPage(View):
         else:
             return laser_tag 
 
+    def get_pol_list(self, pol_var:str):
+        assert pol_var in ["X", "Y", "Z"] 
+        if pol_var == "X":
+            pol_list = [1,0,0]         
+        elif pol_var == "Y":
+            pol_list = [0,1,0] 
+        elif pol_var == "Z":
+            pol_list = [0,0,1]                
+        return pol_list
+
     def get_laser_details(self):
         from litesoph.utilities.units import as_to_au
 
-        gui_dict = self.inp.get_values()
+        gui_dict = copy.deepcopy(self.inp.get_values())
+        pol_var = gui_dict.get("pol_dir")
+        self.pol_list = self.get_pol_list(pol_var)
+
         laser_type = gui_dict.get('laser_type')
         if laser_type == "Gaussian Pulse":
             l_type = "gaussian"
@@ -2608,6 +2628,7 @@ class LaserDesignPage(View):
             "strength": gui_dict.get("laser_strength"),  
             "fwhm" :gui_dict.get("fwhm"),
             "frequency" :  gui_dict.get("freq"),
+            'polarization': self.pol_list
             # "delay_time" : 0        
         }
 
@@ -2672,6 +2693,7 @@ class LaserPlotPage(tk.Toplevel):
 
         self._default_var = {
               'delay' : ['float'],
+              'pol' : ['str']
               
           }
         self.delay_list = [0]
