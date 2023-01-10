@@ -177,6 +177,7 @@ class WorkflowManager:
             self.containers.insert(step_id, new_container)
             new_container.previous = self.containers[step_id-1].task_uuid
             self.containers[step_id-1].next = new_container.task_uuid
+            new_container.next = self.containers[step_id +1].task_uuid
             for container in self.containers[step_id+1:]:
                 container.id += 1
 
