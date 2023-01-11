@@ -442,29 +442,41 @@ class PumpProbePostpro(NwchemTask):
     Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
     Step 3: generate x,y,z data for contour plot from spectrum file and delay data
     """        
-    def setup_task(self,param):
+    
+    def create_engine(self, param):
         task_dir = self.project_dir / 'nwchem' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        
-    def extract_dm(self, dm_file, index):
-        data = np.loadtxt(str(dm_file),comments="#",usecols=(1,3,4,5))      
-        dm_axis_data=data[:,[0,index]]  
-        return dm_axis_data
+        label = str(self.project_dir.name)
+        self.network_done_file = self.task_dir / 'Done'
+        outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
+        self.nwchem = NWChem(outfile=outfile, 
+                        label=label, directory=self.task_dir)
 
+    def extract_dm(self,td_out_file,pol_dirn,axis_index):
+        from litesoph.engines.nwchem.nwchem_read_rt import nwchem_rt_parser                
+        dm_data=nwchem_rt_parser(td_out_file, outfile=None, tag=f'kick_{pol_dirn}',
+                    geometry='system', 
+                    target='dipole', spin='closedshell', 
+                    polarization=None, zero=False, retrun_data=True)
+        dm_data=np.asarray(dm_data)
+        dm_data= dm_data[:,[0,axis_index]]        
+        return dm_data
+        
     def generate_spectrum_file(self):
         """generate spectrum file from dipole moment data"""
         from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
+    
         for i in range(len(self.dependent_tasks)):
-            axis_index,_=get_polarization_direction(self.dependent_tasks[i])
-            sim_total_dm = (self.project_dir / (self.dependent_tasks[i].output.get('dm_file')))   
+            axis_index,pol_dirn=get_polarization_direction(self.dependent_tasks[i])
+            td_out_file = (self.project_dir / (self.dependent_tasks[i].output.get('txt_out')))               
             delay=self.dependent_tasks[i].param.get('delay')             
-            spectrum_file= sim_total_dm.parent /f'spec_delay_{delay}.dat'            
+            spectrum_file= td_out_file.parent /f'spec_delay_{delay}.dat'            
             out_spectrum_file = str(spectrum_file).replace(str(self.project_dir.parent), '')
             self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
-            gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
-            out_standard_dm_file= sim_total_dm.parent /f'std_dm_delay_{delay}.dat'            
+            gen_standard_dm_file=self.extract_dm(td_out_file,pol_dirn,axis_index+1)
+            out_standard_dm_file= td_out_file.parent /f'std_dm_delay_{delay}.dat'   
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
-                       
+            
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
             photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False, damping=None,padding=None)
                         
@@ -506,10 +518,8 @@ class PumpProbePostpro(NwchemTask):
         np.savetxt(f'{self.project_dir.parent}/{contour_x_data_file}', x_data)  
         np.savetxt(f'{self.project_dir.parent}/{contour_y_data_file}', y_data)  
         np.savetxt(f'{self.project_dir.parent}/{contour_z_data_file}', z_data)  
-        
-        
+                
     def generate_contour_plot(self):     
-
         from litesoph.visualization.plot_spectrum import contour_plot
         x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
         y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
