@@ -575,6 +575,10 @@ class TDPageController(TaskController):
                                             block_id,
                                             step_id=step,
                                             dependent_tasks_uuid= self.workflow_controller.get_task_dependencies(self.task_name))
+
+            td_task_id = self.workflow_manager.containers[step].task_uuid
+            dm_task_id = self.workflow_manager.containers[step+1].task_uuid
+            self.workflow_manager.add_dependency(dm_task_id, td_task_id)
             step += 1
 
     def generate_input(self, *_):
