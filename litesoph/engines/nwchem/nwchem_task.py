@@ -399,11 +399,11 @@ def update_td_param(param):
         delay = param.pop('delay', None)
         param['rt_tddft']['field'] = laser_list = []     
         
-        for laser in lasers:
+        for i, laser in enumerate(lasers):
             if laser['type'] == 'gaussian':
-                laser_dict = add_gaussian_laser(laser)
+                laser_dict = add_gaussian_laser(str(i), laser)
             elif laser['type'] == 'delta':
-                laser_dict = add_delta_laser(laser)
+                laser_dict = add_delta_laser(str(i), laser)
 
             laser_list.append(laser_dict)
     else:
@@ -413,8 +413,8 @@ def update_td_param(param):
                                         'type': 'delta',
                                         'polarization':read_pol_dir(pol)[1],
                                         'max': strength}
-def add_gaussian_laser(laser):
-    laser_dict = {'name': 'gpulse_'  + read_pol_dir(laser['polarization'])[1],
+def add_gaussian_laser(name, laser):
+    laser_dict = {'name': f'{name}_'  + read_pol_dir(laser['polarization'])[1],
                     'type': 'gaussian',
                     'frequency' : laser['frequency'],
                     'center': laser['time0'],
@@ -425,8 +425,8 @@ def add_gaussian_laser(laser):
                     
     return laser_dict
 
-def add_delta_laser(laser):
-    laser_dict = {'name': 'kick_' + read_pol_dir(laser['polarization'])[1],
+def add_delta_laser(name, laser):
+    laser_dict = {'name': f'{name}_' + read_pol_dir(laser['polarization'])[1],
                 'type': 'delta',
                 'polarization':read_pol_dir(laser['polarization'])[1],
                 'max': laser['strength']}
