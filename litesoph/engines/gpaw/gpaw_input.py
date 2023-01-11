@@ -260,7 +260,14 @@ def generate_laser_text(lasers):
             "from gpaw.external import ConstantElectricField"]
     td_line = ['td_potential = ', '[']
     for i, laser in enumerate(lasers):
-        lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{laser['sigma']}, 'sin')")
+        if laser['type'] == 'gaussian':
+            import_str = "from gpaw.lcaotddft.laser import GaussianPulse"
+            lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{laser['sigma']}, 'sin')")
+        elif laser['type'] == 'delta':
+            import_str = "from litesoph.pre_processing.laser_design import GaussianDeltaPulse"
+            lines.append(f"pulse_{str(i)} = GaussianDeltaPulse({laser['strength']},{laser['time0']},{laser['sigma']})")
+        
+        add_import_line(lines, import_str)
         lines.append(f"ext_{str(i)} = ConstantElectricField(Hartree / Bohr,{laser['polarization']} )")
         td_line.append(f"{{'ext': ext_{str(i)}, 'laser': pulse_{str(i)}}},")
     
@@ -270,6 +277,10 @@ def generate_laser_text(lasers):
     lines.append(td_line)
 
     return lines
+
+def add_import_line(lines, import_str):
+    if import_str not in lines:
+        lines.insert(0, import_str)
 
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
