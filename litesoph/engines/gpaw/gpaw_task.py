@@ -352,19 +352,27 @@ def format_gs_input(gen_dict: dict) -> dict:
     
 
 def update_td_input(param):
+    pol = param.pop('polarization', None)
     lasers = param.get('laser',None)
     #TODO: update for multiple lasers
-    if isinstance(lasers, list):
-        laser = lasers[0]
-        if laser is not None:
+    if lasers:
+        laser_list = []
+        if not isinstance(lasers, list):
+            laser_list.append(lasers)
+        else:
+            laser_list.extend(lasers)
+        
+        for laser in laser_list:
+            if 'polarization' not in laser:
+                laser['polarization'] = pol
+                
             sigma = laser.get('sigma')
             time0 = laser.get('time0')
             laser['sigma'] = round(autime_to_eV/sigma, 2)
             laser['time0'] = round(time0 * au_to_as, 2)
-        # sigma = param['laser'].get('sigma')
-        # time0 = param['laser'].get('time0')
-        # param['laser']['sigma'] = round(autime_to_eV/sigma, 2)
-        # param['laser']['time0'] = round(time0 * au_to_as, 2)
+        
+        param['laser'] = laser_list
+    
     else:
         param['absorption_kick'] = [ p * param['strength'] for p in param['polarization']]
     

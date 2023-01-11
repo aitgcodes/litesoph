@@ -91,12 +91,8 @@ td_calc.write('{gpw_out}', mode='all')
 external_field_template = """ 
 import numpy as np
 from ase.units import Hartree, Bohr
-from gpaw.external import ConstantElectricField
 from gpaw.lcaotddft import LCAOTDDFT
-from gpaw.lcaotddft.laser import GaussianPulse
-pulse = GaussianPulse({strength},{time0},{frequency},{sigma}, 'sin')
-ext = ConstantElectricField(Hartree / Bohr,{polarization} )
-td_potential = {{'ext': ext, 'laser': pulse}}
+
 td_calc = LCAOTDDFT(filename='{gfilename}',
                     td_potential=td_potential,
                     txt='{txt_out}')
@@ -257,6 +253,24 @@ task_map = {
     tt.TCM : tcm_temp,
     tt.MO_POPULATION: mo_population
 }
+
+def generate_laser_text(lasers):
+    
+    lines = ["from gpaw.lcaotddft.laser import GaussianPulse",
+            "from gpaw.external import ConstantElectricField"]
+    td_line = ['td_potential = ', '[']
+    for i, laser in enumerate(lasers):
+        lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{laser['sigma']}, 'sin')")
+        lines.append(f"ext_{str(i)} = ConstantElectricField(Hartree / Bohr,{laser['polarization']} )")
+        td_line.append(f"{{'ext': ext_{str(i)}, 'laser': pulse_{str(i)}}},")
+    
+    td_line.append(']')
+    td_line = ''.join(td_line)
+
+    lines.append(td_line)
+
+    return lines
+
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)
@@ -267,10 +281,14 @@ def assemable_rt(**kwargs):
         kwargs.update(laser[0])
         
         if mask is not None:
+            kwargs.update(laser[0])
             kwargs.update({'mask': mask})
             template = mask_external_field_template.format(**kwargs)
         else:
             template = external_field_template.format(**kwargs) 
+            lines = template.splitlines()
+            lines[4:4] = generate_laser_text(laser)
+            template = '\n'.join(lines)
     else:   
         template = delta_kick_template.format(**kwargs)
 
