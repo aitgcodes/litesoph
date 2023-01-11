@@ -365,7 +365,8 @@ def format_gs_param(gen_dict:dict) -> dict:
     return gs_input
 
 def update_td_param(param):
-    
+    strength = param.pop('strength', None)
+    pol = param.pop('polarization', None)
     time_step = param.pop('time_step')
     num_step = param.pop('number_of_steps')
     out_freq = param.pop('output_freq')
@@ -378,10 +379,21 @@ def update_td_param(param):
                         'print':out_print(properties)}
 
     if lasers:
+        
+        laser_l = []
+        if not isinstance(lasers, list):
+            laser_l.append(lasers)
+        else:
+            laser_l.extend(lasers)
+
         delay = param.pop('delay', None)
         param['rt_tddft']['field'] = laser_list = []     
         
-        for i, laser in enumerate(lasers):
+        for i, laser in enumerate(laser_l):
+            
+            if 'polarization' not in laser:
+                laser['polarization'] = pol
+
             if laser['type'] == 'gaussian':
                 laser_dict = add_gaussian_laser(str(i), laser)
             elif laser['type'] == 'delta':
@@ -389,8 +401,6 @@ def update_td_param(param):
 
             laser_list.append(laser_dict)
     else:
-        strength = param.pop('strength')
-        pol = param.pop('polarization')
         param['rt_tddft']['field'] = {'name': 'kick_' + read_pol_dir(pol)[1],
                                         'type': 'delta',
                                         'polarization':read_pol_dir(pol)[1],
