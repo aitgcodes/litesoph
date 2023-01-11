@@ -117,9 +117,9 @@ predefined_workflow = {
         "name": "Pump Probe", 
         "blocks": ['Ground State', 
                     'RT TDDFT', 
-                    'Diople Moment Analysis',
+                    'Compute Spectrum',
                     'RT TDDFT',
-                    'Diople Moment Analysis',
+                    'Compute TAS',
                     'End'],
         "steps" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1, 1, tt.RT_TDDFT,{
