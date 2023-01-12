@@ -2178,7 +2178,7 @@ class LaserDesignPage(View):
                         # 'time0': 3000.0}
             'laser': self.laser_calc_list[0],
             # 'masking': {},
-            "pump_probe" : gui_dict.get("pump_probe")
+            # "pump_probe" : gui_dict.get("pump_probe")
         }
         if gui_dict.get("masking"):
             td_input.update({"masking": self.get_mask(gui_dict)})
