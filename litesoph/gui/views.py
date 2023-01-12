@@ -2901,3 +2901,116 @@ def get_pol_var(pol_list:list):
         pol_var = "Z"                
     return pol_var
 
+class PumpProbePostProcessPage(View):
+    
+    def __init__(self, parent, engine,task_name, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.engine = engine
+        self.task_name = task_name
+        
+        self._default_var = {
+            'damping' : ['float', 0],
+            'padding' : ['int', 0],
+            'delay_min' : ['float'],
+            'delay_max' :['float'],
+            'freq_min':['float'],
+            'freq_max':['float'],
+        }
+
+        self._var = var_define(self._default_var)
+
+        self.strength_frame = self.input_param_frame 
+        self.contour_frame = self.property_frame
+        self.button_frame = self.save_button_frame
+
+        # self.add_job_frame(self.submit_button_frame, self.task_name)        
+
+        self.heading = tk.Label(self.strength_frame,text="LITESOPH Pump-Probe Post-Processing", fg='blue')
+        self.heading['font'] = myfont()
+        # self.heading.pack()
+        self.heading.grid(row=0, column=0, padx=2, pady=4)
+        
+        self.label_calc_strength = tk.Label(self.strength_frame, text= "Calculation of Oscillator Strength:",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_calc_strength['font'] = label_design['font']
+        self.label_calc_strength.grid(row=1, column=0, padx=2, pady=4, sticky='w')   
+
+        self.sub_frame_strength = ttk.Frame(self.strength_frame)
+        self.sub_frame_strength.grid(row=2, column=0, sticky='nsew', columnspan=4)     
+
+        self.label_damp = tk.Label(self.sub_frame_strength,text="Damping:",fg="black")
+        self.label_damp['font'] = label_design['font']
+        self.label_damp.grid(row=2, column=0, padx=2, pady=4, sticky='we' )
+
+        self.entry_damp = tk.Entry(self.sub_frame_strength,textvariable =self._var['damping'])
+        self.entry_damp['font'] = label_design['font']
+        self.entry_damp.grid(row=2, column=1, padx=2, pady=4, sticky='we')
+
+        self.label_pad = tk.Label(self.sub_frame_strength,text="Padding:",fg="black")
+        self.label_pad['font'] = label_design['font']
+        self.label_pad.grid(row=3, column=0, padx=2, pady=4, sticky='we')
+
+        self.entry_pad = tk.Entry(self.sub_frame_strength,textvariable =self._var['padding'])
+        self.entry_pad['font'] = label_design['font']
+        self.entry_pad.grid(row=3, column=1, padx=2, pady=4, sticky='we')
+
+        self.button_compute = tk.Button(self.sub_frame_strength,text="Compute")
+        self.button_compute['font'] = label_design['font']
+        self.button_compute.grid(row=3, column=2, padx=2, pady=4, sticky='we')
+
+        #---------------------------------------------------------------------------------------------------
+        self.label_contour = tk.Label(self.contour_frame, text= "2D Contour Plot Parameters:",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_contour['font'] = label_design['font']
+        self.label_contour.grid(row=0, column=0, padx=2, pady=4, sticky='w')  
+
+        self.frame_limit = ttk.Frame(self.contour_frame)
+        self.frame_limit.grid(row=1, column=0, sticky='nsew', columnspan=4)
+
+        self.label_min = tk.Label(self.frame_limit,text="Minimum",fg="black")
+        self.label_min['font'] = label_design['font']
+        self.label_min.grid(row=0, column=1, sticky='w', padx=5, pady=5)
+        
+        self.label_max = tk.Label(self.frame_limit,text="Maximum",fg="black")
+        self.label_max['font'] = label_design['font']
+        self.label_max.grid(row=0, column=2, sticky='w', padx=5, pady=5)        
+
+        # Delay range inputs
+        self.label_delay = tk.Label(self.frame_limit,text="Delay Time range(in fs):",fg="black")
+        self.label_delay['font'] = label_design['font']
+        self.label_delay.grid(row=1, column=0, sticky='w', padx=5, pady=5)        
+
+        self.entry_delay_min = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['delay_min'], from_=0, to=1, increment=0.01)
+        self.entry_delay_min['font'] = label_design['font']
+        self.entry_delay_min.grid(row=1, column=1, padx=5, pady=5) 
+
+        self.entry_delay_max = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['delay_max'], from_=0, to=1, increment=0.01)
+        self.entry_delay_max['font'] = label_design['font']
+        self.entry_delay_max.grid(row=1, column=2, padx=5, pady=5) 
+        
+        # Frequency range inputs
+        self.label_freq = tk.Label(self.frame_limit,text="Frequency range (in eV):",fg="black")
+        self.label_freq['font'] = label_design['font']
+        self.label_freq.grid(row=2, column=0, sticky='w', padx=5, pady=5)        
+
+        self.entry_freq_min = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['freq_min'], from_=0, to=1, increment=0.01)
+        self.entry_freq_min['font'] = label_design['font']
+        self.entry_freq_min.grid(row=2, column=1, padx=5, pady=5) 
+
+        self.entry_freq_max = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['freq_max'], from_=0, to=1, increment=0.01)
+        self.entry_freq_max['font'] = label_design['font']
+        self.entry_freq_max.grid(row=2, column=2, padx=5, pady=5) 
+
+        self.button_plot = tk.Button(self.frame_limit, text="Plot")
+        self.button_plot['font'] = myfont()
+        self.button_plot.grid(row=2, column=3, padx=3, pady=6)       
+        
+        # Adding Buttons
+        self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button['font'] = myfont()
+        self.back_button.grid(row=0, column=0, padx=3, pady=6)  
+    
+    def set_parameters(self, default_values:dict):
+        for key, value in self._var.items():
+            if key in default_values.keys():
+                self._var[key].set(value)
+
+
