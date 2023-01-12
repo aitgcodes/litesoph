@@ -96,3 +96,16 @@ def plot_population_tracking(population_file, homo_index:int,**kwargs):
         population_data[:,0]= population_data[:,0]*27.12*au_to_fs
 
     plot_multiple_column(population_data, column_list=column_range, column_dict=legend_dict, xcolumn=0, xlabel='Time (in femtosecond)', ylabel='Change in population')
+
+def contour_plot(x_data, y_data, z_data, x_label:str,y_label:str,title:str):
+    """
+    function to plot contour plot
+    """    
+    import matplotlib.pyplot as plt
+
+    plt.rcParams["figure.figsize"] = (10,8)
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.contourf(x_data,y_data,z_data, cmap='RdGy')    
+    return plt.show()
