@@ -484,6 +484,7 @@ class PumpProbePostpro(NwchemTask):
     
     def generate_TAS_data(self):
         from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_TAS_data
+        self.create_directory(self.task_dir)
         delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
         prepare_TAS_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.contour_data_path)
                             

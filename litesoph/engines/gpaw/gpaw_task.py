@@ -455,8 +455,8 @@ class PumpProbePostpro(GpawTask):
     def setup_task(self,param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        self.contour_data_path= self.project_dir.name+"/"+'gpaw'+"/"+self.task_name        
-
+        self.contour_data_path= self.project_dir.name+"/"+'gpaw'+"/"+self.task_name  
+        
     def extract_dm(self, gpaw_dm_file, index):
         data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
         dm_axis_data=data[:,[0,index]]  
@@ -482,6 +482,8 @@ class PumpProbePostpro(GpawTask):
                                     
     def generate_TAS_data(self):
         from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_TAS_data
+        self.create_directory(self.task_dir)
+
         delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
         prepare_TAS_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.contour_data_path)
                 
