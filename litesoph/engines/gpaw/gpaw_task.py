@@ -269,7 +269,12 @@ class GpawTask(Task):
         return job_script
 
 def get_polarization_direction(task_info):
-    pol = task_info.param.get('polarization')
+    laser=task_info.param.get('laser')
+    if laser:
+        pol = laser[0].get('polarization')
+    else:
+        pol = task_info.param.get('polarization')
+
     return get_direction(pol)
 
 def get_direction(direction:list):
@@ -469,7 +474,7 @@ class PumpProbePostpro(GpawTask):
         dm_axis_data=data[:,[0,index]]  
         return dm_axis_data
 
-    def generate_spectrums(self,damping,padding):
+    def generate_spectrums(self,damping=None,padding=None):
         """generate spectrum file from dipole moment data"""
         for i in range(len(self.dependent_tasks)):
             axis_index,_=get_polarization_direction(self.dependent_tasks[i])
