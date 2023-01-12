@@ -463,13 +463,14 @@ class PumpProbePostpro(GpawTask):
     def setup_task(self,param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        
+        self.contour_data_path= self.project_dir.name+"/"+'gpaw'+"/"+self.task_name        
+
     def extract_dm(self, gpaw_dm_file, index):
         data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
         dm_axis_data=data[:,[0,index]]  
         return dm_axis_data
 
-    def generate_spectrum_file(self):
+    def generate_spectrums(self,damping,padding):
         """generate spectrum file from dipole moment data"""
         for i in range(len(self.dependent_tasks)):
             axis_index,_=get_polarization_direction(self.dependent_tasks[i])
@@ -481,57 +482,28 @@ class PumpProbePostpro(GpawTask):
             gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
             out_standard_dm_file= sim_total_dm.parent /f'std_dm_delay_{delay}.dat'            
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
-                       
+
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
-            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False, damping=None,padding=None)
-                        
-    def generate_contour_data(self):
-        """function to generate x,y,z data required by contour plot and plotting contour plot"""
-
-        delay_list=[]
-        for i in range(len(self.dependent_tasks)):
-            delay=self.dependent_tasks[i].param.get('delay')   
-            delay_list.append(delay) 
-            
-        spectrum_data_list=[]
-        for delay in delay_list:
-            spec_file = (self.project_dir / (self.task_info.output.get(f'spec_delay_{delay}')))                
-            spectrum_data_list.append(spec_file)
-        data0=np.loadtxt(f'{self.project_dir.parent}{spectrum_data_list[0]}', comments="#")
-
-        Omega = data0[:,0]
-        data=np.zeros(((len(Omega.transpose()),len(spectrum_data_list))))
-
-        for i, dat in enumerate(spectrum_data_list):
-            dat=np.loadtxt(f'{self.project_dir.parent}{dat}',comments="#")
-            data[:,i] = (dat[:len(Omega),1])
-            if i ==0:
-                delta_data=data
-            else:
-                delta_data[:,i]=data[:,i]-data[:,0]
-
-        x_data,y_data= np.meshgrid(delay_list,Omega)
-        z_data=(np.abs(data))
-        
-        contour_x_data_file= Path(self.project_dir.name) /'gpaw' / self.task_name/ 'contour_x_data.dat' 
-        contour_y_data_file= Path(self.project_dir.name) /'gpaw' / self.task_name/ 'contour_y_data.dat' 
-        contour_z_data_file= Path(self.project_dir.name) /'gpaw' / self.task_name/ 'contour_z_data.dat' 
-        self.task_info.output['contour_x_data']=contour_x_data_file       
-        self.task_info.output['contour_y_data']=contour_y_data_file             
-        self.task_info.output['contour_z_data']=contour_z_data_file             
-      
-        np.savetxt(f'{self.project_dir.parent}/{contour_x_data_file}', x_data)  
-        np.savetxt(f'{self.project_dir.parent}/{contour_y_data_file}', y_data)  
-        np.savetxt(f'{self.project_dir.parent}/{contour_z_data_file}', z_data)  
-        
-        
-    def generate_contour_plot(self):     
-
+            damping_var= None if damping is None else damping 
+            padding_var= None if padding is None else padding 
+            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping_var,padding=padding_var)
+                                    
+    def generate_TAS_data(self):
+        from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_TAS_data
+        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
+        prepare_TAS_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.contour_data_path)
+                
+    def generate_TAS_plot(self,x_lmt_min,x_lmt_max,y_lmt_min,y_lmt_max):     
         from litesoph.visualization.plot_spectrum import contour_plot
         x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
         y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
         z_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_z_data')))
-              
-        plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis')
+                        
+        x_min= np.min(x_data) if x_lmt_min is None else x_lmt_min 
+        x_max= np.max(x_data) if x_lmt_max is None else x_lmt_max 
+        y_min= np.min(y_data) if y_lmt_min is None else y_lmt_min 
+        y_max= np.max(y_data) if y_lmt_max is None else y_lmt_max 
+
+        plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
         return plot
     
