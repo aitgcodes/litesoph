@@ -4,7 +4,7 @@ from litesoph.common.task import TaskNotImplementedError
 from litesoph.common.task_data import TaskTypes as tt                    
 from litesoph.common.workflows_data import WorkflowTypes as wt        
 from litesoph.common.engine_manager import EngineManager
-from litesoph.engines.gpaw.gpaw_task import GpawTask, GpawPostProMasking
+from litesoph.engines.gpaw.gpaw_task import GpawTask, GpawPostProMasking, PumpProbePostpro
 from litesoph.engines.gpaw import task_data as td
 from .spectrum import ComputeAveragedSpectrum, ComputeSpectrum
 
@@ -13,7 +13,8 @@ class GPAWManager(EngineManager):
     """Base class for all the engine."""
     NAME = 'GPAW'
     implemented_tasks: List[str] = [tt.GROUND_STATE, tt.RT_TDDFT, tt.COMPUTE_SPECTRUM,
-                                    tt.TCM, tt.MASKING, tt.MO_POPULATION, tt.COMPUTE_AVERAGED_SPECTRUM]
+                                    tt.TCM, tt.MASKING, tt.MO_POPULATION, tt.COMPUTE_AVERAGED_SPECTRUM,
+                                    tt.COMPUTE_TAS]
 
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM, wt.KOHN_SHAM_DECOMPOSITION,
                                         wt.MO_POPULATION_TRACKING, wt.MASKING, wt.PUMP_PROBE]
@@ -28,6 +29,8 @@ class GPAWManager(EngineManager):
             return ComputeAveragedSpectrum(config, task_info, dependent_tasks)
         if task_info.name==tt.MASKING:
             return GpawPostProMasking(config, task_info, dependent_tasks)
+        if task_info.name==tt.COMPUTE_TAS:
+            return PumpProbePostpro(config, task_info, dependent_tasks)
         else:
             return GpawTask(config, task_info, dependent_tasks)
     
