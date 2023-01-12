@@ -14,7 +14,7 @@ class OCTOPUSManager(EngineManager):
                                     tt.TCM, tt.MASKING, tt.MO_POPULATION]
 
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM, wt.KOHN_SHAM_DECOMPOSITION, 
-                                        wt.MO_POPULATION_TRACKING]
+                                        wt.MO_POPULATION_TRACKING, wt.PUMP_PROBE]
 
     def get_task(self, config, task_info: TaskInfo, 
                         dependent_tasks: Union[List[TaskInfo], None] =None ):

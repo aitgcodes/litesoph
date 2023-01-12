@@ -12,7 +12,8 @@ class NWChemManager(EngineManager):
     """Base class for all the engine."""
 
     implemented_tasks: List[str] = [tt.GROUND_STATE, tt.RT_TDDFT, tt.COMPUTE_SPECTRUM,
-                                    tt.TCM, tt.MASKING, tt.MO_POPULATION, tt.COMPUTE_AVERAGED_SPECTRUM]
+                                    tt.TCM, tt.MASKING, tt.MO_POPULATION, tt.COMPUTE_AVERAGED_SPECTRUM,
+                                    tt.COMPUTE_TAS]
 
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM,
                                         wt.MO_POPULATION_TRACKING, wt.PUMP_PROBE]
