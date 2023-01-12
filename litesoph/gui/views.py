@@ -2507,6 +2507,8 @@ class LaserDesignPage(View):
         self.inp = InputFrame(self.input_param_frame,fields=copy_laser_design_input, padx=5, pady=5)       
         self.inp.grid(row=0, column=0)
 
+        set_state(self.inp.group["Masking Inputs"],'disabled')
+
         self.tree = self.create_laser_tree_view(parent=self.input_param_frame)      
         self.tree.bind('<<TreeviewSelect>>', self.OnSingleClick)
 
@@ -2530,7 +2532,16 @@ class LaserDesignPage(View):
 
     def trace_variables(self,*_):
         for name, var in self.inp.variable.items():
-            var.trace("w", self.inp.update_widgets)
+            if name in ["masking"]:
+                var.trace("w", self.trace_masking_option)             
+            else:
+                var.trace("w", self.inp.update_widgets)
+
+    def trace_masking_option(self, *_):
+        if self.inp.variable["masking"].get():
+            set_state(self.inp.group["Masking Inputs"],'normal' )
+        else:
+            set_state(self.inp.group["Masking Inputs"],'disabled')
 
     def create_laser_tree_view(self, parent):
         self.count = 0
@@ -2607,6 +2618,7 @@ class LaserDesignPage(View):
         from litesoph.utilities.units import as_to_au
 
         gui_dict = copy.deepcopy(self.inp.get_values())
+        tag_var =  self.get_tag()
         pol_var = gui_dict.get("pol_dir")
         self.pol_list = get_pol_list(pol_var)
 
@@ -2628,7 +2640,7 @@ class LaserDesignPage(View):
 
         laser_list = []
         laser_input.update({
-            "tin" : gui_dict.get("time_origin")*as_to_au,
+            # "tin" : gui_dict.get("time_origin")*as_to_au,
             "inval" :  gui_dict.get("log_val"),
             "fwhm" :gui_dict.get("fwhm"),
             "frequency" :  gui_dict.get("freq"),
@@ -2636,18 +2648,29 @@ class LaserDesignPage(View):
             # "delay_time" : 0        
         })
 
-        if self.get_tag() is not None:
-            laser_input["tag"] = self.get_tag()
+        if tag_var is not None:
+            laser_input["tag"] = tag_var
+            if tag_var == "Probe":
+                laser_input.update({
+                    "tin" : gui_dict.get("time_origin:probe")*as_to_au,
+                })
+            else:
+                laser_input.update({
+                            "tin" : gui_dict.get("time_origin")*as_to_au,
+                        })
+        else:
+            laser_input.update({
+                            "tin" : gui_dict.get("time_origin")*as_to_au,
+                        })
         laser_list.append(laser_input)
         return laser_list   
-        # return laser_input   
+        # return laser_input
+ 
+    def get_laser_parmeters(self, input_dict:dict):
+        from litesoph.utilities.units import as_to_au 
 
-    def get_parameters(self):
-        from litesoph.utilities.units import as_to_au
-
-        gui_dict = self.inp.get_values()
-        laser_type = gui_dict.get('laser_type')
-        tag_val =  gui_dict.get("pump-probe_tag")
+        laser_type = input_dict.get('laser_type')
+        tag_var =  input_dict.get("pump-probe_tag")
 
         if laser_type == "Gaussian Pulse":
             l_type = "gaussian"
@@ -2655,34 +2678,59 @@ class LaserDesignPage(View):
             l_type = "delta" 
         
         laser_input = {
+            "tag": tag_var,
             "type": l_type,
-            "inval" :  gui_dict.get("log_val"),
-            "strength": gui_dict.get("laser_strength"),  
-            "fwhm" :gui_dict.get("fwhm"),
-            "frequency" :  gui_dict.get("freq"),
-            # "delay_time" : 0        
+            "inval" :  input_dict.get("log_val"),
+            "strength": input_dict.get("laser_strength"),  
+            "fwhm" :input_dict.get("fwhm"),
+            "frequency" :  input_dict.get("freq")
         }
 
-        laser_input.update({
-                    "tag": tag_val})
-        if tag_val is not None:
-            if tag_val == "Pump":
+        if tag_var is not None:
+            # if tag_var == "Pump":
+            #     laser_input.update({
+            #         "tin" : input_dict.get("time_origin:pump")*as_to_au,
+            #     })
+            if tag_var == "Probe":
                 laser_input.update({
-                    # "tag": tag,
-                    "tin" : gui_dict.get("time_origin:pump")*as_to_au,
-                })
-            elif tag_val == "Probe":
-                laser_input.update({
-                    # "tag": tag,
-                    "tin" : gui_dict.get("time_origin:probe")*as_to_au,
+                    "tin" : input_dict.get("time_origin:probe")*as_to_au,
                 })
         else:
            laser_input.update({
-                    # "tag": tag,
-                    "tin" : gui_dict.get("time_origin")*as_to_au,
-                }) 
+                    "tin" : input_dict.get("time_origin")*as_to_au,
+                })  
 
-        return laser_input    
+    def get_masking_parameters(self, input_dict:dict):
+        mask_input = {
+            "Type": input_dict.get("mask_type"),            
+            "Boundary": input_dict.get("boundary_type")
+            }
+            
+        if input_dict.get("mask_type") == 'Plane':
+            mask_input.update({"Axis": input_dict.get("mask_plane:axis"),
+                                "X0"  : input_dict.get("mask_plane:origin")})
+        else:
+            mask_input.update({"Radius" : input_dict.get("mask_sphere:radius"),
+                            "Centre":[input_dict.get("mask_sphere:origin_x"),
+                                    input_dict.get("mask_sphere:origin_y"),
+                                    input_dict.get("mask_sphere:origin_z")]})
+        if input_dict.get("boundary_type") == 'Smooth':
+            mask_input.update({"Rsig" : input_dict.get("r_sig")})
+        return mask_input
+
+    def get_parameters(self):            
+        # Combined entries for both laser design and masking
+        gui_dict = copy.deepcopy(self.inp.get_values())
+
+        # Collecting the laser and masking params
+        laser_dict = self.get_laser_parmeters(input_dict=gui_dict)
+
+        param_dict ={'laser': laser_dict}
+
+        if gui_dict.get('masking') is True:
+            masking_dict = self.get_masking_parameters(input_dict=gui_dict)
+            param_dict.update({'masking': masking_dict})       
+        return param_dict    
 
     def get_td_param(self):
         pass
@@ -2719,13 +2767,9 @@ class LaserPlotPage(tk.Toplevel):
 
         # self.cb_pol = ttk.Combobox(self,textvariable=self._var['pol'], values = ['X', 'Y', 'Z'])
         # self.cb_pol['font'] = myfont()
-        # self.cb_pol.grid(row=1, column=1, sticky=tk.W)
+        # self.cb_pol.grid(row=1, column=1, sticky=tk.W)         
 
-        self.button_plot = tk.Button(self.tree_frame,text="Plot",width=18, activebackground="#78d6ff", command=lambda: self.plot_button())
-        self.button_plot['font'] = myfont()
-        self.button_plot.grid(row=1, column=2, sticky=tk.W, padx= 10, pady=10)          
-
-        self.label_delay = tk.Label(self.widget_frame,text="Delay to consider:",bg=label_design['bg'],fg=label_design['fg'])
+        self.label_delay = tk.Label(self.widget_frame,text="Delay to consider (in fs):",bg=label_design['bg'],fg=label_design['fg'])
         self.label_delay['font'] = label_design['font']
         self.label_delay.grid(row=1, column=0,sticky=tk.W,  pady=10, padx=10) 
 
@@ -2733,9 +2777,13 @@ class LaserPlotPage(tk.Toplevel):
         self.entry_delay['font'] = myfont()
         self.entry_delay.grid(row=1, column=1, sticky=tk.W)
 
-        self.button_plot_w_delay = tk.Button(self.widget_frame,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
-        self.button_plot_w_delay['font'] = myfont()
-        self.button_plot_w_delay.grid(row=1, column=2, sticky=tk.W, padx= 10, pady=10) 
+        self.button_plot = tk.Button(self.widget_frame,text="Plot",width=18, activebackground="#78d6ff", command=lambda: self.plot_button())
+        self.button_plot['font'] = myfont()
+        self.button_plot.grid(row=1, column=3, sticky=tk.W, padx= 10, pady=10) 
+
+        # self.button_plot_w_delay = tk.Button(self.widget_frame,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
+        # self.button_plot_w_delay['font'] = myfont()
+        # self.button_plot_w_delay.grid(row=1, column=2, sticky=tk.W, padx= 10, pady=10) 
             
     def create_laser_tree_view(self, parent):
         tree = ttk.Treeview(parent)
@@ -2751,24 +2799,11 @@ class LaserPlotPage(tk.Toplevel):
         # scrollbar.grid(row=0, column=2, sticky='ns')
         return tree
     
-    def show_delay_widgets(self):
-        self.label_delay = tk.Label(self,text="Delay to consider(in fs):",bg=label_design['bg'],fg=label_design['fg'])
-        self.label_delay['font'] = label_design['font']
-        self.label_delay.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10) 
-
-        self.entry_delay = ttk.Combobox(self,textvariable=self._var['delay'])
-        self.entry_delay['font'] = myfont()
-        self.entry_delay.grid(column=1, row= 3, sticky=tk.W)
-
-        self.button_plot_w_delay = tk.Button(self,text="Plot with delay",width=18, activebackground="#78d6ff", command=lambda: self.plot_w_delay())
-        self.button_plot_w_delay['font'] = myfont()
-        self.button_plot_w_delay.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
-
     def plot_button(self):
         self.event_generate('<<PlotLasers>>')
 
-    def plot_w_delay(self):
-        self.event_generate('<<PlotwithDelay>>')
+    # def plot_w_delay(self):
+    #     self.event_generate('<<PlotwithDelay>>')
 
     def laser_selected(self, *_):
         items = self.tree.selection()
@@ -2780,6 +2815,72 @@ class LaserPlotPage(tk.Toplevel):
                 
     def get_value(self, key):
         return self._var[key].get()
+
+class TreeView(ttk.Frame):
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args) 
+        self.frame1= ttk.Frame(self, borderwidth=2, relief='groove')
+        self.frame2= ttk.Frame(self, borderwidth=2, relief='groove')
+
+        self.frame1.pack(fill=tk.BOTH, anchor='n', expand=True)
+        self.frame2.pack(fill=tk.BOTH, anchor='n', expand=True)
+               
+        self.tree = create_tree_and_scroll(parent= self.frame1)
+
+        self.button_add = tk.Button(self.frame2, text="Add", activebackground="#78d6ff", command=lambda: self.add_button())
+        self.button_add['font'] = self.myFont
+        self.button_add.grid(row=1, column=1, padx=3, pady=3,sticky='nsew')
+
+        self.button_del = tk.Button(self.frame2, text="Remove", activebackground="#78d6ff", command=lambda: self.remove_button())
+        self.button_del['font'] = self.myFont
+        self.button_del.grid(row=1, column=2, padx=3, pady=3,sticky='nsew')
+
+    def add_button(self):
+        # adds data and updates tree
+        pass
+
+    def remove_button(self):
+        # removes data and updates tree
+        pass
+
+def create_tree_and_scroll(parent):
+    tree = ttk.Treeview(parent)
+    tree.grid(row=0, column=1,columnspan=3, sticky=tk.NSEW)
+
+    # add a scrollbar
+    scrollbar = ttk.Scrollbar(parent, orient=tk.VERTICAL, command=tree.yview)
+    tree.configure(yscroll=scrollbar.set)
+    scrollbar.grid(row=0, column=4, sticky='ns')
+    return tree
+
+def add_columns(tree:ttk.Treeview, tree_data:list, column_map:dict= {}):
+
+    # Get the columns
+    data_sample = tree_data[0]
+    assert isinstance(data_sample, dict) 
+    columns = tuple(data_sample.keys())   
+    tree['columns'] = columns
+
+    # Defining columns
+    tree.column("#0", width=0, stretch=0)
+    for c in columns:
+        tree.column(column=c, anchor=tk.W, width=140)
+
+    # Adding headings
+    tree.heading("#0", text="", anchor=tk.W)
+    for c in columns:
+        column_name = column_map.get(c, c)
+        tree.heading(column= c, text=column_name, anchor=tk.W)
+
+def update_tree_data(tree:ttk.Treeview, tree_data:list):
+    """ Updates tree from tree_data"""
+
+    # Adding data
+    for i, set in enumerate(tree_data):        
+        assert isinstance(set, dict)      
+        _entries = tuple(set.values()) 
+        tree.insert(parent='', index='end', iid=i, values=_entries) 
 
 def get_pol_list(pol_var:str):
     assert pol_var in ["X", "Y", "Z"] 
@@ -2799,3 +2900,4 @@ def get_pol_var(pol_list:list):
     elif pol_list == [0,0,1]    :
         pol_var = "Z"                
     return pol_var
+

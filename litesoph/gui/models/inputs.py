@@ -929,121 +929,6 @@ laser_td_input = {
                 "widget": Checkbutton,
                 "default": False
                 },
-        
-        # "masking":{
-        #         "tab":"Masking",
-        #         "group": "Choose Masking",
-        #         "text": "Masked Electric Field",
-        #         "help": None,
-        #         "widget": Checkbutton,
-        #         "default": False
-        #         },
-        # "mask_type": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Mask Type",
-        #         "help": None,
-        #         "widget": Combobox,
-        #         "values": ["Plane","Sphere"],
-        #         },
-        # "boundary_type": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Boundary Type",
-        #         "help": None,
-        #         "widget": Combobox,
-        #         "values": ["Abrupt", "Smooth"],
-        #         },
-        # "r_sig": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "RSig",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0.1,
-        #         "switch": lambda k:
-        #         k.get("boundary_type")=="Abrupt"                  
-                
-        #         },
-        # "mask_plane:axis": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Axis",
-        #         "help": None,
-        #         "widget": Combobox,
-        #         "values": ["X","Y", "Z"],
-        #         "switch": lambda k:
-        #         k.get("mask_type", '') == "Plane"
-                
-        #         },
-        # "mask_plane:origin": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Origin",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0.5,
-        #         "switch": lambda k:
-        #         k.get("mask_type", '') == "Plane"
-        #         },        
-       
-        # "mask_sphere:radius": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Radius (in angstrom)",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0.5,
-        #         "switch": lambda k:
-        #         k.get("mask_type", '') == "Sphere"
-        #         },
-        # "mask_sphere:origin": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Origin",
-        #         "help": None,
-        #         "widget": tk.Label,
-        #         "type": str,
-        #         "switch": lambda k:
-        #         k.get("mask_type", '') == "Sphere"
-        #         },
-
-        # "mask_sphere:origin_x": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "X",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0.5,
-        #         "switch": lambda k:
-        #         k.get("mask_type", '') == "Sphere"
-        #         },
-        # "mask_sphere:origin_y": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Y",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0.5,
-        #         "switch": lambda k:
-        #         k.get("mask_type", '') == "Sphere"
-        #         },
-        # "mask_sphere:origin_z": {
-        #         "tab":"Masking",
-        #         "group": "Masking Inputs",
-        #         "text": "Z",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0.5,
-        #         "switch": lambda k:
-        #         k.get("mask_type", '') == "Sphere"
-        #         },
         }
 
 laser_design_input = {
@@ -1077,25 +962,25 @@ laser_design_input = {
         "time_origin": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Time Origin w.r.t. laser 1 in as",
-                "help": None,
-                "widget": tk.Entry,
-                "type": float,
-                "default": 0,
-                # "switch": lambda k:
-                # k.get("laser_type") == "Gaussian Pulse"
-                },
-        "time_origin:pump": {
-                "tab":"Laser Design",
-                "group": "laser details",
-                "text": "Time Origin w.r.t. pump 1 in as",
+                "text": "Time Origin in as",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
                 "default": 0,
                 "switch": lambda k:
-                k.get("pump-probe_tag") == "Pump"
+                k.get("pump-probe_tag") in ["Pump", None]
                 },
+        # "time_origin:pump": {
+        #         "tab":"Laser Design",
+        #         "group": "laser details",
+        #         "text": "Time Origin in as",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "type": float,
+        #         "default": 0,
+        #         "switch": lambda k:
+        #         k.get("pump-probe_tag") == "Pump"
+        #         },
         "time_origin:probe": {
                 "tab":"Laser Design",
                 "group": "laser details",
@@ -1172,14 +1057,128 @@ laser_design_input = {
                 "switch": lambda k:
                 k.get("laser_type") == "Delta Pulse"
                 },
-        "masking_option": {
+        # "masking_option": {
+        #         "tab":"Masking",
+        #         # "group": "Choose Options",
+        #         "text": "Masking",
+        #         "help": None,
+        #         "widget": Checkbutton,
+        #         "default": False,                
+        #         },
+        "masking":{
                 "tab":"Masking",
-                # "group": "Choose Options",
-                "text": "Masking",
+                "group": "Choose Masking",
+                "text": "Masked Electric Field",
                 "help": None,
                 "widget": Checkbutton,
-                "default": False,                
-                },      
+                "default": False
+                },
+        "mask_type": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Mask Type",
+                "help": None,
+                "widget": Combobox,
+                "values": ["Plane","Sphere"],
+                },
+        "boundary_type": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Boundary Type",
+                "help": None,
+                "widget": Combobox,
+                "values": ["Abrupt", "Smooth"],
+                },
+        "r_sig": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "RSig",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.1,
+                "switch": lambda k:
+                k.get("boundary_type")=="Abrupt"                  
+                
+                },
+        "mask_plane:axis": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Axis",
+                "help": None,
+                "widget": Combobox,
+                "values": ["X","Y", "Z"],
+                "switch": lambda k:
+                k.get("mask_type", '') == "Plane"
+                
+                },
+        "mask_plane:origin": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Origin",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Plane"
+                },        
+       
+        "mask_sphere:radius": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Radius (in angstrom)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+        "mask_sphere:origin": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Origin",
+                "help": None,
+                "widget": tk.Label,
+                "type": str,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+
+        "mask_sphere:origin_x": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "X",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+        "mask_sphere:origin_y": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Y",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
+        "mask_sphere:origin_z": {
+                "tab":"Masking",
+                "group": "Masking Inputs",
+                "text": "Z",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 0.5,
+                "switch": lambda k:
+                k.get("mask_type", '') == "Sphere"
+                },
 }
 
 plot_laser_input ={
