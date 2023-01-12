@@ -692,12 +692,13 @@ class LaserDesignController:
         if exp_type == "State Preparation":
             self.view.inp.widget["pump-probe_tag"].configure(state = 'disabled')
             self.view.inp.fields["pump-probe_tag"]["visible"] = False
-            self.view.inp.label["time_origin:pump"].grid_remove()
-            self.view.inp.widget["time_origin:pump"].grid_remove()
+            # self.view.inp.label["time_origin:pump"].grid_remove()
+            # self.view.inp.widget["time_origin:pump"].grid_remove()
             
         if exp_type == "Pump-Probe":
-            self.view.inp.label["time_origin"].grid_remove()
-            self.view.inp.widget["time_origin"].grid_remove() 
+            pass
+            # self.view.inp.label["time_origin"].grid_remove()
+            # self.view.inp.widget["time_origin"].grid_remove() 
         
         # if hasattr(self.task_view, 'set_parameters'):
         #     self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
@@ -738,7 +739,7 @@ class LaserDesignController:
         laser_gui_inp = self.view.inp.get_values()
         # Inputs for laser design
         laser_design_inp = self.view.get_laser_details()[0]
-        
+
         # Laser design model
         laser_design_model = self.get_laser_design_model(laser_design_inp)
         pulse = laser_design_model.pulse_info
@@ -862,22 +863,52 @@ class LaserDesignController:
         if len(self.laser_info.data) > 0:
             self.show_and_update_plot_page()
             self.laser_plot_view.bind('<<PlotLasers>>', self._on_plot_button)
-            self.laser_plot_view.button_plot_w_delay.configure(command=self._on_plot_w_delay_button)           
+            # self.laser_plot_view.button_plot_w_delay.configure(command=self._on_plot_w_delay_button)           
         else:
             messagebox.showerror(message="Please add lasers to plot.")
             return 
 
     def _on_plot_button(self, *_):
         """On Plot Button in PlotPage"""
-        from litesoph.utilities.units import as_to_au, au_to_fs
+        from litesoph.utilities.units import as_to_au, au_to_fs, fs_to_au
 
-        systems_selected = self.laser_plot_view.laser_selected()        
-        lasers = []
-        for laser_system in systems_selected:
-            _lasers = self.extract_laser_param_from_system(laser_system)
-            lasers.extend(_lasers)
+        # bool if Probe is present
+        plot_probe = False
 
-        (time_arr, list_strength_arr) = m.get_time_strength(list_of_laser_params=lasers,
+        # TODO: Validate number of system selected
+        systems_selected = self.laser_plot_view.laser_selected() 
+        
+        if "Probe" in systems_selected:
+            plot_probe = True
+        
+        if plot_probe is True:
+            # TODO: Validate Pump is present or not
+            delay_in_fs = self.laser_plot_view._var['delay'].get()
+            delay_in_au = float(delay_in_fs)*fs_to_au 
+
+            laser_data_1 = copy.deepcopy(self.laser_info.data['Pump'])
+            laser_data_2 = copy.deepcopy(self.laser_info.data['Probe'])
+
+            lasers_pump_probe = list(add_delay_to_lasers(system_1= laser_data_1, 
+                                system_2= laser_data_2, delay=delay_in_au)) 
+
+            if len(systems_selected)==1:
+                lasers = [lasers_pump_probe[1]]
+            else:
+                lasers = lasers_pump_probe
+
+        else:
+            lasers = []
+            for laser_system in systems_selected:
+                _lasers = self.extract_laser_param_from_system(laser_system)
+                # _lasers = self.extract_laser_param_from_system(laser_system)
+                lasers.append(_lasers)
+
+        lasers_to_plot = []
+        for laser in lasers:
+            lasers_to_plot.extend(laser)
+
+        (time_arr, list_strength_arr) = m.get_time_strength(list_of_laser_params=lasers_to_plot,
                                                 laser_profile_time= self.total_time*as_to_au*au_to_fs)
         # TODO: Modify plot method to add tag of laser
         # Add polarization as variable to filter out strengths
@@ -897,32 +928,32 @@ class LaserDesignController:
             laser_params.append(laser[0])
         return laser_params  
 
-    def _on_plot_w_delay_button(self, *_):
-        from litesoph.utilities.units import fs_to_au, as_to_au, au_to_fs
-        systems_selected = self.laser_plot_view.laser_selected()
-        if len(systems_selected) == 0:
-            systems_selected = self.laser_plot_view.tree.get_children()
+    # def _on_plot_w_delay_button(self, *_):
+    #     from litesoph.utilities.units import fs_to_au, as_to_au, au_to_fs
+    #     systems_selected = self.laser_plot_view.laser_selected()
+    #     if len(systems_selected) == 0:
+    #         systems_selected = self.laser_plot_view.tree.get_children()
 
-        assert len(systems_selected) == 2
+    #     assert len(systems_selected) == 2
 
-        name_1 = systems_selected[0]
-        name_2 = systems_selected[1]
+    #     name_1 = systems_selected[0]
+    #     name_2 = systems_selected[1]
 
-        laser_data_1 = copy.deepcopy(self.laser_info.data[name_1])
-        laser_data_2 = copy.deepcopy(self.laser_info.data[name_2])
+    #     laser_data_1 = copy.deepcopy(self.laser_info.data[name_1])
+    #     laser_data_2 = copy.deepcopy(self.laser_info.data[name_2])
 
-        delay_in_fs = self.laser_plot_view._var['delay'].get()
-        delay_in_au = float(delay_in_fs)*fs_to_au        
-        laser_list = list(add_delay_to_lasers(system_1= laser_data_1, 
-                                system_2= laser_data_2, delay=delay_in_au))        
+    #     delay_in_fs = self.laser_plot_view._var['delay'].get()
+    #     delay_in_au = float(delay_in_fs)*fs_to_au        
+    #     laser_list = list(add_delay_to_lasers(system_1= laser_data_1, 
+    #                             system_2= laser_data_2, delay=delay_in_au))        
 
-        lasers_to_plot = []
-        for laser in laser_list:
-            lasers_to_plot.extend(laser)
+    #     lasers_to_plot = []
+    #     for laser in laser_list:
+    #         lasers_to_plot.extend(laser)
 
-        (time_arr, list_strength_arr) = m.get_time_strength(lasers_to_plot,
-                                            laser_profile_time= self.total_time*as_to_au*au_to_fs)
-        m.plot_laser(time_arr, list_strength_arr) 
+    #     (time_arr, list_strength_arr) = m.get_time_strength(lasers_to_plot,
+    #                                         laser_profile_time= self.total_time*as_to_au*au_to_fs)
+    #     m.plot_laser(time_arr, list_strength_arr) 
 
 
 def validate_laser_defined(laser_data:dict, exp_type:str):
@@ -984,53 +1015,6 @@ def add_delay_to_lasers(system_1:dict, system_2:dict, delay:float):
         _time0 = float(laser_param.get('time0'))
         laser_param['time0'] = _time0 + delay_to_add
     return (lasers_sys1, lasers_sys2)
-
-    # def _on_add_laser(self, *_):  
-    #     """On add laser button:
-    #     \n Checks the validation for time-origin for state-preparation/pump-probe laser inputss
-    #     \n Proceeds to append the lasers
-    #     """
-    #     laser_gui_inp = self.task_view.get_parameters()
-    #     if not self.pump_probe:
-    #         if len(self.list_of_laser_params) == 0:
-    #             tin = laser_gui_inp.get('tin')
-    #             zero_tin = bool(float(tin) < 1e-06)
-    #             if zero_tin:
-    #                 self.append_lasers()
-    #             else:
-    #                 messagebox.showerror(message="The first laser should have zero time origin")
-    #                 return
-    #         else:
-    #             self.append_lasers()
-    #     else:
-    #         # check first pump and first probe
-    #         tin = laser_gui_inp.get('tin')
-    #         tag = laser_gui_inp.get('tag')
-
-    #         assert tag in ["Pump", "Probe"]
-    #         self.pump_tag = pump_tag = bool(tag == "Pump")
-    #         self.probe_tag = probe_tag =bool(tag == "Probe")
-    #         zero_tin = bool(float(tin) < 1e-06)
-
-    #         if pump_tag:
-    #             if len(self.pump_ref) == 0:                               
-    #                 if zero_tin:
-    #                     self.append_lasers(tag)
-    #                 else:
-    #                     messagebox.showerror(message="The first pump laser should have zero time origin")
-    #                     return
-    #             else:
-    #                 self.append_lasers(tag)
-    #         elif probe_tag:
-    #             if len(self.probe_ref) == 0:                              
-    #                 if zero_tin:
-    #                     self.append_lasers(tag)
-    #                 else:
-    #                     messagebox.showerror(message="The first probe laser should have zero time origin")
-    #                     return
-    #             else:
-    #                 self.append_lasers(tag)
-
 
 class PostProcessTaskController(TaskController):
 
