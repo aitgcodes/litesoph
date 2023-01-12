@@ -11,7 +11,8 @@ from litesoph.gui import actions
 from litesoph.gui.task_controller import (TaskController,
                                             TDPageController,
                                             PostProcessTaskController,
-                                            MaskingPageController)
+                                            MaskingPageController,
+                                            PumpProbePostProcessController)
 from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
@@ -26,6 +27,7 @@ task_view_map={
     tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
     tt.MASKING: v.MaskingPage,
+    tt.COMPUTE_TAS: v.PumpProbePostProcessPage
 }
 
 class WorkflowController:
@@ -240,6 +242,8 @@ def get_task_controller( task_view, workflow_controller, app) -> TaskController:
         task_controller = MaskingPageController
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
+    elif task_view == v.PumpProbePostProcessPage:
+        task_controller = PumpProbePostProcessController
     else:
         task_controller = TaskController
         

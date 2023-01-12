@@ -546,23 +546,6 @@ class TDPageController(TaskController):
         txt =  '\n'.join(details)
         return(txt, details)           
 
-    # def _on_edit_laser(self, *_):
-    #     # TODO: Remove this method once LaserDesignPage is updated
-
-    #     self.laser_info_view = v.LaserInfoPage(self.main_window)
-    #     self.laser_info_view.show_edit_widgets()
-    #     currrent_lasers = self.workflow_manager.current_task_info.input['current_lasers']
-    #     self.laser_labels = get_laser_labels(laser_defined = True, 
-    #                                         num_lasers = len(currrent_lasers))
-        
-    #     self.laser_info_view.cb_lasers.config(values=self.laser_labels)
-    #     self.laser_info_view.cb_lasers.current(0)
-
-    #     self.main_window.bind_all('<<Choose&EditLaser>>', self.choose_and_update_laser)   
-    #     self.main_window.bind_all('<<Choose&RemoveLaser>>', self.choose_and_remove_laser)
-    def get_laser(self):
-        pass
-    
     def add_task(self, delays):
         block_id = self.workflow_manager.current_container.block_id
         step_id = self.workflow_manager.current_container.id
@@ -610,7 +593,7 @@ class TDPageController(TaskController):
                 lasers_list = []
                 for laser in laser_sets:
                     lasers_list.append(laser[0]) 
-                delay = "No Probe"
+                delay = "no_probe"
             else:
                 lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
                 
@@ -1048,6 +1031,41 @@ class PostProcessTaskController(TaskController):
         self.task_info.engine_param.update(self.task.user_input)
         self._run_local(np=1)
 
+class PumpProbePostProcessController(TaskController):
+
+    def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
+        self.workflow_manager = workflow_manager
+        self.task_info = workflow_manager.current_task_info
+        self.task_name = self.task_info.name
+        self.engine = self.task_info.engine
+        self.task_view = task_view
+        self.task = None
+
+        try:
+            self.task = self.workflow_manager.get_engine_task()
+        except TaskSetupError as e:
+            messagebox.showerror("Error", str(e))
+            return
+            
+
+        self.task_view = self.app.show_frame(task_view)
+        
+        self.task_view.button_compute.config(command = self._on_compute_tas)
+        self.task_view.button_plot.config(command = self._on_plot_tas)
+        # self.task_view.back_button.config()
+
+
+        if hasattr(self.task_view, 'set_parameters'):
+            self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
+
+    def _on_compute_tas(self, *_):
+        inp_dict = self.task_view.get_parameters()
+        self.task.generate_spectrums()
+        self.task.generate_tas_data()
+
+    def _on_plot_tas(self, *_):
+        inp_dict = self.task_view.get_parameters()
+        self.task.plot()
 
 def input_param_report(engine, input_param):
     pass            

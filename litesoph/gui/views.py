@@ -2903,10 +2903,8 @@ def get_pol_var(pol_list:list):
 
 class PumpProbePostProcessPage(View):
     
-    def __init__(self, parent, engine,task_name, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.engine = engine
-        self.task_name = task_name
         
         self._default_var = {
             'damping' : ['float', 0],
@@ -3014,3 +3012,8 @@ class PumpProbePostProcessPage(View):
                 self._var[key].set(value)
 
 
+    def get_parameters(self):
+        return {}
+
+    def get_plot_parameters(self):
+        return {}
