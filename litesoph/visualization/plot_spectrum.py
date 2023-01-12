@@ -145,7 +145,7 @@ def prepare_tas_data(task_info,project_dir,spectrum_data_list,delay_list,task_di
             else:
                 delta_data[:,i]=data[:,i]-data[:,0]
         
-        delay_list=[i if i!='noprobe' else 0 for i in delay_list]        
+        delay_list=[i if i!='no_probe' else 0 for i in delay_list]        
         x_data,y_data= np.meshgrid(delay_list,Omega)
         z_data=(np.abs(data))
                     
@@ -156,7 +156,8 @@ def prepare_tas_data(task_info,project_dir,spectrum_data_list,delay_list,task_di
         task_info.output['contour_x_data']=contour_x_data_file       
         task_info.output['contour_y_data']=contour_y_data_file             
         task_info.output['contour_z_data']=contour_z_data_file             
-      
-        np.savetxt(contour_x_data_file, x_data)  
-        np.savetxt(contour_y_data_file, y_data)  
-        np.savetxt(contour_z_data_file, z_data)  
+
+        fmt = "%s"# "%20.10e %20.10e %20.10e %20.10e"
+        np.savetxt(contour_x_data_file, x_data, fmt=fmt)  
+        np.savetxt(contour_y_data_file, y_data, fmt=fmt)  
+        np.savetxt(contour_z_data_file, z_data, fmt=fmt)  
