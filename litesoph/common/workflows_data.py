@@ -132,7 +132,7 @@ predefined_workflow = {
                                                 {
                                                 'laser': True
                                                 }),
-                    step(4 ,4 ,tt.COMPUTE_SPECTRUM)],
+                    step(4 ,4 ,tt.COMPUTE_TAS)],
         
         "dependency_map": {'0' : None,
                             '1' : '0',
