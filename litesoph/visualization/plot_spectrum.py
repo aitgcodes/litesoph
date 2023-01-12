@@ -109,7 +109,7 @@ def contour_plot(x_data, y_data, z_data, x_label:str,y_label:str,title:str,x_lmt
     plt.ylabel(y_label)    
     plt.xlim(x_lmt_min,x_lmt_max)
     plt.ylim(y_lmt_min,y_lmt_max)
-    plt.contourf(x_data,y_data,z_data, cmap='RdGy')    
+    plt.contourf(x_data,y_data,z_data)    
     plt.colorbar().set_label('Cross-section', rotation=90)
     return plt.show()
 
