@@ -482,7 +482,7 @@ class PumpProbePostpro(NwchemTask):
         dm_data= dm_data[:,[0,axis_index]]        
         return dm_data
         
-    def generate_spectrums(self,damping,padding):
+    def generate_spectrums(self,damping=None,padding=None):
         """generate spectrum file from dipole moment data"""
         from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
     
