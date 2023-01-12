@@ -130,7 +130,7 @@ def get_spectrums_delays(task_info,dependent_tasks,project_dir):
 
         return delay_list,spectrum_data_list
 
-def prepare_TAS_data(task_info,project_dir,spectrum_data_list,delay_list,contour_data_path):        
+def prepare_tas_data(task_info,project_dir,spectrum_data_list,delay_list,task_dir):        
         
         data0=np.loadtxt(f'{project_dir.parent}{spectrum_data_list[0]}', comments="#")
 
@@ -148,14 +148,14 @@ def prepare_TAS_data(task_info,project_dir,spectrum_data_list,delay_list,contour
         x_data,y_data= np.meshgrid(delay_list,Omega)
         z_data=(np.abs(data))
                     
-        contour_x_data_file= Path(contour_data_path) /'contour_x_data.dat' 
-        contour_y_data_file= Path(contour_data_path) /'contour_y_data.dat' 
-        contour_z_data_file= Path(contour_data_path) /'contour_z_data.dat' 
+        contour_x_data_file= Path(task_dir) /'contour_x_data.dat' 
+        contour_y_data_file= Path(task_dir) /'contour_y_data.dat' 
+        contour_z_data_file= Path(task_dir) /'contour_z_data.dat' 
     
         task_info.output['contour_x_data']=contour_x_data_file       
         task_info.output['contour_y_data']=contour_y_data_file             
         task_info.output['contour_z_data']=contour_z_data_file             
       
-        np.savetxt(f'{project_dir.parent}/{contour_x_data_file}', x_data)  
-        np.savetxt(f'{project_dir.parent}/{contour_y_data_file}', y_data)  
-        np.savetxt(f'{project_dir.parent}/{contour_z_data_file}', z_data)  
+        np.savetxt(contour_x_data_file, x_data)  
+        np.savetxt(contour_y_data_file, y_data)  
+        np.savetxt(contour_z_data_file, z_data)  
