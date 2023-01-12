@@ -462,7 +462,7 @@ class PumpProbePostpro(NwchemTask):
         dm_data= dm_data[:,[0,axis_index]]        
         return dm_data
         
-    def generate_spectrum_file(self,damping,padding):
+    def generate_spectrums(self,damping,padding):
         """generate spectrum file from dipole moment data"""
         from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
     
@@ -482,11 +482,12 @@ class PumpProbePostpro(NwchemTask):
             padding_var= None if padding is None else padding 
             photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping_var,padding=padding_var)
     
-    def generate_contour_data(self):
-        from litesoph.visualization.plot_spectrum import prepare_contour_data
-        prepare_contour_data(self.task_info,self.dependent_tasks,self.project_dir,self.contour_data_path)                    
-                    
-    def generate_contour_plot(self,x_lmt_min,x_lmt_max,y_lmt_min,y_lmt_max):     
+    def generate_TAS_data(self):
+        from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_TAS_data
+        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
+        prepare_TAS_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.contour_data_path)
+                            
+    def generate_TAS_plot(self,x_lmt_min,x_lmt_max,y_lmt_min,y_lmt_max):     
         from litesoph.visualization.plot_spectrum import contour_plot
         x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
         y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
@@ -500,5 +501,3 @@ class PumpProbePostpro(NwchemTask):
         plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
         return plot
         
-
-

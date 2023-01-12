@@ -1,3 +1,5 @@
+from pathlib import Path
+import numpy as np
 
 def plot(fname,image):
 
@@ -113,11 +115,9 @@ def contour_plot(x_data, y_data, z_data, x_label:str,y_label:str,title:str,x_lmt
     plt.colorbar().set_label('Cross-section', rotation=90)
     return plt.show()
 
-def prepare_contour_data(task_info,dependent_tasks,project_dir,contour_data_path):
-        """function to generate x,y,z data required by contour plot and plotting contour plot"""
-        from pathlib import Path
-        import numpy as np
-
+def get_spectrums_delays(task_info,dependent_tasks,project_dir):
+        """function to generate x,y,z data required by contour plot and plotting contour plot for pump_probe"""
+        
         delay_list=[]
         for i in range(len(dependent_tasks)):
             delay=dependent_tasks[i].param.get('delay')   
@@ -127,6 +127,11 @@ def prepare_contour_data(task_info,dependent_tasks,project_dir,contour_data_path
         for delay in delay_list:
             spec_file = (project_dir / (task_info.output.get(f'spec_delay_{delay}')))                
             spectrum_data_list.append(spec_file)
+
+        return delay_list,spectrum_data_list
+
+def prepare_TAS_data(task_info,project_dir,spectrum_data_list,delay_list,contour_data_path):        
+        
         data0=np.loadtxt(f'{project_dir.parent}{spectrum_data_list[0]}', comments="#")
 
         Omega = data0[:,0]
