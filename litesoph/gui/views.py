@@ -3013,7 +3013,11 @@ class PumpProbePostProcessPage(View):
 
 
     def get_parameters(self):
-        return {}
+        return {'damping': self._var['damping'].get(),
+                'padding': self._var['padding'].get()}
 
     def get_plot_parameters(self):
-        return {}
+        return {'delay_min': self._var['delay_min'].get(),
+                'delay_max': self._var['delay_max'].get(),
+                'freq_min' : self._var['freq_min'].get(),
+                'freq_max' : self._var['freq_max'].get()}

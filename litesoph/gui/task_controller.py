@@ -1047,7 +1047,6 @@ class PumpProbePostProcessController(TaskController):
             messagebox.showerror("Error", str(e))
             return
             
-
         self.task_view = self.app.show_frame(task_view)
         
         self.task_view.button_compute.config(command = self._on_compute_tas)
@@ -1060,12 +1059,22 @@ class PumpProbePostProcessController(TaskController):
 
     def _on_compute_tas(self, *_):
         inp_dict = self.task_view.get_parameters()
-        self.task.generate_spectrums()
-        self.task.generate_tas_data()
+        try:
+            self.task.generate_spectrums(**inp_dict)
+            self.task.generate_tas_data()
+        except Exception as e:
+            messagebox.showerror(title='Error', message=f'{e}')
+        else:
+            messagebox.showinfo(message='Spectrums generated successfully.')
+
 
     def _on_plot_tas(self, *_):
-        inp_dict = self.task_view.get_parameters()
-        self.task.plot()
+        inp_dict = self.task_view.get_plot_parameters()
+        try:
+            self.task.plot(**inp_dict)
+        except Exception as e:
+            messagebox.showerror(title='Error', message=f'{e}')
+
 
 def input_param_report(engine, input_param):
     pass            
