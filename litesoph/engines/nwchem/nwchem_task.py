@@ -414,6 +414,7 @@ def read_pol_dir(pol):
 
 
 def get_pol_and_tag(taskinfo):
+    # if the multiple lasers are passed in the field, polarization will be taken for first laser
     pol = taskinfo.engine_param['rt_tddft']['field'].get('polarization', 'x')
     tag = taskinfo.engine_param['rt_tddft'].get('tag', 'rt_tddft')
     return pol, tag
