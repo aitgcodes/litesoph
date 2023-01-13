@@ -501,16 +501,17 @@ class PumpProbePostpro(GpawTask):
         delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
         prepare_tas_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.task_dir)
                 
-    def plot(self,x_lmt_min=None,x_lmt_max=None,y_lmt_min=None,y_lmt_max=None):     
+    def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
+
         from litesoph.visualization.plot_spectrum import contour_plot
         x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
         y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
         z_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_z_data')))
                         
-        x_min= np.min(x_data) if x_lmt_min is None else x_lmt_min 
-        x_max= np.max(x_data) if x_lmt_max is None else x_lmt_max 
-        y_min= np.min(y_data) if y_lmt_min is None else y_lmt_min 
-        y_max= np.max(y_data) if y_lmt_max is None else y_lmt_max 
+        x_min= np.min(x_data) if delay_min is None else delay_min 
+        x_max= np.max(x_data) if delay_max is None else delay_max 
+        y_min= np.min(y_data) if freq_min is None else freq_min 
+        y_max= np.max(y_data) if freq_max is None else freq_max 
 
         plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
         return plot

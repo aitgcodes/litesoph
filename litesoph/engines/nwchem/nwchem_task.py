@@ -460,7 +460,11 @@ def read_pol_dir(pol):
 
 
 def get_pol_and_tag(taskinfo):
-    pol = taskinfo.engine_param['rt_tddft']['field'].get('polarization', 'x')
+    # if the multiple lasers are passed in the field, polarization will be taken for first laser
+    if  type(taskinfo.engine_param['rt_tddft']['field']) is list:        
+        pol = taskinfo.engine_param['rt_tddft']['field'][0].get('polarization', 'x')
+    else:
+        pol = taskinfo.engine_param['rt_tddft']['field'].get('polarization', 'x')
     tag = taskinfo.engine_param['rt_tddft'].get('tag', 'rt_tddft')
     return pol, tag
 
@@ -482,28 +486,25 @@ class PumpProbePostpro(NwchemTask):
         outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
         self.nwchem = NWChem(outfile=outfile,label=label, directory=self.task_dir)
 
-    def extract_dm(self,td_out_file,pol_dirn,axis_index):
+    def extract_dm(self,td_out_file,pol,tag):
         from litesoph.engines.nwchem.nwchem_read_rt import nwchem_rt_parser                
-        dm_data=nwchem_rt_parser(td_out_file, outfile=None, tag=f'kick_{pol_dirn}',
+        dm_data=nwchem_rt_parser(td_out_file, outfile=None, tag=tag,
                     geometry='system', 
                     target='dipole', spin='closedshell', 
-                    polarization=None, zero=False, retrun_data=True)
-        dm_data=np.asarray(dm_data)
-        dm_data= dm_data[:,[0,axis_index]]        
+                    polarization=pol, zero=False, retrun_data=True)
         return dm_data
         
     def generate_spectrums(self,damping=None,padding=None):
         """generate spectrum file from dipole moment data"""
-        from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
-    
-        for i in range(len(self.dependent_tasks)):
-            axis_index,pol_dirn=get_polarization_direction(self.dependent_tasks[i])
+        
+        for i in range(len(self.dependent_tasks)):            
+            self.pol, tag = get_pol_and_tag(self.dependent_tasks[i])
             td_out_file = (self.project_dir / (self.dependent_tasks[i].output.get('txt_out')))               
             delay=self.dependent_tasks[i].param.get('delay')             
             spectrum_file= td_out_file.parent /f'spec_delay_{delay}.dat'            
             out_spectrum_file = str(spectrum_file).replace(str(self.project_dir.parent), '')
             self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
-            gen_standard_dm_file=self.extract_dm(td_out_file,pol_dirn,axis_index+1)
+            gen_standard_dm_file=self.extract_dm(td_out_file,self.pol,tag)
             out_standard_dm_file= td_out_file.parent /f'std_dm_delay_{delay}.dat'   
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
             
@@ -520,16 +521,16 @@ class PumpProbePostpro(NwchemTask):
         delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
         prepare_tas_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.task_dir)
                             
-    def generate_tas_plot(self,x_lmt_min,x_lmt_max,y_lmt_min,y_lmt_max):     
+    def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
         from litesoph.visualization.plot_spectrum import contour_plot
         x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
         y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
         z_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_z_data')))
                         
-        x_min= np.min(x_data) if x_lmt_min is None else x_lmt_min 
-        x_max= np.max(x_data) if x_lmt_max is None else x_lmt_max 
-        y_min= np.min(y_data) if y_lmt_min is None else y_lmt_min 
-        y_max= np.max(y_data) if y_lmt_max is None else y_lmt_max 
+        x_min= np.min(x_data) if delay_min is None else delay_min 
+        x_max= np.max(x_data) if delay_max is None else delay_max 
+        y_min= np.min(y_data) if freq_min is None else freq_min 
+        y_max= np.max(y_data) if freq_max is None else freq_max 
 
         plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
         return plot
