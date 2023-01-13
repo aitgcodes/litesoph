@@ -4,7 +4,7 @@ from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.common.task import TaskNotImplementedError                 
 from litesoph.common.workflows_data import WorkflowTypes as wt        
 from litesoph.common.engine_manager import EngineManager
-from litesoph.engines.nwchem.nwchem_task import NwchemTask
+from litesoph.engines.nwchem.nwchem_task import NwchemTask, PumpProbePostpro
 from litesoph.engines.nwchem import task_data as td
 from .spectrum_task import ComputeAvgSpectrum, ComputeSpectrum
 
@@ -27,6 +27,8 @@ class NWChemManager(EngineManager):
             return ComputeSpectrum(config, task_info, dependent_tasks)
         if task_info.name == tt.COMPUTE_AVERAGED_SPECTRUM:
             return ComputeAvgSpectrum(config, task_info, dependent_tasks)
+        if task_info.name == tt.COMPUTE_TAS:
+            return PumpProbePostpro(config, task_info, dependent_tasks)
         else:
             return NwchemTask(config, task_info, dependent_tasks)
 

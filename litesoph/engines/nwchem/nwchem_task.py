@@ -481,10 +481,7 @@ class PumpProbePostpro(NwchemTask):
     def create_engine(self, param):
         task_dir = self.project_dir / 'nwchem' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        label = str(self.project_dir.name)
         self.network_done_file = self.task_dir / 'Done'
-        outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
-        self.nwchem = NWChem(outfile=outfile,label=label, directory=self.task_dir)
 
     def extract_dm(self,td_out_file,pol,tag):
         from litesoph.engines.nwchem.nwchem_read_rt import nwchem_rt_parser                
@@ -509,9 +506,7 @@ class PumpProbePostpro(NwchemTask):
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
             
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
-            damping_var= None if damping is None else damping 
-            padding_var= None if padding is None else padding 
-            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping_var,padding=padding_var)
+            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping,padding=padding)
     
     def generate_tas_data(self):
         from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_tas_data
