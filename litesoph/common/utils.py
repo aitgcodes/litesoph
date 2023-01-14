@@ -37,9 +37,12 @@ def get_new_directory(path:Path) -> Path:
     i = 1
     while True:
         if path.exists():
-            name = name + f'{i}'
+            if i == 1:
+                name = name + f'{i}'
+            else:    
+                name = name[:-(len(str(i)))] + f'{i}'
             path = parent / name
-            i =+ 1
+            i += 1
         else:
             break
     return path

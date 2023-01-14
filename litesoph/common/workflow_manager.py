@@ -153,7 +153,7 @@ class WorkflowManager:
                          step_id: int,
                          parameters= dict(),
                          env_parameters= dict(),
-                         dependent_tasks_uuid: Union[None, str, list]= None):
+                         dependent_tasks_uuid: Union[str, list]= list()):
 
         task_info = factory_task_info(task_name)
         self.tasks[task_info.uuid] = task_info
@@ -185,17 +185,36 @@ class WorkflowManager:
 
 
     def add_dependency(self, task_uuid: str, 
-                        dependent_tasks_uuid: Union[None, str, list]= None):
-        
-        self.dependencies_map.update({task_uuid: dependent_tasks_uuid})
+                        dependent_tasks_uuid: Union[str, list]= list()):
+
+        dependent_list =[]
+        if isinstance(dependent_tasks_uuid, str):
+            dependent_list.append(dependent_tasks_uuid)
+        else:
+            dependent_list.extend(dependent_tasks_uuid)
+        dependent_id = self.dependencies_map.get(task_uuid, None)
+        if not dependent_id:
+            self.dependencies_map.update({task_uuid: dependent_list})
+            return
+
+        if isinstance(dependent_id, str):
+            dependent_list.insert(0, dependent_id)
+            self.dependencies_map.update({task_uuid: dependent_list})
+        else:
+            dependent_id.extend(dependent_list)
+            self.dependencies_map.update({task_uuid: dependent_id})
 
     
-    def get_continer(self, task_uuid):
+    def get_continer_by_task_uuid(self, task_uuid):
         for container in self.containers:
             if container.task_uuid == task_uuid:
                 return container
-
     
+    def get_continer_by_block_id(self, block_id):
+        for container in self.containers:
+            if container.task_uuid == block_id:
+                return container
+
     def prepare_task(self):
         if self.engine:
             self.current_task_info.engine = self.engine
