@@ -1518,12 +1518,10 @@ class MaskingPage(View):
 class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
 
-    def __init__(self, parent, task, job_type, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
         
         self.parent = parent
-        self.task = task
-        self.job_type = job_type
         self.runlocal_np =  None
         self.run_script_path = None
         
@@ -1550,19 +1548,17 @@ class JobSubPage(ttk.Frame):
         self.sub_job_frame = ttk.Frame(self.Frame1)
         self.sub_job_frame.grid(row=1, column=0, sticky='nsew')
 
-        self.show_job_frame()
-
         self.Frame_label = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
         self.Frame_label['font'] = myfont1()
         self.Frame_label.grid(row=0, column=0)       
 
-        view_btn = tk.Button(self.Frame1, text="View Output",activebackground="#78d6ff",command=lambda:[self.view_outfile(self.task)])
-        view_btn['font'] = myfont()
-        view_btn.grid(row=2, column=0, sticky='e', pady=5)
+        self.view_output_button = tk.Button(self.Frame1, text="View Output",activebackground="#78d6ff",command=lambda:[self.view_outfile(self.task)])
+        self.view_output_button['font'] = myfont()
+        self.view_output_button.grid(row=2, column=0, sticky='e', pady=5)
 
-        # back = tk.Button(self.frame_button, text="Back ",activebackground="#78d6ff",command=lambda:[self.event_generate(f'<<Show{self.task}Page>>')])
-        # back['font'] = myfont()
-        # back.pack(side= tk.LEFT)
+        self.back2task = tk.Button(self.frame_button, text="Back ",activebackground="#78d6ff")
+        self.back2task['font'] = myfont()
+        self.back2task.pack(side= tk.LEFT)
 
         self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff")
         self.back2main['font'] = myfont()
@@ -1576,18 +1572,16 @@ class JobSubPage(ttk.Frame):
         self.rpath.set(remote_profile['remote_path'])
 
 
-    def show_job_frame(self):
-        """ Creates Job Sub input widgets"""
+    def show_run_local(self,
+                        generate_job_script: callable,
+                        save_job_script: callable,
+                        submit_job: callable):
 
-        if self.job_type == 'Local':
-            self.show_run_local()
-            self.text_view_button_frame = None
-        elif self.job_type == 'Network':
-            self.show_run_network() 
-
-    def show_run_local(self): 
         """ Creates Local JobSub input widgets""" 
-
+        
+        for widget in self.sub_job_frame.winfo_children():
+            widget.destroy()
+        
         values = {"Command line execution": 0, "Submit through queue": 1}
         for (text, value) in values.items():
             tk.Radiobutton(self.sub_job_frame, text=text, variable=self.sub_job_type, font=myfont2(),
@@ -1609,20 +1603,26 @@ class JobSubPage(ttk.Frame):
         self.entry_command['font'] = myfont()
         self.entry_command.grid(row=3, column=1, ipadx=2, ipady=2)
 
-        self.create_button = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = self.create_job_script)
-        self.create_button['font'] = myfont()
-        self.create_button.grid(row=4, column=0, pady=5)   
+        self.generate_job_button = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = generate_job_script)
+        self.generate_job_button['font'] = myfont()
+        self.generate_job_button.grid(row=4, column=0, pady=5)   
 
-        save_job_script = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = self.save_job_script)
-        save_job_script['font'] = myfont()
-        save_job_script.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
+        self.save_job_button = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = save_job_script)
+        self.save_job_button['font'] = myfont()
+        self.save_job_button.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command=lambda:[self.submitjob_local()])
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command= submit_job)
         self.run_button['font'] = myfont()
         self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)        
 
-    def show_run_network(self):
+    def show_run_network(self,
+                        generate_job_script: callable,
+                        save_job_script: callable,
+                        submit_job: callable):
+
         """ Creates Network JobSub input widgets""" 
+        for widget in self.sub_job_frame.winfo_children():
+            widget.destroy()
 
         values = {"Command line execution": 0, "Submit through queue": 1}
         for (text, value) in values.items():
@@ -1694,15 +1694,15 @@ class JobSubPage(ttk.Frame):
         self.entry_command['font'] = myfont()
         self.entry_command.grid(row=9, column=1, ipadx=2, ipady=2)
       
-        upload_button2 = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = self.create_job_script)
-        upload_button2['font'] = myfont()
-        upload_button2.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)
+        self.generate_job_button = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = generate_job_script)
+        self.generate_job_button['font'] = myfont()
+        self.generate_job_button.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)
 
-        save_job_script = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = self.save_job_script)
-        save_job_script['font'] = myfont()
-        save_job_script.grid(row=10,column=1,sticky='nsew', padx=2, pady=4)
+        self.save_job_button = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = save_job_script)
+        self.save_job_button['font'] = myfont()
+        self.save_job_button.grid(row=10,column=1,sticky='nsew', padx=2, pady=4)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command=lambda:[self.submitjob_network()])
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= submit_job)
         self.run_button['font'] = myfont()
         self.run_button.grid(row=11,column=0,sticky='nsew', padx=2, pady=4)    
 
@@ -1712,32 +1712,12 @@ class JobSubPage(ttk.Frame):
         else:
             self.sub_command.set('')
 
-    def view_outfile(self, task_name ):
-        event = '<<View'+task_name+self.job_type+'Outfile>>'
-        self.event_generate(event)
-        
     def get_processors(self):
         return self.processors.get()
-
-    def submitjob_local(self):
-        event = '<<Run'+self.task+'Local>>'
-        self.event_generate(event)
 
     def set_run_button_state(self, state):
         self.run_button.config(state=state)
 
-    def create_job_script(self):
-        event = '<<Create'+self.task+self.job_type+'Script>>'
-        self.event_generate(event)
-    
-    def save_job_script(self):
-        event = '<<Save'+self.task+self.job_type+'>>'
-        self.event_generate(event)
-
-    def submitjob_network(self):
-        event = '<<Run'+self.task+'Network>>'
-        self.event_generate(event)
-        
     def get_password_option(self):
         password_enabled = False
         if self.password_option.get() == 0:
@@ -2198,7 +2178,7 @@ class LaserDesignPage(View):
                         # 'time0': 3000.0}
             'laser': self.laser_calc_list[0],
             # 'masking': {},
-            "pump_probe" : gui_dict.get("pump_probe")
+            # "pump_probe" : gui_dict.get("pump_probe")
         }
         if gui_dict.get("masking"):
             td_input.update({"masking": self.get_mask(gui_dict)})

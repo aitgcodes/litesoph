@@ -22,16 +22,24 @@ def _get_set(**params):
 def _get_field(key, val):
     
     prefix = '      '
-    name = val.pop('name', 'kick')
-    _lines = [f'    {key} "{name}"']
-    
-    geo_name = val.pop('geo_name', 'system')
+    fields = []
+    if isinstance(val, dict):
+        fields.append(val)
+    else:
+        fields.extend(val)
+    lines = []
+    for field in fields:
+        name = field.pop('name', 'kick')
+        lines.append(f'    {key} "{name}"')
+        
+        geo_name = field.pop('geo_name', 'system')
 
-    for subkey, subval in val.items():
-        _lines.append(prefix + _format_line(subkey, subval))
-    _lines.append('  ' + 'end')
-    _lines.append('  ' + f'excite "{geo_name}" with "{name}"')
-    return _lines
+        for subkey, subval in field.items():
+            lines.append(prefix + _format_line(subkey, subval))
+        lines.append('  ' + 'end')
+        lines.append('  ' + f'excite "{geo_name}" with "{name}"')
+        
+    return lines
 
 def _format_block(key, val, nindent=0):
     prefix = '  ' * nindent
@@ -144,7 +152,11 @@ def nwchem_create_input(echo = False, **kwargs) -> str:
         params['geometry']['name'] = geo_name = 'system'
 
     if 'rt_tddft' in params:
-        params['rt_tddft']['field']['geo_name'] = geo_name
+        if isinstance(params['rt_tddft']['field'], list):
+            for field in params['rt_tddft']['field']:
+                field['geo_name'] = geo_name
+        else:
+            params['rt_tddft']['field']['geo_name'] = geo_name
 
     theory, task = _get_task(params)
     label = params.get('label', 'nwchem')

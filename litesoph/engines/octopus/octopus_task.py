@@ -93,8 +93,6 @@ class OctopusTask(Task):
                 ) -> None:  
         super().__init__(lsconfig, task_info, dependent_tasks)
 
-        if not self.task_name in self.implemented_task: 
-            raise TaskNotImplementedError(f'{self.task_name} is not implemented.')
         if dependent_tasks:
             self.dependent_tasks = dependent_tasks
 
