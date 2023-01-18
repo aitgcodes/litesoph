@@ -1610,8 +1610,10 @@ class JobSubPage(ttk.Frame):
         self.save_job_button = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = save_job_script)
         self.save_job_button['font'] = myfont()
         self.save_job_button.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
-
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command= submit_job)
+        import threading
+        thread_cmd=threading.Thread(target=submit_job).start()
+        
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command= thread_cmd)
         self.run_button['font'] = myfont()
         self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)        
 
