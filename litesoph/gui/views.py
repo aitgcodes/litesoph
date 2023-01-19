@@ -2702,25 +2702,35 @@ class LaserDesignPage(View):
         else:
            laser_input.update({
                     "tin" : input_dict.get("time_origin")*as_to_au,
-                })  
+                }) 
+        return laser_input
 
     def get_masking_parameters(self, input_dict:dict):
-        mask_input = {
+        axis_name_var_map = {
+            "X": 0,
+            "Y": 1,
+            "Z": 2}
+        if input_dict.get('masking', False) is False:
+            mask_input = None
+        else:
+            mask_input = {
             "Type": input_dict.get("mask_type"),            
             "Boundary": input_dict.get("boundary_type")
             }
             
-        if input_dict.get("mask_type") == 'Plane':
-            mask_input.update({"Axis": input_dict.get("mask_plane:axis"),
-                                "X0"  : input_dict.get("mask_plane:origin")})
-        else:
-            mask_input.update({"Radius" : input_dict.get("mask_sphere:radius"),
-                            "Centre":[input_dict.get("mask_sphere:origin_x"),
-                                    input_dict.get("mask_sphere:origin_y"),
-                                    input_dict.get("mask_sphere:origin_z")]})
-        if input_dict.get("boundary_type") == 'Smooth':
-            mask_input.update({"Rsig" : input_dict.get("r_sig")})
+            if input_dict.get("mask_type") == 'Plane':
+                axis_name = input_dict.get("mask_plane:axis")
+                mask_input.update({"Axis": axis_name_var_map.get(axis_name),
+                                    "X0"  : input_dict.get("mask_plane:origin")})
+            else:
+                mask_input.update({"Radius" : input_dict.get("mask_sphere:radius"),
+                                "Centre":[input_dict.get("mask_sphere:origin_x"),
+                                        input_dict.get("mask_sphere:origin_y"),
+                                        input_dict.get("mask_sphere:origin_z")]})
+            if input_dict.get("boundary_type") == 'Smooth':
+                mask_input.update({"Rsig" : input_dict.get("r_sig")})
         return mask_input
+
 
     def get_parameters(self):            
         # Combined entries for both laser design and masking
