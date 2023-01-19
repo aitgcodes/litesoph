@@ -839,9 +839,13 @@ class LaserDesignController:
                     self.laser_plot_view.tree.insert('', str(i), str(system_name), text=str(system_name))
 
         if len(self.laser_plot_view.tree.get_children()) == 1:
-            self.laser_plot_view.widget_frame.grid_remove()
+            self.laser_plot_view.label_delay.grid_remove()
+            self.laser_plot_view.entry_delay.grid_remove()
+
         else:
-            self.laser_plot_view.widget_frame.grid()
+            self.laser_plot_view.label_delay.grid()
+            self.laser_plot_view.entry_delay.grid()
+            # self.laser_plot_view.widget_frame.grid()
 
     def _on_plottting(self, *_):
         """ On Plotting Button: Shows toplevel for plotting
