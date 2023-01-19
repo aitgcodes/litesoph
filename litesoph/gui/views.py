@@ -2490,7 +2490,11 @@ class TDPage(View):
         return td_input
 
     def set_parameters(self, default_param_dict:dict):
-        pass
+        """To update parameters of laser-td page"""
+        from litesoph.gui.defaults_handler import update_td_laser_defaults
+        default_gui_dict = update_td_laser_defaults(default_param_dict)
+        self.inp.init_widgets(fields=self.inp.fields,
+                        ignore_state=False,var_values=default_gui_dict)
 
 
 class LaserDesignPage(View):
@@ -2732,8 +2736,12 @@ class LaserDesignPage(View):
             param_dict.update({'masking': masking_dict})       
         return param_dict    
 
-    def get_td_param(self):
-        pass
+    def set_parameters(self, default_param_dict:dict):
+        """To update parameters of laser-design page"""
+        from litesoph.gui.defaults_handler import update_laser_defaults
+        default_gui_dict = update_laser_defaults(default_param_dict)
+        self.inp.init_widgets(fields=self.inp.fields,
+                        ignore_state=False,var_values=default_gui_dict)
 
 class LaserPlotPage(tk.Toplevel):
 

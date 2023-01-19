@@ -96,4 +96,102 @@ def update_td_delta_defaults(td_default:dict):
 
 def update_td_laser_defaults(td_default:dict):
     #TODO: update widget defined input defaults to set initial set of param
-    pass
+    spectrum_check = False
+    ksd_check = False
+    population_check = False
+    if "spectrum" in td_default.get('properties'):
+        spectrum_check = True
+    if "ksd" in td_default.get('properties'):
+        ksd_check = True
+    if "mo_population" in td_default.get('properties'):
+        population_check = True
+    
+    gui_default_dict = {
+        'laser_strength': td_default.get('strength'), 
+        'time_step': td_default.get('time_step'),
+        'number_of_steps': td_default.get('number_of_steps'),
+        'output_freq': td_default.get('output_freq'),
+        "spectrum": spectrum_check,
+        "ksd": ksd_check,
+        "mo_population": population_check,        
+    }
+    return gui_default_dict
+
+def update_laser_defaults(td_default:dict):
+    # updates widget defined input defaults to set initial set of param
+    axis_name_var_map = {
+            "0": "X",
+            "1": "Y",
+            "2": "Z"}
+    gui_default_dict = {
+        'log_val': td_default.get('inval'),
+        'fwhm': td_default.get('fwhm'),
+        'freq': td_default.get('frequency'),
+    }
+    masking_default = {}
+
+    pump_probe_tag = td_default.get('tag')
+    laser_type = td_default.get('type')
+    time_origin = td_default.get('tin') # in au
+    strength = td_default.get('strength')
+    if pump_probe_tag is not None:
+        gui_default_dict.update({'pump-probe_tag': pump_probe_tag})
+    if laser_type == "delta":
+        gui_default_dict.update({'laser_type': "Delta Pulse"})
+    elif laser_type == "gaussian":
+        gui_default_dict.update({'laser_type': "Gaussian Pulse"})
+
+    pol_list = td_default.get('polarization')
+    if pol_list == [1,0,0] :
+        pol_dir = "X"
+    elif pol_list == [0,1,0] :
+        pol_dir = "Y"
+    elif pol_list == [0,0,1] :
+        pol_dir = "Z"
+    gui_default_dict.update({"pol_dir": pol_dir})
+
+    if pump_probe_tag == "Probe":
+        gui_default_dict.update({"time_origin:probe": time_origin})
+    else:  
+        gui_default_dict.update({"time_origin": time_origin})
+
+    # TODO: Remove this condition for strength
+    if laser_type == "Delta":
+       gui_default_dict.update({"delta_strength": strength})
+    else:
+        gui_default_dict.update({"laser_strength": strength})
+
+    mask = td_default.get('mask')    
+    if mask is None:
+        masking_default ={"masking": False}
+    else:
+        if isinstance(mask, dict):            
+            type = mask.get("Type")
+            boundary = mask.get("Boundary")
+            masking_default.update(
+                {
+                "masking": True,
+                "mask_type":type,
+                "boundary_type": boundary,
+                }
+            )
+
+            if boundary == "Smooth":
+                masking_default.update({"r_sig": mask.get("Rsig")})
+
+            if type == "Plane":
+                axis_var = str(mask.get("Axis"))
+                masking_default.update({"mask_plane:axis": axis_name_var_map.get(axis_var),
+                                        "mask_plane:origin": mask.get("X0")
+                                    })
+            elif mask.get("Type") == "Sphere":
+                centre = mask.get("Centre")
+                masking_default.update({
+                    "mask_sphere:radius": mask.get("Radius"),
+                    "mask_sphere:origin_x": centre[0],
+                    "mask_sphere:origin_y": centre[1],
+                    "mask_sphere:origin_z": centre[2],
+                })
+
+    gui_default_dict.update(masking_default)
+    return gui_default_dict
