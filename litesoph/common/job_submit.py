@@ -289,32 +289,72 @@ def rsync_cmd(ruser, rhost, port, password, source_dir, dst_dir,include=None, ex
     
     return (error, message)
 
-def execute_rsync(cmd,passwd, timeout=3600):
-    intitial_response = ['Are you sure', 'password:', pexpect.EOF]
+def execute_rsync(cmd,passwd, timeout=None):
+    intitial_response = ['Are you sure', 'assword','[#\$] ', pexpect.EOF]
     
     ssh = pexpect.spawn(cmd,timeout=timeout)
-    i = ssh.expect(intitial_response, timeout=10)
+    i = ssh.expect(intitial_response)
     if i == 0 :
         T = ssh.read(100)
         ssh.sendline('yes')
-        ssh.expect('password:', Timeout=10)
+        ssh.expect('assword:')
         ssh.sendline(passwd)
     elif i == 1:
         ssh.sendline(passwd)
+    elif i==2:
+        print('Connected Successfully.')
+        prompt = ssh.after
+        print('Shell Command Prompt:', prompt.decode(encoding='utf-8'))
     else:
         str1 = str(ssh.before)
         return (-3, 'Error: Unknown:'+ str1)
 
-    possible_response = ['password:', pexpect.EOF]
-    i = ssh.expect(possible_response, timeout=5)
+    possible_response = ['assword:', pexpect.EOF]
+    i = ssh.expect(possible_response)
 
     if i == 0:
         return (-4, "Error: Incorrect password.")
     else:
         output = str(ssh.before)
-        for text in ssh.before.decode(encoding='utf-8').split('\n'):
+        for text in ssh.before.decode(encoding='utf-8',errors='ignore').split('\n'):
             print(text)
         return (0, output)
     
+######## RUNTIME QUERY #############
+
+def runtime_query_fileinfo(host,username,port,passwd,remote_proj_dir):   
+    """
+    """
+    print("\nRuntime Query Activated for File Information!!")
+    cmd_filesize=f'"cd {remote_proj_dir}; find "$PWD"  -type f -exec du --human {{}} + | sort --human --reverse"'
+    cmd_filesize=f'ssh -p {port} {username}@{host} {cmd_filesize}'
+    
+    (error, message)= execute_rsync(cmd_filesize,passwd, timeout=None)        
+    return (error, message)
+    
+def get_job_status_remote(host,username,port,passwd,job_name):   
+    """
+    get the running status of submitted job at remote
+    """
+    print("\nRuntime Query Activated !!")
+    cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+    cmd_check_running_process=f'ssh -p {port} {username}@{host} {cmd_check_running_process}'    
+    (error, message)=execute_rsync(cmd_check_running_process, passwd)
         
+    return (error, message)
+    
+def get_job_status_local(host,username,port,passwd,job_name):   
+    """
+    get the running status of submitted job at remote
+    """
+    print("\nRuntime Query Activated !!")
+    cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+    result=execute(cmd_check_running_process, passwd)
+    error=result[cmd_check_running_process]['error']    
+    message=result[cmd_check_running_process]['output']    
+
+    return (error, message)
+
+
+
        
