@@ -66,9 +66,9 @@ class SubmitNetwork:
                     password: str,
                     port: int,
                     remote_path: str,
-                    pkey_file=pathlib.Path('/home/anandsahu/.ssh/id_rsa'), # add a variable to take pkey_file
-                    ls_file_mgmt_mode=True,
-                    passwordless_ssh=False) -> None: # add a boolean variable for passwordless_ssh 
+                    pkey_file:pathlib.Path, # add a variable to take pkey_file
+                    ls_file_mgmt_mode:bool,
+                    passwordless_ssh:bool) -> None: # add a boolean variable for passwordless_ssh 
 
         self.task = task
         self.task_info = task.task_info
