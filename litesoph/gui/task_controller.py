@@ -11,6 +11,7 @@ from litesoph.common import models as m
 from litesoph.gui.models.gs_model import choose_engine
 from litesoph.common.decision_tree import EngineDecisionError
 
+
 class TaskController:
 
     def __init__(self, workflow_controller, app) -> None:
@@ -138,20 +139,47 @@ class TaskController:
             return
        
         self.job_sub_page.back2main.config(command= self.workflow_controller.show_workmanager_page)
-        self.job_sub_page.view_output_button.config(command= self._on_out_local_view_button)
-        self.job_sub_page.check_file_status()
-        # import threading
-        # job_run2=threading.Thread(target=self._run_local).start()        
-
-        # self.job_sub_page.job_run_local1(self._run_local)
-        
+        self.job_sub_page.view_output_button.config(command= self._on_out_local_view_button)        
         self.job_sub_page.show_run_local(self._on_create_local_job_script,
                                         self._on_save_job_script,
                                         self._run_local)
+        self.job_sub_page.check_file_status(self._on_check_file_status)
+        self.job_sub_page.check_job_status(self._on_check_job_status)
+        
 
         
         self.job_sub_page.set_run_button_state('disable')
         self.job_sub_page.tkraise()
+
+    def _on_check_file_status(self):
+        try:
+            # log_txt = self.task_info.path
+            print("\nself.task_info",self.task_info)
+
+            msg=self.task.sumbit_local.get_fileinfo_local()
+        
+        
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message="Job not completed.")
+            return
+            
+        self.view_panel.insert_text(msg, 'disabled')
+
+    def _on_check_job_status(self):
+        try:
+            # log_txt = self.task_info.path
+            print("\nself.task_info",self.task_info.local)
+            job_id=self.task_info.local.get('pid')
+            err,msg=self.task.sumbit_local.get_job_status_local(job_id)
+                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message="Job not completed.")
+            return
+        messagebox.showinfo(title='Info', message=msg)
+        
+        # self.view_panel.insert_text(msg, 'disabled')
+    
+        
 
     def _on_plot_button(self, *_):
         
@@ -218,6 +246,7 @@ class TaskController:
             return
             
         self.view_panel.insert_text(log_txt, 'disabled')
+
 
 
     def _run_network(self):

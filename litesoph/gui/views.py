@@ -1594,10 +1594,16 @@ class JobSubPage(ttk.Frame):
         self.back2main['font'] = myfont()
         self.back2main.pack(side= tk.RIGHT)
 
-    def check_file_status(self):
-        self.job_status_button = tk.Button(self.Frame2, text="Check Job Status",activebackground="#78d6ff",command='')
+    def check_file_status(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame2, text="Check File Status",activebackground="#78d6ff",command=cmd)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+
+    def check_job_status(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame2, text="Check Job Status",activebackground="#78d6ff",command=cmd)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
+
 
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
@@ -1618,14 +1624,7 @@ class JobSubPage(ttk.Frame):
         self.progressbar.start()
         submit_thread.start()
         self.after(20, self.check_submit_thread)
-
-    # def job_run_local1(self,job):
-    #     # job_run2=threading.Thread(target=job_run)        
-    #     job_run=lambda:self.start_submit_thread(job)
-    #     self.run_button = tk.Button(self.Frame1, text="Run Job ",activebackground="#78d6ff",command= job_run)
-    #     self.run_button['font'] = myfont()
-    #     self.run_button.grid(row=3, column=0,sticky='nsew', pady=3)        
-
+    
     def show_run_local(self,
                         generate_job_script: callable,
                         save_job_script: callable,
@@ -1665,7 +1664,6 @@ class JobSubPage(ttk.Frame):
         self.save_job_button['font'] = myfont()
         self.save_job_button.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)        
         
-        # thread_cmd=threading.Thread(target=run_job).start()        
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
         self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)        

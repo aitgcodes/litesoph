@@ -18,26 +18,27 @@ def execute(command, directory):
 
     for cmd in command:
         out_dict = result[cmd] = {}
-        print("Job started with command:", cmd)
+        # print("Job started with command:", cmd)
         try:
             job = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
             output = job.communicate()
         except Exception:
             raise 
         else:
-            print("returncode =", job.returncode)
+            # print("returncode =", job.returncode)
     
             if job.returncode != 0:
-                print("Error...")
+                # print("Error...")
                 for line in output[1].decode(encoding='utf-8').split('\n'):
                     print(line)
             else:
-                print("job done..")
+                # print("job done..")
                 if output[0]:
-                    print("Output...")
+                    # print("Output...")
                     for line in output[0].decode(encoding='utf-8').split('\n'):
                         print(line)
             out_dict['returncode'] = job.returncode
+            out_dict['pid'] = job.pid
             out_dict['output'] = output[0].decode(encoding='utf-8')
             out_dict['error'] = output[1].decode(encoding='utf-8')
     return result
@@ -56,18 +57,34 @@ class SubmitLocal:
         result = execute(cmd, self.project_dir)
         self.task_info.local.update({'returncode': result[cmd]['returncode'],
                                         'output' : result[cmd]['output'],
-                                        'error':result[cmd]['error']})
+                                        'error':result[cmd]['error'],
+                                        'pid':result[cmd]['pid']})
+        print(" 'pid':result[cmd]['pid']}: ",result[cmd]['pid'])
+        print("run_job(self, cmd) :")
     
-    def get_job_status_local(self):   
+    def get_job_status_local(self,job_id):   
         """
         get the running status of submitted job at remote
         """
-        job_name=''
-        cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        print("job id: ",job_id)
+        cmd_check_running_process=f"ps aux | grep {job_id}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
         result=execute(cmd_check_running_process,self.project_dir)
         error=result[cmd_check_running_process]['error']    
-        message=result[cmd_check_running_process]['output']    
+        message=result[cmd_check_running_process]['output']         
         return (error, message)
+    
+    def get_fileinfo_local(self):   
+        """
+        get the generated file information during runtime
+        """
+        # cmd_filesize=f'"find {self.project_dir}  -type f -exec du --human {{}} + | sort --human --reverse"'
+        cmd_filesize=f'find {self.project_dir}  -type f -exec du --human {{}} '
+
+        result=execute(cmd_filesize,self.project_dir)
+        error=result[cmd_filesize]['error']    
+        message=result[cmd_filesize]['output']            
+        return (error, message)
+    
 
 class SubmitNetwork:
 
