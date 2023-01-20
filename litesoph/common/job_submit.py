@@ -27,16 +27,16 @@ def execute(command, directory):
         else:
             # print("returncode =", job.returncode)
     
-            if job.returncode != 0:
-                # print("Error...")
-                for line in output[1].decode(encoding='utf-8').split('\n'):
-                    print(line)
-            else:
-                # print("job done..")
-                if output[0]:
-                    # print("Output...")
-                    for line in output[0].decode(encoding='utf-8').split('\n'):
-                        print(line)
+            # if job.returncode != 0:
+            #     # print("Error...")
+            #     for line in output[1].decode(encoding='utf-8').split('\n'):
+            #         print()
+            # else:
+            #     # print("job done..")
+            #     if output[0]:
+            #         # print("Output...")
+            #         for line in output[0].decode(encoding='utf-8').split('\n'):
+            #             print()
             out_dict['returncode'] = job.returncode
             out_dict['pid'] = job.pid
             out_dict['output'] = output[0].decode(encoding='utf-8')
@@ -59,8 +59,6 @@ class SubmitLocal:
                                         'output' : result[cmd]['output'],
                                         'error':result[cmd]['error'],
                                         'pid':result[cmd]['pid']})
-        print(" 'pid':result[cmd]['pid']}: ",result[cmd]['pid'])
-        print("run_job(self, cmd) :")
     
     def get_job_status_local(self,job_id):   
         """
@@ -78,7 +76,7 @@ class SubmitLocal:
         get the generated file information during runtime
         """
         # cmd_filesize=f'"find {self.project_dir}  -type f -exec du --human {{}} + | sort --human --reverse"'
-        cmd_filesize=f'find {self.project_dir}  -type f -exec du --human {{}} '
+        cmd_filesize=f'find {self.project_dir}  -type f -exec du --human {{}} + | sort --human --reverse'
 
         result=execute(cmd_filesize,self.project_dir)
         error=result[cmd_filesize]['error']    

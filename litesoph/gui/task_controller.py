@@ -153,22 +153,15 @@ class TaskController:
 
     def _on_check_file_status(self):
         try:
-            # log_txt = self.task_info.path
-            print("\nself.task_info",self.task_info)
-
             msg=self.task.sumbit_local.get_fileinfo_local()
-        
-        
+                
         except TaskFailed:
             messagebox.showinfo(title='Info', message="Job not completed.")
-            return
-            
+            return            
         self.view_panel.insert_text(msg, 'disabled')
 
     def _on_check_job_status(self):
         try:
-            # log_txt = self.task_info.path
-            print("\nself.task_info",self.task_info.local)
             job_id=self.task_info.local.get('pid')
             err,msg=self.task.sumbit_local.get_job_status_local(job_id)
                 
