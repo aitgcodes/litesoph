@@ -1044,10 +1044,16 @@ def add_delay_to_lasers(system_1:dict, system_2:dict, delay:float):
         lasers_sys2.append(laser_set[0])
 
     last_params_sys1 = lasers_sys1[-1]
+    first_params_sys2 = lasers_sys2[0]
+    # Peak centre of last laser in system 1 (in au)
     time0_ref_1 = last_params_sys1.get('time0')
-    delay_to_add = float(time0_ref_1) + delay
+    # Peak centre of first laser in system 2 (in au)
+    time0_ref_2 = first_params_sys2.get('time0')
 
-    for laser_param in lasers_sys2:
+    # Delay added for Probe system(in au)
+    delay_to_add = float(time0_ref_1) + float(delay)- float(time0_ref_2)
+
+    for i,laser_param in enumerate(lasers_sys2):
         _time0 = float(laser_param.get('time0'))
         laser_param['time0'] = _time0 + delay_to_add
     return (lasers_sys1, lasers_sys2)
