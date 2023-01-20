@@ -323,7 +323,7 @@ def format_gs_input(gen_dict: dict) -> dict:
     
 
 def update_td_input(param):
-    pol = param.pop('polarization', None)
+    pol = param.get('polarization', None)
     lasers = param.get('laser',None)
     #TODO: update for multiple lasers
     if lasers:
