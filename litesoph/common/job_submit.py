@@ -58,6 +58,19 @@ class SubmitLocal:
         self.task_info.local.update({'returncode': result[cmd]['returncode'],
                                         'output' : result[cmd]['output'],
                                         'error':result[cmd]['error']})
+    
+    def get_job_status_local(self):   
+        """
+        get the running status of submitted job at remote
+        """
+        job_name=''
+        cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        result=execute(cmd_check_running_process,self.project_dir)
+        error=result[cmd_check_running_process]['error']    
+        message=result[cmd_check_running_process]['output']    
+        return (error, message)
+
+
 
 class SubmitNetwork:
 
@@ -137,6 +150,29 @@ class SubmitNetwork:
         """returns true if the job is completed in remote machine"""
         rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
         return self.network_sub.check_file(str(rpath))
+
+    def get_fileinfo_remote(self):   
+        """
+        get the generated file information during runtime
+        """
+        cmd_filesize=f'"cd {self.remote_path}; find "$PWD"  -type f -exec du --human {{}} + | sort --human --reverse"'
+        cmd_filesize=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_filesize}'        
+        (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)        
+        return (error, message)
+        
+    def get_job_status_remote(self):   
+        """
+        get the running status of submitted job at remote
+        """
+        job_name=''
+        cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
+        (error, message)=execute_rsync(cmd_check_running_process, self.password)            
+        return (error, message)
+
+    def kill_job_remote(self):
+        pass
+    
 
 class NetworkJobSubmission:
     """This class contain methods connect to remote cluster through ssh and perform common
