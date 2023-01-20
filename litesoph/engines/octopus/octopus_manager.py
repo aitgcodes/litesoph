@@ -33,7 +33,7 @@ class OCTOPUSManager(EngineManager):
         }
         self.check_task(name)
 
-        get_func = task_default_parameter_map.get(name)
+        get_func = task_default_parameter_map.get(name, dict)
         if name == tt.RT_TDDFT:
             gs_info = dependent_tasks[0]
             if gs_info:
