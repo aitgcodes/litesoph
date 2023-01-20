@@ -511,6 +511,7 @@ class TDPageController(TaskController):
                     "exp_type" : td_param_stored.get("exp_type")
                 }
 
+                # TODO: replace set_parameters
                 self.task_view.inp.init_widgets(fields=self.task_view.inp.fields,
                             ignore_state=False, var_values=_gui_dict)
 
@@ -570,40 +571,82 @@ class TDPageController(TaskController):
         # Introduce delay when required
         
         self.task_info = self.workflow_manager.current_task_info
-
         self.task_info.param.clear()
-
         inp_dict = self.task_view.get_parameters()
 
         if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
-            pulses = self.laser_data['State Preparation']['pulses']
+            lasers = copy.deepcopy(self.laser_data['State Preparation']['lasers'])
+            pulses = copy.deepcopy(self.laser_data['State Preparation']['pulses'])
             laser_sets = extract_lasers_from_pulses(pulses)
             laser_data = []
-            for laser in laser_sets:
-                laser_data.append(laser[0])  
+            for i,laser in enumerate(laser_sets):
+                laser_dict = laser[0]
+                laser_dict.update({'mask': lasers[i].get('mask', None)})
+                laser_data.append(laser_dict)  
             # laser_data = extract_lasers_from_pulses(pulses)
             inp_dict.update({'laser': laser_data})
-        
+
+        # adding masking in pump-probe
         else:
             try:
                 delay = self.task_view.inp.variable["delay_values"].get()
             except tk.TclError:
-                pulses = self.laser_data['Pump']['pulses']
+                # lasers
+                lasers = copy.deepcopy(self.laser_data['Pump']['lasers'])
+                pulses = copy.deepcopy(self.laser_data['Pump']['pulses'])
                 laser_sets = extract_lasers_from_pulses(pulses)
                 lasers_list = []
-                for laser in laser_sets:
-                    lasers_list.append(laser[0]) 
+                for i,laser in enumerate(laser_sets):
+                    laser_dict = laser[0]
+
+                    laser_dict.update({'mask': lasers[i].get('mask', None)})
+                    lasers_list.append(laser_dict)  
+                    # lasers_list.append(laser[0]) 
                 delay = "no_probe"
             else:
-                lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
+                pump_lasers = copy.deepcopy(self.laser_data['Pump']['lasers'])
+                probe_lasers = copy.deepcopy(self.laser_data['Probe']['lasers'])
+                lasers = [] 
+                lasers.extend(pump_lasers)
+                lasers.extend(probe_lasers)
+                pump_data = copy.deepcopy(self.laser_data['Pump'])
+                probe_data = copy.deepcopy(self.laser_data['Probe'])
+                laser_tuple = add_delay_to_lasers(pump_data, probe_data,float(delay))
+
+                pump_sets = laser_tuple[0]
+                probe_sets = laser_tuple[1]
+                laser_sets = []
+                laser_sets.extend(pump_sets)
+                laser_sets.extend(probe_sets)
                 
                 lasers_list = []
-                for laser in lasers:
-                    lasers_list.extend(laser)
+                for i,laser in enumerate(laser_sets):
+                    laser_dict = laser
+                    laser_dict.update({'mask': lasers[i].get('mask', None)})
+                    lasers_list.append(laser_dict)  
 
             inp_dict.update({'laser': lasers_list,
                             'delay': delay})
+        # else:
+        #     try:
+        #         delay = self.task_view.inp.variable["delay_values"].get()
+        #     except tk.TclError:
+        #         pulses = self.laser_data['Pump']['pulses']
+        #         laser_sets = extract_lasers_from_pulses(pulses)
+        #         lasers_list = []
+        #         for laser in laser_sets:
+        #             lasers_list.append(laser[0]) 
+        #         delay = "no_probe"
+        #     else:
+        #         lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
+                
+        #         lasers_list = []
+        #         for laser in lasers:
+        #             lasers_list.extend(laser)
 
+        #     inp_dict.update({'laser': lasers_list,
+        #                     'delay': delay})     
+        
         check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
         if not check:
             return
@@ -660,7 +703,7 @@ class LaserDesignController:
     def assign_laser_profile_time(self):
         """Sets td simulation time to laser profile time(in as)"""
         time_step = self.td_data.get('time_step')
-        num_steps = self.td_data.get('num_steps')
+        num_steps = self.td_data.get('number_of_steps')
         self.total_time = float(time_step)* num_steps
 
     def bind_events_and_update_default_view(self):
@@ -720,18 +763,18 @@ class LaserDesignController:
         else:
             pass              
 
-    def add_lasers_and_update_tree(self, index=None):
-    
+    def add_lasers_and_update_tree(self, index=None):    
         # GUI inputs for laser page
-        laser_gui_inp = self.view.inp.get_values()
-        # Inputs for laser design
-        laser_design_inp = self.view.get_laser_details()[0]
-
+        laser_gui_inp = self.view.get_parameters()
         # Laser design model
-        laser_design_model = self.get_laser_design_model(laser_design_inp)
+        laser_design_model = self.get_laser_design_model(laser_gui_inp)
         pulse = laser_design_model.pulse_info
 
-        _tag = str(laser_design_inp.get('tag', 'State Preparation'))
+        tag = laser_gui_inp.get('tag', None)
+        if tag is None:
+            _tag = 'State Preparation'
+        else:
+            _tag = tag
         self.laser_info.add_laser(system_key=_tag, laser_param= laser_gui_inp, index=index)
         self.laser_info.add_pulse(system_key=_tag, laser_pulse=pulse, index=index)
         self.update_labels_on_tree()  
@@ -760,7 +803,9 @@ class LaserDesignController:
     def populate_laser_details(self, tag:str, index:int):        
         lasers = self.laser_info.data[tag]['lasers']
         laser_selected = lasers[index]
-        self.view.inp.init_widgets(var_values=laser_selected)
+        # TODO: replace set_parameters
+        self.view.set_parameters(laser_selected)
+        # self.view.inp.init_widgets(var_values=laser_selected)
 
     def _on_remove_laser(self, *_):
         """ Removes the laser info data"""
@@ -839,9 +884,13 @@ class LaserDesignController:
                     self.laser_plot_view.tree.insert('', str(i), str(system_name), text=str(system_name))
 
         if len(self.laser_plot_view.tree.get_children()) == 1:
-            self.laser_plot_view.widget_frame.grid_remove()
+            self.laser_plot_view.label_delay.grid_remove()
+            self.laser_plot_view.entry_delay.grid_remove()
+
         else:
-            self.laser_plot_view.widget_frame.grid()
+            self.laser_plot_view.label_delay.grid()
+            self.laser_plot_view.entry_delay.grid()
+            # self.laser_plot_view.widget_frame.grid()
 
     def _on_plottting(self, *_):
         """ On Plotting Button: Shows toplevel for plotting

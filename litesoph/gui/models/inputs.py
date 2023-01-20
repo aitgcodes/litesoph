@@ -801,73 +801,6 @@ laser_td_input = {
                 "switch": lambda k:
                 k.get("exp_type") == "Pump-Probe"
                 },
-
-                
-
-        # "masking_option": {
-        #         "tab":"External Fields",
-        #         "group": "Choose Options",
-        #         "text": "Masking",
-        #         "help": None,
-        #         "widget": Checkbutton,
-        #         "default": False,
-                
-        #         }, 
-        # "log_val": {
-        #         "tab":"External Fields",
-        #         "group": "laser details",
-        #         "text": "-log((E at tin)/Eo)",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 6,
-        #         "switch": lambda k:
-        #         k.get("pump_probe", False) is False
-        #         },
-        # "laser_strength": {
-        #         "tab":"External Fields",
-        #         "group": "laser details",
-        #         "text": "Laser Strength in a.u (Eo)",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 1e-05,
-        #         "switch": lambda k:
-        #         k.get("pump_probe", False) is False
-        #         },
-        # "fwhm": {
-        #         "tab":"External Fields",
-        #         "group": "laser details",
-        #         "text": "Full Width Half Max (FWHM in eV)",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 1,
-        #         "switch": lambda k:
-        #         k.get("pump_probe", False) is False
-        #         },
-        # "freq": {
-        #         "tab":"External Fields",
-        #         "group": "laser details",
-        #         "text": "Frequency (in eV)",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0.0,
-        #         "switch": lambda k:
-        #         k.get("pump_probe", False) is False
-        #         },
-        # "laser_time": {
-        #         "tab":"External Fields",
-        #         "group": "laser details",
-        #         "text": "Laser profile time (in femtosecond)",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 10,
-        #         "switch": lambda k:
-        #         k.get("pump_probe", False) is False
-        #         }, 
         "time_step": {
                 "tab":"Simulation Parameters",
                 "group": "simulation ",
@@ -877,7 +810,7 @@ laser_td_input = {
                 "type": float,
                 "default": 10,
                 }, 
-        "num_steps": {
+        "number_of_steps": {
                 "tab":"Simulation Parameters",
                 "group": "simulation ",
                 "text": "Number of Steps",
@@ -895,16 +828,6 @@ laser_td_input = {
                 "type": int,
                 "default": 10
                 },
-        # "pol_dir": {
-        #         "tab":"Simulation Parameters",
-        #         "group": "simulation ",
-        #         "text": "Polarization Direction",
-        #         "help": None,
-        #         "widget": Combobox,
-        #         "values": ["X","Y", "Z"],
-        #         "type": str
-        #         },
-        
         "spectrum": {
                 "tab":"Properties",
                 "group": "Observables to extract",
@@ -970,17 +893,6 @@ laser_design_input = {
                 "switch": lambda k:
                 k.get("pump-probe_tag") in ["Pump", None]
                 },
-        # "time_origin:pump": {
-        #         "tab":"Laser Design",
-        #         "group": "laser details",
-        #         "text": "Time Origin in as",
-        #         "help": None,
-        #         "widget": tk.Entry,
-        #         "type": float,
-        #         "default": 0,
-        #         "switch": lambda k:
-        #         k.get("pump-probe_tag") == "Pump"
-        #         },
         "time_origin:probe": {
                 "tab":"Laser Design",
                 "group": "laser details",
@@ -1057,14 +969,6 @@ laser_design_input = {
                 "switch": lambda k:
                 k.get("laser_type") == "Delta Pulse"
                 },
-        # "masking_option": {
-        #         "tab":"Masking",
-        #         # "group": "Choose Options",
-        #         "text": "Masking",
-        #         "help": None,
-        #         "widget": Checkbutton,
-        #         "default": False,                
-        #         },
         "masking":{
                 "tab":"Masking",
                 "group": "Choose Masking",

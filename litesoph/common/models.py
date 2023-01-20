@@ -206,13 +206,12 @@ class LaserDesignPlotModel:
 
         # Collecting laser parameters
         tag = laser_param.get('tag', None)
-        t_in=laser_param.get('tin') # in au unit
-        pol_list = laser_param.get('polarization')
-        strength_au = laser_param.get('strength')
-        
-        # Converting polarization direction and Update
-        pol_var = v.get_pol_var(pol_list)
-        laser_param.update({'polarization': pol_var})           
+        pol_var = laser_param.get('polarization')
+        pol_list = v.get_pol_list(pol_var)
+
+        # delay wrt the time origin of first laser 
+        # delay_time_fs = laser_param['delay_time']          
+        strength_au = laser_param['strength']
 
         if laser_type == "gaussian":
             # Collecting parameter specific to Gaussian
