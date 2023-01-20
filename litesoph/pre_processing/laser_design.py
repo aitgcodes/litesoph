@@ -22,19 +22,20 @@ from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV, au_to_fs
 # print("pulse centre :", t0)
 
 def laser_design(inval, tin, fwhm):
+    """ Calculates half-width and centre of the pulse in time space
+    \n given inval: Relative strength at initial time
+    \n tin(in au): Time origin
+    \n fwhm(in eV): Full Width Half Maximum"""
+
     import math
-    # tin = 0.0 
     fwhm = fwhm*eV_to_au
-    #loginval = (-1)*(math.log(float(inval)/float(strength)))
     tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of au
     t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(math.log(10)*inval)  # in units of au
     
-    #tau_0 = tau_0*0.2418                              # converted from fms to eV
-    #tau_0 = fs_to_eV/tau_0                           # converted from fms to eV
     tau_0 = tau_0
     laser = {}
     
-    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                     
+    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                   
     laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of au
     return(laser)
 
