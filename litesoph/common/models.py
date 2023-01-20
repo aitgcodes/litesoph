@@ -212,6 +212,7 @@ class LaserDesignPlotModel:
         # delay wrt the time origin of first laser 
         # delay_time_fs = laser_param['delay_time']          
         strength_au = laser_param['strength']
+        t_in = laser_param['tin']
 
         if laser_type == "gaussian":
             # Collecting parameter specific to Gaussian
