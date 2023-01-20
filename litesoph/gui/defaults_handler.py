@@ -107,7 +107,6 @@ def update_td_laser_defaults(td_default:dict):
         population_check = True
     
     gui_default_dict = {
-        'laser_strength': td_default.get('strength'), 
         'time_step': td_default.get('time_step'),
         'number_of_steps': td_default.get('number_of_steps'),
         'output_freq': td_default.get('output_freq'),
@@ -117,23 +116,23 @@ def update_td_laser_defaults(td_default:dict):
     }
     return gui_default_dict
 
-def update_laser_defaults(td_default:dict):
-    # updates widget defined input defaults to set initial set of param
-    axis_name_var_map = {
+def update_laser_defaults(laser_default:dict):
+    """updates widget defined input defaults to set initial set of param"""
+    mask_axis_name_var_map = {
             "0": "X",
             "1": "Y",
             "2": "Z"}
     gui_default_dict = {
-        'log_val': td_default.get('inval'),
-        'fwhm': td_default.get('fwhm'),
-        'freq': td_default.get('frequency'),
+        'log_val': laser_default.get('inval'),
+        'fwhm': laser_default.get('fwhm'),
+        'freq': laser_default.get('frequency'),
     }
     masking_default = {}
 
-    pump_probe_tag = td_default.get('tag')
-    laser_type = td_default.get('type')
-    time_origin = td_default.get('tin') # in au
-    strength = td_default.get('strength')
+    pump_probe_tag = laser_default.get('tag')
+    laser_type = laser_default.get('type')
+    time_origin = laser_default.get('tin') # in au
+    strength = laser_default.get('strength')
     if pump_probe_tag is not None:
         gui_default_dict.update({'pump-probe_tag': pump_probe_tag})
     if laser_type == "delta":
@@ -141,13 +140,13 @@ def update_laser_defaults(td_default:dict):
     elif laser_type == "gaussian":
         gui_default_dict.update({'laser_type': "Gaussian Pulse"})
 
-    pol_list = td_default.get('polarization')
-    if pol_list == [1,0,0] :
-        pol_dir = "X"
-    elif pol_list == [0,1,0] :
-        pol_dir = "Y"
-    elif pol_list == [0,0,1] :
-        pol_dir = "Z"
+    pol_dir = laser_default.get('polarization')
+    # if pol_list == [1,0,0] :
+    #     pol_dir = "X"
+    # elif pol_list == [0,1,0] :
+    #     pol_dir = "Y"
+    # elif pol_list == [0,0,1] :
+    #     pol_dir = "Z"
     gui_default_dict.update({"pol_dir": pol_dir})
 
     if pump_probe_tag == "Probe":
@@ -161,7 +160,7 @@ def update_laser_defaults(td_default:dict):
     else:
         gui_default_dict.update({"laser_strength": strength})
 
-    mask = td_default.get('mask')    
+    mask = laser_default.get('mask')    
     if mask is None:
         masking_default ={"masking": False}
     else:
@@ -181,7 +180,7 @@ def update_laser_defaults(td_default:dict):
 
             if type == "Plane":
                 axis_var = str(mask.get("Axis"))
-                masking_default.update({"mask_plane:axis": axis_name_var_map.get(axis_var),
+                masking_default.update({"mask_plane:axis": mask_axis_name_var_map.get(axis_var),
                                         "mask_plane:origin": mask.get("X0")
                                     })
             elif mask.get("Type") == "Sphere":

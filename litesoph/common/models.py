@@ -309,9 +309,8 @@ class LaserDesignPlotModel:
 
         t_in=laser_param['tin'] # in au unit
         tag = laser_param.get('tag', None)
-        pol_list = laser_param.get('polarization')
-        pol_var = v.get_pol_var(pol_list)
-        laser_param.update({'polarization': pol_var})
+        pol_var = laser_param.get('polarization')
+        pol_list = v.get_pol_list(pol_var)
 
         # delay wrt the time origin of first laser 
         # delay_time_fs = laser_param['delay_time']          

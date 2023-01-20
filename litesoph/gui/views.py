@@ -2478,7 +2478,7 @@ class TDPage(View):
         td_input = {
             # 'polarization' : self.pol_list,
             'time_step' : gui_dict.get("time_step"),
-            'number_of_steps' : gui_dict.get("num_steps"),
+            'number_of_steps' : gui_dict.get("number_of_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
         }       
@@ -2609,96 +2609,38 @@ class LaserDesignPage(View):
     
     def select_button(self):
         self.event_generate('<<SelectLaser>>')
+ 
+    def get_laser_parameters(self, input_dict:dict):
+        """Gets the laser parameters from widgets in LaserDesign tab"""
+        from litesoph.utilities.units import as_to_au 
 
-    def get_tag(self):
-        gui_dict = self.inp.get_values()
-        laser_tag = gui_dict.get('pump-probe_tag')
-        if laser_tag not in ["Pump", "Probe"]:
-            return None
-        else:
-            return laser_tag 
-
-    def get_laser_details(self):
-        from litesoph.utilities.units import as_to_au
-
-        gui_dict = copy.deepcopy(self.inp.get_values())
-        tag_var =  self.get_tag()
-        pol_var = gui_dict.get("pol_dir")
-        self.pol_list = get_pol_list(pol_var)
-
-        laser_input = {}
-
-        laser_type = gui_dict.get('laser_type')
+        laser_type = input_dict.get('laser_type')
+        tag_var =  input_dict.get("pump-probe_tag")
+        pol_var = input_dict.get("pol_dir")
         if laser_type == "Gaussian Pulse":
             l_type = "gaussian"
-            strength = gui_dict.get("laser_strength")  
-            
         elif laser_type == "Delta Pulse":
-            l_type = "delta" 
-            strength = gui_dict.get("delta_strength")
-
-        laser_input.update({
+            l_type = "delta"
+        
+        laser_input = {
             "type": l_type,
-            "strength": strength  
-            })
-
-        laser_list = []
-        laser_input.update({
-            # "tin" : gui_dict.get("time_origin")*as_to_au,
-            "inval" :  gui_dict.get("log_val"),
-            "fwhm" :gui_dict.get("fwhm"),
-            "frequency" :  gui_dict.get("freq"),
-            'polarization': self.pol_list
-            # "delay_time" : 0        
-        })
+            "inval" :  input_dict.get("log_val"),
+            "strength": input_dict.get("laser_strength"),  
+            "fwhm" :input_dict.get("fwhm"),
+            "frequency" :  input_dict.get("freq"),
+            'polarization': pol_var
+        }
 
         if tag_var is not None:
             laser_input["tag"] = tag_var
             if tag_var == "Probe":
                 laser_input.update({
-                    "tin" : gui_dict.get("time_origin:probe")*as_to_au,
+                    "tin" : input_dict.get("time_origin:probe")*as_to_au,
                 })
             else:
                 laser_input.update({
-                            "tin" : gui_dict.get("time_origin")*as_to_au,
-                        })
-        else:
-            laser_input.update({
-                            "tin" : gui_dict.get("time_origin")*as_to_au,
-                        })
-        laser_list.append(laser_input)
-        return laser_list   
-        # return laser_input
- 
-    def get_laser_parmeters(self, input_dict:dict):
-        from litesoph.utilities.units import as_to_au 
-
-        laser_type = input_dict.get('laser_type')
-        tag_var =  input_dict.get("pump-probe_tag")
-
-        if laser_type == "Gaussian Pulse":
-            l_type = "gaussian"
-        elif laser_type == "Delta Pulse":
-            l_type = "delta" 
-        
-        laser_input = {
-            "tag": tag_var,
-            "type": l_type,
-            "inval" :  input_dict.get("log_val"),
-            "strength": input_dict.get("laser_strength"),  
-            "fwhm" :input_dict.get("fwhm"),
-            "frequency" :  input_dict.get("freq")
-        }
-
-        if tag_var is not None:
-            # if tag_var == "Pump":
-            #     laser_input.update({
-            #         "tin" : input_dict.get("time_origin:pump")*as_to_au,
-            #     })
-            if tag_var == "Probe":
-                laser_input.update({
-                    "tin" : input_dict.get("time_origin:probe")*as_to_au,
-                })
+                    "tin" : input_dict.get("time_origin")*as_to_au,
+                }) 
         else:
            laser_input.update({
                     "tin" : input_dict.get("time_origin")*as_to_au,
@@ -2706,10 +2648,13 @@ class LaserDesignPage(View):
         return laser_input
 
     def get_masking_parameters(self, input_dict:dict):
+        """Gets the masking parameters from widgets in Masking tab"""
+        
         axis_name_var_map = {
             "X": 0,
             "Y": 1,
             "Z": 2}
+
         if input_dict.get('masking', False) is False:
             mask_input = None
         else:
@@ -2733,21 +2678,21 @@ class LaserDesignPage(View):
 
 
     def get_parameters(self):            
-        # Combined entries for both laser design and masking
+        """Gets combined parameters for both laser design and masking"""
+
         gui_dict = copy.deepcopy(self.inp.get_values())
-
         # Collecting the laser and masking params
-        laser_dict = self.get_laser_parmeters(input_dict=gui_dict)
-
-        param_dict ={'laser': laser_dict}
-
+        laser_dict = self.get_laser_parameters(input_dict=gui_dict)
         if gui_dict.get('masking') is True:
             masking_dict = self.get_masking_parameters(input_dict=gui_dict)
-            param_dict.update({'masking': masking_dict})       
-        return param_dict    
+            laser_dict.update({'mask': masking_dict})       
+        else:
+            laser_dict.update({'mask': None})   
+        return laser_dict    
 
     def set_parameters(self, default_param_dict:dict):
         """To update parameters of laser-design page"""
+        
         from litesoph.gui.defaults_handler import update_laser_defaults
         default_gui_dict = update_laser_defaults(default_param_dict)
         self.inp.init_widgets(fields=self.inp.fields,
