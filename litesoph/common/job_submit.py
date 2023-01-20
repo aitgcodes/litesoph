@@ -9,7 +9,6 @@ import re
 from scp import SCPClient
 import pexpect
 
-
 def execute(command, directory):
     
     result = {}
@@ -69,8 +68,6 @@ class SubmitLocal:
         error=result[cmd_check_running_process]['error']    
         message=result[cmd_check_running_process]['output']    
         return (error, message)
-
-
 
 class SubmitNetwork:
 
@@ -356,41 +353,4 @@ def execute_rsync(cmd,passwd, timeout=None):
             print(text)
         return (0, output)
     
-######## RUNTIME QUERY #############
-
-def runtime_query_fileinfo(host,username,port,passwd,remote_proj_dir):   
-    """
-    """
-    print("\nRuntime Query Activated for File Information!!")
-    cmd_filesize=f'"cd {remote_proj_dir}; find "$PWD"  -type f -exec du --human {{}} + | sort --human --reverse"'
-    cmd_filesize=f'ssh -p {port} {username}@{host} {cmd_filesize}'
-    
-    (error, message)= execute_rsync(cmd_filesize,passwd, timeout=None)        
-    return (error, message)
-    
-def get_job_status_remote(host,username,port,passwd,job_name):   
-    """
-    get the running status of submitted job at remote
-    """
-    print("\nRuntime Query Activated !!")
-    cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
-    cmd_check_running_process=f'ssh -p {port} {username}@{host} {cmd_check_running_process}'    
-    (error, message)=execute_rsync(cmd_check_running_process, passwd)
         
-    return (error, message)
-    
-def get_job_status_local(host,username,port,passwd,job_name):   
-    """
-    get the running status of submitted job at remote
-    """
-    print("\nRuntime Query Activated !!")
-    cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
-    result=execute(cmd_check_running_process, passwd)
-    error=result[cmd_check_running_process]['error']    
-    message=result[cmd_check_running_process]['output']    
-
-    return (error, message)
-
-
-
-       

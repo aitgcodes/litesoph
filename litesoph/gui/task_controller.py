@@ -139,10 +139,17 @@ class TaskController:
        
         self.job_sub_page.back2main.config(command= self.workflow_controller.show_workmanager_page)
         self.job_sub_page.view_output_button.config(command= self._on_out_local_view_button)
+        self.job_sub_page.check_file_status()
+        # import threading
+        # job_run2=threading.Thread(target=self._run_local).start()        
+
+        # self.job_sub_page.job_run_local1(self._run_local)
+        
         self.job_sub_page.show_run_local(self._on_create_local_job_script,
                                         self._on_save_job_script,
                                         self._run_local)
 
+        
         self.job_sub_page.set_run_button_state('disable')
         self.job_sub_page.tkraise()
 
