@@ -148,12 +148,12 @@ class TaskController:
         
 
         
-        self.job_sub_page.set_run_button_state('disable')
+        self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
 
     def _on_check_file_status(self):
         try:
-            msg=self.task.sumbit_local.get_fileinfo_local()
+            msg=self.task.submit_local.get_fileinfo_local()
                 
         except TaskFailed:
             messagebox.showinfo(title='Info', message="Job not completed.")
@@ -161,16 +161,22 @@ class TaskController:
         self.view_panel.insert_text(msg, 'disabled')
 
     def _on_check_job_status(self):
-        try:
-            job_id=self.task_info.local.get('pid')
-            err,msg=self.task.sumbit_local.get_job_status_local(job_id)
-                
-        except TaskFailed:
-            messagebox.showinfo(title='Info', message="Job not completed.")
-            return
-        messagebox.showinfo(title='Info', message=msg)
         
-        # self.view_panel.insert_text(msg, 'disabled')
+        if self.job_sub_page.submit_thread.is_alive(): 
+            messagebox.showinfo(title='Info', message="Job is Running")
+        else:
+            messagebox.showinfo(title='Info', message="No Job Found")
+        
+        # try:
+        #     job_id=self.task_info.local.get('pid')
+        #     err,msg=self.task.submit_local.get_job_status_local(job_id)
+                
+        # except TaskFailed:
+        #     messagebox.showinfo(title='Info', message="Job not completed.")
+        #     return
+        # messagebox.showinfo(title='Info', message=msg)
+        
+        # # self.view_panel.insert_text(msg, 'disabled')
     
         
 
@@ -213,10 +219,14 @@ class TaskController:
                 return
 
         self.task.set_submit_local(np)
-    
 
+        
         try:
             self.task.run_job_local(cmd)
+            # while self.job_sub_page.submit_thread.is_alive():
+            #     self.job_sub_page.set_run_button_state('disable')
+            # else:
+            #     self.task.run_job_local(cmd)
         except FileNotFoundError as e:
             messagebox.showerror(title='yes',message=e)
             return

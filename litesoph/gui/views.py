@@ -1519,7 +1519,7 @@ class MaskingPage(View):
 class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent,*args, **kwargs):
         super().__init__(parent,*args, **kwargs)
         
         self.parent = parent
@@ -1550,6 +1550,7 @@ class JobSubPage(ttk.Frame):
         
         self.progressbar = ttk.Progressbar(self.Frame1, mode='indeterminate')
         self.progressbar.grid(row=4, column=0, sticky='nsew')
+       
         
 
         self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
@@ -1593,6 +1594,7 @@ class JobSubPage(ttk.Frame):
         self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff")
         self.back2main['font'] = myfont()
         self.back2main.pack(side= tk.RIGHT)
+        # self.submit_thread= threading.Thread(target=self. submit_job)
 
     def check_file_status(self, cmd:callable):
         self.job_status_button = tk.Button(self.Frame2, text="Check File Status",activebackground="#78d6ff",command=cmd)
@@ -1604,7 +1606,6 @@ class JobSubPage(ttk.Frame):
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
 
-
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
         self.ip.set(remote_profile['ip'])
@@ -1612,17 +1613,17 @@ class JobSubPage(ttk.Frame):
         self.rpath.set(remote_profile['remote_path'])
 
     def check_submit_thread(self):
-        if submit_thread.is_alive():
+        if self.submit_thread.is_alive():
+            self.run_button.config(state='disable')
             self.after(20, self.check_submit_thread)
         else:
             self.progressbar.stop()
     
     def start_submit_thread(self,job):                
-        global submit_thread
-        submit_thread = threading.Thread(target=job)
-        submit_thread.daemon = True        
+        self.submit_thread = threading.Thread(target=job)
+        self.submit_thread.daemon = True        
         self.progressbar.start()
-        submit_thread.start()
+        self.submit_thread.start()
         self.after(20, self.check_submit_thread)
     
     def show_run_local(self,
@@ -1666,7 +1667,12 @@ class JobSubPage(ttk.Frame):
         
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)        
+        self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)   
+        
+        # while self.check_submit_thread():
+        #     #   print("self.submit_thread.is_alive(): ",self.submit_thread.is_alive())
+        #       self.run_button.config(state='disable')
+     
 
     def show_run_network(self,
                         generate_job_script: callable,

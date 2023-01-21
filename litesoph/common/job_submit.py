@@ -50,21 +50,24 @@ class SubmitLocal:
         self.task_info = task.task_info
         self.project_dir = self.task.project_dir
         self.np = nprocessors
-        self.command = None                   
+        self.command = None     
+        self.job_id=None              
 
     def run_job(self, cmd): 
         self.task_info.state.local = True   
         result = execute(cmd, self.project_dir)
+        print("cmd :", cmd)
         self.task_info.local.update({'returncode': result[cmd]['returncode'],
                                         'output' : result[cmd]['output'],
                                         'error':result[cmd]['error'],
                                         'pid':result[cmd]['pid']})
-    
+            
     def get_job_status_local(self,job_id):   
         """
         get the running status of submitted job at remote
         """
-        print("job id: ",job_id)
+        job_id= self.job_id
+        print("get_job_status_local| job id: ",job_id)
         cmd_check_running_process=f"ps aux | grep {job_id}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
         result=execute(cmd_check_running_process,self.project_dir)
         error=result[cmd_check_running_process]['error']    

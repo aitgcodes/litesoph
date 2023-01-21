@@ -351,7 +351,7 @@ class OctopusTask(Task):
         if self.task_name in [tt.TCM, tt.MO_POPULATION]:
             return
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.run_job(cmd)
+        self.submit_local.run_job(cmd)
         if self.check_run_status()[0]:
             self.post_run()
 
@@ -683,7 +683,7 @@ def calc_td_range(spacing:float):
 #         if self.task_name in ['tcm','mo_population']:
 #             return
 #         cmd = cmd + ' ' + self.BASH_filename
-#         self.sumbit_local.run_job(cmd)
+#         self.submit_local.run_job(cmd)
 
 #     def get_ksd_popln(self):        
 #         _axis = self.get_pol_list(self.status)
