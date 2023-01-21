@@ -258,8 +258,6 @@ def generate_laser_text(lasers):
     
     lines = ["from gpaw.lcaotddft.laser import GaussianPulse",
             "from gpaw.external import ConstantElectricField",
-            # "from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField",
-            # "from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter"
             ]
     masked_import_lines = ["from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField",
                         "from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter"]
@@ -281,7 +279,6 @@ def generate_laser_text(lasers):
         lines.append(f"mask_{str(i)} = {laser['mask']}")
         if laser['mask'] is None:
             lines.append(f"ext_{str(i)} = ConstantElectricField(Hartree / Bohr,{laser['polarization']} )")
-            # mask_list_line.append(f"None,")
         else:
             len_masks += 1
             for line in masked_import_lines:
@@ -289,7 +286,6 @@ def generate_laser_text(lasers):
             # replacing ConstantElectricField with MaskedElectricField
             lines.append(f"ext_{str(i)} = MaskedElectricField(Hartree / Bohr,{laser['polarization']}, mask = mask_{str(i)} )")
             mask_list_line.append(f"ext_{str(i)}.mask,")
-        # lines.append(f"ext_{str(i)} = ConstantElectricField(Hartree / Bohr,{laser['polarization']} )")
 
         td_line.append(f"{{'ext': ext_{str(i)}, 'laser': pulse_{str(i)}}},")
         
@@ -312,36 +308,23 @@ def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)
     len_masks = 0
-    # mask = kwargs.pop('masking', None)
 
     if laser is not None:
         #TODO: update for multiple lasers
         
         # mask as a key in laser dictionary
-        # kwargs.update(laser[0])
         template = external_field_template.format(**kwargs) 
         lines = template.splitlines()
         lines[4:4] = generate_laser_text(laser)[0]
         len_masks = generate_laser_text(laser)[1]
         template = '\n'.join(lines)
-        
-        # if mask is not None:
-        #     kwargs.update(laser[0])
-        #     kwargs.update({'mask': mask})
-        #     template = mask_external_field_template.format(**kwargs)
-        # else:
-        #     template = external_field_template.format(**kwargs) 
-        #     lines = template.splitlines()
-        #     lines[4:4] = generate_laser_text(laser)
-        #     template = '\n'.join(lines)
+ 
     else:   
         template = delta_kick_template.format(**kwargs)
 
     tlines = template.splitlines()
     
     if 'dipole' in tools:
-        # if mask is not None:
-        #     tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', mask=ext.mask, interval={kwargs.get('output_freq', 1)})")
         if len_masks > 0:
             tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', mask=masks[0], interval={kwargs.get('output_freq', 1)})")
         else:
