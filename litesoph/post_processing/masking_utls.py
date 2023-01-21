@@ -185,7 +185,7 @@ class MaskedDipoleAnaylsis:
                 amplitude_envelope=env_dat[:,1]
                 plt.plot(time, amplitude_envelope,label='envelope')
             else:
-                raise FileNotFoundError('Envelope not yet completed.')
+                raise FileNotFoundError('Envelope not yet computed.')
         plt.legend(loc ="upper right")
         img = datafile.with_suffix('.png')
         plt.savefig(img)
