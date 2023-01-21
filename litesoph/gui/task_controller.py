@@ -243,7 +243,6 @@ class TaskController:
 
         
         try:
-            print("\nlogin_dict :",login_dict)
             self.task.connect_to_network(hostname=login_dict['ip'],
                                     username=login_dict['username'],
                                     password=login_dict['password'],
