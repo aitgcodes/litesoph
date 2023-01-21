@@ -66,9 +66,9 @@ class SubmitNetwork:
                     password: str,
                     port: int,
                     remote_path: str,
-                    pkey_file:pathlib.Path, # add a variable to take pkey_file
-                    ls_file_mgmt_mode:bool,
-                    passwordless_ssh:bool) -> None: # add a boolean variable for passwordless_ssh 
+                    pkey_file:str, #
+                    passwordless_ssh:bool,
+                    ls_file_mgmt_mode=True,) -> None: 
 
         self.task = task
         self.task_info = task.task_info
@@ -77,11 +77,11 @@ class SubmitNetwork:
         self.username = username
         self.hostname = hostname
         self.password = password
-        self.pkey_file=pkey_file
+        self.pkey_file=pathlib.Path(pkey_file)
         self.port = port
         self.remote_path = remote_path
+        self.passwordless_ssh=passwordless_ssh   
         self.ls_file_mgmt_mode=ls_file_mgmt_mode
-        self.passwordless_ssh=passwordless_ssh        
         self.network_sub = NetworkJobSubmission(hostname, self.port)
         
         if passwordless_ssh==True:
@@ -157,14 +157,12 @@ class NetworkJobSubmission:
     def __init__(self,
                 host,
                 port,
-                ls_file_mgmt_mode=True,
-                passwordless_ssh=True):
+                ls_file_mgmt_mode=True):
         
         self.client = None
         self.host = host
         self.port = port
         self.ls_file_mgmt_mode=ls_file_mgmt_mode
-        self.passwordless_ssh=passwordless_ssh
                  
     def ssh_connect(self, username, password=None, pkey_file=None):
         "connects to the cluster through ssh."
