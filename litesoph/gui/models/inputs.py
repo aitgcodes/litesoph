@@ -1002,7 +1002,7 @@ laser_design_input = {
                 "type": float,
                 "default": 0.1,
                 "switch": lambda k:
-                k.get("boundary_type")=="Abrupt"                  
+                k.get("boundary_type")=="Smooth"                  
                 
                 },
         "mask_plane:axis": {
