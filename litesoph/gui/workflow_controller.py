@@ -58,7 +58,7 @@ class WorkflowController:
         # dependent tasks
         dependencies_data = task_dependencies_map.get(task_name)
         if not dependencies_data:
-            return 
+            return list()
 
         dependent_tasks = []
         for task in dependencies_data:
