@@ -257,46 +257,76 @@ task_map = {
 def generate_laser_text(lasers):
     
     lines = ["from gpaw.lcaotddft.laser import GaussianPulse",
-            "from gpaw.external import ConstantElectricField"]
+            "from gpaw.external import ConstantElectricField",
+            ]
+    masked_import_lines = ["from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField",
+                        "from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter"]
     td_line = ['td_potential = ', '[']
+    mask_list_line = ['masks = [']
+    len_masks = 0
     for i, laser in enumerate(lasers):
-        lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{laser['sigma']}, 'sin')")
-        lines.append(f"ext_{str(i)} = ConstantElectricField(Hartree / Bohr,{laser['polarization']} )")
+        
+        if laser['type'] == 'gaussian':
+            import_str = "from gpaw.lcaotddft.laser import GaussianPulse"
+            lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{laser['sigma']}, 'sin')")
+        elif laser['type'] == 'delta':
+            import_str = "from litesoph.pre_processing.laser_design import GaussianDeltaPulse"
+            lines.append(f"pulse_{str(i)} = GaussianDeltaPulse({laser['strength']},{laser['time0']},{laser['sigma']})")
+        
+        add_import_line(lines, import_str)
+        
+        # mask dict for each laser
+        lines.append(f"mask_{str(i)} = {laser['mask']}")
+        if laser['mask'] is None:
+            lines.append(f"ext_{str(i)} = ConstantElectricField(Hartree / Bohr,{laser['polarization']} )")
+        else:
+            len_masks += 1
+            for line in masked_import_lines:
+                add_import_line(lines, line)
+            # replacing ConstantElectricField with MaskedElectricField
+            lines.append(f"ext_{str(i)} = MaskedElectricField(Hartree / Bohr,{laser['polarization']}, mask = mask_{str(i)} )")
+            mask_list_line.append(f"ext_{str(i)}.mask,")
+
         td_line.append(f"{{'ext': ext_{str(i)}, 'laser': pulse_{str(i)}}},")
-    
+        
+    mask_list_line.append(']')
+    mask_list_line = ''.join(mask_list_line)
     td_line.append(']')
     td_line = ''.join(td_line)
 
+
+    lines.append(mask_list_line)
     lines.append(td_line)
 
-    return lines
+    return lines, len_masks
+
+def add_import_line(lines, import_str):
+    if import_str not in lines:
+        lines.insert(0, import_str)
 
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)
-    mask = kwargs.pop('masking', None)
+    len_masks = 0
 
     if laser is not None:
         #TODO: update for multiple lasers
-        kwargs.update(laser[0])
         
-        if mask is not None:
-            kwargs.update(laser[0])
-            kwargs.update({'mask': mask})
-            template = mask_external_field_template.format(**kwargs)
-        else:
-            template = external_field_template.format(**kwargs) 
-            lines = template.splitlines()
-            lines[4:4] = generate_laser_text(laser)
-            template = '\n'.join(lines)
+        # mask as a key in laser dictionary
+        template = external_field_template.format(**kwargs) 
+        lines = template.splitlines()
+        lines[4:4] = generate_laser_text(laser)[0]
+        len_masks = generate_laser_text(laser)[1]
+        template = '\n'.join(lines)
+ 
     else:   
         template = delta_kick_template.format(**kwargs)
 
     tlines = template.splitlines()
     
     if 'dipole' in tools:
-        if mask is not None:
-            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', mask=ext.mask, interval={kwargs.get('output_freq', 1)})")
+        if len_masks > 0:
+            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', mask=masks[0], interval={kwargs.get('output_freq', 1)})")
         else:
             tlines.insert(0, 'from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter')
             tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', interval={kwargs.get('output_freq', 1)})")
