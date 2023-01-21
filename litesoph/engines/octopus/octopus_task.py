@@ -1,3 +1,4 @@
+import os
 import copy
 import shutil
 from pathlib import Path
@@ -121,6 +122,10 @@ class OctopusTask(Task):
 
         for dir in [self.engine_dir, self.output_dir]:
             self.create_directory(Path(dir))
+
+        log_files = list(Path(self.output_dir).iterdir())
+        for log in log_files:
+            os.remove(Path(self.output_dir)/log)
 
         if self.task_name == tt.COMPUTE_SPECTRUM:
             td_info = self.dependent_tasks[0]
