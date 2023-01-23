@@ -99,11 +99,13 @@ def update_td_laser_defaults(td_default:dict):
     spectrum_check = False
     ksd_check = False
     population_check = False
-    if "spectrum" in td_default.get('properties'):
+
+    properties = td_default.pop('properties')
+    if "spectrum" in properties:
         spectrum_check = True
-    if "ksd" in td_default.get('properties'):
+    if "ksd" in properties:
         ksd_check = True
-    if "mo_population" in td_default.get('properties'):
+    if "mo_population" in properties:
         population_check = True
     
     gui_default_dict = {
@@ -114,6 +116,10 @@ def update_td_laser_defaults(td_default:dict):
         "ksd": ksd_check,
         "mo_population": population_check,        
     }
+    if td_default.get("field_type", None) is not None:
+        gui_default_dict['field_type'] = td_default.get('field_type')
+    if td_default.get('exp_type', None) is not None:
+        gui_default_dict['exp_type'] = td_default.get('exp_type')    
     return gui_default_dict
 
 def update_laser_defaults(laser_default:dict):
