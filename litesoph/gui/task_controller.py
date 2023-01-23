@@ -58,12 +58,8 @@ class TaskController:
         If workflow mode: updates the engine updated task defaults in context of workflow"""
 
         default_param = copy.deepcopy(self.task_info.param)
-        if self.workflow_manager.workflow_info.task_mode: 
-            pass
-        else:
-            if get_default_func is None:
-                pass
-            else:
+        if not self.workflow_manager.workflow_info.task_mode: 
+            if get_default_func is not None:
                 default_param.update(get_default_func())
         return default_param
 
