@@ -115,7 +115,7 @@ class SubmitNetwork:
                                                 source_dir=str(remote_path), dst_dir=str(self.project_dir.parent))
         
         elif (self.ls_file_mgmt_mode==True):
-            (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir)
+            (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir,lfm_file_info)
 
         elif error != 0:
             raise Exception(message)
@@ -348,7 +348,7 @@ lfm_file_info={
 
                  }
         
-def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_proj_dir):   
+def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_proj_dir,lfm_file_info):   
     """
    1. get the list of files from remote directory
    2. convert the list of files into file-metadata-dictionary 
@@ -362,10 +362,14 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
 
     cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles.list"'     
     cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles.list {local_proj_dir}"
+    cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
+
     (error, message)=execute_rsync(cmd_create_listOfFiles_at_remote, passwd)
     (error, message)=execute_rsync(cmd_listOfFiles_to_local, passwd)
+    (error, message)=execute_rsync(cmd_remove_listOfFiles_remote, passwd)
+    
     listOfFiles_path=f'{local_proj_dir}/listOfFiles.list'    
-    file_info_dict=create_file_info(read_file_info_list(listOfFiles_path))
+    file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)
         
     priority1_files_dict=filter_dict(file_info_dict,'file_relevance','very_impt')
     priority2_files_dict=filter_dict(file_info_dict,'file_relevance','impt')
@@ -376,6 +380,9 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     for file in list(priority2_files_dict.keys()):
         (error, message)=file_transfer(file,priority2_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
 
+    cmd_remove_listOfFiles_local=f'rm {local_proj_dir}/listOfFiles.list'
+    (error, message)=execute_rsync(cmd_remove_listOfFiles_local, passwd)
+    
     return (error, message)
     
 def add_element(dict, key, value):
@@ -383,7 +390,7 @@ def add_element(dict, key, value):
         dict[key] = {}
     dict[key] = value
     
-def create_file_info(list_of_files_in_remote_dir):
+def create_file_info(list_of_files_in_remote_dir,lfm_file_info):
 
     file_info_dict={}
     default_metadata={'file_relevance':'very_impt','file_lifetime':'',
@@ -413,6 +420,7 @@ def read_file_info_list(filepath_file_list):
     "create python list from listOfFiles.list"    
     file=open(filepath_file_list, 'r')
     data = [line.strip() for line in file]
+    data = [x for x in data if not re.search(r'listOfFiles', x)]    
     file.close()
     return data
 
@@ -465,7 +473,8 @@ def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj
         return (error, message)        
     else:
         file = str(file).replace(str(remote_proj_dir), '')
-        cmd_direct_transfer=f"rsync -R --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
+        cmd_direct_transfer=f"rsync -avR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
+        print("\nTransferring File :",file)
         (error, message)=execute_rsync(cmd_direct_transfer, passwd)    
         return (error, message)
 
