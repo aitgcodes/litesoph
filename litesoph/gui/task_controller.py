@@ -181,25 +181,12 @@ class TaskController:
         
     def _on_check_job_status_remote(self):
 
-        error, message=self.task.submit_network.get_job_status_remote()
-                
-        messagebox.showinfo(title='Info', message=message)
-
-        # try:
-            # msg=self.task.submit_network.get_job_status_remote()
-                
-        # except TaskFailed:
-            # messagebox.showinfo(title='Info', message="Job not completed.")
-            # return            
-        # self.view_panel.insert_text(msg, 'disabled')
+        try:
+            error, message=self.task.submit_network.get_job_status_remote()                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)                    
+        messagebox.showinfo(title='Info', message=message)                    
     
-        # if self.job_sub_page.submit_thread.is_alive(): 
-        #     messagebox.showinfo(title='Info', message="Job is Running")
-        # else:
-        #     messagebox.showinfo(title='Info', message="No Job Found")
-        # print(" Not implemented")
-        
-
     def _on_plot_button(self, *_):
         
         param = {}
