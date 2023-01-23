@@ -115,8 +115,12 @@ class ProjectManager:
         with open(file, 'w') as f:
             f.write(json_txt)
 
-    def remove(self):
-        pass
+    def remove(self, workflow_uuid):
+        for workflow in self.workflow_list:
+            if workflow.uuid == workflow_uuid:
+                shutil.rmtree(str(workflow.path))
+                self.workflow_list.remove(workflow)
+
 
     def _change_directory(self, path):
         "changes current working directory"

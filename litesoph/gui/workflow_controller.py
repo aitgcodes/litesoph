@@ -50,7 +50,7 @@ class WorkflowController:
     def show_workmanager_page(self, *_):
         self.workmanager_page._var['select_wf_option'].set(value=2)
         self.workmanager_page.tkraise()
-        self.app.proceed_button.config(command= self.start_task)
+        self.app.proceed_button.config(command= self.start_task, state = 'normal')
     
     def get_task_dependencies(self, task_name):
         
@@ -103,10 +103,9 @@ class WorkflowController:
                                         dependent_tasks_uuid= self.get_task_dependencies(task_name))   
         
         self.workflow_manager.next()
-
         self.task_controller = get_task_controller(task_view, self, self.app)
-        
         self.task_controller.set_task(self.workflow_manager, task_view)
+        self.app.proceed_button.config(state = 'disabled')
 
     def _get_task(self) -> Union[tuple, None]:
 
