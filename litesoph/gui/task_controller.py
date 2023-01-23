@@ -434,7 +434,7 @@ class TDPageController(TaskController):
 
     def _on_back(self, *_):
         """ Shows the WorkFlowManager Page"""
-        self.wm_view = self.app._show_workmanager_page()
+        self.workflow_controller.show_workmanager_page()
 
     def _on_design_edit_laser(self, *_):
         """ On Laser design button, decides on showing LaserDesignPage and binds the widgets"""
@@ -693,7 +693,10 @@ class TDPageController(TaskController):
         self.bind_task_events()
 
     def _on_proceed(self, *_):
-            
+
+        if self.workflow_manager.task_mode:
+           return
+
         if self.task_view.inp.variable['exp_type'].get() == "Pump-Probe":
             
             delays = self.task_view_param.get('delay_list') 
@@ -709,7 +712,8 @@ class TDPageController(TaskController):
         else:
             
             self.workflow_controller.next_task()
-            
+    
+
 
         
     def _on_view_lasers(self, *_):
