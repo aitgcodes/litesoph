@@ -5,7 +5,8 @@ import copy
 from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.common.data_sturcture.data_classes import TaskInfo
 from litesoph.common.task import Task, TaskFailed
-from litesoph.common.task_data import TaskTypes as tt                                  
+from litesoph.common.task_data import TaskTypes as tt  
+from litesoph.common.workflows_data import WorkflowTypes as wt                                
 from litesoph.gui import views as v
 from litesoph.common import models as m
 from litesoph.gui.models.gs_model import choose_engine
@@ -50,7 +51,22 @@ class TaskController:
     #     self.task_view = view_class(self.app.task_input_frame, *args, **kwargs)
     #     self.task_view.grid(row=0, column=0, sticky ='NSEW')
     #     self.task_view.tkraise()
-    
+
+    def update_wf_view_defaults(self, get_default_func=None):
+        """ Checks task mode bool.\n
+        If task mode: passes the engine updated task defaults.\n
+        If workflow mode: updates the engine updated task defaults in context of workflow"""
+
+        default_param = copy.deepcopy(self.task_info.param)
+        if self.workflow_manager.workflow_info.task_mode: 
+            pass
+        else:
+            if get_default_func is None:
+                pass
+            else:
+                default_param.update(get_default_func())
+        return default_param
+
     def show_task_view(self):
         self.task_view.tkraise()
 
@@ -379,6 +395,7 @@ class TDPageController(TaskController):
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
         
         self.workflow_manager = workflow_manager
+        self.task_info = workflow_manager.current_task_info
         self.task_name = tt.RT_TDDFT
         self.task_view = task_view
         self.task = None
@@ -397,10 +414,25 @@ class TDPageController(TaskController):
         self.main_window.bind_all('<<ViewLaserSummary>>', self._on_view_lasers)    
         self.task_view.set_sub_button_state('disable')
 
-        # TODO: set initial parameters
-        # if hasattr(self.task_view, 'set_parameters'):
-        #     self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
+        if hasattr(self.task_view, 'set_parameters'):
+            default_param = self.update_wf_view_defaults(
+                            get_default_func= self.get_td_wf_defaults
+                            )
+            self.task_view.set_parameters(default_param)
 
+    def get_td_wf_defaults(self):
+        if self.workflow_manager.workflow_info._name == wt.PUMP_PROBE:
+            wf_dict = {
+                "field_type": "Electric Field",
+                "exp_type": "Pump-Probe",
+            }
+        elif self.workflow_manager.workflow_info._name == wt.MASKING:
+            wf_dict = {
+                "field_type": "Electric Field",
+                "exp_type": "State Preparation",
+            }
+        return wf_dict
+    
     def set_laser_design_bool(self, bool:bool):
         self.laser_design_bool = bool
 
