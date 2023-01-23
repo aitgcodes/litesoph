@@ -126,6 +126,9 @@ class TaskController:
         self.job_sub_page.show_run_network(self._on_create_remote_job_script,
                                             self._on_save_job_script,
                                             self._run_network)
+        self.job_sub_page.check_file_status_remote(self._on_check_file_status_remote)
+        self.job_sub_page.check_job_status_remote(self._on_check_job_status_remote)
+        
         remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
@@ -143,15 +146,15 @@ class TaskController:
         self.job_sub_page.show_run_local(self._on_create_local_job_script,
                                         self._on_save_job_script,
                                         self._run_local)
-        self.job_sub_page.check_file_status(self._on_check_file_status)
-        self.job_sub_page.check_job_status(self._on_check_job_status)
+        self.job_sub_page.check_file_status_local(self._on_check_file_status_local)
+        self.job_sub_page.check_job_status_local(self._on_check_job_status_local)
         
 
         
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
 
-    def _on_check_file_status(self):
+    def _on_check_file_status_local(self):
         try:
             msg=self.task.submit_local.get_fileinfo_local()
                 
@@ -160,24 +163,30 @@ class TaskController:
             return            
         self.view_panel.insert_text(msg, 'disabled')
 
-    def _on_check_job_status(self):
+    def _on_check_file_status_remote(self):
+        try:
+            msg=self.task.submit_network.get_fileinfo_remote()
+                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message="Job not completed.")
+            return            
+        self.view_panel.insert_text(msg, 'disabled')
+
+    
+    def _on_check_job_status_local(self):
         
         if self.job_sub_page.submit_thread.is_alive(): 
             messagebox.showinfo(title='Info', message="Job is Running")
         else:
             messagebox.showinfo(title='Info', message="No Job Found")
         
-        # try:
-        #     job_id=self.task_info.local.get('pid')
-        #     err,msg=self.task.submit_local.get_job_status_local(job_id)
-                
-        # except TaskFailed:
-        #     messagebox.showinfo(title='Info', message="Job not completed.")
-        #     return
-        # messagebox.showinfo(title='Info', message=msg)
+    def _on_check_job_status_remote(self):
         
-        # # self.view_panel.insert_text(msg, 'disabled')
-    
+        # if self.job_sub_page.submit_thread.is_alive(): 
+        #     messagebox.showinfo(title='Info', message="Job is Running")
+        # else:
+        #     messagebox.showinfo(title='Info', message="No Job Found")
+        print(" Not implemented")
         
 
     def _on_plot_button(self, *_):

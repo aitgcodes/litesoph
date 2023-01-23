@@ -1596,16 +1596,27 @@ class JobSubPage(ttk.Frame):
         self.back2main.pack(side= tk.RIGHT)
         # self.submit_thread= threading.Thread(target=self. submit_job)
 
-    def check_file_status(self, cmd:callable):
+    def check_file_status_local(self, cmd:callable):
         self.job_status_button = tk.Button(self.Frame2, text="Check File Status",activebackground="#78d6ff",command=cmd)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
 
-    def check_job_status(self, cmd:callable):
+    def check_file_status_remote(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame2, text="Check File Status",activebackground="#78d6ff",command=cmd)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+
+    def check_job_status_local(self, cmd:callable):
         self.job_status_button = tk.Button(self.Frame2, text="Check Job Status",activebackground="#78d6ff",command=cmd)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
 
+    def check_job_status_remote(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame2, text="Check Job Status",activebackground="#78d6ff",command=cmd)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
+
+    
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
         self.ip.set(remote_profile['ip'])
@@ -1669,10 +1680,6 @@ class JobSubPage(ttk.Frame):
         self.run_button['font'] = myfont()
         self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)   
         
-        # while self.check_submit_thread():
-        #     #   print("self.submit_thread.is_alive(): ",self.submit_thread.is_alive())
-        #       self.run_button.config(state='disable')
-     
 
     def show_run_network(self,
                         generate_job_script: callable,
@@ -1760,9 +1767,8 @@ class JobSubPage(ttk.Frame):
         self.save_job_button = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = save_job_script)
         self.save_job_button['font'] = myfont()
         self.save_job_button.grid(row=10,column=1,sticky='nsew', padx=2, pady=4)
-        thread_cmd=threading.Thread(target=submit_job).start()        
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= thread_cmd)
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
         self.run_button.grid(row=11,column=0,sticky='nsew', padx=2, pady=4)    
 

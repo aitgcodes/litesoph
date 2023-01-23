@@ -144,9 +144,7 @@ class SubmitNetwork:
     def run_job(self, cmd):
         "This method creates the job submission command and executes the command on the cluster"
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.relative_to(self.project_dir.parent)
-        self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"
-        
-        
+        self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"        
         exit_status, ssh_output, ssh_error = self.network_sub.execute_command(self.command)
         if exit_status != 0:
             print("Error...")
@@ -304,6 +302,8 @@ class NetworkJobSubmission:
             #raise Exception("Command timed out.", command)
         except paramiko.SSHException:
             raise Exception("Failed to execute the command!", command)
+        pid = stdout.readline()
+        print("\nPID of the remote process: ", pid)
 
         return exit_status, ssh_output, ssh_error
 
