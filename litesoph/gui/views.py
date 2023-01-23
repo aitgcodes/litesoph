@@ -1548,6 +1548,9 @@ class JobSubPage(ttk.Frame):
         self.Frame2 = ttk.Frame(self, borderwidth=2, relief='groove')
         self.Frame2.pack(fill=tk.BOTH)
         
+        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3.pack(fill=tk.BOTH)
+        
         self.progressbar = ttk.Progressbar(self.Frame1, mode='indeterminate')
         self.progressbar.grid(row=4, column=0, sticky='nsew')
        
@@ -1571,18 +1574,11 @@ class JobSubPage(ttk.Frame):
         self.Frame_label2['font'] = myfont1()
         self.Frame_label2.grid(row=0, column=0)       
 
-        # self.job_status_button = tk.Button(self.Frame2, text="Check Job Status",activebackground="#78d6ff",command='')
-        # self.job_status_button['font'] = myfont()
-        # self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+        self.Frame_label2 = tk.Label(self.Frame3, text="LITESOPH Files Monitoring", fg='blue')
+        self.Frame_label2['font'] = myfont1()
+        self.Frame_label2.grid(row=0, column=0)       
 
-        # self.kill_job_button = tk.Button(self.Frame2, text="Kill Job",activebackground="#78d6ff",command='')
-        # self.kill_job_button['font'] = myfont()
-        # self.kill_job_button.grid(row=2, column=1, sticky='e', pady=5)
-
-        # self.file_status_button = tk.Button(self.Frame2, text="Check File Status",activebackground="#78d6ff",command='')
-        # self.file_status_button['font'] = myfont()
-        # self.file_status_button.grid(row=2, column=2, sticky='e', pady=5)
-
+        
         self.view_output_button = tk.Button(self.Frame1, text="View Output",activebackground="#78d6ff",command=lambda:[self.view_outfile(self.task)])
         self.view_output_button['font'] = myfont()
         self.view_output_button.grid(row=2, column=0, sticky='e', pady=5)
@@ -1594,28 +1590,48 @@ class JobSubPage(ttk.Frame):
         self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff")
         self.back2main['font'] = myfont()
         self.back2main.pack(side= tk.RIGHT)
-        # self.submit_thread= threading.Thread(target=self. submit_job)
-
-    def check_file_status_local(self, cmd:callable):
-        self.job_status_button = tk.Button(self.Frame2, text="Check File Status",activebackground="#78d6ff",command=cmd)
-        self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
-
-    def check_file_status_remote(self, cmd:callable):
-        self.job_status_button = tk.Button(self.Frame2, text="Check File Status",activebackground="#78d6ff",command=cmd)
-        self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
-
+        
+    
     def check_job_status_local(self, cmd:callable):
         self.job_status_button = tk.Button(self.Frame2, text="Check Job Status",activebackground="#78d6ff",command=cmd)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
+
+    def kill_job_local(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame2, text="Kill Job",activebackground="#78d6ff",command=cmd)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=2, sticky='e', pady=5)
 
     def check_job_status_remote(self, cmd:callable):
         self.job_status_button = tk.Button(self.Frame2, text="Check Job Status",activebackground="#78d6ff",command=cmd)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
 
+    def kill_job_remote(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame2, text="Kill Job",activebackground="#78d6ff",command=cmd)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=2, sticky='e', pady=5)
+    
+    def check_file_status_local(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame3, text="Check File Status",activebackground="#78d6ff",command=cmd)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+
+    def check_file_status_remote(self, cmd:callable):
+        self.job_status_button = tk.Button(self.Frame3, text="Check File Status",activebackground="#78d6ff",command=cmd)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+ 
+    def download_all_files(self,cmd):
+        self.download_all_files_button = tk.Button(self.Frame3, text="Download all Files",activebackground="#78d6ff",command=cmd)
+        self.download_all_files_button['font'] = myfont()
+        self.download_all_files_button.grid(row=2, column=1, sticky='e', pady=5)
+     
+    def download_specific_file(self,cmd):
+        self.download_specific_file_button = tk.Button(self.Frame3, text="Download Specific File",activebackground="#78d6ff",command=cmd)
+        self.download_specific_file_button['font'] = myfont()
+        self.download_specific_file_button.grid(row=2, column=2, sticky='e', pady=5)
+ 
     
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])

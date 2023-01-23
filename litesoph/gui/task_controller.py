@@ -127,7 +127,12 @@ class TaskController:
                                             self._on_save_job_script,
                                             self._run_network)
         self.job_sub_page.check_file_status_remote(self._on_check_file_status_remote)
-        self.job_sub_page.check_job_status_remote(self._on_check_job_status_remote)
+        self.job_sub_page.kill_job_remote(self._on_kill_job_remote)
+        self.job_sub_page.check_job_status_remote(self._on_check_job_status_remote)        
+        self.job_sub_page.download_all_files(self._on_download_all_files)
+        self.job_sub_page.download_specific_file(self._on_download_specific_file)
+        
+        
         
         remote = get_remote_profile()
         if remote:
@@ -185,7 +190,18 @@ class TaskController:
             error, message=self.task.submit_network.get_job_status_remote()                
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)                    
-        messagebox.showinfo(title='Info', message=message)                    
+        messagebox.showinfo(title='Info', message=message)   
+
+    def _on_kill_job_remote(self):
+
+        print("Not implemented yet")
+    
+    def _on_download_all_files():
+            pass
+
+    def _on_download_specific_file():
+            pass
+        
     
     def _on_plot_button(self, *_):
         
