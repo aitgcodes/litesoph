@@ -287,6 +287,81 @@ gs_visible_default = {
         "bands": True,
 }
 
+td_delta_input ={
+        "laser_strength": {
+                "tab":"Delta Kick Input",
+                # "group": "laser details",
+                "text": "Laser Strength in a.u (Eo)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 1e-05,
+                # "switch": lambda k:
+                # k.get("pump_probe", False) is False
+                },
+       
+        "time_step": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Time step (in attosecond)",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 10,
+                }, 
+        "number_of_steps": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Number of Steps",
+                "help": None,
+                "widget": tk.Entry,
+                "type": float,
+                "default": 2000
+                },
+        "output_freq": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Frequency of data collection",
+                "help": None,
+                "widget": tk.Entry,
+                "type": int,
+                "default": 10
+                },
+        "pol_dir": {
+                "tab":"Delta Kick Input",
+                # "group": "simulation ",
+                "text": "Polarization Direction",
+                "help": None,
+                "widget": Combobox,
+                "values": ["X","Y", "Z"],
+                "type": str
+                },
+        
+        "spectrum": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Absorption Spectrum",
+                "help": None,
+                "widget": Checkbutton,
+                "default": True
+                },
+        "ksd": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Kohn Sham Decomposition",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                }, 
+        "mo_population": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Population Correlation",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
+        }
 button_frame_input = {
         "laser_design": {
                 "tab":"External Fields",
