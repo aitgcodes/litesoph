@@ -9,7 +9,6 @@ import re
 from scp import SCPClient
 import pexpect
 
-
 def execute(command, directory):
     
     result = {}
@@ -66,7 +65,10 @@ class SubmitNetwork:
                     username: str,
                     password: str,
                     port: int,
-                    remote_path: str) -> None:
+                    remote_path: str,
+                    pkey_file:str, #
+                    passwordless_ssh:bool,
+                    ls_file_mgmt_mode=True,) -> None: 
 
         self.task = task
         self.task_info = task.task_info
@@ -75,17 +77,24 @@ class SubmitNetwork:
         self.username = username
         self.hostname = hostname
         self.password = password
+        self.pkey_file=pathlib.Path(pkey_file)
         self.port = port
         self.remote_path = remote_path
-        
+        self.passwordless_ssh=passwordless_ssh   
+        self.ls_file_mgmt_mode=ls_file_mgmt_mode
         self.network_sub = NetworkJobSubmission(hostname, self.port)
-        self.network_sub.ssh_connect(username, password)
+        
+        if passwordless_ssh==True:
+            self.network_sub.ssh_connect(username,pkey_file)
+        else:
+            self.network_sub.ssh_connect(username, password)
+        
         if self.network_sub.check_file(self.remote_path):
             self.task.add_proper_path(self.remote_path)
-            self.upload_files()
+            self.upload_files()        
         else:
             raise FileNotFoundError(f"Remote path: {self.remote_path} not found.")
-
+        
     def upload_files(self):
         """uploads entire project directory to remote path"""
 
@@ -101,9 +110,14 @@ class SubmitNetwork:
         """Downloads entire project directory to local project dir."""
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
         #self.network_sub.download_files(str(remote_path),str(self.project_dir.parent),  recursive=True)
-        (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
+        if (self.ls_file_mgmt_mode==False):
+            (error, message) = rsync_download_files(ruser=self.username, rhost=self.hostname,port=self.port, password=self.password,
                                                 source_dir=str(remote_path), dst_dir=str(self.project_dir.parent))
-        if error != 0:
+        
+        elif (self.ls_file_mgmt_mode==True):
+            (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir,lfm_file_info)
+
+        elif error != 0:
             raise Exception(message)
 
     def get_output_log(self):
@@ -117,8 +131,7 @@ class SubmitNetwork:
         "This method creates the job submission command and executes the command on the cluster"
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.relative_to(self.project_dir.parent)
         self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"
-        
-        
+                
         exit_status, ssh_output, ssh_error = self.network_sub.execute_command(self.command)
         if exit_status != 0:
             print("Error...")
@@ -143,21 +156,25 @@ class NetworkJobSubmission:
     uploadig and downloading of files and also to execute command on the remote cluster."""
     def __init__(self,
                 host,
-                port):
+                port,
+                ls_file_mgmt_mode=True):
         
         self.client = None
         self.host = host
         self.port = port
-             
-    def ssh_connect(self, username, password=None, pkey=None):
+        self.ls_file_mgmt_mode=ls_file_mgmt_mode
+                 
+    def ssh_connect(self, username, password=None, pkey_file=None):
         "connects to the cluster through ssh."
         try:
             print("Establishing ssh connection")
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
-            if pkey:
-                private_key = paramiko.RSAKey.from_private_key(pkey)
+            if pkey_file:
+                # private_key = paramiko.RSAKey.from_private_key(pkey)
+                private_key = paramiko.RSAKey.from_private_key_file(pkey_file)
+                
                 self.client.connect(hostname=self.host, port=self.port, username=username, pkey=private_key)
                 print("connected to the server", self.host)
             else:    
@@ -289,23 +306,27 @@ def rsync_cmd(ruser, rhost, port, password, source_dir, dst_dir,include=None, ex
     
     return (error, message)
 
-def execute_rsync(cmd,passwd, timeout=3600):
-    intitial_response = ['Are you sure', 'password:', pexpect.EOF]
+def execute_rsync(cmd,passwd, timeout=None):
+    intitial_response = ['Are you sure', 'assword','[#\$] ', pexpect.EOF]
     
     ssh = pexpect.spawn(cmd,timeout=timeout)
-    i = ssh.expect(intitial_response, timeout=10)
+    i = ssh.expect(intitial_response)
     if i == 0 :
         T = ssh.read(100)
         ssh.sendline('yes')
-        ssh.expect('password:', Timeout=10)
+        ssh.expect('assword:')
         ssh.sendline(passwd)
     elif i == 1:
         ssh.sendline(passwd)
+    elif i==2:
+        print('Connected Successfully.')
+        prompt = ssh.after
+        print('Shell Command Prompt:', prompt.decode(encoding='utf-8'))    
     else:
         str1 = str(ssh.before)
         return (-3, 'Error: Unknown:'+ str1)
 
-    possible_response = ['password:', pexpect.EOF]
+    possible_response = ['assword:', pexpect.EOF]
     i = ssh.expect(possible_response, timeout=5)
 
     if i == 0:
@@ -315,6 +336,145 @@ def execute_rsync(cmd,passwd, timeout=3600):
         for text in ssh.before.decode(encoding='utf-8').split('\n'):
             print(text)
         return (0, output)
-    
+
+
+# lfm_file_info=get_from_task_info  or config_file # add a variable for file_tag_info
+
+lfm_file_info={ 
+                '.out':{'file_relevance':'very_impt','file_lifetime':'None', 'transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':'500k'}},
+                '.log':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'direct_transfer','compress_method':'zstd','split_size':''}},
+                '.cube':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':''}},
+                '.ulm':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'split_transfer','compress_method':'zstd','split_size':'200M'}},
+
+                 }
         
-       
+def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_proj_dir,lfm_file_info):   
+    """
+   1. get the list of files from remote directory
+   2. convert the list of files into file-metadata-dictionary 
+   3. filter the dictionary into sub-dictionary of priority-levels
+   3. give each file priority level according to the assigned tags of files 
+   4. classify the files on the basis of priority and transfer priority1 files first
+   4. determine the method to transfer the files
+   5. transfer the file
+    """
+    print("\nlitesoph file management activated !!")
+
+    cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles.list"'     
+    cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles.list {local_proj_dir}"
+    cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
+
+    (error, message)=execute_rsync(cmd_create_listOfFiles_at_remote, passwd)
+    (error, message)=execute_rsync(cmd_listOfFiles_to_local, passwd)
+    (error, message)=execute_rsync(cmd_remove_listOfFiles_remote, passwd)
+    
+    listOfFiles_path=f'{local_proj_dir}/listOfFiles.list'    
+    file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)
+        
+    priority1_files_dict=filter_dict(file_info_dict,'file_relevance','very_impt')
+    priority2_files_dict=filter_dict(file_info_dict,'file_relevance','impt')
+    
+    for file in list(priority1_files_dict.keys()):
+        (error, message)=file_transfer(file,priority1_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
+    
+    for file in list(priority2_files_dict.keys()):
+        (error, message)=file_transfer(file,priority2_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
+
+    cmd_remove_listOfFiles_local=f'rm {local_proj_dir}/listOfFiles.list'
+    (error, message)=execute_rsync(cmd_remove_listOfFiles_local, passwd)
+    
+    return (error, message)
+    
+def add_element(dict, key, value):
+    if key not in dict:
+        dict[key] = {}
+    dict[key] = value
+    
+def create_file_info(list_of_files_in_remote_dir,lfm_file_info):
+
+    file_info_dict={}
+    default_metadata={'file_relevance':'very_impt','file_lifetime':'',
+                     'transfer_method':{'method':'direct_transfer','compress_method':'zstd','split_size':''}}
+    
+    for i in range(len(list_of_files_in_remote_dir)):
+        file_extension = pathlib.Path(list_of_files_in_remote_dir[i]).suffix
+
+        if file_extension in list(lfm_file_info.keys()):
+            metadata=lfm_file_info[file_extension]
+            add_element(file_info_dict, list_of_files_in_remote_dir[i], metadata)
+        else:
+            add_element(file_info_dict, list_of_files_in_remote_dir[i], default_metadata)
+    
+    return file_info_dict
+
+def filter_dict(dictionary,filter_key,filter_value):
+    """
+    function to filter dictionary using key-value pairs
+    """
+    filtered_dict=[dictionary for d in dictionary.values() if d[filter_key] == filter_value]
+    from collections import ChainMap
+    filtered_dict = dict(ChainMap(*filtered_dict)) 
+    return filtered_dict
+
+def read_file_info_list(filepath_file_list):
+    "create python list from listOfFiles.list"    
+    file=open(filepath_file_list, 'r')
+    data = [line.strip() for line in file]
+    data = [x for x in data if not re.search(r'listOfFiles', x)]    
+    file.close()
+    return data
+
+def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir):
+    """
+    function to selectively transfer files from remote to local    
+    """    
+    file_transfer_method=priority_files_dict[file]['transfer_method']['method']
+    
+    if file_transfer_method=="compress_transfer":
+        
+        algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
+        'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
+                    
+        compression_method=priority_files_dict[file]['transfer_method']['compress_method']
+        compressed_file_ext= algo_dict[compression_method]
+        
+        file_folder=str(pathlib.Path(file).parent)
+        file_name=str(pathlib.Path(file).name)
+        file = str(file).replace(str(remote_proj_dir), '')        
+        cmd_compress_file_at_remote=f'ssh -p {port} {username}@{host} "cd {file_folder}; {compression_method} -f {file_name}"'
+        cmd_compress_transfer=f"rsync -R --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file}{compressed_file_ext} {local_proj_dir}"                
+        file_folder=str(pathlib.Path(file).parent)
+        cmd_decompress_file_at_local=f'cd {local_proj_dir}{file_folder}; {compression_method} -d -f {file_name}{compressed_file_ext}; rm  {file_name}{compressed_file_ext}'
+        
+        (error, message)=execute_rsync(cmd_compress_file_at_remote, passwd)         
+        (error, message)=execute_rsync(cmd_compress_transfer, passwd)
+
+        result=execute(cmd_decompress_file_at_local, local_proj_dir)        
+        error=result[cmd_decompress_file_at_local]['output']
+        message=result[cmd_decompress_file_at_local]['error'] 
+        return (error, message)
+                
+    elif file_transfer_method=="split_transfer":
+
+        split_size=priority_files_dict[file]['transfer_method']['split_size']                
+        file_folder=str(pathlib.Path(file).parent)
+        file_name=str(pathlib.Path(file).name)
+        file = str(file).replace(str(remote_proj_dir), '')        
+        cmd_split_file_at_remote=f'ssh -p {port} {username}@{host} "cd {file_folder}; split -b {split_size} {file_name} {file_name}."'
+        cmd_split_files_transfer=f"rsync -R --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file}.?? {local_proj_dir}"                
+        file_folder=str(pathlib.Path(file).parent)
+        cmd_unsplit_file_at_local=f'cd {local_proj_dir}{file_folder}; cat {file_name}.?? > {file_name}; rm -r {file_name}.*'
+        
+        (error, message)=execute_rsync(cmd_split_file_at_remote, passwd)  
+        (error, message)=execute_rsync(cmd_split_files_transfer, passwd)    
+        result=execute(cmd_unsplit_file_at_local, local_proj_dir)        
+        error=result[cmd_unsplit_file_at_local]['output']
+        message=result[cmd_unsplit_file_at_local]['error']    
+        return (error, message)        
+    else:
+        file = str(file).replace(str(remote_proj_dir), '')
+        cmd_direct_transfer=f"rsync -avR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
+        print("\nTransferring File :",file)
+        (error, message)=execute_rsync(cmd_direct_transfer, passwd)    
+        return (error, message)
+
