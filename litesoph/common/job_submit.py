@@ -177,7 +177,7 @@ class SubmitNetwork:
         """
         get the running status of submitted job at remote
         """
-        job_name=''
+        job_name='job_script.sh'
         cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
         cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
         (error, message)=execute_rsync(cmd_check_running_process, self.password)            
@@ -302,8 +302,6 @@ class NetworkJobSubmission:
             #raise Exception("Command timed out.", command)
         except paramiko.SSHException:
             raise Exception("Failed to execute the command!", command)
-        pid = stdout.readline()
-        print("\nPID of the remote process: ", pid)
 
         return exit_status, ssh_output, ssh_error
 
@@ -366,9 +364,11 @@ def execute_rsync(cmd,passwd, timeout=None):
     if i == 0:
         return (-4, "Error: Incorrect password.")
     else:
-        output = str(ssh.before)
-        for text in ssh.before.decode(encoding='utf-8',errors='ignore').split('\n'):
-            print(text)
+        output = ssh.before.decode('utf-8')
+        output=output.replace(":", "")
+        # print("\noutput: ",output)
+        # for text in ssh.before.decode(encoding='utf-8',errors='ignore').split('\n'):
+            # print(text)
         return (0, output)
     
         

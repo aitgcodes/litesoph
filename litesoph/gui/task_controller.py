@@ -165,10 +165,9 @@ class TaskController:
 
     def _on_check_file_status_remote(self):
         try:
-            msg=self.task.submit_network.get_fileinfo_remote()
-                
+            error, msg=self.task.submit_network.get_fileinfo_remote()            
         except TaskFailed:
-            messagebox.showinfo(title='Info', message="Job not completed.")
+            messagebox.showinfo(title='Info', message=error)
             return            
         self.view_panel.insert_text(msg, 'disabled')
 
@@ -181,12 +180,24 @@ class TaskController:
             messagebox.showinfo(title='Info', message="No Job Found")
         
     def _on_check_job_status_remote(self):
-        
+
+        error, message=self.task.submit_network.get_job_status_remote()
+                
+        messagebox.showinfo(title='Info', message=message)
+
+        # try:
+            # msg=self.task.submit_network.get_job_status_remote()
+                
+        # except TaskFailed:
+            # messagebox.showinfo(title='Info', message="Job not completed.")
+            # return            
+        # self.view_panel.insert_text(msg, 'disabled')
+    
         # if self.job_sub_page.submit_thread.is_alive(): 
         #     messagebox.showinfo(title='Info', message="Job is Running")
         # else:
         #     messagebox.showinfo(title='Info', message="No Job Found")
-        print(" Not implemented")
+        # print(" Not implemented")
         
 
     def _on_plot_button(self, *_):
@@ -309,7 +320,7 @@ class TaskController:
             if self.task.task_info.network['sub_returncode'] != 0:
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
             else:
-                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!', detail = f"output:{self.task.task_info.network['output']}")
+                 messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
 
 
     def _get_remote_output(self):
