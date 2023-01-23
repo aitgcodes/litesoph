@@ -22,7 +22,7 @@ class ComputeSpectrum(BaseNwchemTask):
         self.network_done_file = self.task_dir / 'Done'
 
 
-        outfile = self.dependent_tasks[0].output.get('txt_out')
+        outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
         self.nwchem = NWChem(outfile=outfile, 
                         label=label, directory=self.task_dir)
 
@@ -56,8 +56,10 @@ class ComputeSpectrum(BaseNwchemTask):
         self.pol, tag = get_pol_and_tag(self.dependent_tasks[0])
         self.dipole_file = self.task_dir / 'dipole.dat'
         self.spectra_file = self.task_dir / f'spec_{self.pol}.dat'
-        self.task_info.output['spectrum_file'] = str(self.spectra_file)
-        self.task_info.output['dm_file'] = str(self.dipole_file)
+        # self.task_info.output['spectrum_file'] = str(self.spectra_file)
+        # self.task_info.output['dm_file'] = str(self.dipole_file)
+        self.task_info.output['spectrum_file'] = str(self.spectra_file.relative_to(self.project_dir))
+        self.task_info.output['dm_file'] = str(self.dipole_file.relative_to(self.project_dir))
         try:
             self.nwchem.get_td_dipole(self.dipole_file, td_out, tag, polarization=self.pol)
         except Exception:
@@ -91,15 +93,18 @@ class ComputeAvgSpectrum(BaseNwchemTask):
         self.network_done_file = self.task_dir / 'Done'
 
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
-        self.task_info.output['spectrum_file'] = str(self.averaged_spec_file)
+        # self.task_info.output['spectrum_file'] = str(self.averaged_spec_file)
+        self.task_info.output['spectrum_file'] = str(self.averaged_spec_file.relative_to(self.project_dir))
         self.spectrum_files = []
         for task in self.dependent_tasks:
+            # self.spectrum_files.append(str(self.project_dir / task.output['spectrum_file']))
             self.spectrum_files.append(str(task.output['spectrum_file']))
         
     def copmute_average(self):
         spec_data = []
         time_data = []
-        for i, file in enumerate(self.spectrum_files):
+        for i, spec_file in enumerate(self.spectrum_files):
+            file = self.project_dir / spec_file
             data = np.loadtxt(file)
             time_data.append(data[:,0])
             spec_data.append(data[:,1])

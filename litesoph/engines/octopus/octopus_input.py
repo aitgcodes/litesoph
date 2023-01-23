@@ -4,7 +4,7 @@ kw_types={"str": [ "FromScratch" ,"CalculationMode","UnitsOutput",
             "ExtraStates","ExcessCharge","SpinComponents","Mixing",
             "MaximumIter","Eigensolver","Smearing","SmearingFunction",
             "ConvRelDens","ConvEnergy","ConvAbsEv","ConvRelEv","ConvAbsDens","TDPropagator","TDMaxSteps","TDTimeStep",
-            "TDDeltaStrength","TDPolarizationDirection","TDOutputComputeInterval", "ParStates",
+            "TDDeltaStrength","TDDeltaKickTime","TDPolarizationDirection","TDOutputComputeInterval", "ParStates",
             "PropagationSpectrumEnergyStep","PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"],
         "quoted_str": ["WorkDir","XYZCoordinates"],
         "boolean": [],
@@ -19,8 +19,9 @@ block_types = {
             "states": ["ExtraStates","ExcessCharge","SpinComponents"],
             "xc_pseudo":["XCFunctional","PseudopotentialSet"],
             "td":["TDPropagator","TDMaxSteps","TDTimeStep"],
-            "td_delta":["TDDeltaStrength","TDPolarizationDirection", "TDPolarization"],
+            "td_delta":["TDDeltaStrength","TDPolarizationDirection","TDPolarization","TDDeltaKickTime"],
             "td_laser": ["TDExternalFields","TDFunctions"],
+            # "td_delta_probe":["TDDeltaStrength","TDPolarizationDirection", "TDDeltaKickTime"],
             "td_out": ["TDOutput","TDOutputComputeInterval", "ParStates"],
             "spectrum": ["UnitsOutput", "PropagationSpectrumEnergyStep", 
             "PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"]
@@ -30,7 +31,9 @@ task_types = {
 "ground_state": ["calc","common","scf","states","xc_pseudo"],
 "unocc": ["calc","common","scf","states","xc_pseudo"],
 "rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out"],
-"rt_tddft_laser": ["calc","common", "td", "td_laser", "td_out"],
+"rt_tddft_laser": ["calc","common", "td", "td_laser","td_delta", "td_out"],
+# "rt_tddft_laser": ["calc","common", "td", "td_laser", "td_out"],
+# "rt_tddft_pump_probe": ["calc","common", "td", "td_laser", "td_delta","td_out"],
 "spectrum": ["spectrum"]
 }
 
@@ -202,13 +205,17 @@ def generate_input(inp_dict:dict, check = True):
     """ Reads master dictionary, decides and returns the template format"""
         
     # gets task_name from inp_dict
-    task = get_task(inp_dict)
+    
+    task = inp_dict.get('task')
+    if not task:
+        task = get_task(inp_dict)
 
     validate_func ={
         "ground_state": validate_gs_input,
         "unocc": validate_gs_input,
         "rt_tddft_delta": validate_td_delta_input,
         "rt_tddft_laser": validate_td_laser_input,
+        # "rt_tddft_pump_probe" : validate_td_laser_input,
         "spectrum": validate_spec_input
     }
     

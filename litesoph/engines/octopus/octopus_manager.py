@@ -4,21 +4,23 @@ from litesoph.common.task import TaskNotImplementedError
 from litesoph.common.task_data import TaskTypes as tt                    
 from litesoph.common.workflows_data import WorkflowTypes as wt     
 from litesoph.common.engine_manager import EngineManager
-from litesoph.engines.octopus.octopus_task import OctopusTask, calc_td_range
+from litesoph.engines.octopus.octopus_task import OctopusTask, calc_td_range, PumpProbePostpro
 from litesoph.engines.octopus import task_data as td
 
 class OCTOPUSManager(EngineManager):
     """Base class for all the engine."""
 
     implemented_tasks: List[str] = [tt.GROUND_STATE, tt.RT_TDDFT, tt.COMPUTE_SPECTRUM,
-                                    tt.TCM, tt.MASKING, tt.MO_POPULATION]
+                                    tt.TCM, tt.MASKING, tt.MO_POPULATION, tt.COMPUTE_TAS]
 
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM, wt.KOHN_SHAM_DECOMPOSITION, 
-                                        wt.MO_POPULATION_TRACKING]
+                                        wt.MO_POPULATION_TRACKING, wt.PUMP_PROBE]
 
     def get_task(self, config, task_info: TaskInfo, 
                         dependent_tasks: Union[List[TaskInfo], None] =None ):
         self.check_task(task_info.name)
+        if task_info.name == tt.COMPUTE_TAS:
+            return PumpProbePostpro(config, task_info, dependent_tasks)
         return OctopusTask(config, task_info, dependent_tasks)
     
     def get_default_task_param(self, name, dependent_tasks: Union[List[TaskInfo], None]):
@@ -31,7 +33,7 @@ class OCTOPUSManager(EngineManager):
         }
         self.check_task(name)
 
-        get_func = task_default_parameter_map.get(name)
+        get_func = task_default_parameter_map.get(name, dict)
         if name == tt.RT_TDDFT:
             gs_info = dependent_tasks[0]
             if gs_info:

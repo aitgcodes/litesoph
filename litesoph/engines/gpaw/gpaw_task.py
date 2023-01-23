@@ -109,38 +109,62 @@ class GpawTask(Task):
         
             param['txt_out'] = input_filename + '.out'
             param['gpw_out'] =  input_filename + '.gpw'
-            self.task_info.input['engine_input']['path'] = str(self.task_dir / self.input_filename)
-            self.task_info.output['txt_out'] = str(self.task_dir / param['txt_out'])
-            self.task_info.output['gpw_out'] = str(self.task_dir / param['gpw_out'])
+
+            # TODO:relative paths
+            self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.input_filename)
+            self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.project_dir) / param['txt_out'])
+            self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.project_dir) / param['gpw_out'])
+            # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.input_filename)
+            # self.task_info.output['txt_out'] = str(self.task_dir / param['txt_out'])
+            # self.task_info.output['gpw_out'] = str(self.task_dir / param['gpw_out'])
 
         if tt.GROUND_STATE in self.task_name:
             param['geometry'] = str(self.project_dir / 'coordinate.xyz')
             return
         
         if  tt.RT_TDDFT in self.task_name:
-            param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
+            # TODO
+            # Update relative paths to absolute paths
+            param['gfilename'] = str( self.project_dir / self.dependent_tasks[0].output.get('gpw_out'))
+            # param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
             param['dm_file'] = 'dm.dat'
-            self.task_info.output['dm_file'] = str(self.task_dir / param['dm_file'])
+            
+            # TODO:relative paths
+            self.task_info.output['dm_file'] = str(self.task_dir.relative_to(self.project_dir) / param['dm_file'])
+            # self.task_info.output['dm_file'] = str(self.task_dir / param['dm_file'])
             if 'ksd' in param['properties'] or 'mo_population' in param['properties']:
                 param['wfile'] = 'wf.ulm'
-                self.task_info.output['wfile'] = str(self.task_dir / param['wfile'])
+                self.task_info.output['wfile'] = str(self.task_dir.relative_to(self.project_dir) / param['wfile'])
+                # self.task_info.output['wfile'] = str(self.task_dir / param['wfile'])
             update_td_input(param)
             return
 
         if tt.TCM == self.task_name:
-            param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
-            param['wfile'] = self.dependent_tasks[1].output.get('wfile')
+            # TODO:relative paths
+
+            param['gfilename'] = str(self.project_dir /self.dependent_tasks[0].output.get('gpw_out'))
+            param['wfile'] = str(self.project_dir /self.dependent_tasks[1].output.get('wfile'))
+            # param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
+            # param['wfile'] = self.dependent_tasks[1].output.get('wfile')
             return
 
         if 'mo_population' ==self.task_name:
+            # TODO:relative paths
+
             gs_log = self.dependent_tasks[0].output.get('txt_out')
             gs_file = self.dependent_tasks[0].output.get('gpw_out')
-            param['gfilename'] = gs_file
-            param['wfile'] = self.dependent_tasks[1].output.get('wfile')
+            param['gfilename'] = str(self.project_dir / gs_file)
+            param['wfile'] = str(self.project_dir / self.dependent_tasks[1].output.get('wfile'))
+            
+            # param['gfilename'] = gs_file
+            # param['wfile'] = self.dependent_tasks[1].output.get('wfile')
             param['mopop_file'] = mo_pop_file ='mo_population.dat'
             self.mo_populationfile = self.task_dir / mo_pop_file
-            self.task_info.output['mopop_file'] = str(self.mo_populationfile)
-            data = get_eigen_energy(gs_log)
+            
+            # TODO:relative paths
+            self.task_info.output['mopop_file'] = str(self.task_dir.relative_to(self.project_dir) / mo_pop_file)
+            # self.task_info.output['mopop_file'] = str(self.mo_populationfile)
+            data = get_eigen_energy(str(self.project_dir/gs_log))
             self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
             return
 
@@ -152,7 +176,10 @@ class GpawTask(Task):
     def write_input(self):
         if not self.task_dir.exists():
             self.create_directory(self.task_dir)
-        infile = self.task_info.input['engine_input']['path']
+         # TODO:relative paths
+        
+        infile = str(self.project_dir /self.task_info.input['engine_input']['path'])
+        # infile = self.task_info.input['engine_input']['path']
         template = self.task_info.input['engine_input']['data']
         with open(infile , 'w+') as f:
             f.write(template)
@@ -190,7 +217,9 @@ class GpawTask(Task):
 
     def get_engine_log(self):
         if self.check_output():
-            return self.read_log(self.task_info.output['txt_out'])
+             # TODO:relative paths
+            return self.read_log(self.project_dir / self.task_info.output['txt_out'])
+            # return self.read_log(self.task_info.output['txt_out'])
         
 
     def run_job_local(self, cmd):
@@ -240,7 +269,12 @@ class GpawTask(Task):
         return job_script
 
 def get_polarization_direction(task_info):
-    pol = task_info.param.get('polarization')
+    laser=task_info.param.get('laser')
+    if laser:
+        pol = laser[0].get('polarization')
+    else:
+        pol = task_info.param.get('polarization')
+
     return get_direction(pol)
 
 def get_direction(direction:list):
@@ -393,8 +427,10 @@ class GpawPostProMasking(GpawTask):
 
     def setup_task(self, param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)        
-        self.sim_total_dm = Path(self.dependent_tasks[0].output.get('dm_file'))
+        self.task_dir = get_new_directory(task_dir)   
+
+        self.sim_total_dm = self.project_dir / (self.dependent_tasks[0].output.get('dm_file'))     
+        # self.sim_total_dm = Path(self.dependent_tasks[0].output.get('dm_file'))
         self.state_mask_dm = False
         from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
         self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
@@ -422,3 +458,61 @@ class GpawPostProMasking(GpawTask):
         plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
         plt.show()
 
+class PumpProbePostpro(GpawTask):
+
+    """
+    Step 1: get all the dipole moment files from different td task with corresponding delay from taskinfo
+    Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
+    Step 3: generate x,y,z data for contour plot from spectrum file and delay data
+    """        
+    def setup_task(self,param):
+        task_dir = self.project_dir / 'gpaw' / self.task_name
+        self.task_dir = get_new_directory(task_dir)
+        
+    def extract_dm(self, gpaw_dm_file, index):
+        data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
+        dm_axis_data=data[:,[0,index]]  
+        return dm_axis_data
+
+    def generate_spectrums(self,damping=None,padding=None):
+        """generate spectrum file from dipole moment data"""
+        for i in range(len(self.dependent_tasks)):
+            axis_index,_=get_polarization_direction(self.dependent_tasks[i])
+            sim_total_dm = (self.project_dir / (self.dependent_tasks[i].output.get('dm_file')))   
+            delay=self.dependent_tasks[i].param.get('delay')             
+            spectrum_file= sim_total_dm.parent /f'spec_delay_{delay}.dat'            
+            out_spectrum_file = str(spectrum_file).replace(str(self.project_dir.parent), '')
+            self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
+            gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
+            out_standard_dm_file= sim_total_dm.parent /f'std_dm_delay_{delay}.dat'            
+            np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
+
+            from litesoph.post_processing.spectrum import photoabsorption_spectrum            
+            damping_var= None if damping is None else damping 
+            padding_var= None if padding is None else padding 
+            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping_var,padding=padding_var)
+                                    
+    def generate_tas_data(self):
+        from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_tas_data
+        
+        if not self.task_dir.exists():
+            self.create_directory(self.task_dir)  
+        
+        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
+        prepare_tas_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.task_dir)
+                
+    def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
+
+        from litesoph.visualization.plot_spectrum import contour_plot
+        x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
+        y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
+        z_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_z_data')))
+                        
+        x_min= np.min(x_data) if delay_min is None else delay_min 
+        x_max= np.max(x_data) if delay_max is None else delay_max 
+        y_min= np.min(y_data) if freq_min is None else freq_min 
+        y_max= np.max(y_data) if freq_max is None else freq_max 
+
+        plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
+        return plot
+    

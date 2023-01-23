@@ -93,10 +93,14 @@ class BaseNwchemTask(Task):
 
         if self.task_name in self.post_processing_tasks:
 
-            outfile = self.dependent_tasks[0].output.get('txt_out')
-            # self.engine_log = self.task_dir / self.outfile
+             # TODO:relative paths
+            outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
+            # outfile = self.dependent_tasks[0].output.get('txt_out')
+                # self.engine_log = self.task_dir / self.outfile
             if self.task_name == tt.MO_POPULATION:
-                outfile = self.dependent_tasks[1].output.get('txt_out')
+                 # TODO:relative paths
+                outfile = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
+                # outfile = self.dependent_tasks[1].output.get('txt_out')
 
             self.nwchem = NWChem(outfile=outfile, 
                             label=label, directory=self.task_dir)
@@ -114,8 +118,12 @@ class BaseNwchemTask(Task):
         self.infile = file_name + infile_ext
         self.outfile = file_name + outfile_ext
         # self.engine_log = self.task_dir / self.outfile
-        self.task_info.input['engine_input']['path'] = str(self.task_dir / self.infile)
-        self.task_info.output['txt_out'] = str(self.task_dir / self.outfile)
+
+         # TODO:relative paths
+        self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.infile)
+        self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.project_dir) / self.outfile)
+        # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.infile)
+        # self.task_info.output['txt_out'] = str(self.task_dir / self.outfile)
         self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
                             label=label, directory=self.task_dir, **param)
             
@@ -155,7 +163,11 @@ class BaseNwchemTask(Task):
 
     def get_engine_log(self):
         if self.check_output():
-            return self.read_log(self.task_info.output['txt_out'])
+            # TODO:relative paths
+
+            log_file_path = str(self.project_dir/self.task_info.output['txt_out'])
+            return self.read_log(log_file_path)
+            # return self.read_log(self.task_info.output['txt_out'])
 
 
     def plot(self,**kwargs):
@@ -187,10 +199,14 @@ class NwchemTask(BaseNwchemTask):
 
         if self.task_name in self.post_processing_tasks:
 
-            outfile = self.dependent_tasks[0].output.get('txt_out')
-            # self.engine_log = self.task_dir / self.outfile
+             # TODO:relative paths
+            outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
+            # outfile = self.dependent_tasks[0].output.get('txt_out')
+                # self.engine_log = self.task_dir / self.outfile
             if self.task_name == tt.MO_POPULATION:
-                outfile = self.dependent_tasks[1].output.get('txt_out')
+                 # TODO:relative paths
+                outfile = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
+                # outfile = self.dependent_tasks[1].output.get('txt_out')
 
             self.nwchem = NWChem(outfile=outfile, 
                             label=label, directory=self.task_dir)
@@ -230,7 +246,9 @@ class NwchemTask(BaseNwchemTask):
         self.above_lumo = above_lumo = self.user_input['num_unoccupied_mo']
 
         self.create_directory(self.task_dir)
-        td_out = self.dependent_tasks[1].output.get('txt_out')
+         # TODO:relative paths
+        td_out = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
+        # td_out = self.dependent_tasks[1].output.get('txt_out')
 
         #self.energy_file = self.task_dir / 'energy_format.dat'
         eigen_data = self.nwchem.get_eigen_energy(td_out)
@@ -442,6 +460,73 @@ def read_pol_dir(pol):
 
 
 def get_pol_and_tag(taskinfo):
-    pol = taskinfo.engine_param['rt_tddft']['field'].get('polarization', 'x')
+    # if the multiple lasers are passed in the field, polarization will be taken for first laser
+    if  type(taskinfo.engine_param['rt_tddft']['field']) is list:        
+        pol = taskinfo.engine_param['rt_tddft']['field'][0].get('polarization', 'x')
+    else:
+        pol = taskinfo.engine_param['rt_tddft']['field'].get('polarization', 'x')
     tag = taskinfo.engine_param['rt_tddft'].get('tag', 'rt_tddft')
     return pol, tag
+
+
+
+class PumpProbePostpro(NwchemTask):
+
+    """
+    Step 1: get all the dipole moment files from different td task with corresponding delay from taskinfo
+    Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
+    Step 3: generate x,y,z data for contour plot from spectrum file and delay data
+    """        
+    
+    def create_engine(self, param):
+        task_dir = self.project_dir / 'nwchem' / self.task_name
+        self.task_dir = get_new_directory(task_dir)
+        self.network_done_file = self.task_dir / 'Done'
+
+    def extract_dm(self,td_out_file,pol,tag):
+        from litesoph.engines.nwchem.nwchem_read_rt import nwchem_rt_parser                
+        dm_data=nwchem_rt_parser(td_out_file, outfile=None, tag=tag,
+                    geometry='system', 
+                    target='dipole', spin='closedshell', 
+                    polarization=pol, zero=False, retrun_data=True)
+        return dm_data
+        
+    def generate_spectrums(self,damping=None,padding=None):
+        """generate spectrum file from dipole moment data"""
+        
+        for i in range(len(self.dependent_tasks)):            
+            self.pol, tag = get_pol_and_tag(self.dependent_tasks[i])
+            td_out_file = (self.project_dir / (self.dependent_tasks[i].output.get('txt_out')))               
+            delay=self.dependent_tasks[i].param.get('delay')             
+            spectrum_file= td_out_file.parent /f'spec_delay_{delay}.dat'            
+            out_spectrum_file = str(spectrum_file).replace(str(self.project_dir.parent), '')
+            self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
+            gen_standard_dm_file=self.extract_dm(td_out_file,self.pol,tag)
+            out_standard_dm_file= td_out_file.parent /f'std_dm_delay_{delay}.dat'   
+            np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
+            
+            from litesoph.post_processing.spectrum import photoabsorption_spectrum            
+            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping,padding=padding)
+    
+    def generate_tas_data(self):
+        from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_tas_data
+        if not self.task_dir.exists():
+            self.create_directory(self.task_dir)  
+        
+        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
+        prepare_tas_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.task_dir)
+                            
+    def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
+        from litesoph.visualization.plot_spectrum import contour_plot
+        x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
+        y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
+        z_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_z_data')))
+                        
+        x_min= np.min(x_data) if delay_min is None else delay_min 
+        x_max= np.max(x_data) if delay_max is None else delay_max 
+        y_min= np.min(y_data) if freq_min is None else freq_min 
+        y_max= np.max(y_data) if freq_max is None else freq_max 
+
+        plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
+        return plot
+        

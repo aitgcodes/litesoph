@@ -7,11 +7,13 @@ from enum import Enum
 
 
 class WorkflowTypes(str, Enum):
+    TASK_MODE: str = 'task_mode'
     SPECTRUM: str = 'spectrum'
     AVERAGED_SPECTRUM: str = 'averaged_spectrum'
     KOHN_SHAM_DECOMPOSITION: str = 'kohn_sham_decomposition'
     MO_POPULATION_TRACKING: str = 'mo_population_tracking'
     MASKING: str = 'masking'
+    PUMP_PROBE: str = 'pump_probe'
 
 
 
@@ -111,5 +113,32 @@ predefined_workflow = {
                             '1' : '0',
                             '2' : '1'}
     },
+    "pump_probe": {
+        "name": "Pump Probe", 
+        "blocks": ['Ground State', 
+                    'RT TDDFT', 
+                    'Compute Spectrum',
+                    'RT TDDFT',
+                    'Compute TAS',
+                    'End'],
+        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+                    step(1, 1, tt.RT_TDDFT,{
+                                            'properties':['spectrum'],
+                                            }),
+                    step(2, 2, tt.COMPUTE_SPECTRUM),
+                    step(3 ,3 ,tt.RT_TDDFT,{
+                                        'properties':['spectrum'],
+                                                }, 
+                                                {
+                                                'laser': True
+                                                }),
+                    step(4 ,4 ,tt.COMPUTE_TAS)],
+        
+        "dependency_map": {'0' : None,
+                            '1' : '0',
+                            '2' : '1',
+                            '3' : '0',
+                            '4' : '3'}
+    }
 }
 

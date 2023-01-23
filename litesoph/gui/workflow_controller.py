@@ -9,9 +9,10 @@ from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError, Wo
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
 from litesoph.gui.task_controller import (TaskController,
-                                            LaserPageController,
+                                            TDPageController,
                                             PostProcessTaskController,
-                                            MaskingPageController)
+                                            MaskingPageController,
+                                            PumpProbePostProcessController)
 from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
@@ -19,12 +20,14 @@ from litesoph.common.task_data import (task_dependencies_map,
 
 task_view_map={
     tt.GROUND_STATE: v.GroundStatePage,
-    tt.RT_TDDFT: [v.TimeDependentPage, v.LaserDesignPage],
+    # tt.RT_TDDFT: [v.TimeDependentPage, v.LaserDesignPage],
+    tt.RT_TDDFT: [v.TimeDependentPage, v.TDPage],
     tt.COMPUTE_SPECTRUM: v.PlotSpectraPage,
     tt.COMPUTE_AVERAGED_SPECTRUM: v.PlotSpectraPage,
     tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
     tt.MASKING: v.MaskingPage,
+    tt.COMPUTE_TAS: v.PumpProbePostProcessPage
 }
 
 class WorkflowController:
@@ -47,7 +50,7 @@ class WorkflowController:
     def show_workmanager_page(self, *_):
         self.workmanager_page._var['select_wf_option'].set(value=2)
         self.workmanager_page.tkraise()
-        self.app.proceed_button.config(command= self.start_task)
+        self.app.proceed_button.config(command= self.start_task, state = 'normal')
     
     def get_task_dependencies(self, task_name):
         
@@ -100,16 +103,16 @@ class WorkflowController:
                                         dependent_tasks_uuid= self.get_task_dependencies(task_name))   
         
         self.workflow_manager.next()
-
         self.task_controller = get_task_controller(task_view, self, self.app)
-        
         self.task_controller.set_task(self.workflow_manager, task_view)
+        self.app.proceed_button.config(state = 'disabled')
 
     def _get_task(self) -> Union[tuple, None]:
 
         simulation_type = [('electrons', 'None', '<<event>>'),
                         ('electrons', 'Delta Pulse',v.TimeDependentPage),
-                        ('electrons', 'Gaussian Pulse', v.LaserDesignPage),
+                        # ('electrons', 'Gaussian Pulse', v.LaserDesignPage),
+                        ('electrons', 'Gaussian Pulse', v.TDPage),
                         ('electrons', 'Customised Pulse', '<<event>>'),
                         ('electron+ion', 'None', '<<event>>'),
                         ('electron+ion', 'Delta Pulse', '<<event>>'),
@@ -230,12 +233,16 @@ class WorkflowModeController(WorkflowController):
 
 def get_task_controller( task_view, workflow_controller, app) -> TaskController:
     
-    if task_view == v.LaserDesignPage:
-        task_controller = LaserPageController
+    # if task_view == v.LaserDesignPage:
+    #     task_controller = LaserPageController
+    if task_view == v.TDPage:
+        task_controller = TDPageController
     elif task_view == v.MaskingPage:
         task_controller = MaskingPageController
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
+    elif task_view == v.PumpProbePostProcessPage:
+        task_controller = PumpProbePostProcessController
     else:
         task_controller = TaskController
         

@@ -1,3 +1,5 @@
+from pathlib import Path
+import numpy as np
 
 def plot(fname,image):
 
@@ -96,3 +98,67 @@ def plot_population_tracking(population_file, homo_index:int,**kwargs):
         population_data[:,0]= population_data[:,0]*27.12*au_to_fs
 
     plot_multiple_column(population_data, column_list=column_range, column_dict=legend_dict, xcolumn=0, xlabel='Time (in femtosecond)', ylabel='Change in population')
+
+def contour_plot(x_data, y_data, z_data, x_label:str,y_label:str,title:str,x_lmt_min:float,x_lmt_max:float,y_lmt_min:float,y_lmt_max:float):
+    """
+    function to plot contour plot
+    """    
+    import matplotlib.pyplot as plt
+
+    plt.rcParams["figure.figsize"] = (10,8)
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)    
+    plt.xlim(x_lmt_min,x_lmt_max)
+    plt.ylim(y_lmt_min,y_lmt_max)
+    plt.contourf(x_data,y_data,z_data)    
+    plt.colorbar().set_label('Cross-section', rotation=90)
+    return plt.show()
+
+def get_spectrums_delays(task_info,dependent_tasks,project_dir):
+        """function to generate x,y,z data required by contour plot and plotting contour plot for pump_probe"""
+        
+        delay_list=[]
+        for i in range(len(dependent_tasks)):
+            delay=dependent_tasks[i].param.get('delay')   
+            delay_list.append(delay) 
+            
+        spectrum_data_list=[]
+        for delay in delay_list:
+            spec_file = (project_dir / (task_info.output.get(f'spec_delay_{delay}')))                
+            spectrum_data_list.append(spec_file)
+
+        return delay_list,spectrum_data_list
+
+def prepare_tas_data(task_info,project_dir,spectrum_data_list,delay_list,task_dir):        
+        
+        data0=np.loadtxt(f'{project_dir.parent}{spectrum_data_list[0]}', comments="#")
+
+        Omega = data0[:,0]
+        data=np.zeros(((len(Omega.transpose()),len(spectrum_data_list))))
+
+        for i, dat in enumerate(spectrum_data_list):
+            dat=np.loadtxt(f'{project_dir.parent}{dat}',comments="#")
+            data[:,i] = (dat[:len(Omega),1])
+            if i ==0:
+                delta_data=data
+            else:
+                delta_data[:,i]=data[:,i]-data[:,0]
+        
+
+        delay_list=[i if i!='no_probe' else 0 for i in delay_list]        
+        x_data,y_data= np.meshgrid(delay_list,Omega)
+        z_data=(np.abs(data))
+                    
+        contour_x_data_file= Path(task_dir) /'contour_x_data.dat' 
+        contour_y_data_file= Path(task_dir) /'contour_y_data.dat' 
+        contour_z_data_file= Path(task_dir) /'contour_z_data.dat' 
+    
+        task_info.output['contour_x_data']=contour_x_data_file       
+        task_info.output['contour_y_data']=contour_y_data_file             
+        task_info.output['contour_z_data']=contour_z_data_file             
+
+        fmt = "%s"# "%20.10e %20.10e %20.10e %20.10e"
+        np.savetxt(contour_x_data_file, x_data, fmt=fmt)  
+        np.savetxt(contour_y_data_file, y_data, fmt=fmt)  
+        np.savetxt(contour_z_data_file, z_data, fmt=fmt)  
