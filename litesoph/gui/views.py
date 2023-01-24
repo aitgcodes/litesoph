@@ -585,6 +585,7 @@ class JobSubPage(ttk.Frame):
         self.ip = tk.StringVar()
         self.username = tk.StringVar()
         self.password = tk.StringVar()
+        self.pkey_file = tk.StringVar()
         self.rpath = tk.StringVar()
         self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
@@ -726,6 +727,10 @@ class JobSubPage(ttk.Frame):
         self.password_entry['font'] = myfont()
         self.password_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
 
+        self.pkey_file_entry = tk.Entry(self.sub_job_frame,textvariable= self.pkey_file, width=20, show = '*')
+        self.pkey_file_entry['font'] = myfont()
+        self.pkey_file_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
+
         remote_path_label = tk.Label(self.sub_job_frame, text= "Remote Path", bg='gray', fg='black')
         remote_path_label['font'] = myfont()
         remote_path_label.grid(row=7,column=0,sticky='nsew', padx=2, pady=4)
@@ -775,10 +780,9 @@ class JobSubPage(ttk.Frame):
         self.run_button.config(state=state)
 
     def get_password_option(self):
-        password_enabled = False
-        if self.password_option.get() == 0:
-            password_enabled = True
-        return password_enabled
+        if self.password_option.get() == 1:
+            return True
+        return False
 
     def get_network_dict(self):
 
@@ -786,8 +790,10 @@ class JobSubPage(ttk.Frame):
           'ip':self.ip.get(),
           'username':self.username.get(),
           'password':self.password.get(),
+          'pkey_file':self.pkey_file.get(),
           'port' : self.port.get(),
           'remote_path':self.rpath.get(),
+          'passwordless_ssh':self.get_password_option()
             } 
         return network_job_dict
 
