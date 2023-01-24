@@ -1530,6 +1530,7 @@ class JobSubPage(ttk.Frame):
         self.ip = tk.StringVar()
         self.username = tk.StringVar()
         self.password = tk.StringVar()
+        self.pkey_file = tk.StringVar()
         self.rpath = tk.StringVar()
         self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
@@ -1639,20 +1640,6 @@ class JobSubPage(ttk.Frame):
         self.port.set(remote_profile['port'])
         self.rpath.set(remote_profile['remote_path'])
 
-    def check_submit_thread(self):
-        if self.submit_thread.is_alive():
-            self.run_button.config(state='disable')
-            self.after(20, self.check_submit_thread)
-        else:
-            self.progressbar.stop()
-    
-    def start_submit_thread(self,job):                
-        self.submit_thread = threading.Thread(target=job)
-        self.submit_thread.daemon = True        
-        self.progressbar.start()
-        self.submit_thread.start()
-        self.after(20, self.check_submit_thread)
-    
     def show_run_local(self,
                         generate_job_script: callable,
                         save_job_script: callable,
@@ -1736,14 +1723,14 @@ class JobSubPage(ttk.Frame):
         user_name_entry.grid(row=4, column=1,sticky='nsew', padx=2, pady=4)
 
         values = [0, 1]
-        txt=["With Password", "Password-less ssh"]
+        txt=["With Password", "Without Password"]
         command = [lambda:[set_state(self.password_entry, 'normal')],
-                lambda:[set_state(self.password_entry, 'disabled')]]
+                lambda:[set_state(self.password_entry, 'normal')]]
                 
         for (text, value, cmd) in zip(txt,values,command):            
             tk.Radiobutton(self.sub_job_frame,  text=text,  variable=self.password_option, font=myfont2(),
              justify='left',value=value,command=cmd).grid(row=value+5, column=0, ipady=5, sticky='w')
- 
+        
         # password_label = tk.Label(self.sub_job_frame, text= "Password", bg='gray', fg='black')
         # password_label['font'] = myfont()
         # password_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
@@ -1751,6 +1738,10 @@ class JobSubPage(ttk.Frame):
         self.password_entry = tk.Entry(self.sub_job_frame,textvariable= self.password, width=20, show = '*')
         self.password_entry['font'] = myfont()
         self.password_entry.grid(row=5,column=1,sticky='nsew', padx=2, pady=4)
+
+        self.pkey_file_entry = tk.Entry(self.sub_job_frame,textvariable= self.pkey_file, width=20, show = '*')
+        self.pkey_file_entry['font'] = myfont()
+        self.pkey_file_entry.grid(row=6,column=1,sticky='nsew', padx=2, pady=4)
 
         remote_path_label = tk.Label(self.sub_job_frame, text= "Remote Path", bg='gray', fg='black')
         remote_path_label['font'] = myfont()
@@ -1802,7 +1793,7 @@ class JobSubPage(ttk.Frame):
 
     def get_password_option(self):
         password_enabled = False
-        if self.password_option.get() == 0:
+        if self.password_option.get() == 1:
             password_enabled = True
         return password_enabled
 
@@ -1812,9 +1803,12 @@ class JobSubPage(ttk.Frame):
           'ip':self.ip.get(),
           'username':self.username.get(),
           'password':self.password.get(),
+          'pkey_file':self.pkey_file.get(),
           'port' : self.port.get(),
           'remote_path':self.rpath.get(),
+          'passwordless_ssh':self.get_password_option()
             } 
+
         return network_job_dict
 
 ####### popup filemenu #########

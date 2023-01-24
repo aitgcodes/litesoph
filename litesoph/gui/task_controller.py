@@ -298,13 +298,16 @@ class TaskController:
         
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
+
         
         try:
             self.task.connect_to_network(hostname=login_dict['ip'],
                                     username=login_dict['username'],
                                     password=login_dict['password'],
+                                    pkey_file=login_dict['pkey_file'],
                                     port=login_dict['port'],
-                                    remote_path=login_dict['remote_path'])
+                                    remote_path=login_dict['remote_path'],
+                                    passwordless_ssh=login_dict['passwordless_ssh'])
         except Exception as e:
             messagebox.showerror(title = "Error", message = 'Unable to connect to the network', detail= e)
             self.job_sub_page.set_run_button_state('active')
