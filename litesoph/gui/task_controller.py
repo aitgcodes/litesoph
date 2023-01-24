@@ -131,9 +131,7 @@ class TaskController:
         self.job_sub_page.check_job_status_remote(self._on_check_job_status_remote)        
         self.job_sub_page.download_all_files(self._on_download_all_files)
         self.job_sub_page.download_specific_file(self._on_download_specific_file)
-        
-        
-        
+                
         remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
@@ -155,7 +153,6 @@ class TaskController:
         self.job_sub_page.check_job_status_local(self._on_check_job_status_local)
         
 
-        
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
 
@@ -194,14 +191,18 @@ class TaskController:
 
     def _on_kill_job_remote(self):
 
-        print("Not implemented yet")
+        try:
+            error, message=self.task.submit_network.kill_job_remote()                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)                    
+        messagebox.showinfo(title='Info', message=message)   
+
     
     def _on_download_all_files():
             pass
 
-    def _on_download_specific_file():
+    def _on_download_specific_file(self,file_path):
             pass
-        
     
     def _on_plot_button(self, *_):
         
@@ -246,10 +247,6 @@ class TaskController:
         
         try:
             self.task.run_job_local(cmd)
-            # while self.job_sub_page.submit_thread.is_alive():
-            #     self.job_sub_page.set_run_button_state('disable')
-            # else:
-            #     self.task.run_job_local(cmd)
         except FileNotFoundError as e:
             messagebox.showerror(title='yes',message=e)
             return
@@ -272,7 +269,6 @@ class TaskController:
             return
             
         self.view_panel.insert_text(log_txt, 'disabled')
-
 
 
     def _run_network(self):

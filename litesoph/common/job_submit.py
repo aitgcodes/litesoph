@@ -178,14 +178,23 @@ class SubmitNetwork:
         get the running status of submitted job at remote
         """
         job_name='job_script.sh'
-        cmd_check_running_process=f"ps aux | grep {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
         cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
         (error, message)=execute_rsync(cmd_check_running_process, self.password)            
         return (error, message)
 
     def kill_job_remote(self):
-        pass
-    
+        """
+        kill the running job at remote
+        """
+        job_name='job_script.sh'
+        # cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_name}; then echo Job killed; else echo No Job found; fi"
+        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
+        (error, message)=execute_rsync(cmd_check_running_process, self.password)            
+        return (error, message)
+
+        
 
 class NetworkJobSubmission:
     """This class contain methods connect to remote cluster through ssh and perform common
