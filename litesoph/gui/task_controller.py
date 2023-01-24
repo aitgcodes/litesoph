@@ -126,12 +126,12 @@ class TaskController:
         self.job_sub_page.show_run_network(self._on_create_remote_job_script,
                                             self._on_save_job_script,
                                             self._run_network)
-        self.job_sub_page.check_file_status_remote(self._on_check_file_status_remote)
-        self.job_sub_page.kill_job_remote(self._on_kill_job_remote)
-        self.job_sub_page.check_job_status_remote(self._on_check_job_status_remote)        
-        self.job_sub_page.download_all_files(self._on_download_all_files)
-        self.job_sub_page.download_specific_file(self._on_download_specific_file)
-                
+
+        self.job_sub_page.runtime_query_remote(self._on_check_job_status_remote,
+                                               self._on_kill_job_remote,
+                                               self._on_check_file_status_remote,
+                                               self._on_download_all_files)
+                        
         remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
@@ -149,21 +149,27 @@ class TaskController:
         self.job_sub_page.show_run_local(self._on_create_local_job_script,
                                         self._on_save_job_script,
                                         self._run_local)
-        self.job_sub_page.check_file_status_local(self._on_check_file_status_local)
-        self.job_sub_page.check_job_status_local(self._on_check_job_status_local)
         
+        self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
+                                        self._on_check_job_status_local,
+                                        self._on_check_file_status_local)
 
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
 
     def _on_check_file_status_local(self):
         try:
-            msg=self.task.submit_local.get_fileinfo_local()
-                
+            error,msg=self.task.submit_local.get_fileinfo_local()                
         except TaskFailed:
-            messagebox.showinfo(title='Info', message="Job not completed.")
+            messagebox.showinfo(title='Info', message=error)
             return            
         self.view_panel.insert_text(msg, 'disabled')
+
+    def _on_check_job_status_local(self):        
+        if self.job_sub_page.submit_thread.is_alive(): 
+            messagebox.showinfo(title='Info', message="Job is Running")
+        else:
+            messagebox.showinfo(title='Info', message="No Job Found")
 
     def _on_check_file_status_remote(self):
         try:
@@ -172,17 +178,8 @@ class TaskController:
             messagebox.showinfo(title='Info', message=error)
             return            
         self.view_panel.insert_text(msg, 'disabled')
-
-    
-    def _on_check_job_status_local(self):
-        
-        if self.job_sub_page.submit_thread.is_alive(): 
-            messagebox.showinfo(title='Info', message="Job is Running")
-        else:
-            messagebox.showinfo(title='Info', message="No Job Found")
-        
+                
     def _on_check_job_status_remote(self):
-
         try:
             error, message=self.task.submit_network.get_job_status_remote()                
         except TaskFailed:
@@ -198,11 +195,23 @@ class TaskController:
         messagebox.showinfo(title='Info', message=message)   
 
     
-    def _on_download_all_files():
-            pass
+    def _on_download_all_files(self):
+
+        try:
+            error, message=self.task.submit_network.download_all_files_remote()                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)                    
+        return (error, message)
 
     def _on_download_specific_file(self,file_path):
-            pass
+        
+        priority1_files_dict={file_path: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}
+        
+        try:
+            error, message=self.task.submit_network.download_specific_file_remote(file_path,priority1_files_dict)                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)                    
+        messagebox.showinfo(title='Info', message=message)   
     
     def _on_plot_button(self, *_):
         
