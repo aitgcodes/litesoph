@@ -128,7 +128,6 @@ class TaskController:
                                             self._run_network)
 
         self.job_sub_page.runtime_query_remote(self._on_check_job_status_remote,
-                                               self._on_kill_job_remote,
                                                self._on_check_file_status_remote,
                                                self._on_download_all_files)
                         
@@ -151,7 +150,6 @@ class TaskController:
                                         self._run_local)
         
         self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
-                                        self._on_check_job_status_local,
                                         self._on_check_file_status_local)
 
         self.job_sub_page.set_run_button_state('disable')        

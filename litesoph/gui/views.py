@@ -1613,7 +1613,6 @@ class JobSubPage(ttk.Frame):
         self.after(20, self.check_submit_thread)
 
     def runtime_query_local(self, check_job_status: callable,
-                                  kill_running_job:callable,
                                   check_file_status:callable):
         """
         runtime query for local job submit
@@ -1628,16 +1627,15 @@ class JobSubPage(ttk.Frame):
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
 
-        self.job_status_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
-        self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=2, sticky='e', pady=5)
+        # self.job_status_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
+        # self.job_status_button['font'] = myfont()
+        # self.job_status_button.grid(row=2, column=2, sticky='e', pady=5)
 
         self.job_status_button = tk.Button(self.monitor_file_frame, text="Check File Status",activebackground="#78d6ff",command=check_file_status)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
     
     def runtime_query_remote(self, check_job_status: callable,
-                                  kill_running_job:callable,
                                   check_file_status:callable,
                                   download_all_files:callable):
         """
@@ -1653,9 +1651,9 @@ class JobSubPage(ttk.Frame):
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
 
-        self.kill_job_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
-        self.kill_job_button['font'] = myfont()
-        self.kill_job_button.grid(row=2, column=1, sticky='e', pady=5)
+        # self.kill_job_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
+        # self.kill_job_button['font'] = myfont()
+        # self.kill_job_button.grid(row=2, column=1, sticky='e', pady=5)
     
         self.file_status_button = tk.Button(self.monitor_file_frame, text="Check File Status",activebackground="#78d6ff",command=check_file_status)
         self.file_status_button['font'] = myfont()
