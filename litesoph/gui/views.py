@@ -1668,12 +1668,12 @@ class JobSubPage(ttk.Frame):
         self.label_download_specific_file.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
         
         n = tk.StringVar()
-        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = n,width=25)
+        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = n,width=50)
         self.combobox.grid(row = 4,column = 0)
 
         self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="Download Specific File",activebackground="#78d6ff",command=download_specific_files)
         self.download_specific_file_button['font'] = myfont()
-        self.download_specific_file_button.grid(row=3, column=1, sticky='e', pady=5)
+        self.download_specific_file_button.grid(row=5, column=0, sticky='e', pady=5)
     
     def show_run_local(self,
                         generate_job_script: callable,
