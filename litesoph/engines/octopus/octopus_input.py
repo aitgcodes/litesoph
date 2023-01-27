@@ -21,7 +21,6 @@ block_types = {
             "td":["TDPropagator","TDMaxSteps","TDTimeStep"],
             "td_delta":["TDDeltaStrength","TDPolarizationDirection","TDPolarization","TDDeltaKickTime"],
             "td_laser": ["TDExternalFields","TDFunctions"],
-            # "td_delta_probe":["TDDeltaStrength","TDPolarizationDirection", "TDDeltaKickTime"],
             "td_out": ["TDOutput","TDOutputComputeInterval", "ParStates"],
             "spectrum": ["UnitsOutput", "PropagationSpectrumEnergyStep", 
             "PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"]
@@ -32,8 +31,6 @@ task_types = {
 "unocc": ["calc","common","scf","states","xc_pseudo"],
 "rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out"],
 "rt_tddft_laser": ["calc","common", "td", "td_laser","td_delta", "td_out"],
-# "rt_tddft_laser": ["calc","common", "td", "td_laser", "td_out"],
-# "rt_tddft_pump_probe": ["calc","common", "td", "td_laser", "td_delta","td_out"],
 "spectrum": ["spectrum"]
 }
 
@@ -89,16 +86,6 @@ def format_lines(inp_dict:dict):
         for k,v in kw_types.items():
             if key in v:
                 type = k
-       
-        # if isinstance(value, tuple):
-        #     try:
-        #         var_value = value[0]
-        #         var_dict = value[1]
-        #     except IndexError:
-        #         var_dict = []
-        #     _line = func_types.get(type, key_value2line)(key, var_value)
-        #     lines.extend(_line) 
-        #     lines.extend(format_lines(var_dict)) 
         if isinstance(value, dict):
             try:
                 var_value = value["name"]
@@ -115,7 +102,7 @@ def format_lines(inp_dict:dict):
     return lines 
                 
 def get_dependent_features(property_name):
-    """Returns the dependent features(expt) corresponding to the property"""
+    """Returns the dependent features(expt) corresponding to the td_output/property"""
 
     td_output = [("energy", "no"),
             ("multipoles", "no"),
@@ -129,10 +116,10 @@ def validate_gs_input(inp_dict:dict):
     pass
 
 def validate_td_delta_input(inp_dict:dict):
+    """Validates/Modifies inputs considering dependency for TD Delta calculation"""
 
     def check_property_dependency(property_list:list):
         """ Checks property dependency w/ ExptFeatures option"""
-
         for property in property_list:
             expt = get_dependent_features(property)   
             if expt == 'yes':
@@ -146,18 +133,24 @@ def validate_td_delta_input(inp_dict:dict):
             if property == 'td_occup':
                 inp_dict["ParStates"] = 'no'
 
+    # Converts the td output from list of blocks format to list
     td_output_list = inp_dict.get("TDOutput", [["energy"], ["multipoles"]])
-    # inp_dict["TDOutput"] = td_output_list
-
     _list = []  
     for item in td_output_list:
         _list.extend(item)
     _list.append(item for item in td_output_list)    
 
+    # Checks/Updates Expt Features/ParStates for added td output list
     check_property_dependency(_list) 
 
 def validate_td_laser_input(inp_dict:dict):
+    """ Checks property dependency w/ ExptFeatures option for TD calculation with laser"""
     validate_td_delta_input(inp_dict)
+
+    # Checks for ExptFeatures
+    if "TDDeltaKickTime" in inp_dict.keys():
+        if float(inp_dict.get("TDDeltaKickTime")) >0 :
+            inp_dict["ExperimentalFeatures"] = 'yes'
 
 def validate_spec_input(inp_dict:dict):
     pass
@@ -166,12 +159,10 @@ def get_block_dict(inp_dict:dict, block_name:str):
     """ Reads the input dictionary and returns the matched key-values for particular block type"""
 
     kw_list = block_types.get(block_name)
-
     block_dict = {}
     for key, value in inp_dict.items():        
         if key in kw_list:
             block_dict[key] = value
-
     return block_dict        
 
 def get_task(inp_dict:dict):
@@ -196,16 +187,13 @@ def get_task(inp_dict:dict):
         if all(kw in inp_dict.keys() for kw in rt_tddft_delta ):
             task = "rt_tddft_delta"              
         elif all(kw in inp_dict.keys() for kw in rt_tddft_laser):
-            task = "rt_tddft_laser" 
-    
+            task = "rt_tddft_laser"     
     return task
-    
 
 def generate_input(inp_dict:dict, check = True):
     """ Reads master dictionary, decides and returns the template format"""
         
-    # gets task_name from inp_dict
-    
+    # gets task_name from inp_dict    
     task = inp_dict.get('task')
     if not task:
         task = get_task(inp_dict)
@@ -215,7 +203,6 @@ def generate_input(inp_dict:dict, check = True):
         "unocc": validate_gs_input,
         "rt_tddft_delta": validate_td_delta_input,
         "rt_tddft_laser": validate_td_laser_input,
-        # "rt_tddft_pump_probe" : validate_td_laser_input,
         "spectrum": validate_spec_input
     }
     
@@ -233,5 +220,4 @@ def generate_input(inp_dict:dict, check = True):
         lines.extend(lines)   
 
     _lines = """\n""".join(lines)
-
     return _lines    
