@@ -129,7 +129,8 @@ class TaskController:
 
         self.job_sub_page.runtime_query_remote(self._on_check_job_status_remote,
                                                self._on_check_file_status_remote,
-                                               self._on_download_all_files)
+                                               self._on_download_all_files,
+                                               self._on_download_specific_file)
                         
         remote = get_remote_profile()
         if remote:
@@ -202,7 +203,7 @@ class TaskController:
         return (error, message)
 
     def _on_download_specific_file(self,file_path):
-        
+
         priority1_files_dict={file_path: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}
         
         try:

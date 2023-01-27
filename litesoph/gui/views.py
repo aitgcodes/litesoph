@@ -1544,30 +1544,25 @@ class JobSubPage(ttk.Frame):
         self.port.set(22)
         
         self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame1.pack(fill=tk.BOTH)
-    
+        self.Frame1.pack(fill=tk.BOTH)    
         self.Frame2 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame2.pack(fill=tk.BOTH)
-        
+        self.Frame2.pack(fill=tk.BOTH)        
         self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
         self.Frame3.pack(fill=tk.BOTH)
-        
-        
+                
         self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
         self.frame_button.pack(fill=tk.BOTH)
 
         self.sub_job_frame = ttk.Frame(self.Frame1)
         self.sub_job_frame.grid(row=1, column=0, sticky='nsew')
-
         self.monitor_job_frame = ttk.Frame(self.Frame2)
         self.monitor_job_frame.grid(row=1, column=0, sticky='nsew')
-
         self.monitor_file_frame = ttk.Frame(self.Frame3)
-        self.monitor_file_frame.grid(row=1, column=0, sticky='nsew')
-
+        self.monitor_file_frame.grid(row=1, column=0, sticky='nsew')                
+        
         self.progressbar = ttk.Progressbar(self.Frame1, mode='indeterminate')
         self.progressbar.grid(row=4, column=0, sticky='nsew')
-
+        
         self.Frame_label = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
         self.Frame_label['font'] = myfont1()
         self.Frame_label.grid(row=0, column=0)       
@@ -1603,6 +1598,8 @@ class JobSubPage(ttk.Frame):
             self.run_button.config(state='disable')
             self.after(20, self.check_submit_thread)
         else:
+            self.label_progressbar = tk.Label(self.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            self.label_progressbar.grid(row=4, column=0,sticky='nsew')
             self.progressbar.stop()
     
     def start_submit_thread(self,job):                
@@ -1637,7 +1634,8 @@ class JobSubPage(ttk.Frame):
     
     def runtime_query_remote(self, check_job_status: callable,
                                   check_file_status:callable,
-                                  download_all_files:callable):
+                                  download_all_files:callable,
+                                  download_specific_files:callable):
         """
         runtime query for remote job submit
         """
@@ -1662,10 +1660,14 @@ class JobSubPage(ttk.Frame):
         self.download_all_files_button = tk.Button(self.monitor_file_frame, text="Download all Files",activebackground="#78d6ff",command=download_all_files)
         self.download_all_files_button['font'] = myfont()
         self.download_all_files_button.grid(row=2, column=1, sticky='e', pady=5)
-     
-        # self.download_specific_file_button = tk.Button(self.Frame3, text="Download Specific File",activebackground="#78d6ff",command=cmd)
-        # self.download_specific_file_button['font'] = myfont()
-        # self.download_specific_file_button.grid(row=2, column=2, sticky='e', pady=5)
+
+        self.label_download_specific_file = tk.Label(self.Frame3, text="Download Specific File", bg='gray', fg='black')
+        self.label_download_specific_file['font'] = myfont()
+        self.label_download_specific_file.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.download_specific_file_button = tk.Button(self.Frame3, text="Download Specific File",activebackground="#78d6ff",command=download_specific_files)
+        self.download_specific_file_button['font'] = myfont()
+        self.download_specific_file_button.grid(row=3, column=1, sticky='e', pady=5)
     
     def show_run_local(self,
                         generate_job_script: callable,

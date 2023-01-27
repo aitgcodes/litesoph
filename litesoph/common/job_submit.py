@@ -227,6 +227,7 @@ class SubmitNetwork:
         """
         download specific file(s) from remote
         """
+                
         (error, message)=file_transfer(file_path,priority1_files_dict,self.hostname,self.username,self.port,self.password,self.remote_path,self.project_dir)
         
         return (error, message)
