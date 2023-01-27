@@ -184,9 +184,14 @@ class SubmitNetwork:
         """
         get the generated file information during runtime
         """
+        cmd_create_listOfFiles_at_remote=f'ssh -p {self.port} {self.username}@{self.hostname} "cd {self.remote_path}; find "$PWD"  -type f > listOfFiles.list"'     
+        cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{self.port}' {self.username}@{self.hostname}:{self.remote_path}/listOfFiles.list {self.project_dir}"        
+        (error, message)=execute_rsync(cmd_create_listOfFiles_at_remote, self.password, timeout=None)
+        (error, message)=execute_rsync(cmd_listOfFiles_to_local, self.password, timeout=None)
+  
         cmd_filesize=f'"cd {self.remote_path}; find "$PWD"  -type f -exec du --human {{}} + | sort --human --reverse"'
         cmd_filesize=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_filesize}'        
-        (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)        
+        (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)          
         return (error, message)
         
     def get_job_status_remote(self):   
@@ -221,16 +226,20 @@ class SubmitNetwork:
         # (error, message)=file_transfer(file_path,priority1_files_dict,self.hostname,self.username,self.port,self.password,self.remote_path,self.project_dir)
         
         return (error, message)
-    
+
+    def get_list_of_files(self):
+        listOfFiles_path=f'{self.project_dir}/listOfFiles.list'    
+        return read_file_info_list(listOfFiles_path)        
 
     def download_specific_file_remote(self,file_path,priority1_files_dict):
         """
         download specific file(s) from remote
         """
-                
         (error, message)=file_transfer(file_path,priority1_files_dict,self.hostname,self.username,self.port,self.password,self.remote_path,self.project_dir)
         
         return (error, message)
+
+    
     
 
 class NetworkJobSubmission:
@@ -446,11 +455,11 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
 
     cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles.list"'     
     cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles.list {local_proj_dir}"
-    cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
+    # cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
 
     (error, message)=execute_rsync(cmd_create_listOfFiles_at_remote, passwd)
     (error, message)=execute_rsync(cmd_listOfFiles_to_local, passwd)
-    (error, message)=execute_rsync(cmd_remove_listOfFiles_remote, passwd)
+    # (error, message)=execute_rsync(cmd_remove_listOfFiles_remote, passwd)
     
     listOfFiles_path=f'{local_proj_dir}/listOfFiles.list'    
     file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)
@@ -464,8 +473,8 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     for file in list(priority2_files_dict.keys()):
         (error, message)=file_transfer(file,priority2_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
 
-    cmd_remove_listOfFiles_local=f'rm {local_proj_dir}/listOfFiles.list'
-    (error, message)=execute_rsync(cmd_remove_listOfFiles_local, passwd)
+    # cmd_remove_listOfFiles_local=f'rm {local_proj_dir}/listOfFiles.list'
+    # (error, message)=execute_rsync(cmd_remove_listOfFiles_local, passwd)
     
     return (error, message)
     

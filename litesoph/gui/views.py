@@ -1631,6 +1631,8 @@ class JobSubPage(ttk.Frame):
         self.job_status_button = tk.Button(self.monitor_file_frame, text="Check File Status",activebackground="#78d6ff",command=check_file_status)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+
+    
     
     def runtime_query_remote(self, check_job_status: callable,
                                   check_file_status:callable,
@@ -1661,11 +1663,15 @@ class JobSubPage(ttk.Frame):
         self.download_all_files_button['font'] = myfont()
         self.download_all_files_button.grid(row=2, column=1, sticky='e', pady=5)
 
-        self.label_download_specific_file = tk.Label(self.Frame3, text="Download Specific File", bg='gray', fg='black')
-        self.label_download_specific_file['font'] = myfont()
+        self.label_download_specific_file = tk.Label(self.monitor_file_frame, text="Select File", bg='gray', fg='black')
+        self.label_download_specific_file['font'] = myfont()        
         self.label_download_specific_file.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
+        
+        n = tk.StringVar()
+        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = n,width=25)
+        self.combobox.grid(row = 4,column = 0)
 
-        self.download_specific_file_button = tk.Button(self.Frame3, text="Download Specific File",activebackground="#78d6ff",command=download_specific_files)
+        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="Download Specific File",activebackground="#78d6ff",command=download_specific_files)
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=3, column=1, sticky='e', pady=5)
     

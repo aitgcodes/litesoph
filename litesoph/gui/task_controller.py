@@ -170,13 +170,26 @@ class TaskController:
         else:
             messagebox.showinfo(title='Info', message="No Job Found")
 
+    def selection_changed(self,event):
+        self.selected_file = self.job_sub_page.combobox.get()
+        messagebox.showinfo(
+        title="New Selection",
+        message=f"Selected option: {self.selected_file}")
+        
     def _on_check_file_status_remote(self):
+                
         try:
             error, msg=self.task.submit_network.get_fileinfo_remote()            
         except TaskFailed:
-            messagebox.showinfo(title='Info', message=error)
-            return            
+            messagebox.showinfo(title='Info', message=error)            
         self.view_panel.insert_text(msg, 'disabled')
+        
+        choose_file= self.job_sub_page.combobox
+        choose_file['values'] =  self.task.submit_network.get_list_of_files()
+        # choose_file.grid(row = 3,column = 0)
+        choose_file.current()
+        self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
+        
                 
     def _on_check_job_status_remote(self):
         try:
@@ -193,7 +206,6 @@ class TaskController:
             messagebox.showinfo(title='Info', message=error)                    
         messagebox.showinfo(title='Info', message=message)   
 
-    
     def _on_download_all_files(self):
 
         try:
@@ -201,8 +213,11 @@ class TaskController:
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)                    
         return (error, message)
+    
+    def _on_download_specific_file(self):
 
-    def _on_download_specific_file(self,file_path):
+        file_path=self.selected_file
+        print("file_path :",file_path)
 
         priority1_files_dict={file_path: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}
         
