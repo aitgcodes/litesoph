@@ -495,6 +495,8 @@ class TDPageController(TaskController):
             check = messagebox.askyesno(message= "Do you want to proceed with this laser setup?")
             if check:
                 self.task_view.tkraise()
+                self.task_view.set_sub_button_state('disable')
+                self.task_view.label_msg.grid_remove()
                 self.update_laser_on_td_page()
         else:
             if exp_type == 'Pump-Probe':
@@ -665,7 +667,9 @@ class TDPageController(TaskController):
                 self.workflow_controller.next_task()
             else:
                 self.workflow_manager.next()
-                self.task_view.tkraise()                
+                self.task_view.tkraise() 
+                self.task_view.set_sub_button_state('disable')
+                self.task_view.label_msg.grid_remove()               
                 self.task_view.inp.widget["delay_values"].set(delays[self.current_delay_index])
                 self.current_delay_index += 1
         else:            
