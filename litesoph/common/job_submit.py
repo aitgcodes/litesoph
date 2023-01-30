@@ -239,6 +239,16 @@ class SubmitNetwork:
         
         return (error, message)
 
+    def view_specific_file_remote(self,file):
+
+        cmd_view_remote=f"cat {file}"
+        cmd_view_remote=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_view_remote}'   
+        (error, message)=execute_rsync(cmd_view_remote, self.password)
+        return (error, message)
+
+
+        
+
     
     
 
@@ -566,7 +576,7 @@ def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj
         return (error, message)        
     else:
         file = str(file).replace(str(remote_proj_dir), '')
-        cmd_direct_transfer=f"rsync -avR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
+        cmd_direct_transfer=f"rsync -vR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
         print("\nTransferring File :",file)
         (error, message)=execute_rsync(cmd_direct_transfer, passwd)    
         return (error, message)

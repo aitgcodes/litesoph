@@ -130,7 +130,8 @@ class TaskController:
         self.job_sub_page.runtime_query_remote(self._on_check_job_status_remote,
                                                self._on_check_file_status_remote,
                                                self._on_download_all_files,
-                                               self._on_download_specific_file)
+                                               self._on_download_specific_file,
+                                               self._on_view_specific_file_remote)
                         
         remote = get_remote_profile()
         if remote:
@@ -217,8 +218,6 @@ class TaskController:
     def _on_download_specific_file(self):
 
         file_path=self.selected_file
-        print("file_path :",file_path)
-
         priority1_files_dict={file_path: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}
         
         try:
@@ -226,6 +225,28 @@ class TaskController:
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)                    
         messagebox.showinfo(title='Info', message=message)   
+
+    def _on_view_specific_file_remote(self):
+        
+        try:
+            error, message=self.task.submit_network.view_specific_file_remote(self.selected_file)  
+                             
+        except UnicodeDecodeError:
+            messagebox.showinfo(title='Info', message="Unable to Read File")                    
+        self.view_panel.insert_text(message, 'disabled')
+
+        # self._on_download_specific_file()        
+        # project_dir=self.task.submit_network.project_dir
+        # remote_path=self.task.submit_network.remote_path        
+        # file_path=self.selected_file        
+        # file_path = str(file_path).replace(str(remote_path), str(project_dir))
+        
+        # try:
+        #     with open(file_path) as f:
+        #         contents = f.read()
+        # except UnicodeDecodeError:
+        #         messagebox.showinfo(title='Info', message="Unable to Read File")           
+        # self.view_panel.insert_text(contents, 'disabled')
     
     def _on_plot_button(self, *_):
         

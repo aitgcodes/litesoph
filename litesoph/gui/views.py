@@ -1637,14 +1637,12 @@ class JobSubPage(ttk.Frame):
     def runtime_query_remote(self, check_job_status: callable,
                                   check_file_status:callable,
                                   download_all_files:callable,
-                                  download_specific_files:callable):
+                                  download_specific_files:callable,
+                                  view_specific_files:callable):
         """
         runtime query for remote job submit
         """
         for widget in self.monitor_job_frame.winfo_children():
-            widget.destroy()
-        
-        for widget in self.monitor_file_frame.winfo_children():
             widget.destroy()
                 
         self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
@@ -1674,6 +1672,11 @@ class JobSubPage(ttk.Frame):
         self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="Download Specific File",activebackground="#78d6ff",command=download_specific_files)
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=5, column=0, sticky='e', pady=5)
+
+        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View Specific File",activebackground="#78d6ff",command=view_specific_files)
+        self.download_specific_file_button['font'] = myfont()
+        self.download_specific_file_button.grid(row=6, column=0, sticky='e', pady=5)
+    
     
     def show_run_local(self,
                         generate_job_script: callable,
@@ -1718,7 +1721,6 @@ class JobSubPage(ttk.Frame):
         self.run_button['font'] = myfont()
         self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)   
         
-
     def show_run_network(self,
                         generate_job_script: callable,
                         save_job_script: callable,
