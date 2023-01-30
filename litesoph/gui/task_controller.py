@@ -152,7 +152,8 @@ class TaskController:
                                         self._run_local)
         
         self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
-                                        self._on_check_file_status_local)
+                                        self._on_check_file_status_local,
+                                        self._on_view_specific_file_local)
 
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
@@ -164,7 +165,23 @@ class TaskController:
             messagebox.showinfo(title='Info', message=error)
             return            
         self.view_panel.insert_text(msg, 'disabled')
-
+        self.task.submit_local.generate_list_of_files_local()
+        
+        choose_file= self.job_sub_page.combobox
+        choose_file['values'] =  self.task.submit_local.get_list_of_files_local()
+        # choose_file.grid(row = 3,column = 0)
+        choose_file.current()
+        self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
+        
+    
+    def _on_view_specific_file_local(self):
+                
+        try:
+            error, message=self.task.submit_local.view_specific_file_local(self.selected_file)                               
+        except UnicodeDecodeError:
+            messagebox.showinfo(title='Info', message="Unable to Read File")                    
+        self.view_panel.insert_text(message, 'disabled')
+    
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
             messagebox.showinfo(title='Info', message="Job is Running")
@@ -186,7 +203,7 @@ class TaskController:
         self.view_panel.insert_text(msg, 'disabled')
         
         choose_file= self.job_sub_page.combobox
-        choose_file['values'] =  self.task.submit_network.get_list_of_files()
+        choose_file['values'] =  self.task.submit_network.get_list_of_files_remote()
         # choose_file.grid(row = 3,column = 0)
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
@@ -234,19 +251,6 @@ class TaskController:
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
         self.view_panel.insert_text(message, 'disabled')
-
-        # self._on_download_specific_file()        
-        # project_dir=self.task.submit_network.project_dir
-        # remote_path=self.task.submit_network.remote_path        
-        # file_path=self.selected_file        
-        # file_path = str(file_path).replace(str(remote_path), str(project_dir))
-        
-        # try:
-        #     with open(file_path) as f:
-        #         contents = f.read()
-        # except UnicodeDecodeError:
-        #         messagebox.showinfo(title='Info', message="Unable to Read File")           
-        # self.view_panel.insert_text(contents, 'disabled')
     
     def _on_plot_button(self, *_):
         

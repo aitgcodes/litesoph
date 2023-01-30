@@ -86,6 +86,28 @@ class SubmitLocal:
         message=result[cmd_filesize]['output']            
         return (error, message)
     
+    def generate_list_of_files_local(self):
+        cmd=f'cd {self.project_dir}; find "$PWD"  -type f > listOfFiles.list'        
+        result=execute(cmd,self.project_dir)
+        error=result[cmd]['error']    
+        message=result[cmd]['output']            
+        return (error, message)
+
+    def get_list_of_files_local(self):        
+        listOfFiles_path=f'{self.project_dir}/listOfFiles_local.list'    
+        return read_file_info_list(listOfFiles_path) 
+
+    def view_specific_file_local(self,file):
+        cmd_view_local=f"cat {file}"
+        result=execute(cmd_view_local,self.project_dir)
+        error=result[cmd_view_local]['error']    
+        message=result[cmd_view_local]['output']            
+        return (error, message)
+        
+
+
+               
+
 
 class SubmitNetwork:
 
@@ -227,7 +249,7 @@ class SubmitNetwork:
         
         return (error, message)
 
-    def get_list_of_files(self):
+    def get_list_of_files_remote(self):
         listOfFiles_path=f'{self.project_dir}/listOfFiles.list'    
         return read_file_info_list(listOfFiles_path)        
 
@@ -240,7 +262,6 @@ class SubmitNetwork:
         return (error, message)
 
     def view_specific_file_remote(self,file):
-
         cmd_view_remote=f"cat {file}"
         cmd_view_remote=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_view_remote}'   
         (error, message)=execute_rsync(cmd_view_remote, self.password)

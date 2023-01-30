@@ -1610,7 +1610,8 @@ class JobSubPage(ttk.Frame):
         self.after(20, self.check_submit_thread)
 
     def runtime_query_local(self, check_job_status: callable,
-                                  check_file_status:callable):
+                                  check_file_status:callable,
+                                  view_specific_files:callable):
         """
         runtime query for local job submit
         """
@@ -1631,6 +1632,17 @@ class JobSubPage(ttk.Frame):
         self.job_status_button = tk.Button(self.monitor_file_frame, text="Check File Status",activebackground="#78d6ff",command=check_file_status)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+
+        n = tk.StringVar()
+        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = n,width=50)
+        self.combobox['font'] = myfont()
+        self.combobox.grid(row = 4,column = 0)
+        
+        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View Specific File",activebackground="#78d6ff",command=view_specific_files)
+        self.download_specific_file_button['font'] = myfont()
+        self.download_specific_file_button.grid(row=6, column=0, sticky='e', pady=5)
+
+
 
     
     
