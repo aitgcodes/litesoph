@@ -1679,6 +1679,7 @@ class JobSubPage(ttk.Frame):
         
         n = tk.StringVar()
         self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = n,width=50)
+        self.combobox['font'] = myfont()
         self.combobox.grid(row = 4,column = 0)
 
         self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="Download Specific File",activebackground="#78d6ff",command=download_specific_files)
