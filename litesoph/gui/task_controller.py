@@ -131,7 +131,8 @@ class TaskController:
                                                self._on_check_file_status_remote,
                                                self._on_download_all_files,
                                                self._on_download_specific_file,
-                                               self._on_view_specific_file_remote)
+                                               self._on_view_specific_file_remote,
+                                               self._on_plot_file)
                         
         remote = get_remote_profile()
         if remote:
@@ -153,7 +154,8 @@ class TaskController:
         
         self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
                                         self._on_check_file_status_local,
-                                        self._on_view_specific_file_local)
+                                        self._on_view_specific_file_local,
+                                        self._on_plot_file)
 
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
@@ -181,6 +183,23 @@ class TaskController:
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
         self.view_panel.insert_text(message, 'disabled')
+    
+    def _on_plot_file(self):
+
+        from litesoph.visualization.plot_spectrum import plot_spectrum
+
+        # plot_spectrum(self.selected_file)
+        plot_spectrum(str(self.selected_file),str("img.png"),0, 2, "X", "Y")
+
+
+        # try:
+        #     error, message=self.task.submit_local.view_specific_file_local(self.selected_file)                               
+        # except UnicodeDecodeError:
+        #     messagebox.showinfo(title='Info', message="Unable to Read File")                    
+        # self.view_panel.insert_text(message, 'disabled')
+    
+        
+        # pass
     
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
@@ -243,15 +262,14 @@ class TaskController:
             messagebox.showinfo(title='Info', message=error)                    
         messagebox.showinfo(title='Info', message=message)   
 
-    def _on_view_specific_file_remote(self):
-        
+    def _on_view_specific_file_remote(self):        
         try:
             error, message=self.task.submit_network.view_specific_file_remote(self.selected_file)  
                              
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
         self.view_panel.insert_text(message, 'disabled')
-    
+
     def _on_plot_button(self, *_):
         
         param = {}

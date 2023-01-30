@@ -87,7 +87,7 @@ class SubmitLocal:
         return (error, message)
     
     def generate_list_of_files_local(self):
-        cmd=f'cd {self.project_dir}; find "$PWD"  -type f > listOfFiles.list'        
+        cmd=f'cd {self.project_dir}; find "$PWD"  -type f > listOfFiles_local.list'        
         result=execute(cmd,self.project_dir)
         error=result[cmd]['error']    
         message=result[cmd]['output']            
@@ -104,11 +104,6 @@ class SubmitLocal:
         message=result[cmd_view_local]['output']            
         return (error, message)
         
-
-
-               
-
-
 class SubmitNetwork:
 
     def __init__(self,task,

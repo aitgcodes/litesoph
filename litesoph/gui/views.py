@@ -1611,7 +1611,8 @@ class JobSubPage(ttk.Frame):
 
     def runtime_query_local(self, check_job_status: callable,
                                   check_file_status:callable,
-                                  view_specific_files:callable):
+                                  view_specific_files:callable,
+                                  plot_file:callable):
         """
         runtime query for local job submit
         """
@@ -1642,15 +1643,16 @@ class JobSubPage(ttk.Frame):
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=6, column=0, sticky='e', pady=5)
 
-
-
-    
-    
+        self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
+        self.plot_file_button['font'] = myfont()
+        self.plot_file_button.grid(row=6, column=1, sticky='e', pady=5)
+        
     def runtime_query_remote(self, check_job_status: callable,
                                   check_file_status:callable,
                                   download_all_files:callable,
                                   download_specific_files:callable,
-                                  view_specific_files:callable):
+                                  view_specific_files:callable,
+                                  plot_file:callable):
         """
         runtime query for remote job submit
         """
@@ -1689,8 +1691,13 @@ class JobSubPage(ttk.Frame):
         self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View Specific File",activebackground="#78d6ff",command=view_specific_files)
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=6, column=0, sticky='e', pady=5)
+
+        self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
+        self.plot_file_button['font'] = myfont()
+        self.plot_file_button.grid(row=6, column=0, sticky='e', pady=5)
     
-    
+
+
     def show_run_local(self,
                         generate_job_script: callable,
                         save_job_script: callable,
