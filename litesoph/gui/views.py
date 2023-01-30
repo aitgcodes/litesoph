@@ -1226,6 +1226,7 @@ class TDPage(View):
         self.event_generate('<<Design&EditLaser>>')
 
     def set_label_msg(self,msg):
+        self.label_msg.grid()
         show_message(self.label_msg, msg)
     
     def get_property_list(self, gui_values:dict):

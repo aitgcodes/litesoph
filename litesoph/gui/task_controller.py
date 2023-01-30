@@ -4,7 +4,7 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 import copy
 from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task import InputError, Task, TaskFailed
 from litesoph.common.task_data import TaskTypes as tt  
 from litesoph.common.workflows_data import WorkflowTypes as wt                                
 from litesoph.gui import views as v
@@ -495,6 +495,8 @@ class TDPageController(TaskController):
             check = messagebox.askyesno(message= "Do you want to proceed with this laser setup?")
             if check:
                 self.task_view.tkraise()
+                self.task_view.set_sub_button_state('disable')
+                self.task_view.label_msg.grid_remove()
                 self.update_laser_on_td_page()
         else:
             if exp_type == 'Pump-Probe':
@@ -642,15 +644,20 @@ class TDPageController(TaskController):
                     lasers_list.append(laser_dict)  
 
             inp_dict.update({'laser': lasers_list,
-                            'delay': delay})
-        
-        # TODO: add validation for input entries type/ dependency
-        check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
-        if not check:
-            return
+                            'delay': delay})       
+       
         self.task_info.param.clear()
         self.task_info.param.update(inp_dict)
-        self.task = self.workflow_manager.get_engine_task()
+        check = False
+        try:
+            self.task = self.workflow_manager.get_engine_task()
+        except InputError as error_msg:
+            messagebox.showerror(message= error_msg)
+            return
+        check = messagebox.askokcancel(title='Input parameters selected',
+                         message= dict2string(inp_dict))
+        if not check:
+            return
         self.task.create_input()
         txt = self.task.get_engine_input()
         self.view_panel.insert_text(text=txt, state='normal')
@@ -665,7 +672,9 @@ class TDPageController(TaskController):
                 self.workflow_controller.next_task()
             else:
                 self.workflow_manager.next()
-                self.task_view.tkraise()                
+                self.task_view.tkraise() 
+                self.task_view.set_sub_button_state('disable')
+                self.task_view.label_msg.grid_remove()               
                 self.task_view.inp.widget["delay_values"].set(delays[self.current_delay_index])
                 self.current_delay_index += 1
         else:            
