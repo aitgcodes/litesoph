@@ -237,11 +237,7 @@ class SubmitNetwork:
         download all files from remote
         """
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
-
         (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir,lfm_file_info)
-
-        # (error, message)=file_transfer(file_path,priority1_files_dict,self.hostname,self.username,self.port,self.password,self.remote_path,self.project_dir)
-        
         return (error, message)
 
     def get_list_of_files_remote(self):
@@ -261,12 +257,6 @@ class SubmitNetwork:
         cmd_view_remote=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_view_remote}'   
         (error, message)=execute_rsync(cmd_view_remote, self.password)
         return (error, message)
-
-
-        
-
-    
-    
 
 class NetworkJobSubmission:
     """This class contain methods connect to remote cluster through ssh and perform common

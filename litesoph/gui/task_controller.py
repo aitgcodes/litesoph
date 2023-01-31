@@ -132,7 +132,7 @@ class TaskController:
                                                self._on_download_all_files,
                                                self._on_download_specific_file,
                                                self._on_view_specific_file_remote,
-                                               self._on_plot_file)
+                                               self._on_plot_file_remote)
                         
         remote = get_remote_profile()
         if remote:
@@ -155,7 +155,7 @@ class TaskController:
         self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
                                         self._on_check_file_status_local,
                                         self._on_view_specific_file_local,
-                                        self._on_plot_file)
+                                        self._on_plot_file_local)
 
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
@@ -170,32 +170,38 @@ class TaskController:
         self.task.submit_local.generate_list_of_files_local()
         
         choose_file= self.job_sub_page.combobox
-        choose_file['values'] =  self.task.submit_local.get_list_of_files_local()
-        # choose_file.grid(row = 3,column = 0)
+        list_of_files=[]
+        for file_path in self.task.submit_local.get_list_of_files_local():
+            file = str(file_path).replace(str(self.task.submit_local.project_dir),'')
+            list_of_files.append(file)
+        choose_file['values'] = list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
         
-    
     def _on_view_specific_file_local(self):
-                
         try:
-            error, message=self.task.submit_local.view_specific_file_local(self.selected_file)                               
+            file= str(self.task.submit_local.project_dir)+str(self.selected_file)
+            error, message=self.task.submit_local.view_specific_file_local(file)                               
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
         self.view_panel.insert_text(message, 'disabled')
     
-    def _on_plot_file(self):
+    def _on_plot_file_local(self):
 
         from litesoph.visualization.plot_spectrum import plot_spectrum
         axes_data=self.job_sub_page.plot_axes.get()
         axes_data = list(axes_data.split(" "))
         X_axis=int(axes_data[0])
         y_axis=int(axes_data[1])
-        
+              
         try:
-            plot_spectrum(str(self.selected_file),str("img.png"),X_axis, y_axis, "X", "Y")
+            file= str(self.task.submit_local.project_dir)+str(self.selected_file)
+            print("\nfile :", file)
+            plot_spectrum(str(file),str("img.png"),X_axis, y_axis, "X", "Y")
         except ValueError:
-            messagebox.showinfo(title='Info', message="Cannot plot selected File")   
+            messagebox.showinfo(title='Info', message="Cannot plot selected File") 
+        except FileNotFoundError:
+            messagebox.showinfo(title='Info', message="File not found") 
     
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
@@ -209,8 +215,7 @@ class TaskController:
         title="New Selection",
         message=f"Selected option: {self.selected_file}")
         
-    def _on_check_file_status_remote(self):
-                
+    def _on_check_file_status_remote(self):                
         try:
             error, msg=self.task.submit_network.get_fileinfo_remote()            
         except TaskFailed:
@@ -218,11 +223,14 @@ class TaskController:
         self.view_panel.insert_text(msg, 'disabled')
         
         choose_file= self.job_sub_page.combobox
-        choose_file['values'] =  self.task.submit_network.get_list_of_files_remote()
-        # choose_file.grid(row = 3,column = 0)
+        list_of_files=[]
+        for file_path in self.task.submit_network.get_list_of_files_remote():
+            file = str(file_path).replace(str(self.task.submit_network.remote_path),'')
+            list_of_files.append(file)
+        
+        choose_file['values'] =  list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
-        
                 
     def _on_check_job_status_remote(self):
         try:
@@ -232,7 +240,6 @@ class TaskController:
         messagebox.showinfo(title='Info', message=message)   
 
     def _on_kill_job_remote(self):
-
         try:
             error, message=self.task.submit_network.kill_job_remote()                
         except TaskFailed:
@@ -240,7 +247,6 @@ class TaskController:
         messagebox.showinfo(title='Info', message=message)   
 
     def _on_download_all_files(self):
-
         try:
             error, message=self.task.submit_network.download_all_files_remote()                
         except TaskFailed:
@@ -248,8 +254,7 @@ class TaskController:
         return (error, message)
     
     def _on_download_specific_file(self):
-
-        file_path=self.selected_file
+        file_path= str(self.task.submit_network.remote_path) + str(self.selected_file)
         priority1_files_dict={file_path: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}
         
         try:
@@ -266,6 +271,24 @@ class TaskController:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
         self.view_panel.insert_text(message, 'disabled')
 
+    def _on_plot_file_remote(self):
+
+        from litesoph.visualization.plot_spectrum import plot_spectrum
+        axes_data=self.job_sub_page.plot_axes.get()
+        axes_data = list(axes_data.split(" "))
+        X_axis=int(axes_data[0])
+        y_axis=int(axes_data[1])
+        
+        file_path= str(self.task.submit_network.project_dir) + str(self.selected_file)
+        
+        try:
+            plot_spectrum(str(file_path),str("img.png"),X_axis, y_axis, "X", "Y")
+        except ValueError:
+            messagebox.showinfo(title='Info', message="Cannot plot selected File")   
+        except FileNotFoundError:
+            messagebox.showinfo(title='Info', message="File not found")  
+    
+        
     def _on_plot_button(self, *_):
         
         param = {}
