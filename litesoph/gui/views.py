@@ -1558,8 +1558,8 @@ class JobSubPage(ttk.Frame):
         self.monitor_job_frame = ttk.Frame(self.Frame2)
         self.monitor_job_frame.grid(row=1, column=0, sticky='nsew')
         self.monitor_file_frame = ttk.Frame(self.Frame3)
-        self.monitor_file_frame.grid(row=1, column=0, sticky='nsew')                
-        
+        self.monitor_file_frame.grid(row=1, column=0, sticky='nsew') 
+         
         self.progressbar = ttk.Progressbar(self.Frame1, mode='indeterminate')
         self.progressbar.grid(row=4, column=0, sticky='nsew')
         
@@ -1596,12 +1596,32 @@ class JobSubPage(ttk.Frame):
     def check_submit_thread(self):
         if self.submit_thread.is_alive():
             self.run_button.config(state='disable')
+            # self.job_status_button.config(state='active')
+            self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
+            self.plot_file_button.config(state='disable')
+            self.download_specific_file_button.config(state='disable')
+
             self.after(20, self.check_submit_thread)
         else:
             self.label_progressbar = tk.Label(self.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
             self.label_progressbar.grid(row=4, column=0,sticky='nsew')
             self.progressbar.stop()
-    
+            # self.job_status_button.config(state='active')
+            self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
+            self.plot_file_button.config(state='disable')
+            self.download_specific_file_button.config(state='disable')
+
+
+    def enable_disable_frame_elements(self,list_of_frames,state):
+        for frame in list_of_frames:
+            for widget in frame.winfo_children():
+                widget.configure(state=state)
+
+    def destroy_frame_elements(self,list_of_frames):    
+        for frame in list_of_frames:
+            for widget in frame.winfo_children():
+                widget.destroy()
+        
     def start_submit_thread(self,job):                
         self.submit_thread = threading.Thread(target=job)
         self.submit_thread.daemon = True        
@@ -1616,24 +1636,16 @@ class JobSubPage(ttk.Frame):
         """
         runtime query for local job submit
         """
-        for widget in self.monitor_job_frame.winfo_children():
-            widget.destroy()
-        
-        for widget in self.monitor_file_frame.winfo_children():
-            widget.destroy()
+        self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])
         
         self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
-
-        # self.kill_job_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
-        # self.kill_job_button['font'] = myfont()
-        # self.kill_job_button.grid(row=2, column=2, sticky='e', pady=5)
-
-        self.job_status_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
-        self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
-
+        
+        self.job_track_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
+        self.job_track_button['font'] = myfont()
+        self.job_track_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
+        
         self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = tk.StringVar())
         self.combobox['font'] = myfont()
         self.combobox.set("select a file")
@@ -1643,10 +1655,6 @@ class JobSubPage(ttk.Frame):
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=3, column=1, sticky='nsew', padx=2, pady=4)
 
-        # self.label_axes = tk.Label(self.monitor_file_frame, text="Axes", bg='gray', fg='black')
-        # self.label_axes['font'] = myfont()
-        # self.label_axes.grid(row=7, column=0,sticky='nsew', padx=5, pady=5)
-
         self.plot_axes = tk.Entry(self.monitor_file_frame, textvariable=tk.StringVar())
         self.plot_axes['font'] = myfont()
         self.plot_axes.insert(0, "select axes")
@@ -1655,6 +1663,9 @@ class JobSubPage(ttk.Frame):
         self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         self.plot_file_button['font'] = myfont()
         self.plot_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
+
+        self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'disable')
+        # self.job_status_button.config(state='active')
         
     def runtime_query_remote(self, check_job_status: callable,
                                   check_file_status:callable,
@@ -1673,10 +1684,6 @@ class JobSubPage(ttk.Frame):
         self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
-
-        # self.kill_job_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
-        # self.kill_job_button['font'] = myfont()
-        # self.kill_job_button.grid(row=2, column=1, sticky='e', pady=5)
     
         self.file_status_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
         self.file_status_button['font'] = myfont()
@@ -1685,10 +1692,6 @@ class JobSubPage(ttk.Frame):
         self.download_all_files_button = tk.Button(self.monitor_file_frame, text="Download all Files",activebackground="#78d6ff",command=download_all_files)
         self.download_all_files_button['font'] = myfont()
         self.download_all_files_button.grid(row=2, column=1, sticky='nsew', padx=2, pady=4)
-
-        # self.label_download_specific_file = tk.Label(self.monitor_file_frame, text="Select File", bg='gray', fg='black')
-        # self.label_download_specific_file['font'] = myfont()        
-        # self.label_download_specific_file.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
                 
         self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = tk.StringVar())
         self.combobox['font'] = myfont()
@@ -1711,13 +1714,7 @@ class JobSubPage(ttk.Frame):
         self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         self.plot_file_button['font'] = myfont()
         self.plot_file_button.grid(row=5, column=1, sticky='nsew', padx=2, pady=4)
-        
-        # self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
-        # self.plot_file_button['font'] = myfont()
-        # self.plot_file_button.grid(row=6, column=0, sticky='e', pady=5)
-    
-
-
+            
     def show_run_local(self,
                         generate_job_script: callable,
                         save_job_script: callable,

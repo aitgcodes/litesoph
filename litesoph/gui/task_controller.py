@@ -178,6 +178,11 @@ class TaskController:
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
         
+        self.job_sub_page.plot_file_button.config(state='active')
+        self.job_sub_page.download_specific_file_button.config(state='active')
+
+
+
     def _on_view_specific_file_local(self):
         try:
             file= str(self.task.submit_local.project_dir)+str(self.selected_file)
@@ -191,10 +196,14 @@ class TaskController:
         from litesoph.visualization.plot_spectrum import plot_spectrum
         axes_data=self.job_sub_page.plot_axes.get()
         axes_data = list(axes_data.split(" "))
-        X_axis=int(axes_data[0])
-        y_axis=int(axes_data[1])
-              
+
         try:
+            X_axis=int(axes_data[0])
+            y_axis=int(axes_data[1])
+        except ValueError:
+            messagebox.showinfo(title='Info', message="Axes Not Selected") 
+               
+        try:            
             file= str(self.task.submit_local.project_dir)+str(self.selected_file)
             print("\nfile :", file)
             plot_spectrum(str(file),str("img.png"),X_axis, y_axis, "X", "Y")
@@ -287,8 +296,7 @@ class TaskController:
             messagebox.showinfo(title='Info', message="Cannot plot selected File")   
         except FileNotFoundError:
             messagebox.showinfo(title='Info', message="File not found")  
-    
-        
+            
     def _on_plot_button(self, *_):
         
         param = {}

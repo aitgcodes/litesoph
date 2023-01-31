@@ -440,7 +440,7 @@ def execute_rsync(cmd,passwd, timeout=None):
         return (-4, "Error: Incorrect password.")
     else:
         output = ssh.before.decode('utf-8')
-        output=output.replace(":", "")
+
         # print("\noutput: ",output)
         # for text in ssh.before.decode(encoding='utf-8',errors='ignore').split('\n'):
             # print(text)
@@ -469,15 +469,15 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     """
     print("\nlitesoph file management activated !!")
 
-    cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles.list"'     
-    cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles.list {local_proj_dir}"
+    cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles_remote.list"'     
+    cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles_remote.list {local_proj_dir}"
     # cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
 
     (error, message)=execute_rsync(cmd_create_listOfFiles_at_remote, passwd)
     (error, message)=execute_rsync(cmd_listOfFiles_to_local, passwd)
     # (error, message)=execute_rsync(cmd_remove_listOfFiles_remote, passwd)
     
-    listOfFiles_path=f'{local_proj_dir}/listOfFiles.list'    
+    listOfFiles_path=f'{local_proj_dir}/listOfFiles_remote.list'    
     file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)
         
     priority1_files_dict=filter_dict(file_info_dict,'file_relevance','very_impt')
