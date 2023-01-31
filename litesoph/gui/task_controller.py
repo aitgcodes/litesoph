@@ -265,8 +265,8 @@ class TaskController:
 
     def _on_view_specific_file_remote(self):        
         try:
-            error, message=self.task.submit_network.view_specific_file_remote(self.selected_file)  
-                             
+            file_path= str(self.task.submit_network.remote_path) + str(self.selected_file)
+            error, message=self.task.submit_network.view_specific_file_remote(file_path)  
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
         self.view_panel.insert_text(message, 'disabled')

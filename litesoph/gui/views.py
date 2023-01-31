@@ -1563,9 +1563,9 @@ class JobSubPage(ttk.Frame):
         self.progressbar = ttk.Progressbar(self.Frame1, mode='indeterminate')
         self.progressbar.grid(row=4, column=0, sticky='nsew')
         
-        self.Frame_label = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
-        self.Frame_label['font'] = myfont1()
-        self.Frame_label.grid(row=0, column=0)       
+        self.Frame_label1 = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
+        self.Frame_label1['font'] = myfont1()
+        self.Frame_label1.grid(row=0, column=0)       
 
         self.Frame_label2 = tk.Label(self.Frame2, text="LITESOPH Job Monitoring", fg='blue')
         self.Frame_label2['font'] = myfont1()
@@ -1624,35 +1624,37 @@ class JobSubPage(ttk.Frame):
         
         self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
         self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=1, sticky='e', pady=5)
+        self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
 
         # self.kill_job_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
         # self.kill_job_button['font'] = myfont()
         # self.kill_job_button.grid(row=2, column=2, sticky='e', pady=5)
 
-        self.job_status_button = tk.Button(self.monitor_file_frame, text="Check File Status",activebackground="#78d6ff",command=check_file_status)
+        self.job_status_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
         self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+        self.job_status_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
 
-        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = tk.StringVar(),width=50)
+        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = tk.StringVar())
         self.combobox['font'] = myfont()
-        self.combobox.grid(row = 4,column = 0)
+        self.combobox.set("select a file")
+        self.combobox.grid(row = 3,column = 0, sticky='nsew', padx=2, pady=4)
         
         self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View Specific File",activebackground="#78d6ff",command=view_specific_files)
         self.download_specific_file_button['font'] = myfont()
-        self.download_specific_file_button.grid(row=6, column=0, sticky='e', pady=5)
+        self.download_specific_file_button.grid(row=3, column=1, sticky='nsew', padx=2, pady=4)
 
-        self.label_axes = tk.Label(self.monitor_file_frame, text="Axes", bg='gray', fg='black')
-        self.label_axes['font'] = myfont()
-        self.label_axes.grid(row=7, column=0,sticky='nsew', padx=5, pady=5)
+        # self.label_axes = tk.Label(self.monitor_file_frame, text="Axes", bg='gray', fg='black')
+        # self.label_axes['font'] = myfont()
+        # self.label_axes.grid(row=7, column=0,sticky='nsew', padx=5, pady=5)
 
         self.plot_axes = tk.Entry(self.monitor_file_frame, textvariable=tk.StringVar())
         self.plot_axes['font'] = myfont()
-        self.plot_axes.grid(row=8, column=0, ipadx=2, ipady=2)
+        self.plot_axes.insert(0, "select axes")
+        self.plot_axes.grid(row=4, column=0, sticky='nsew', padx=2, pady=4)
 
         self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         self.plot_file_button['font'] = myfont()
-        self.plot_file_button.grid(row=8, column=1, sticky='e', pady=5)
+        self.plot_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
         
     def runtime_query_remote(self, check_job_status: callable,
                                   check_file_status:callable,
@@ -1665,47 +1667,50 @@ class JobSubPage(ttk.Frame):
         """
         for widget in self.monitor_job_frame.winfo_children():
             widget.destroy()
-                
+        for widget in self.monitor_file_frame.winfo_children():
+            widget.destroy()
+                        
         self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
         self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=0, sticky='e', pady=5)
+        self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
 
         # self.kill_job_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_running_job)
         # self.kill_job_button['font'] = myfont()
         # self.kill_job_button.grid(row=2, column=1, sticky='e', pady=5)
     
-        self.file_status_button = tk.Button(self.monitor_file_frame, text="Check File Status",activebackground="#78d6ff",command=check_file_status)
+        self.file_status_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
         self.file_status_button['font'] = myfont()
-        self.file_status_button.grid(row=2, column=0, sticky='e', pady=5)
+        self.file_status_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
  
         self.download_all_files_button = tk.Button(self.monitor_file_frame, text="Download all Files",activebackground="#78d6ff",command=download_all_files)
         self.download_all_files_button['font'] = myfont()
-        self.download_all_files_button.grid(row=2, column=1, sticky='e', pady=5)
+        self.download_all_files_button.grid(row=2, column=1, sticky='nsew', padx=2, pady=4)
 
-        self.label_download_specific_file = tk.Label(self.monitor_file_frame, text="Select File", bg='gray', fg='black')
-        self.label_download_specific_file['font'] = myfont()        
-        self.label_download_specific_file.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
-        
-        n = tk.StringVar()
-        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = n,width=50)
+        # self.label_download_specific_file = tk.Label(self.monitor_file_frame, text="Select File", bg='gray', fg='black')
+        # self.label_download_specific_file['font'] = myfont()        
+        # self.label_download_specific_file.grid(row=3, column=0,sticky='nsew', padx=5, pady=5)
+                
+        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = tk.StringVar())
         self.combobox['font'] = myfont()
-        self.combobox.grid(row = 4,column = 0)
+        self.combobox.set("select a file")
+        self.combobox.grid(row = 3,column = 0)
 
-        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="Download Specific File",activebackground="#78d6ff",command=download_specific_files)
+        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="Download File",activebackground="#78d6ff",command=download_specific_files)
         self.download_specific_file_button['font'] = myfont()
-        self.download_specific_file_button.grid(row=5, column=0, sticky='e', pady=5)
+        self.download_specific_file_button.grid(row=3, column=1, sticky='nsew', padx=2, pady=4)
 
-        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View Specific File",activebackground="#78d6ff",command=view_specific_files)
+        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View File",activebackground="#78d6ff",command=view_specific_files)
         self.download_specific_file_button['font'] = myfont()
-        self.download_specific_file_button.grid(row=6, column=0, sticky='e', pady=5)
+        self.download_specific_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
 
         self.plot_axes = tk.Entry(self.monitor_file_frame, textvariable=tk.StringVar())
         self.plot_axes['font'] = myfont()
-        self.plot_axes.grid(row=8, column=0, ipadx=2, ipady=2)
+        self.plot_axes.insert(0, "select axes")
+        self.plot_axes.grid(row=5, column=0, sticky='nsew', padx=2, pady=4)
 
         self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         self.plot_file_button['font'] = myfont()
-        self.plot_file_button.grid(row=8, column=1, sticky='e', pady=5)
+        self.plot_file_button.grid(row=5, column=1, sticky='nsew', padx=2, pady=4)
         
         # self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         # self.plot_file_button['font'] = myfont()
