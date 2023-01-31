@@ -1643,9 +1643,19 @@ class JobSubPage(ttk.Frame):
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=6, column=0, sticky='e', pady=5)
 
+        self.label_axes = tk.Label(self.monitor_file_frame, text="Axes", bg='gray', fg='black')
+        self.label_axes['font'] = myfont()
+        self.label_axes.grid(row=7, column=0,sticky='nsew', padx=5, pady=5)
+
+        # self.plot_axes=tk.StringVar()
+
+        self.plot_axes = tk.Entry(self.monitor_file_frame, textvariable=tk.StringVar())
+        self.plot_axes['font'] = myfont()
+        self.plot_axes.grid(row=8, column=0, ipadx=2, ipady=2)
+
         self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         self.plot_file_button['font'] = myfont()
-        self.plot_file_button.grid(row=6, column=1, sticky='e', pady=5)
+        self.plot_file_button.grid(row=8, column=1, sticky='e', pady=5)
         
     def runtime_query_remote(self, check_job_status: callable,
                                   check_file_status:callable,

@@ -187,19 +187,15 @@ class TaskController:
     def _on_plot_file(self):
 
         from litesoph.visualization.plot_spectrum import plot_spectrum
-
-        # plot_spectrum(self.selected_file)
-        plot_spectrum(str(self.selected_file),str("img.png"),0, 2, "X", "Y")
-
-
-        # try:
-        #     error, message=self.task.submit_local.view_specific_file_local(self.selected_file)                               
-        # except UnicodeDecodeError:
-        #     messagebox.showinfo(title='Info', message="Unable to Read File")                    
-        # self.view_panel.insert_text(message, 'disabled')
-    
+        axes_data=self.job_sub_page.plot_axes.get()
+        axes_data = list(axes_data.split(" "))
+        X_axis=int(axes_data[0])
+        y_axis=int(axes_data[1])
         
-        # pass
+        try:
+            plot_spectrum(str(self.selected_file),str("img.png"),X_axis, y_axis, "X", "Y")
+        except ValueError:
+            messagebox.showinfo(title='Info', message="Cannot plot selected File")   
     
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
