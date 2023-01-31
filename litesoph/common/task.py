@@ -155,11 +155,11 @@ class Task:
             self.write_input()
 
     def set_submit_local(self, *args):
-        self.sumbit_local = SubmitLocal(self, *args)
+        self.submit_local = SubmitLocal(self, *args)
 
     def run_job_local(self,cmd):
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.run_job(cmd)
+        self.submit_local.run_job(cmd)
 
     def connect_to_network(self, *args, **kwargs):
         self.submit_network = SubmitNetwork(self, *args, **kwargs)

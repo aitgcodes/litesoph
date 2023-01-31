@@ -18,26 +18,27 @@ def execute(command, directory):
 
     for cmd in command:
         out_dict = result[cmd] = {}
-        print("Job started with command:", cmd)
+        # print("Job started with command:", cmd)
         try:
             job = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
             output = job.communicate()
         except Exception:
             raise 
         else:
-            print("returncode =", job.returncode)
+            # print("returncode =", job.returncode)
     
-            if job.returncode != 0:
-                print("Error...")
-                for line in output[1].decode(encoding='utf-8').split('\n'):
-                    print(line)
-            else:
-                print("job done..")
-                if output[0]:
-                    print("Output...")
-                    for line in output[0].decode(encoding='utf-8').split('\n'):
-                        print(line)
+            # if job.returncode != 0:
+            #     # print("Error...")
+            #     for line in output[1].decode(encoding='utf-8').split('\n'):
+            #         print()
+            # else:
+            #     # print("job done..")
+            #     if output[0]:
+            #         # print("Output...")
+            #         for line in output[0].decode(encoding='utf-8').split('\n'):
+            #             print()
             out_dict['returncode'] = job.returncode
+            out_dict['pid'] = job.pid
             out_dict['output'] = output[0].decode(encoding='utf-8')
             out_dict['error'] = output[1].decode(encoding='utf-8')
     return result
@@ -49,15 +50,60 @@ class SubmitLocal:
         self.task_info = task.task_info
         self.project_dir = self.task.project_dir
         self.np = nprocessors
-        self.command = None                   
+        self.command = None     
+        self.job_id=None              
 
     def run_job(self, cmd): 
         self.task_info.state.local = True   
         result = execute(cmd, self.project_dir)
+        print("cmd :", cmd)
         self.task_info.local.update({'returncode': result[cmd]['returncode'],
                                         'output' : result[cmd]['output'],
-                                        'error':result[cmd]['error']})
+                                        'error':result[cmd]['error'],
+                                        'pid':result[cmd]['pid']})
+            
+    def get_job_status_local(self,job_id):   
+        """
+        get the running status of submitted job at remote
+        """
+        job_id= self.job_id
+        print("get_job_status_local| job id: ",job_id)
+        cmd_check_running_process=f"ps aux | grep {job_id}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        result=execute(cmd_check_running_process,self.project_dir)
+        error=result[cmd_check_running_process]['error']    
+        message=result[cmd_check_running_process]['output']         
+        return (error, message)
+    
+    def get_fileinfo_local(self):   
+        """
+        get the generated file information during runtime
+        """
+        # cmd_filesize=f'"find {self.project_dir}  -type f -exec du --human {{}} + | sort --human --reverse"'
+        cmd_filesize=f'find {self.project_dir}  -type f -exec du --human {{}} + | sort --human --reverse'
 
+        result=execute(cmd_filesize,self.project_dir)
+        error=result[cmd_filesize]['error']    
+        message=result[cmd_filesize]['output']            
+        return (error, message)
+    
+    def generate_list_of_files_local(self):
+        cmd=f'cd {self.project_dir}; find "$PWD"  -type f > listOfFiles_local.list'        
+        result=execute(cmd,self.project_dir)
+        error=result[cmd]['error']    
+        message=result[cmd]['output']            
+        return (error, message)
+
+    def get_list_of_files_local(self):        
+        listOfFiles_path=f'{self.project_dir}/listOfFiles_local.list'    
+        return read_file_info_list(listOfFiles_path) 
+
+    def view_specific_file_local(self,file):
+        cmd_view_local=f"cat {file}"
+        result=execute(cmd_view_local,self.project_dir)
+        error=result[cmd_view_local]['error']    
+        message=result[cmd_view_local]['output']            
+        return (error, message)
+        
 class SubmitNetwork:
 
     def __init__(self,task,
@@ -68,7 +114,7 @@ class SubmitNetwork:
                     remote_path: str,
                     pkey_file:str, #
                     passwordless_ssh:bool,
-                    ls_file_mgmt_mode=True,) -> None: 
+                    ls_file_mgmt_mode=False,) -> None: 
 
         self.task = task
         self.task_info = task.task_info
@@ -150,6 +196,67 @@ class SubmitNetwork:
         """returns true if the job is completed in remote machine"""
         rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
         return self.network_sub.check_file(str(rpath))
+
+    def get_fileinfo_remote(self):   
+        """
+        get the generated file information during runtime
+        """
+        cmd_create_listOfFiles_at_remote=f'ssh -p {self.port} {self.username}@{self.hostname} "cd {self.remote_path}; find "$PWD"  -type f > listOfFiles.list"'     
+        cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{self.port}' {self.username}@{self.hostname}:{self.remote_path}/listOfFiles.list {self.project_dir}"        
+        (error, message)=execute_rsync(cmd_create_listOfFiles_at_remote, self.password, timeout=None)
+        (error, message)=execute_rsync(cmd_listOfFiles_to_local, self.password, timeout=None)
+  
+        cmd_filesize=f'"cd {self.remote_path}; find "$PWD"  -type f -exec du --human {{}} + | sort --human --reverse"'
+        cmd_filesize=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_filesize}'        
+        (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)          
+        return (error, message)
+        
+    def get_job_status_remote(self):   
+        """
+        get the running status of submitted job at remote
+        """
+        job_name='job_script.sh'
+        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
+        (error, message)=execute_rsync(cmd_check_running_process, self.password)            
+        return (error, message)
+
+    def kill_job_remote(self):
+        """
+        kill the running job at remote
+        """
+        job_name='job_script.sh'
+        # cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_name}; then echo Job killed; else echo No Job found; fi"
+        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
+        (error, message)=execute_rsync(cmd_check_running_process, self.password)            
+        return (error, message)
+
+    def download_all_files_remote(self):
+        """
+        download all files from remote
+        """
+        remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
+        (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir,lfm_file_info)
+        return (error, message)
+
+    def get_list_of_files_remote(self):
+        listOfFiles_path=f'{self.project_dir}/listOfFiles.list'    
+        return read_file_info_list(listOfFiles_path)        
+
+    def download_specific_file_remote(self,file_path,priority1_files_dict):
+        """
+        download specific file(s) from remote
+        """
+        (error, message)=file_transfer(file_path,priority1_files_dict,self.hostname,self.username,self.port,self.password,self.remote_path,self.project_dir)
+        
+        return (error, message)
+
+    def view_specific_file_remote(self,file):
+        cmd_view_remote=f"cat {file}"
+        cmd_view_remote=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_view_remote}'   
+        (error, message)=execute_rsync(cmd_view_remote, self.password)
+        return (error, message)
 
 class NetworkJobSubmission:
     """This class contain methods connect to remote cluster through ssh and perform common
@@ -332,9 +439,11 @@ def execute_rsync(cmd,passwd, timeout=None):
     if i == 0:
         return (-4, "Error: Incorrect password.")
     else:
-        output = str(ssh.before)
-        for text in ssh.before.decode(encoding='utf-8').split('\n'):
-            print(text)
+        output = ssh.before.decode('utf-8')
+        output=output.replace(":", "")
+        # print("\noutput: ",output)
+        # for text in ssh.before.decode(encoding='utf-8',errors='ignore').split('\n'):
+            # print(text)
         return (0, output)
 
 
@@ -362,11 +471,11 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
 
     cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles.list"'     
     cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles.list {local_proj_dir}"
-    cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
+    # cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
 
     (error, message)=execute_rsync(cmd_create_listOfFiles_at_remote, passwd)
     (error, message)=execute_rsync(cmd_listOfFiles_to_local, passwd)
-    (error, message)=execute_rsync(cmd_remove_listOfFiles_remote, passwd)
+    # (error, message)=execute_rsync(cmd_remove_listOfFiles_remote, passwd)
     
     listOfFiles_path=f'{local_proj_dir}/listOfFiles.list'    
     file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)
@@ -380,8 +489,8 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     for file in list(priority2_files_dict.keys()):
         (error, message)=file_transfer(file,priority2_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
 
-    cmd_remove_listOfFiles_local=f'rm {local_proj_dir}/listOfFiles.list'
-    (error, message)=execute_rsync(cmd_remove_listOfFiles_local, passwd)
+    # cmd_remove_listOfFiles_local=f'rm {local_proj_dir}/listOfFiles.list'
+    # (error, message)=execute_rsync(cmd_remove_listOfFiles_local, passwd)
     
     return (error, message)
     
@@ -473,7 +582,7 @@ def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj
         return (error, message)        
     else:
         file = str(file).replace(str(remote_proj_dir), '')
-        cmd_direct_transfer=f"rsync -avR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
+        cmd_direct_transfer=f"rsync -vR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
         print("\nTransferring File :",file)
         (error, message)=execute_rsync(cmd_direct_transfer, passwd)    
         return (error, message)
