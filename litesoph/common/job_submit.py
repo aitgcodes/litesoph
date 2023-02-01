@@ -56,11 +56,14 @@ class SubmitLocal:
     def run_job(self, cmd): 
         self.task_info.state.local = True   
         result = execute(cmd, self.project_dir)
-        print("cmd :", cmd)
+        print("result :",result)
+
+        print("\n cmd :", cmd)
         self.task_info.local.update({'returncode': result[cmd]['returncode'],
                                         'output' : result[cmd]['output'],
                                         'error':result[cmd]['error'],
                                         'pid':result[cmd]['pid']})
+        print("\npid :",result[cmd]['pid'])
             
     def get_job_status_local(self,job_id):   
         """
@@ -179,6 +182,8 @@ class SubmitNetwork:
         self.command = f"cd {str(remote_path)} && {cmd} {self.task.BASH_filename}"
                 
         exit_status, ssh_output, ssh_error = self.network_sub.execute_command(self.command)
+        print("\nssh_output :",ssh_output)
+        
         if exit_status != 0:
             print("Error...")
             for line in ssh_error.decode(encoding='utf-8').split('\n'):
@@ -191,6 +196,20 @@ class SubmitNetwork:
         self.task_info.network.update({'sub_returncode': exit_status,
                                             'output':ssh_output.decode(encoding='utf-8'),
                                             'error':ssh_error.decode(encoding='utf-8')})
+    
+    def run_job_remote(self, cmd): 
+        self.task_info.state.local = True   
+        result = execute(cmd, self.project_dir)
+        print("result :",result)
+
+        print("\n cmd :", cmd)
+        self.task_info.local.update({'returncode': result[cmd]['returncode'],
+                                        'output' : result[cmd]['output'],
+                                        'error':result[cmd]['error'],
+                                        'pid':result[cmd]['pid']})
+        print("\npid :",result[cmd]['pid'])
+    
+    
     
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
@@ -215,7 +234,9 @@ class SubmitNetwork:
         """
         get the running status of submitted job at remote
         """
-        job_name='job_script.sh'
+        # self.task.BASH_filename
+        job_name=self.task.BASH_filename
+        print("job_name :", job_name)
         cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
         cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
         (error, message)=execute_rsync(cmd_check_running_process, self.password)            
@@ -225,7 +246,8 @@ class SubmitNetwork:
         """
         kill the running job at remote
         """
-        job_name='job_script.sh'
+        # job_name='job_script.sh'
+        job_name=self.task.BASH_filename
         # cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
         cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_name}; then echo Job killed; else echo No Job found; fi"
         cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
@@ -361,6 +383,7 @@ class NetworkJobSubmission:
             ssh_output = stdout.read()
             ssh_error = stderr.read()
             exit_status = stdout.channel.recv_exit_status()
+            print("output :",ssh_output)
 
             try:
                 if exit_status:

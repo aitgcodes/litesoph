@@ -129,6 +129,7 @@ class TaskController:
 
         self.job_sub_page.runtime_query_remote(self._on_check_job_status_remote,
                                                self._on_check_file_status_remote,
+                                               self._on_kill_job_remote,
                                                self._on_download_all_files,
                                                self._on_download_specific_file,
                                                self._on_view_specific_file_remote,
@@ -180,8 +181,6 @@ class TaskController:
         
         self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
-
-
 
     def _on_view_specific_file_local(self):
         try:
@@ -254,6 +253,10 @@ class TaskController:
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)                    
         messagebox.showinfo(title='Info', message=message)   
+        self.job_sub_page.progressbar.stop()
+        # self.job_sub_page.label_progressbar.set('hello')
+        label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        label_progressbar.grid(row=4, column=0,sticky='nsew')
 
     def _on_download_all_files(self):
         try:
@@ -322,6 +325,8 @@ class TaskController:
             sub_job_type = self.job_sub_page.sub_job_type.get()
 
             cmd = self.job_sub_page.sub_command.get()
+            print("\ncmd :", cmd)
+
             
         if sub_job_type == 1:
             
@@ -406,7 +411,10 @@ class TaskController:
             self.job_sub_page.set_run_button_state('active')
             return
         try:
+            print("cmd :", cmd)
             self.task.submit_network.run_job(cmd)
+            # self.task.submit_network.run_job_remote(cmd)
+            
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.set_run_button_state('active')
