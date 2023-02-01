@@ -1702,9 +1702,9 @@ class JobSubPage(ttk.Frame):
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=3, column=1, sticky='nsew', padx=2, pady=4)
 
-        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View File",activebackground="#78d6ff",command=view_specific_files)
-        self.download_specific_file_button['font'] = myfont()
-        self.download_specific_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
+        self.view_file_button = tk.Button(self.monitor_file_frame, text="View File",activebackground="#78d6ff",command=view_specific_files)
+        self.view_file_button['font'] = myfont()
+        self.view_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
 
         self.plot_axes = tk.Entry(self.monitor_file_frame, textvariable=tk.StringVar())
         self.plot_axes['font'] = myfont()
