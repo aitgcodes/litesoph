@@ -106,12 +106,15 @@ class OctopusTask(Task):
 
         self.input_filename = 'inp'
         self.task_input_filename = self.task_data.get('task_inp', 'inp')
-        self.geom_file = str(self.wf_dir / 'coordinate.xyz')
+        # self.geom_file = str(self.wf_dir / 'coordinate.xyz')
+        self.geom_file = str('../coordinate.xyz')
+        self.geom_fpath = str(self.wf_dir / 'coordinate.xyz')
 
         # absolute path attributes
         self.engine_dir = str(self.wf_dir / 'octopus')
         self.task_dir = str(Path(self.engine_dir) / self.task_name)
         self.output_dir = str(Path(self.engine_dir) / 'log')
+        self.network_done_file = self.task_dir / 'Done'
         
         self.task_info.input['engine_input']={}
 
@@ -146,6 +149,7 @@ class OctopusTask(Task):
             return
         
         # TODO:relative paths
+        self.task_info.input['geom_file'] = Path(self.geom_file).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
         self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
             
@@ -184,7 +188,7 @@ class OctopusTask(Task):
 
         if task == tt.GROUND_STATE:
             # Set Calculation Mode expliciltly            
-            param.update(create_oct_gs_inp(copy_input))
+            param.update(create_oct_gs_inp(copy_input, self.geom_fpath))
             self.user_input = param            
             return
 
