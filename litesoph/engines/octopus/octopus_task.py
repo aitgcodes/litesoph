@@ -114,7 +114,7 @@ class OctopusTask(Task):
         self.engine_dir = str(self.wf_dir / 'octopus')
         self.task_dir = str(Path(self.engine_dir) / self.task_name)
         self.output_dir = str(Path(self.engine_dir) / 'log')
-        self.network_done_file = self.task_dir / 'Done'
+        self.network_done_file = Path(self.task_dir) / 'Done'
         
         self.task_info.input['engine_input']={}
 
@@ -149,7 +149,7 @@ class OctopusTask(Task):
             return
         
         # TODO:relative paths
-        self.task_info.input['geom_file'] = Path(self.geom_file).relative_to(self.wf_dir)
+        self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
         self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
             
@@ -194,7 +194,7 @@ class OctopusTask(Task):
 
         elif task == tt.RT_TDDFT:            
             param_copy.update(self.dependent_tasks[0].param)
-            gs_oct_param = create_oct_gs_inp(param_copy)
+            gs_oct_param = create_oct_gs_inp(param_copy, self.geom_fpath)
             param.update(gs_oct_param)
             oct_td_dict = get_oct_kw_dict(copy_input,task)            
             param.update(oct_td_dict)
