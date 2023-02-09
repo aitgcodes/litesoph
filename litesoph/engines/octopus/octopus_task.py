@@ -102,7 +102,22 @@ class OctopusTask(Task):
         self.user_input['task'] = self.task_name
         self.user_input = self.params
 
+        self.validate_task_param()
         self.setup_task(self.user_input) 
+    
+    def validate_task_param(self):
+        """Engine level validation of the input dict for the task\n
+        """
+        name = self.task_info.name
+        if name == tt.RT_TDDFT:
+            # Time step for TD simulation has a maximum limit bound by grid-spacing
+            t_step = float(self.params.get('time_step'))                      
+            gs_info = self.dependent_tasks[0]
+            if gs_info:
+                gs_spacing = gs_info.param.get('spacing')
+            t_step_max = calc_td_range(gs_spacing)/2
+            if t_step > t_step_max:
+                raise InputError(f'Expected time step less than {t_step_max} as')
     
     def pre_run(self):
         """Sets task_dir for current task, creates engine dir and output dir if not exists\n
@@ -552,7 +567,9 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
     return _dict
 
 def calc_td_range(spacing:float):
-    """ calculates max limit for time step specific to Octopus engine"""
+    """ spacing:float = Grid-spacing in angstrom\n
+    calculates max limit(in as) for time step specific to Octopus engine
+    """
 
     from litesoph.utilities.units import ang_to_au, au_to_as
     h = spacing*ang_to_au

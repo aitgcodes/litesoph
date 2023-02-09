@@ -1131,10 +1131,6 @@ class TDPage(View):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
         
         self.add_widgets(self.input_widget_dict)
-
-        # self.laser_details = tk.Label(self.input_param_frame, text='None')
-        # self.laser_details.grid(row=1, column=0, sticky='we')
-
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
 
         self.button_back = tk.Button(self.save_button_frame, text="Back to main page", activebackground="#78d6ff", command=lambda: self.back_button())
@@ -1158,9 +1154,11 @@ class TDPage(View):
         self.trace_variables()
 
     def add_widgets(self, input_widget_dict:dict):
+        """ Adds widgets to TD Page"""
+        from litesoph.gui.view_gs import InputFrame
         for widget in self.input_param_frame.winfo_children():
             widget.destroy()
-        from litesoph.gui.view_gs import InputFrame
+        
         if input_widget_dict is None:
             input_widget_dict = inp.laser_td_input
 
@@ -1169,7 +1167,6 @@ class TDPage(View):
         self.inp.grid(row=0, column=0) 
 
         self.label_delay_entry = tk.Label(self.inp.tab["External Fields"], text="Delay Entries should be separated by ' ' or ','")
-        # self.button_laser_design['font'] = self.myFont
         self.label_delay_entry.grid(column=1,padx=3)
 
         self.button_laser_design = tk.Button(self.inp.tab["External Fields"], text="Design/Edit Laser", activebackground="#78d6ff", command=self.laser_button)
@@ -1228,19 +1225,12 @@ class TDPage(View):
     def laser_button(self):
         self.event_generate('<<Design&EditLaser>>')
 
-    # def get_pol_list(self, pol_var:str):
-    #     assert pol_var in ["X", "Y", "Z"] 
-    #     if pol_var == "X":
-    #         pol_list = [1,0,0]         
-    #     elif pol_var == "Y":
-    #         pol_list = [0,1,0] 
-    #     elif pol_var == "Z":
-    #         pol_list = [0,0,1]                
-    #     return pol_list
+    def set_label_msg(self,msg):
+        self.label_msg.grid()
+        show_message(self.label_msg, msg)
     
     def get_property_list(self, gui_values:dict):
         prop_list = ['spectrum']
-
         if gui_values.get("ksd") is True:
             prop_list.append("ksd")
         if gui_values.get("mo_population") is True:
@@ -1248,7 +1238,6 @@ class TDPage(View):
         return prop_list  
 
     def get_delay_list(self, delay_str:str):
-
         delay_values = str(delay_str)
         delay_list = []
         try:
@@ -1258,27 +1247,7 @@ class TDPage(View):
 
         for delay in delays:
             delay_list.append(float(delay))
-
         return delay_list
-
-    # def get_mask(self, gui_dict:dict):                        
-    #     mask_input = {
-    #         "Type": gui_dict.get("mask_type"),            
-    #         "Boundary": gui_dict.get("boundary_type")
-    #         }
-            
-    #     if gui_dict.get("mask_type") == 'Plane':
-    #         mask_input.update({"Axis": gui_dict.get("mask_plane:axis"),
-    #                             "X0"  : gui_dict.get("mask_plane:origin")})
-    #     else:
-    #         mask_input.update({"Radius" : gui_dict.get("mask_sphere:radius"),
-    #                         "Centre":[gui_dict.get("mask_sphere:origin_x"),
-    #                                 gui_dict.get("mask_sphere:origin_y"),
-    #                                 gui_dict.get("mask_sphere:origin_z")]})
-    #     if gui_dict.get("boundary_type") == 'Smooth':
-    #         mask_input.update({"Rsig" : gui_dict.get("r_sig")})
-        
-    #     return mask_input
 
     def check_expt_type(self):
         gui_dict = self.inp.get_values()
@@ -1298,6 +1267,7 @@ class TDPage(View):
         gui_dict = copy.deepcopy(self.inp.get_values())
 
         # TODO: Check
+        # Updating delay_list key-value as a list of delays
         if gui_dict.get('delay_list') is not None:
             gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
         return gui_dict
@@ -1306,7 +1276,6 @@ class TDPage(View):
         gui_dict = copy.deepcopy(self.inp.get_values())
 
         td_input = {
-            # 'polarization' : self.pol_list,
             'time_step' : gui_dict.get("time_step"),
             'number_of_steps' : gui_dict.get("number_of_steps"),
             'output_freq': gui_dict.get("output_freq"),

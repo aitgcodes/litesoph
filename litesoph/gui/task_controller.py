@@ -4,7 +4,7 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 import copy
 from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task import InputError, Task, TaskFailed
 from litesoph.common.task_data import TaskTypes as tt  
 from litesoph.common.workflows_data import WorkflowTypes as wt                                
 from litesoph.gui import views as v
@@ -443,7 +443,12 @@ class TDPageController(TaskController):
         """ On Laser design button, decides on showing LaserDesignPage and binds the widgets"""
         
         # View specific parameters
+        # TODO: Check this method
         self.task_view_param = self.task_view.get_td_gui_inp()
+        
+        # Delays attached as a list of delays before proceeding to laser-design 
+        if self.task_view_param.get('delay_list', None) is not None:
+            self.delay_list = self.task_view_param.get('delay_list')
         # Task specific parameters
         self.task_param = self.task_view.get_parameters()  
 
@@ -479,10 +484,6 @@ class TDPageController(TaskController):
 
         self.laser_controller.update_labels_on_tree()
 
-    # def _back_on_laser_design_page(self, *_):
-    #     """ Shows the TDPage"""   
-    #     self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name
-    #                                             )
     def show_tdpage_and_update(self, *_):
         from litesoph.gui.models import inputs as inp
 
@@ -493,11 +494,9 @@ class TDPageController(TaskController):
         if self.laser_defined:
             check = messagebox.askyesno(message= "Do you want to proceed with this laser setup?")
             if check:
-                # With new widgets added to consider delays as combo box entries
-                # copy_widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
-                # self.task_view = self.app.show_frame(v.TDPage, self.task_info.engine, self.task_info.name,
-                #                                 input_widget_dict=copy_widget_dict)
                 self.task_view.tkraise()
+                self.task_view.set_sub_button_state('disable')
+                self.task_view.label_msg.grid_remove()
                 self.update_laser_on_td_page()
         else:
             if exp_type == 'Pump-Probe':
@@ -513,55 +512,42 @@ class TDPageController(TaskController):
                 messagebox.showinfo(message= "Laser is not set. Please add lasers first.")       
 
     def update_laser_on_td_page(self):
-        """ Checks condition for laser designed and updates TDPage view"""        
+        """ Checks condition for laser designed and updates TDPage view"""       
+    
+        # GUI entries from previous td view
+        td_param_stored = self.task_view_param        
+        if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
+            pass
+        else:
+            widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
+            self.task_view.add_widgets(widget_dict)
+            _gui_dict = {
+                "field_type": td_param_stored.get("field_type"),
+                "exp_type" : td_param_stored.get("exp_type")
+            }
+            _gui_dict.update(self.task_param)
+            self.task_view.set_parameters(_gui_dict)
 
-        if not self.laser_defined:
-            #TODO: Resets the page
-            pass 
-        else: 
-            
-            # TODO: use these to show laser details
-            # laser_text = self.get_laser_details()[0]
-            # self.task_view.laser_details.configure(text= '')
-            # self.task_view.laser_details.configure(text= laser_text)
-
-            # GUI entries from previous td view
-            td_param_stored = self.task_view_param
-            if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
-                pass
-            
-            else:
-                widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
-                self.task_view.add_widgets(widget_dict)
-
-                if self.task_view_param.get('exp_type') == 'Pump-Probe':  
-                    delays = td_param_stored.get('delay_list') 
-                    delays.insert(0, 'No Probe')  
-                    self.task_view.inp.widget["delay_values"].config(values= delays)
-                    self.task_view.inp.widget["delay_values"].config(state = 'readonly')
-                    # self.task_view.inp.widget["delay_values"].set(delays[0])
-                    
-                    self.task_view.label_delay_entry.grid_remove()
-
-                _gui_dict = {
-                    "field_type": td_param_stored.get("field_type"),
-                    "exp_type" : td_param_stored.get("exp_type")
-                }
-
-                # TODO: replace set_parameters
-                self.task_view.inp.init_widgets(fields=self.task_view.inp.fields,
-                            ignore_state=False, var_values=_gui_dict)
-
-                self.task_view.inp.variable['delay_values'].set(delays[0])
-                self.add_task(td_param_stored.get("delay_list"))
-
-            self.task_view.button_view.config(state='active')
-            self.task_view.button_save.config(state='active')
-            if self.task_view.label_delay_entry:
+            # TODO: Remove this 
+            if self.task_view_param.get('exp_type') == 'Pump-Probe':  
+                if self.delay_list:
+                    delays = copy.deepcopy(self.delay_list)
+                else:
+                    delays = [0]
+                delays.insert(0, 'No Probe') 
+                self.task_view.inp.widget["delay_values"].config(values= delays)
+                self.task_view.inp.widget["delay_values"].config(state = 'readonly')
+                self.task_view.inp.widget["delay_values"].current(0)                    
                 self.task_view.label_delay_entry.grid_remove()
+                self.add_task(delays)
 
-            #TODO: freeze required input entries
-            # self.task_view.inp.freeze_widgets(state= 'disabled', input_keys = ["field_type","exp_type"])
+        self.task_view.button_view.config(state='active')
+        self.task_view.button_save.config(state='active')
+        if self.task_view.label_delay_entry:
+            self.task_view.label_delay_entry.grid_remove()
+
+        #TODO: freeze required input entries
+        # self.task_view.inp.freeze_widgets(state= 'disabled', input_keys = ["field_type","exp_type"])
 
     def get_laser_details(self):
         details = []
@@ -604,8 +590,6 @@ class TDPageController(TaskController):
 
     def generate_input(self, *_):
         """ Checks experiment type and generate respective inputs"""
-        #TODO: Condition for State preparation/pump-probe input 
-        # Introduce delay when required
         
         self.task_info = self.workflow_manager.current_task_info
         self.task_info.param.clear()
@@ -620,7 +604,6 @@ class TDPageController(TaskController):
                 laser_dict = laser[0]
                 laser_dict.update({'mask': lasers[i].get('mask', None)})
                 laser_data.append(laser_dict)  
-            # laser_data = extract_lasers_from_pulses(pulses)
             inp_dict.update({'laser': laser_data})
 
         # adding masking in pump-probe
@@ -635,10 +618,8 @@ class TDPageController(TaskController):
                 lasers_list = []
                 for i,laser in enumerate(laser_sets):
                     laser_dict = laser[0]
-
                     laser_dict.update({'mask': lasers[i].get('mask', None)})
                     lasers_list.append(laser_dict)  
-                    # lasers_list.append(laser[0]) 
                 delay = "no_probe"
             else:
                 pump_lasers = copy.deepcopy(self.laser_data['Pump']['lasers'])
@@ -663,61 +644,41 @@ class TDPageController(TaskController):
                     lasers_list.append(laser_dict)  
 
             inp_dict.update({'laser': lasers_list,
-                            'delay': delay})
-        # else:
-        #     try:
-        #         delay = self.task_view.inp.variable["delay_values"].get()
-        #     except tk.TclError:
-        #         pulses = self.laser_data['Pump']['pulses']
-        #         laser_sets = extract_lasers_from_pulses(pulses)
-        #         lasers_list = []
-        #         for laser in laser_sets:
-        #             lasers_list.append(laser[0]) 
-        #         delay = "no_probe"
-        #     else:
-        #         lasers = add_delay_to_lasers(self.laser_data['Pump'], self.laser_data['Probe'],float(delay))
-                
-        #         lasers_list = []
-        #         for laser in lasers:
-        #             lasers_list.extend(laser)
-
-        #     inp_dict.update({'laser': lasers_list,
-        #                     'delay': delay})     
-        
-        check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
-        if not check:
-            return
+                            'delay': delay})       
+       
         self.task_info.param.clear()
         self.task_info.param.update(inp_dict)
-        self.task = self.workflow_manager.get_engine_task()
+        check = False
+        try:
+            self.task = self.workflow_manager.get_engine_task()
+        except InputError as error_msg:
+            messagebox.showerror(message= error_msg)
+            return
+        check = messagebox.askokcancel(title='Input parameters selected',
+                         message= dict2string(inp_dict))
+        if not check:
+            return
         self.task.create_input()
         txt = self.task.get_engine_input()
         self.view_panel.insert_text(text=txt, state='normal')
         self.bind_task_events()
 
     def _on_proceed(self, *_):
-
         if self.workflow_manager.task_mode:
-           return
-
-        if self.task_view.inp.variable['exp_type'].get() == "Pump-Probe":
-            
-            delays = self.task_view_param.get('delay_list') 
-            if self.current_delay_index == (len(delays)-1):
+           return            
+        if self.task_view.inp.variable['exp_type'].get() == "Pump-Probe":            
+            delays = self.delay_list
+            if self.current_delay_index == len(delays):
                 self.workflow_controller.next_task()
             else:
                 self.workflow_manager.next()
-                self.task_view.tkraise()
-                
-                self.current_delay_index += 1
+                self.task_view.tkraise() 
+                self.task_view.set_sub_button_state('disable')
+                self.task_view.label_msg.grid_remove()               
                 self.task_view.inp.widget["delay_values"].set(delays[self.current_delay_index])
-
-        else:
-            
-            self.workflow_controller.next_task()
-    
-
-
+                self.current_delay_index += 1
+        else:            
+            self.workflow_controller.next_task()   
         
     def _on_view_lasers(self, *_):
         if len(self.laser_data) >0:
@@ -759,21 +720,12 @@ class LaserDesignController:
         # Collecting exp_type from td_data passed from TDPage
         # TODO: decide on to retain previous exp_type sets
         exp_type = self.td_data.get('exp_type')
-
         if exp_type == "State Preparation":
             self.view.inp.widget["pump-probe_tag"].configure(state = 'disabled')
             self.view.inp.fields["pump-probe_tag"]["visible"] = False
-            # self.view.inp.label["time_origin:pump"].grid_remove()
-            # self.view.inp.widget["time_origin:pump"].grid_remove()
-            
-        if exp_type == "Pump-Probe":
-            pass
-            # self.view.inp.label["time_origin"].grid_remove()
-            # self.view.inp.widget["time_origin"].grid_remove() 
         
         # if hasattr(self.task_view, 'set_parameters'):
         #     self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
-
 
     def get_laser_design_model(self, laser_input:dict):
         """Collects inputs to compute laser parameters 
