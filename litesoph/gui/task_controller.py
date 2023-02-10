@@ -240,9 +240,9 @@ class TaskController:
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
 
-        self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
         self.job_sub_page.view_file_button.config(state='active')
+        self.job_sub_page.plot_file_button.config(state='active')
 
     def _on_check_job_status_remote(self):
         try:
@@ -327,11 +327,8 @@ class TaskController:
         else:
             np = self.job_sub_page.get_processors()
             sub_job_type = self.job_sub_page.sub_job_type.get()
-
             cmd = self.job_sub_page.sub_command.get()
-            print("\ncmd :", cmd)
 
-            
         if sub_job_type == 1:
             
             if not cmd:

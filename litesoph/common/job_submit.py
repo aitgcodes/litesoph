@@ -56,14 +56,10 @@ class SubmitLocal:
     def run_job(self, cmd): 
         self.task_info.state.local = True   
         result = execute(cmd, self.project_dir)
-        print("result :",result)
-
-        print("\n cmd :", cmd)
         self.task_info.local.update({'returncode': result[cmd]['returncode'],
                                         'output' : result[cmd]['output'],
                                         'error':result[cmd]['error'],
                                         'pid':result[cmd]['pid']})
-        print("\npid :",result[cmd]['pid'])
             
     def get_job_status_local(self,job_id):   
         """
@@ -472,13 +468,21 @@ def execute_rsync(cmd,passwd, timeout=None):
 
 # lfm_file_info=get_from_task_info  or config_file # add a variable for file_tag_info
 
+# tags
+# redirected_outfiles
+# scipt_generated_outfiles
+# input_files
+# property_files
+# checkpoint_files
+# file_relevance
+
 lfm_file_info={ 
                 '.out':{'file_relevance':'very_impt','file_lifetime':'None', 'transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':'500k'}},
                 '.log':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'direct_transfer','compress_method':'zstd','split_size':''}},
                 '.cube':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':''}},
                 '.ulm':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'split_transfer','compress_method':'zstd','split_size':'200M'}},
 
-                 }
+                }
         
 def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_proj_dir,lfm_file_info):   
     """

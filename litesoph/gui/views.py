@@ -1605,7 +1605,7 @@ class JobSubPage(ttk.Frame):
             self.label_progressbar.grid(row=4, column=0,sticky='nsew')
             self.progressbar.stop()
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
-            self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button],'disable')
+            self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
                 
     def enable_disable_buttons(self,list_of_buttons,state):
         for button in list_of_buttons:
@@ -1676,8 +1676,9 @@ class JobSubPage(ttk.Frame):
         runtime query for remote job submit
         """
         
-        self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])                        
-        self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
+        self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])   
+
+        self.job_status_button = tk.Button(self.monitor_job_frame, text="Job Status",activebackground="#78d6ff",command=check_job_status)
         self.job_status_button['font'] = myfont()
         self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
 
@@ -1716,7 +1717,7 @@ class JobSubPage(ttk.Frame):
         self.plot_file_button.grid(row=5, column=1, sticky='nsew', padx=2, pady=4)
 
         self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'disable')
-            
+
     def show_run_local(self,
                         generate_job_script: callable,
                         save_job_script: callable,
