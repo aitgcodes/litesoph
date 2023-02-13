@@ -2,7 +2,7 @@
 Litesoph File Management  
 
 Available tags:
-
+----------------
 file_relevance: <very_impt, impt, least_impt>
 file_type: <'redirected_outfile','scipt_generated_outfile','input_file','property_file','checkpoint_file' > 
 transfer_method: <method :'direct_transfer','compress_transfer','split_transfer', 'compress_method','split_size'>
@@ -29,16 +29,15 @@ checkpoint_file,direct_transfer,compress_transfer,split_transfer]
 
 List_set_of_files = list({i for lst in list_of_files for i in lst})
 
-print("\nList_set_of_files :",List_set_of_files)
-
-
 def add_element(dict, key, value):
     if key not in dict:
         dict[key] = {}
     dict[key] = value
 
-
 def lfm_file_info_dict():
+    """
+    function to generate a dictionary database of containing metadata information of all the possible files
+    """
 
     lfm_file_info={}
 
@@ -54,8 +53,7 @@ def lfm_file_info_dict():
             add_element(lfm_file_info, 'file_relevance', 'least_impt')
         else:
             add_element(lfm_file_info, 'file_relevance',None)
-
-        
+      
         if (file in input_file):
             add_element(lfm_file_info[file], 'file_type', 'input_file')
         elif (file in redirected_outfile):
@@ -68,8 +66,7 @@ def lfm_file_info_dict():
             add_element(lfm_file_info[file], 'file_type', 'checkpoint_file')
         else:
             add_element(lfm_file_info[file], 'file_type', None)
-        
-        
+                
         if (file in direct_transfer):
             add_element(lfm_file_info[file], 'transfer_method', 'direct_transfer')
         elif (file in compress_transfer):
@@ -78,10 +75,33 @@ def lfm_file_info_dict():
             add_element(lfm_file_info[file], 'transfer_method', 'split_transfer')
         else:
             add_element(lfm_file_info[file], 'transfer_method', None)
-        
-    print('\nlfm_file_info:', lfm_file_info)
 
-# lfm_file_info_dict()
+    return lfm_file_info
+
+if __name__ == "__main__":
+    lfm_file_info_dict()
+
+print("\nlfm_file_info_dict: ",lfm_file_info_dict())
+
+def keys_exists(dictionary, keys):
+    nested_dict = dictionary
+
+    for key in keys:
+        try:
+            nested_dict = nested_dict[key]
+        except KeyError:
+            return False
+    return True
+
+
+result = keys_exists(lfm_file_info_dict(), ['x'])
+print(result)
+
+
+
+
+
+# print(lfm_file_info_dict())
 
 # lfm_file_info={ 
 #                 '.out':{'file_relevance':'very_impt','file_type':'', 'transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':'500k'}},
@@ -90,30 +110,27 @@ def lfm_file_info_dict():
 #                 '.ulm':{'file_relevance':'very_impt','transfer_method':{'method':'split_transfer','compress_method':'zstd','split_size':'200M'}},
 #                  }
 
-from pathlib import Path
-import glob
-import os
+# from pathlib import Path
+# import glob
+# import os
 
-dir_path='/home/anandsahu/myproject/aitg/ls/sample_ls_project/RuntimeQuery'
+# dir_path='/home/anandsahu/myproject/aitg/ls/sample_ls_project/RuntimeQuery'
 
-res = []
-# Iterate directory
-for path in os.listdir(dir_path):
-    # check if current path is a file
-    if os.path.isfile(os.path.join(dir_path, path)):
-        res.append(path)
+# res = []
+# # Iterate directory
+# for path in os.listdir(dir_path):
+#     # check if current path is a file
+#     if os.path.isfile(os.path.join(dir_path, path)):
+#         res.append(path)
+# # print(res)
+
+# from os import walk
+
+# # list to store files name
+# res = []
+# for (dir_path, dir_names, file_names) in walk(dir_path):
+#     res.extend(file_names)
 # print(res)
 
-
-from os import walk
-
-
-# list to store files name
-res = []
-for (dir_path, dir_names, file_names) in walk(dir_path):
-    res.extend(file_names)
-print(res)
-
-
-s = set(res)
-print(s)
+# s = set(res)
+# print(s)
