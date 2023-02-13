@@ -115,7 +115,7 @@ def contour_plot(x_data, y_data, z_data, x_label:str,y_label:str,title:str,x_lmt
     plt.colorbar().set_label('Cross-section', rotation=90)
     return plt.show()
 
-def get_spectrums_delays(task_info,dependent_tasks,project_dir):
+def get_spectrums_delays(task_info,dependent_tasks,project_dir,only_workflow_dirpath):
         """function to generate x,y,z data required by contour plot and plotting contour plot for pump_probe"""
         
         delay_list=[]
@@ -126,7 +126,10 @@ def get_spectrums_delays(task_info,dependent_tasks,project_dir):
         spectrum_data_list=[]
         for delay in delay_list:
             spec_file = task_info.output.get(f'spec_delay_{delay}')    
-            spec_file=f'{project_dir.parent}{spec_file}'
+            spec_file= Path(project_dir.parent/only_workflow_dirpath)/spec_file
+
+            # spec_file=f'{project_dir.parent}{spec_file}'
+            print("spec_file: ",spec_file)
             spectrum_data_list.append(spec_file)
         return delay_list,spectrum_data_list
 

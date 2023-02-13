@@ -471,13 +471,14 @@ class PumpProbePostpro(GpawTask):
         if not self.task_dir.exists():
             self.create_directory(self.task_dir)  
 
-        self.contour_x_data_file= Path(self.task_dir) /'contour_x_data.dat' 
-        self.contour_y_data_file= Path(self.task_dir) /'contour_y_data.dat' 
-        self.contour_z_data_file= Path(self.task_dir) /'contour_z_data.dat' 
+        self.only_workflow_dirpath=self.project_dir.name
+        self.only_task_dirpath=Path(self.task_dir).relative_to(self.project_dir)
+
         
-        self.task_info.output['contour_x_data']=self.contour_x_data_file       
-        self.task_info.output['contour_y_data']=self.contour_y_data_file             
-        self.task_info.output['contour_z_data']=self.contour_z_data_file             
+
+        # self.contour_x_data_file= Path(self.project_dir/self.only_workflow_dirpath/self.only_task_dirpath) /'contour_x_data.dat' 
+        # self.contour_y_data_file= Path(self.task_dir) /'contour_y_data.dat' 
+        # self.contour_z_data_file= Path(self.task_dir) /'contour_z_data.dat' 
     
     def extract_dm(self, gpaw_dm_file, index):
         data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
@@ -489,31 +490,60 @@ class PumpProbePostpro(GpawTask):
         for i in range(len(self.dependent_tasks)):
             axis_index,_=get_polarization_direction(self.dependent_tasks[i])
             sim_total_dm = (self.project_dir / (self.dependent_tasks[i].output.get('dm_file')))   
+            gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
             delay=self.dependent_tasks[i].param.get('delay')             
             
-            out_spectrum_file= Path(self.task_dir) /f'spec_delay_{delay}.dat'                   
-            out_spectrum_file = str(out_spectrum_file).replace(str(self.project_dir.parent), '')            
+            out_spectrum_file= Path(self.only_task_dirpath) /f'spec_delay_{delay}.dat'                   
             self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
-            print("\nout_spectrum_file :",out_spectrum_file)
-            gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
-            out_standard_dm_file= Path(self.task_dir) /f'dm_delay_{delay}.dat'            
+            out_standard_dm_file= Path(self.project_dir.parent/self.only_workflow_dirpath/self.only_task_dirpath) /f'dm_delay_{delay}.dat'            
+            print("out_standard_dm_file: ",out_standard_dm_file)
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
+
+            
+            
+            # print("\nself.task_dir: ",self.task_dir)
+            # print("\nself.project_dir: ",self.project_dir)
+            # out_spectrum_file= Path(self.task_dir) /f'spec_delay_{delay}.dat'                   
+            # out_spectrum_file = str(out_spectrum_file).replace(str(self.project_dir.parent), '')            
+            # self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
+            # print("\nout_spectrum_file :",out_spectrum_file)
+            # gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
+            # out_standard_dm_file= Path(self.task_dir) /f'dm_delay_{delay}.dat'            
+            # np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
 
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
             damping_var= None if damping is None else damping 
             padding_var= None if padding is None else padding 
-            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping_var,padding=padding_var)
+
+            spec_file_path= Path(self.project_dir.parent/self.only_workflow_dirpath)/out_spectrum_file
+
+            print("specfilepath: ",spec_file_path)
+
+            photoabsorption_spectrum(out_standard_dm_file,spec_file_path, process_zero=False,damping=damping_var,padding=padding_var)
                                     
     def generate_tas_data(self):
         from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_tas_data                
-        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
-        prepare_tas_data(spectrum_data_list,delay_list,self.contour_x_data_file,self.contour_y_data_file,self.contour_z_data_file)
+        
+        self.contour_x_data_file= Path(self.only_task_dirpath) /'contour_x_data.dat' 
+        self.contour_y_data_file= Path(self.only_task_dirpath) /'contour_y_data.dat' 
+        self.contour_z_data_file= Path(self.only_task_dirpath) /'contour_z_data.dat' 
+        
+        self.task_info.output['contour_x_data']=self.contour_x_data_file       
+        self.task_info.output['contour_y_data']=self.contour_y_data_file             
+        self.task_info.output['contour_z_data']=self.contour_z_data_file             
+        
+        contour_x_data_file=Path(self.project_dir.parent/self.only_workflow_dirpath)/self.contour_x_data_file
+        contour_y_data_file=Path(self.project_dir.parent/self.only_workflow_dirpath)/self.contour_y_data_file
+        contour_z_data_file=Path(self.project_dir.parent/self.only_workflow_dirpath)/self.contour_z_data_file
+        
+        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir,self.only_workflow_dirpath)
+        prepare_tas_data(spectrum_data_list,delay_list,contour_x_data_file,contour_y_data_file,contour_z_data_file)
 
     def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
         from litesoph.visualization.plot_spectrum import contour_plot
-        x_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_x_data')))
-        y_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_y_data')))
-        z_data = np.loadtxt(self.project_dir.parent / (self.task_info.output.get('contour_z_data')))
+        x_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_x_data')))
+        y_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_y_data')))
+        z_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_z_data')))
                         
         x_min= np.min(x_data) if delay_min is None else delay_min 
         x_max= np.max(x_data) if delay_max is None else delay_max 
