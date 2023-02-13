@@ -127,9 +127,6 @@ def get_spectrums_delays(task_info,dependent_tasks,project_dir,only_workflow_dir
         for delay in delay_list:
             spec_file = task_info.output.get(f'spec_delay_{delay}')    
             spec_file= Path(project_dir.parent/only_workflow_dirpath)/spec_file
-
-            # spec_file=f'{project_dir.parent}{spec_file}'
-            print("spec_file: ",spec_file)
             spectrum_data_list.append(spec_file)
         return delay_list,spectrum_data_list
 

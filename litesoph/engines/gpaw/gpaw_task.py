@@ -473,12 +473,6 @@ class PumpProbePostpro(GpawTask):
 
         self.only_workflow_dirpath=self.project_dir.name
         self.only_task_dirpath=Path(self.task_dir).relative_to(self.project_dir)
-
-        
-
-        # self.contour_x_data_file= Path(self.project_dir/self.only_workflow_dirpath/self.only_task_dirpath) /'contour_x_data.dat' 
-        # self.contour_y_data_file= Path(self.task_dir) /'contour_y_data.dat' 
-        # self.contour_z_data_file= Path(self.task_dir) /'contour_z_data.dat' 
     
     def extract_dm(self, gpaw_dm_file, index):
         data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
@@ -487,6 +481,7 @@ class PumpProbePostpro(GpawTask):
 
     def generate_spectrums(self,damping=None,padding=None):
         """generate spectrum file from dipole moment data"""
+
         for i in range(len(self.dependent_tasks)):
             axis_index,_=get_polarization_direction(self.dependent_tasks[i])
             sim_total_dm = (self.project_dir / (self.dependent_tasks[i].output.get('dm_file')))   
@@ -496,29 +491,13 @@ class PumpProbePostpro(GpawTask):
             out_spectrum_file= Path(self.only_task_dirpath) /f'spec_delay_{delay}.dat'                   
             self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
             out_standard_dm_file= Path(self.project_dir.parent/self.only_workflow_dirpath/self.only_task_dirpath) /f'dm_delay_{delay}.dat'            
-            print("out_standard_dm_file: ",out_standard_dm_file)
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
-
-            
-            
-            # print("\nself.task_dir: ",self.task_dir)
-            # print("\nself.project_dir: ",self.project_dir)
-            # out_spectrum_file= Path(self.task_dir) /f'spec_delay_{delay}.dat'                   
-            # out_spectrum_file = str(out_spectrum_file).replace(str(self.project_dir.parent), '')            
-            # self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
-            # print("\nout_spectrum_file :",out_spectrum_file)
-            # gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
-            # out_standard_dm_file= Path(self.task_dir) /f'dm_delay_{delay}.dat'            
-            # np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
 
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
             damping_var= None if damping is None else damping 
             padding_var= None if padding is None else padding 
 
             spec_file_path= Path(self.project_dir.parent/self.only_workflow_dirpath)/out_spectrum_file
-
-            print("specfilepath: ",spec_file_path)
-
             photoabsorption_spectrum(out_standard_dm_file,spec_file_path, process_zero=False,damping=damping_var,padding=padding_var)
                                     
     def generate_tas_data(self):
