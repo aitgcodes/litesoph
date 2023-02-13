@@ -106,9 +106,10 @@ class OctopusTask(Task):
 
         self.input_filename = 'inp'
         self.task_input_filename = self.task_data.get('task_inp', 'inp')
-        # self.geom_file = str(self.wf_dir / 'coordinate.xyz')
-        self.geom_file = str('../coordinate.xyz')
-        self.geom_fpath = str(self.wf_dir / 'coordinate.xyz')
+       
+        geom_fname = self.user_input.get('geom_fname','coordinate.xyz')
+        self.geom_file = '../' + str(geom_fname)
+        self.geom_fpath = str(self.wf_dir / str(geom_fname))
 
         # absolute path attributes
         self.engine_dir = str(self.wf_dir / 'octopus')
