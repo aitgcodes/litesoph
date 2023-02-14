@@ -112,40 +112,15 @@ class GpawTask(Task):
             param['txt_out'] = input_filename + '.out'
             param['gpw_out'] =  input_filename + '.gpw'
 
-<<<<<<< HEAD
-            # TODO:relative paths
-            self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.input_filename)
-            self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.project_dir) / param['txt_out'])
-            self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.project_dir) / param['gpw_out'])
-            # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.input_filename)
-            # self.task_info.output['txt_out'] = str(self.task_dir / param['txt_out'])
-            # self.task_info.output['gpw_out'] = str(self.task_dir / param['gpw_out'])
-=======
             self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.directory) / self.input_filename)
             self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / param['txt_out'])
             self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.directory) / param['gpw_out'])
->>>>>>> workflow
 
         if tt.GROUND_STATE in self.task_name:
             param['geometry'] = '../../coordinate.xyz'
             return
         
         if  tt.RT_TDDFT in self.task_name:
-<<<<<<< HEAD
-            # TODO
-            # Update relative paths to absolute paths
-            param['gfilename'] = str( self.project_dir / self.dependent_tasks[0].output.get('gpw_out'))
-            # param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
-            param['dm_file'] = 'dm.dat'
-            
-            # TODO:relative paths
-            self.task_info.output['dm_file'] = str(self.task_dir.relative_to(self.project_dir) / param['dm_file'])
-            # self.task_info.output['dm_file'] = str(self.task_dir / param['dm_file'])
-            if 'ksd' in param['properties'] or 'mo_population' in param['properties']:
-                param['wfile'] = 'wf.ulm'
-                self.task_info.output['wfile'] = str(self.task_dir.relative_to(self.project_dir) / param['wfile'])
-                # self.task_info.output['wfile'] = str(self.task_dir / param['wfile'])
-=======
             param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
             param['dm_file'] = 'dm.dat'
             
@@ -154,38 +129,10 @@ class GpawTask(Task):
             if 'ksd' in param['properties'] or 'mo_population' in param['properties']:
                 param['wfile'] = 'wf.ulm'
                 self.task_info.output['wfile'] = str(self.task_dir.relative_to(self.directory) / param['wfile'])
->>>>>>> workflow
             update_td_input(param)
             return
 
         if tt.TCM == self.task_name:
-<<<<<<< HEAD
-            # TODO:relative paths
-
-            param['gfilename'] = str(self.project_dir /self.dependent_tasks[0].output.get('gpw_out'))
-            param['wfile'] = str(self.project_dir /self.dependent_tasks[1].output.get('wfile'))
-            # param['gfilename'] = self.dependent_tasks[0].output.get('gpw_out')
-            # param['wfile'] = self.dependent_tasks[1].output.get('wfile')
-            return
-
-        if 'mo_population' ==self.task_name:
-            # TODO:relative paths
-
-            gs_log = self.dependent_tasks[0].output.get('txt_out')
-            gs_file = self.dependent_tasks[0].output.get('gpw_out')
-            param['gfilename'] = str(self.project_dir / gs_file)
-            param['wfile'] = str(self.project_dir / self.dependent_tasks[1].output.get('wfile'))
-            
-            # param['gfilename'] = gs_file
-            # param['wfile'] = self.dependent_tasks[1].output.get('wfile')
-            param['mopop_file'] = mo_pop_file ='mo_population.dat'
-            self.mo_populationfile = self.task_dir / mo_pop_file
-            
-            # TODO:relative paths
-            self.task_info.output['mopop_file'] = str(self.task_dir.relative_to(self.project_dir) / mo_pop_file)
-            # self.task_info.output['mopop_file'] = str(self.mo_populationfile)
-            data = get_eigen_energy(str(self.project_dir/gs_log))
-=======
 
             param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
             param['wfile'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[1].output.get('wfile')))
@@ -203,7 +150,6 @@ class GpawTask(Task):
             
             self.task_info.output['mopop_file'] = str(self.task_dir.relative_to(self.directory) / mo_pop_file)
             data = get_eigen_energy(str(self.directory/gs_log))
->>>>>>> workflow
             self.occupied_mo , self.unoccupied_mo = get_occ_unocc(data,energy_col=1,occupancy_col=2)
             return
 
@@ -215,15 +161,8 @@ class GpawTask(Task):
     def write_input(self):
         if not self.task_dir.exists():
             self.create_directory(self.task_dir)
-<<<<<<< HEAD
-         # TODO:relative paths
-        
-        infile = str(self.project_dir /self.task_info.input['engine_input']['path'])
-        # infile = self.task_info.input['engine_input']['path']
-=======
         
         infile = str(self.directory /self.task_info.input['engine_input']['path'])
->>>>>>> workflow
         template = self.task_info.input['engine_input']['data']
         with open(infile , 'w+') as f:
             f.write(template)
@@ -261,13 +200,7 @@ class GpawTask(Task):
 
     def get_engine_log(self):
         if self.check_output():
-<<<<<<< HEAD
-             # TODO:relative paths
-            return self.read_log(self.project_dir / self.task_info.output['txt_out'])
-            # return self.read_log(self.task_info.output['txt_out'])
-=======
             return self.read_log(self.directory / self.task_info.output['txt_out'])
->>>>>>> workflow
         
 
     def run_job_local(self, cmd):
@@ -473,18 +406,10 @@ class GpawPostProMasking(GpawTask):
 
 
     def setup_task(self, param):
-<<<<<<< HEAD
-        task_dir = self.project_dir / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)   
-
-        self.sim_total_dm = self.project_dir / (self.dependent_tasks[0].output.get('dm_file'))     
-        # self.sim_total_dm = Path(self.dependent_tasks[0].output.get('dm_file'))
-=======
         task_dir = self.directory / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)   
 
         self.sim_total_dm = self.directory / (self.dependent_tasks[0].output.get('dm_file'))     
->>>>>>> workflow
         self.state_mask_dm = False
         from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
         self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
