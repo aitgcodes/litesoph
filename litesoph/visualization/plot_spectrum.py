@@ -115,7 +115,7 @@ def contour_plot(x_data, y_data, z_data, x_label:str,y_label:str,title:str,x_lmt
     plt.colorbar().set_label('Cross-section', rotation=90)
     return plt.show()
 
-def get_spectrums_delays(task_info,dependent_tasks,project_dir):
+def get_spectrums_delays(task_info,dependent_tasks,project_dir,only_workflow_dirpath):
         """function to generate x,y,z data required by contour plot and plotting contour plot for pump_probe"""
         
         delay_list=[]
@@ -125,39 +125,29 @@ def get_spectrums_delays(task_info,dependent_tasks,project_dir):
             
         spectrum_data_list=[]
         for delay in delay_list:
-            spec_file = (project_dir / (task_info.output.get(f'spec_delay_{delay}')))                
+            spec_file = task_info.output.get(f'spec_delay_{delay}')    
+            spec_file= Path(project_dir.parent/only_workflow_dirpath)/spec_file
             spectrum_data_list.append(spec_file)
-
         return delay_list,spectrum_data_list
 
-def prepare_tas_data(task_info,project_dir,spectrum_data_list,delay_list,task_dir):        
+def prepare_tas_data(spectrum_data_list,delay_list,contour_x_data_file,contour_y_data_file,contour_z_data_file):        
         
-        data0=np.loadtxt(f'{project_dir.parent}{spectrum_data_list[0]}', comments="#")
-
+        data0=np.loadtxt(spectrum_data_list[0], comments="#")
         Omega = data0[:,0]
         data=np.zeros(((len(Omega.transpose()),len(spectrum_data_list))))
 
         for i, dat in enumerate(spectrum_data_list):
-            dat=np.loadtxt(f'{project_dir.parent}{dat}',comments="#")
+            dat=np.loadtxt(dat,comments="#")
             data[:,i] = (dat[:len(Omega),1])
             if i ==0:
                 delta_data=data
             else:
                 delta_data[:,i]=data[:,i]-data[:,0]
         
-
         delay_list=[i if i!='no_probe' else 0 for i in delay_list]        
         x_data,y_data= np.meshgrid(delay_list,Omega)
         z_data=(np.abs(data))
                     
-        contour_x_data_file= Path(task_dir) /'contour_x_data.dat' 
-        contour_y_data_file= Path(task_dir) /'contour_y_data.dat' 
-        contour_z_data_file= Path(task_dir) /'contour_z_data.dat' 
-    
-        task_info.output['contour_x_data']=contour_x_data_file       
-        task_info.output['contour_y_data']=contour_y_data_file             
-        task_info.output['contour_z_data']=contour_z_data_file             
-
         fmt = "%s"# "%20.10e %20.10e %20.10e %20.10e"
         np.savetxt(contour_x_data_file, x_data, fmt=fmt)  
         np.savetxt(contour_y_data_file, y_data, fmt=fmt)  
