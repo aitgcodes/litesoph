@@ -204,9 +204,7 @@ class SubmitNetwork:
                                         'error':result[cmd]['error'],
                                         'pid':result[cmd]['pid']})
         print("\npid :",result[cmd]['pid'])
-    
-    
-    
+        
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
         rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
@@ -266,8 +264,7 @@ class SubmitNetwork:
         """
         download specific file(s) from remote
         """
-        (error, message)=file_transfer(file_path,priority1_files_dict,self.hostname,self.username,self.port,self.password,self.remote_path,self.project_dir)
-        
+        (error, message)=file_transfer(file_path,priority1_files_dict,self.hostname,self.username,self.port,self.password,self.remote_path,self.project_dir)        
         return (error, message)
 
     def view_specific_file_remote(self,file):
@@ -476,13 +473,13 @@ def execute_rsync(cmd,passwd, timeout=None):
 # checkpoint_files
 # file_relevance
 
-lfm_file_info={ 
-                '.out':{'file_relevance':'very_impt','file_lifetime':'None', 'transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':'500k'}},
-                '.log':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'direct_transfer','compress_method':'zstd','split_size':''}},
-                '.cube':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':''}},
-                '.ulm':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'split_transfer','compress_method':'zstd','split_size':'200M'}},
+# lfm_file_info={ 
+#                 '.out':{'file_relevance':'very_impt','file_lifetime':'None', 'transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':'500k'}},
+#                 '.log':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'direct_transfer','compress_method':'zstd','split_size':''}},
+#                 '.cube':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':''}},
+#                 '.ulm':{'file_relevance':'very_impt','file_lifetime':'','transfer_method':{'method':'split_transfer','compress_method':'zstd','split_size':'200M'}},
 
-                }
+#                 }
         
 def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_proj_dir,lfm_file_info):   
     """
@@ -495,6 +492,9 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
    5. transfer the file
     """
     print("\nlitesoph file management activated !!")
+
+    from litesoph.common.lfm_database import lfm_file_info_dict
+    lfm_file_info=lfm_file_info_dict()
 
     cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles_remote.list"'     
     cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles_remote.list {local_proj_dir}"
@@ -543,6 +543,23 @@ def create_file_info(list_of_files_in_remote_dir,lfm_file_info):
     
     return file_info_dict
 
+def keys_exists(dictionary, keys):
+    """function to check if keys exist or not in a dictionary
+    
+    parameter:
+
+    dictionary: dictionary on which keys needs to be check
+    keys: list of keys
+    
+    """
+    nested_dict = dictionary
+    for key in keys:
+        try:
+            nested_dict = nested_dict[key]
+        except KeyError:
+            return False
+    return True
+
 def filter_dict(dictionary,filter_key,filter_value):
     """
     function to filter dictionary using key-value pairs
@@ -560,57 +577,85 @@ def read_file_info_list(filepath_file_list):
     file.close()
     return data
 
+def check_available_compress_methd_local(self,local_proj_dir):
+    """function to check the available compression method in machine"""
+
+    from litesoph.common.lfm_database import compression_algo_dict
+
+    compression_algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
+            'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
+
+    available_methods=[]
+
+    for key in compression_algo_dict.keys():
+        cmd=f'which {key}'
+        result=execute(cmd, local_proj_dir)
+        error=result[cmd]['output']
+        message=result[cmd]['error'] 
+
+        if len(re.findall(message, f'/usr/bin/{key}')) > 0:
+            available_methods.append(key)
+
+    return available_methods
+        
+    
 def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir):
     """
     function to selectively transfer files from remote to local    
     """    
-    file_transfer_method=priority_files_dict[file]['transfer_method']['method']
-    
-    if file_transfer_method=="compress_transfer":
+    if keys_exists(priority_files_dict,'transfer_method')==True:
+        file_transfer_method=priority_files_dict[file]['transfer_method']['method']
         
-        algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
-        'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
+        if file_transfer_method=="compress_transfer":
+            
+            algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
+            'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
+                        
+            compression_method=priority_files_dict[file]['transfer_method']['compress_method']
+            compressed_file_ext= algo_dict[compression_method]
+            
+            file_folder=str(pathlib.Path(file).parent)
+            file_name=str(pathlib.Path(file).name)
+            file = str(file).replace(str(remote_proj_dir), '')        
+            cmd_compress_file_at_remote=f'ssh -p {port} {username}@{host} "cd {file_folder}; {compression_method} -f {file_name}"'
+            cmd_compress_transfer=f"rsync -R --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file}{compressed_file_ext} {local_proj_dir}"                
+            file_folder=str(pathlib.Path(file).parent)
+            cmd_decompress_file_at_local=f'cd {local_proj_dir}{file_folder}; {compression_method} -d -f {file_name}{compressed_file_ext}; rm  {file_name}{compressed_file_ext}'
+            
+            (error, message)=execute_rsync(cmd_compress_file_at_remote, passwd)         
+            (error, message)=execute_rsync(cmd_compress_transfer, passwd)
+
+            result=execute(cmd_decompress_file_at_local, local_proj_dir)        
+            error=result[cmd_decompress_file_at_local]['output']
+            message=result[cmd_decompress_file_at_local]['error'] 
+            return (error, message)
                     
-        compression_method=priority_files_dict[file]['transfer_method']['compress_method']
-        compressed_file_ext= algo_dict[compression_method]
-        
-        file_folder=str(pathlib.Path(file).parent)
-        file_name=str(pathlib.Path(file).name)
-        file = str(file).replace(str(remote_proj_dir), '')        
-        cmd_compress_file_at_remote=f'ssh -p {port} {username}@{host} "cd {file_folder}; {compression_method} -f {file_name}"'
-        cmd_compress_transfer=f"rsync -R --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file}{compressed_file_ext} {local_proj_dir}"                
-        file_folder=str(pathlib.Path(file).parent)
-        cmd_decompress_file_at_local=f'cd {local_proj_dir}{file_folder}; {compression_method} -d -f {file_name}{compressed_file_ext}; rm  {file_name}{compressed_file_ext}'
-        
-        (error, message)=execute_rsync(cmd_compress_file_at_remote, passwd)         
-        (error, message)=execute_rsync(cmd_compress_transfer, passwd)
+        elif file_transfer_method=="split_transfer":
 
-        result=execute(cmd_decompress_file_at_local, local_proj_dir)        
-        error=result[cmd_decompress_file_at_local]['output']
-        message=result[cmd_decompress_file_at_local]['error'] 
-        return (error, message)
-                
-    elif file_transfer_method=="split_transfer":
-
-        split_size=priority_files_dict[file]['transfer_method']['split_size']                
-        file_folder=str(pathlib.Path(file).parent)
-        file_name=str(pathlib.Path(file).name)
-        file = str(file).replace(str(remote_proj_dir), '')        
-        cmd_split_file_at_remote=f'ssh -p {port} {username}@{host} "cd {file_folder}; split -b {split_size} {file_name} {file_name}."'
-        cmd_split_files_transfer=f"rsync -R --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file}.?? {local_proj_dir}"                
-        file_folder=str(pathlib.Path(file).parent)
-        cmd_unsplit_file_at_local=f'cd {local_proj_dir}{file_folder}; cat {file_name}.?? > {file_name}; rm -r {file_name}.*'
-        
-        (error, message)=execute_rsync(cmd_split_file_at_remote, passwd)  
-        (error, message)=execute_rsync(cmd_split_files_transfer, passwd)    
-        result=execute(cmd_unsplit_file_at_local, local_proj_dir)        
-        error=result[cmd_unsplit_file_at_local]['output']
-        message=result[cmd_unsplit_file_at_local]['error']    
-        return (error, message)        
+            split_size=priority_files_dict[file]['transfer_method']['split_size']                
+            file_folder=str(pathlib.Path(file).parent)
+            file_name=str(pathlib.Path(file).name)
+            file = str(file).replace(str(remote_proj_dir), '')        
+            cmd_split_file_at_remote=f'ssh -p {port} {username}@{host} "cd {file_folder}; split -b {split_size} {file_name} {file_name}."'
+            cmd_split_files_transfer=f"rsync -R --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file}.?? {local_proj_dir}"                
+            file_folder=str(pathlib.Path(file).parent)
+            cmd_unsplit_file_at_local=f'cd {local_proj_dir}{file_folder}; cat {file_name}.?? > {file_name}; rm -r {file_name}.*'
+            
+            (error, message)=execute_rsync(cmd_split_file_at_remote, passwd)  
+            (error, message)=execute_rsync(cmd_split_files_transfer, passwd)    
+            result=execute(cmd_unsplit_file_at_local, local_proj_dir)        
+            error=result[cmd_unsplit_file_at_local]['output']
+            message=result[cmd_unsplit_file_at_local]['error']    
+            return (error, message)        
+        else:
+            file = str(file).replace(str(remote_proj_dir), '')
+            cmd_direct_transfer=f"rsync -vR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
+            print("\nTransferring File :",file)
+            (error, message)=execute_rsync(cmd_direct_transfer, passwd)    
+            return (error, message)    
     else:
         file = str(file).replace(str(remote_proj_dir), '')
         cmd_direct_transfer=f"rsync -vR --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/.{file} {local_proj_dir}"
         print("\nTransferring File :",file)
         (error, message)=execute_rsync(cmd_direct_transfer, passwd)    
         return (error, message)
-

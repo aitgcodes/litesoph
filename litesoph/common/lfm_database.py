@@ -6,8 +6,12 @@ Available tags:
 file_relevance: <very_impt, impt, least_impt>
 file_type: <'redirected_outfile','scipt_generated_outfile','input_file','property_file','checkpoint_file' > 
 transfer_method: <method :'direct_transfer','compress_transfer','split_transfer', 'compress_method','split_size'>
-
 """
+
+# dictionary of available compression algorithm used in litesoph file management module
+compression_algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
+            'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
+
 
 # list of Tags
 very_impt=['.out','.xyz','.sh','.py', '.nwi']
@@ -81,8 +85,6 @@ def lfm_file_info_dict():
 if __name__ == "__main__":
     lfm_file_info_dict()
 
-print("\nlfm_file_info_dict: ",lfm_file_info_dict())
-
 def keys_exists(dictionary, keys):
     nested_dict = dictionary
 
@@ -93,11 +95,8 @@ def keys_exists(dictionary, keys):
             return False
     return True
 
-
 result = keys_exists(lfm_file_info_dict(), ['x'])
 print(result)
-
-
 
 
 
