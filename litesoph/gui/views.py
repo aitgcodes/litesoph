@@ -1783,29 +1783,122 @@ class CreateWorkflowPage(tk.Toplevel):
         super().__init__(parent, *args, **kwargs)
 
         self._default_var = {
-              'workflow_name' : ['str'],
-              
+            'workflow_option' : ['int'],
+            'workflow_name' : ['str'],  
+            'branch_pt': ['str'],
+            'source_wf': ['str'], 
+            'target_wf': ['str']           
           }
 
+        self.wf_list = kwargs.get('workflow_list', 'workflow_1')
+        self.branch_points = ['Ground State', 'RT-TDDFT']
+        self.wf_types = []
         self._var = var_define(self._default_var)
+        
         self.attributes("-topmost", True)
         self.grab_set()
         self.lift()
         self.title("Create New Workflow")     
-        self.geometry("550x200")
-        self.label_proj = tk.Label(self,text="Workflow Name",bg=label_design['bg'],fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+        self.geometry("550x300")
 
-        self.entry_proj = tk.Entry(self,textvariable=self._var['workflow_name'])
+        self.default_frame = ttk.Frame(self)
+        self.default_frame.grid(row=0, column=0)
+
+        values = {"New Workflow": 0, "Clone from Existing Workflow": 1}
+        for (text, value) in values.items():
+            tk.Radiobutton(self.default_frame, text=text, variable=self._var['workflow_option'], font=myfont2(),
+             justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')   
+
+        self.label_proj = tk.Label(self.default_frame,text="Workflow Name",
+                        bg=label_design['bg'],fg=label_design['fg']
+        )
+        self.label_proj['font'] = label_design['font']
+        self.label_proj.grid(column=0, row= 2, sticky=tk.W,  pady=10, padx=10)  
+
+        self.entry_proj = tk.Entry(self.default_frame,textvariable=self._var['workflow_name'])
         self.entry_proj['font'] = myfont()
-        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+        self.entry_proj.grid(column=1, row= 2, sticky=tk.W)
         self.entry_proj.delete(0, tk.END)
 
-        self.create_button = tk.Button(self,text="Create",width=18, activebackground="#78d6ff")
+        self.create_button = tk.Button(self.default_frame,text="Create",width=18, activebackground="#78d6ff")
         self.create_button['font'] = myfont()
-        self.create_button.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
+        self.create_button.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10) 
+
+        self.clone_frame = None
+
+        for key,var in self._var.items():
+            self._var[key].trace("w", self.update_widgets) 
+        self._var['workflow_option'].set(0)
+        self._var['branch_pt'].set('Ground State')
+        
+
+    def update_widgets(self, *_):
+        for key in self._var.keys():
+            if key == 'workflow_option':
+                self.toggle_wf_option()
+            if key == 'branch_pt':
+                self.toggle_target_wf()
+
+    def toggle_wf_option(self):
+        """ Creates Clone workflow frame widgets""" 
+        if self._var['workflow_option'].get() == 1:
+            self.clone_frame = ttk.Frame(self)
+            self.clone_frame.grid(row=1, column=0, sticky='we')
+
+            self.label_wf_select = tk.Label(self.clone_frame,text="Select Workflow Name",
+                                            bg=label_design['bg'],fg=label_design['fg']
+            )
+            self.label_wf_select['font'] = label_design['font']
+            self.label_wf_select.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+            self.entry_wf_select = ttk.Combobox(self.clone_frame, values= self.wf_list,
+                            textvariable=self._var['source_wf'],state='readonly'
+            )
+            self.entry_wf_select['font'] = myfont()
+            self.entry_wf_select.grid(column=1, row= 3, sticky=tk.W)
+            self.entry_wf_select.current(0)
+
+            self.label_branch_pt = tk.Label(self.clone_frame,text="Branch Point",
+                        bg=label_design['bg'],fg=label_design['fg']
+            )
+            self.label_branch_pt['font'] = label_design['font']
+            self.label_branch_pt.grid(column=0, row= 4, sticky=tk.W,  pady=10, padx=10)  
+
+            self.entry_branch_pt = ttk.Combobox(self.clone_frame, values=self.branch_points,
+                            textvariable=self._var['branch_pt'],state='readonly'
+            )
+            self.entry_branch_pt['font'] = myfont()
+            self.entry_branch_pt.grid(column=1, row= 4, sticky=tk.W)
             
+
+            self.label_target_wf = tk.Label(self.clone_frame,text="Target Workflow Type",
+                                        bg=label_design['bg'],fg=label_design['fg']
+            )
+            self.label_target_wf['font'] = label_design['font']
+            self.label_target_wf.grid(column=0, row= 5, sticky=tk.W,  pady=10, padx=10)  
+
+            self.entry_target_wf = ttk.Combobox(self.clone_frame,values=self.wf_types,
+                            textvariable=self._var['target_wf'],state='readonly'
+            )
+            self.entry_target_wf['font'] = myfont()
+            self.entry_target_wf.grid(column=1, row= 5, sticky=tk.W)
+
+        else:
+           if self.clone_frame:
+               for widget in self.clone_frame.winfo_children():
+                widget.grid_remove() 
+
+    def toggle_target_wf(self):
+        if self._var['branch_pt'].get() == 'Ground State':
+            if self.clone_frame:
+                self.entry_target_wf.config(state='active')
+                self.entry_target_wf.config(state='readonly')  
+                self.label_target_wf.config(state='normal')              
+        else:
+            if self.clone_frame:
+                self.entry_target_wf.config(state='disabled')
+                self.label_target_wf.config(state='disabled')
+
     def get_value(self, key):
         return self._var[key].get()
     
