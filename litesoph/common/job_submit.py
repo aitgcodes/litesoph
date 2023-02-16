@@ -160,7 +160,7 @@ class SubmitNetwork:
                                                 source_dir=str(remote_path), dst_dir=str(self.project_dir.parent))
         
         elif (self.ls_file_mgmt_mode==True):
-            (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir,lfm_file_info)
+            (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir)
 
         elif error != 0:
             raise Exception(message)
@@ -253,12 +253,18 @@ class SubmitNetwork:
         download all files from remote
         """
         remote_path = pathlib.Path(self.remote_path) / self.project_dir.name
-        (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir,lfm_file_info)
+        (error, message)=download_files_from_remote(self.hostname,self.username,self.port,self.password,remote_path,self.project_dir)
         return (error, message)
 
     def get_list_of_files_remote(self):
-        listOfFiles_path=f'{self.project_dir}/listOfFiles.list'    
-        return read_file_info_list(listOfFiles_path)        
+        listOfFiles_path=f'{self.project_dir}/listOfFiles.list'   
+        from litesoph.common.lfm_database import lfm_file_info_dict
+        lfm_file_info=lfm_file_info_dict()
+        file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
+        files_dict=filter_dict(file_info_dict,'file_type','input_file')
+        
+        files_list=list(files_dict.keys())
+        return files_list        
 
     def download_specific_file_remote(self,file_path,priority1_files_dict):
         """
@@ -481,7 +487,7 @@ def execute_rsync(cmd,passwd, timeout=None):
 
 #                 }
         
-def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_proj_dir,lfm_file_info):   
+def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_proj_dir):   
     """
    1. get the list of files from remote directory
    2. convert the list of files into file-metadata-dictionary 
@@ -496,6 +502,8 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     from litesoph.common.lfm_database import lfm_file_info_dict
     lfm_file_info=lfm_file_info_dict()
 
+    print("\nlfm_file_info: ",lfm_file_info)
+
     cmd_create_listOfFiles_at_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; find "$PWD"  -type f > listOfFiles_remote.list"'     
     cmd_listOfFiles_to_local=f"rsync --rsh='ssh -p{port}' {username}@{host}:{remote_proj_dir}/listOfFiles_remote.list {local_proj_dir}"
     # cmd_remove_listOfFiles_remote=f'ssh -p {port} {username}@{host} "cd {remote_proj_dir}; rm listOfFiles.list'
@@ -506,7 +514,12 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     
     listOfFiles_path=f'{local_proj_dir}/listOfFiles_remote.list'    
     file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)
-        
+
+    print("\nfile_info_dict: ",file_info_dict)
+
+    # if keys_exists(file_info_dict,'file_relevance')==False:
+
+
     priority1_files_dict=filter_dict(file_info_dict,'file_relevance','very_impt')
     priority2_files_dict=filter_dict(file_info_dict,'file_relevance','impt')
     
@@ -529,8 +542,10 @@ def add_element(dict, key, value):
 def create_file_info(list_of_files_in_remote_dir,lfm_file_info):
 
     file_info_dict={}
-    default_metadata={'file_relevance':'very_impt','file_lifetime':'',
-                     'transfer_method':{'method':'direct_transfer','compress_method':'zstd','split_size':''}}
+    default_metadata={'file_relevance':None,
+                    'file_lifetime':None,
+                    'file_type':None,
+                     'transfer_method':None}
     
     for i in range(len(list_of_files_in_remote_dir)):
         file_extension = pathlib.Path(list_of_files_in_remote_dir[i]).suffix
@@ -564,9 +579,10 @@ def filter_dict(dictionary,filter_key,filter_value):
     """
     function to filter dictionary using key-value pairs
     """
-    filtered_dict=[dictionary for d in dictionary.values() if d[filter_key] == filter_value]
-    from collections import ChainMap
-    filtered_dict = dict(ChainMap(*filtered_dict)) 
+    filtered_dict={}
+    for key in dictionary.keys():
+        if dictionary[key][filter_key]==filter_value:
+            filtered_dict[key]=dictionary[key]
     return filtered_dict
 
 def read_file_info_list(filepath_file_list):
@@ -577,26 +593,34 @@ def read_file_info_list(filepath_file_list):
     file.close()
     return data
 
-def check_available_compress_methd_local(self,local_proj_dir):
-    """function to check the available compression method in machine"""
-
+def check_available_compress_methd(local_proj_dir,host,username,port,passwd):
+    """function to check the available compression method in local and remote machine"""
     from litesoph.common.lfm_database import compression_algo_dict
+    
+    available_methods_local=[]
+    available_methods_remote=[]
 
-    compression_algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
-            'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
+    try:
+        for key in compression_algo_dict.keys():
+            cmd=f'which {key}'
+            result=execute(cmd, local_proj_dir)
+            error=result[cmd]['error']
+            message=result[cmd]['output'] 
 
-    available_methods=[]
+            if f'/bin/{key}' in message:
+                available_methods_local.append(key)
+            
+            cmd_remote=f'ssh -p {port} {username}@{host} {cmd}'   
+            (error, message)=execute_rsync(cmd_remote, passwd)
+            
+            if f'/bin/{key}' in message:
+                available_methods_remote.append(key)
 
-    for key in compression_algo_dict.keys():
-        cmd=f'which {key}'
-        result=execute(cmd, local_proj_dir)
-        error=result[cmd]['output']
-        message=result[cmd]['error'] 
+        available_methods_local_remote=list(set(available_methods_local) & set(available_methods_remote))
+    except:
+        raise error
 
-        if len(re.findall(message, f'/usr/bin/{key}')) > 0:
-            available_methods.append(key)
-
-    return available_methods
+    return available_methods_local_remote
         
     
 def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir):
@@ -607,12 +631,19 @@ def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj
         file_transfer_method=priority_files_dict[file]['transfer_method']['method']
         
         if file_transfer_method=="compress_transfer":
+            from litesoph.common.lfm_database import compression_algo_dict
+
+            list_of_compression_methd=check_available_compress_methd(local_proj_dir,host,username,port,passwd)
             
-            algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
-            'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
-                        
-            compression_method=priority_files_dict[file]['transfer_method']['compress_method']
-            compressed_file_ext= algo_dict[compression_method]
+            if keys_exists(priority_files_dict[file],'compress_method')==False:
+                compression_method=list_of_compression_methd[0]
+            else:
+                compression_method=priority_files_dict[file]['compress_method']
+                if compression_method in list_of_compression_methd:                 
+                    compressed_file_ext= compression_algo_dict[compression_method]
+                else:
+                    compression_method=list_of_compression_methd[0]
+                    compressed_file_ext= compression_algo_dict[compression_method]
             
             file_folder=str(pathlib.Path(file).parent)
             file_name=str(pathlib.Path(file).name)

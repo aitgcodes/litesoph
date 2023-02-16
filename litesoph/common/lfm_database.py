@@ -14,19 +14,24 @@ compression_algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz',
 
 
 # list of Tags
-very_impt=['.out','.xyz','.sh','.py', '.nwi']
-impt=[]
+
+# file_relevance
+very_impt=['.out','.log','.xyz','.sh','.py', '.nwi']
+impt=['.dat','.db','.movecs','gridpts.0']
 least_impt=[]
 
-input_file=['.xyz','.sh','.py', '.nwi']
+#file_type
+input_file={'.xyz':{'subfiletype':'coordinate_file'},'.sh':{'subfiletype':'bash_file'},'.py':{'subfiletype':None}, '.nwi':{'subfiletype':None}}
 redirected_outfile=['.log']
 script_generated_outfile=['.nwo','.gpw','.out']
 property_file=['.dat']
 checkpoint_file=['.db','.movecs','gridpts.0']
 
+#transfer_method
 direct_transfer=['.out','.log','.xyz','.sh','.py', '.nwi']
-compress_transfer=[]
-split_transfer=[]
+compress_transfer={'.dat':{'compress_method':None},'.cube':{'compress_method':None} }
+split_transfer={'.test':{'split_size':None}}
+
 
 list_of_files=[very_impt,impt,least_impt,input_file,redirected_outfile,script_generated_outfile,property_file,
 checkpoint_file,direct_transfer,compress_transfer,split_transfer]
@@ -42,7 +47,6 @@ def lfm_file_info_dict():
     """
     function to generate a dictionary database of containing metadata information of all the possible files
     """
-
     lfm_file_info={}
 
     for file in List_set_of_files:
@@ -52,14 +56,16 @@ def lfm_file_info_dict():
         if (file in very_impt):
             add_element(lfm_file_info[file], 'file_relevance', 'very_impt')
         elif (file in impt):
-            add_element(lfm_file_info, 'file_relevance', 'impt')
+            add_element(lfm_file_info[file], 'file_relevance', 'impt')
         elif (file in least_impt):
-            add_element(lfm_file_info, 'file_relevance', 'least_impt')
+            add_element(lfm_file_info[file], 'file_relevance', 'least_impt')
         else:
-            add_element(lfm_file_info, 'file_relevance',None)
+            add_element(lfm_file_info[file], 'file_relevance',None)
       
         if (file in input_file):
             add_element(lfm_file_info[file], 'file_type', 'input_file')
+            add_element(lfm_file_info[file], 'subfiletype', input_file[file]['subfiletype'])
+
         elif (file in redirected_outfile):
             add_element(lfm_file_info[file], 'file_type', 'redirected_outfile')
         elif (file in script_generated_outfile):
@@ -71,14 +77,19 @@ def lfm_file_info_dict():
         else:
             add_element(lfm_file_info[file], 'file_type', None)
                 
-        if (file in direct_transfer):
-            add_element(lfm_file_info[file], 'transfer_method', 'direct_transfer')
-        elif (file in compress_transfer):
+        # if (file in direct_transfer):
+        #     add_element(lfm_file_info[file], 'transfer_method', 'direct_transfer')
+        
+        if (file in compress_transfer):
             add_element(lfm_file_info[file], 'transfer_method', 'compress_transfer')
+            add_element(lfm_file_info[file], 'compress_method', compress_transfer[file]['compress_method'])
+
         elif (file in split_transfer):
             add_element(lfm_file_info[file], 'transfer_method', 'split_transfer')
+            add_element(lfm_file_info[file], 'split_size', split_transfer[file]['split_size'])
+
         else:
-            add_element(lfm_file_info[file], 'transfer_method', None)
+            add_element(lfm_file_info[file], 'transfer_method', 'direct_transfer')
 
     return lfm_file_info
 
@@ -95,8 +106,8 @@ def keys_exists(dictionary, keys):
             return False
     return True
 
-result = keys_exists(lfm_file_info_dict(), ['x'])
-print(result)
+# result = keys_exists(lfm_file_info_dict(), ['x'])
+# print(result)
 
 
 

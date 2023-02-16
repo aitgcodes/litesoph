@@ -177,8 +177,7 @@ class TaskController:
             list_of_files.append(file)
         choose_file['values'] = list_of_files
         choose_file.current()
-        self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
-        
+        self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)        
         self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
 
@@ -218,12 +217,62 @@ class TaskController:
             messagebox.showinfo(title='Info', message="No Job Found")
 
     def selection_changed(self,event):
-        self.selected_file = self.job_sub_page.combobox.get()
+        selected_file = self.job_sub_page.combobox.get()
+        self.selected_file=self.dict_of_files_combobox[selected_file]
         messagebox.showinfo(
         title="New Selection",
         message=f"Selected option: {self.selected_file}")
+    
+    # def decode_encode_list_combox(self,encode:bool,list_need_encoding):
+    #     import pathlib
+    #     if encode==True:
+
+    #         encoded_list=[]
+    #         for item in list_need_encoding:
+    #             if pathlib.Path(item).suffix in ['.xyz','.cube']:
+    #                 num=0
+    #                 if 'coordinate_file' in encoded_list:
+    #                     num=num+1
+    #                     encoded_list.append(f'coordinate_file_{num}')
+
+    #     return encoded_list
+    
+    def encode_decode_combobox_items(self,list_of_files):
+        import pathlib
+
+        mapped_dict={}
+
+        coordinate_files=['.xyz']
+        dipole_files=['dm.dat','multipoles']
+
+        i = 0
+        coordinate_count=0
+        dipole_count=0
+        while i < len(list_of_files):
+
+            file_path=pathlib.Path(list_of_files[i]).parent
+            file_name=pathlib.Path(list_of_files[i]).name
+            file_ext=pathlib.Path(list_of_files[i]).suffix
+            
+            if  file_ext in coordinate_files:                
+                coordinate_file=f'coordinate_file_{coordinate_count+1}'
+                mapped_dict[coordinate_file] = list_of_files[i]
+                list_of_files[i] = coordinate_file            
+                coordinate_count+=1    
         
-    def _on_check_file_status_remote(self):                
+            if  file_name in dipole_files:
+                dipole_file=f'dipole_file_{dipole_count+1}'
+                mapped_dict[dipole_file] = list_of_files[i]
+                list_of_files[i] = dipole_files            
+                dipole_count+=1    
+                        
+            i += 1
+        return mapped_dict
+
+
+
+    def _on_check_file_status_remote(self):    
+        import pathlib            
         try:
             error, msg=self.task.submit_network.get_fileinfo_remote()            
         except TaskFailed:
@@ -231,15 +280,31 @@ class TaskController:
         self.view_panel.insert_text(msg, 'disabled')
         
         choose_file= self.job_sub_page.combobox
-        list_of_files=[]
-        for file_path in self.task.submit_network.get_list_of_files_remote():
-            file = str(file_path).replace(str(self.task.submit_network.remote_path),'')
-            list_of_files.append(file)
+        list_of_files=self.task.submit_network.get_list_of_files_remote()
+        print("\nlist_of_files: ",list_of_files)
+        
+        
+        # for file_path in self.task.submit_network.get_list_of_files_remote():
+            
+            # file_parent=pathlib.Path(file_path).parent
+            # filename= pathlib.Path(file_path).name
+            # file = str(file_path).replace(str(self.task.submit_network.remote_path),'')
+
+            # list_of_files.append(filename)
+        
+
+        self.dict_of_files_combobox=self.encode_decode_combobox_items(list_of_files)
+        
+        list_of_files=list(self.dict_of_files_combobox.keys())
+        print('\nlist_of_files: ',list_of_files)
+
+        
         
         choose_file['values'] =  list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
-
+        # self.combobox_selected_file=self.dict_of_files_combobox[self.combobox_selected_file]
+        
         self.job_sub_page.download_specific_file_button.config(state='active')
         self.job_sub_page.view_file_button.config(state='active')
         self.job_sub_page.plot_file_button.config(state='active')
@@ -270,19 +335,23 @@ class TaskController:
         return (error, message)
     
     def _on_download_specific_file(self):
-        file_path= str(self.task.submit_network.remote_path) + str(self.selected_file)
-        priority1_files_dict={file_path: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}
+        # file_path= str(self.task.submit_network.remote_path) + str(self.selected_file)
+        priority1_files_dict={self.selected_file: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}
         
         try:
-            error, message=self.task.submit_network.download_specific_file_remote(file_path,priority1_files_dict)                
+            error, message=self.task.submit_network.download_specific_file_remote(self.selected_file,priority1_files_dict)                
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)                    
         messagebox.showinfo(title='Info', message=message)   
 
     def _on_view_specific_file_remote(self):        
         try:
-            file_path= str(self.task.submit_network.remote_path) + str(self.selected_file)
-            error, message=self.task.submit_network.view_specific_file_remote(file_path)  
+            # file_path= str(self.task.submit_network.remote_path) + str(self.selected_file)
+            # print("self.dict_of_files_combobox: ",self.dict_of_files_combobox)
+            # file_path=self.dict_of_files_combobox[self.selected_file]
+            # print("file path :", file_path)
+            
+            error, message=self.task.submit_network.view_specific_file_remote(self.selected_file)  
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
         self.view_panel.insert_text(message, 'disabled')
