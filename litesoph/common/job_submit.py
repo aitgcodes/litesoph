@@ -122,11 +122,16 @@ class SubmitNetwork:
 
     def get_output_log(self):
         """Downloads engine log file for that particular task."""
+        wfdir = pathlib.Path(self.task.project_dir)
+        proj_name = pathlib.Path(self.project_dir).name
+        wf_name = wfdir.name
         engine_log = pathlib.Path(self.task.task_info.output['txt_out'])
-        rpath = pathlib.Path(self.remote_path) / engine_log.relative_to(self.project_dir.parent)
-        self.network_sub.download_files(str(rpath), str(engine_log))
-
-
+        # rpath = pathlib.Path(self.remote_path) / engine_log.relative_to(self.project_dir.parent)
+        rpath = pathlib.Path(self.remote_path) / proj_name / wf_name / engine_log
+        lpath = wfdir / engine_log
+        # self.network_sub.download_files(str(rpath), str(engine_log))
+        self.network_sub.download_files(str(rpath), str(lpath))
+        
     def run_job(self, cmd):
         "This method creates the job submission command and executes the command on the cluster"
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.relative_to(self.project_dir.parent)

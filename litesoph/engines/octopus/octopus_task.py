@@ -125,13 +125,16 @@ class OctopusTask(Task):
 
         self.input_filename = 'inp'
         self.task_input_filename = self.task_data.get('task_inp', 'inp')
-        self.geom_file = str(self.wf_dir / 'coordinate.xyz')
+       
+        geom_fname = self.user_input.get('geom_fname','coordinate.xyz')
+        self.geom_file = '../' + str(geom_fname)
+        self.geom_fpath = str(self.wf_dir / str(geom_fname))
 
         # absolute path attributes
         self.engine_dir = str(self.wf_dir / 'octopus')
-        task_dir = (Path(self.engine_dir) / self.task_name)
-        self.task_dir = get_new_directory(task_dir)
+        self.task_dir = str(Path(self.engine_dir) / self.task_name)
         self.output_dir = str(Path(self.engine_dir) / 'log')
+        self.network_done_file = Path(self.task_dir) / 'Done'
         
         self.task_info.input['engine_input']={}
 
@@ -145,6 +148,7 @@ class OctopusTask(Task):
         if self.task_name == tt.COMPUTE_SPECTRUM:
             td_info = self.dependent_tasks[0]
             if td_info:
+                # TODO
                 # modify relative paths to absolute path 
                 # by prefixing wf_dir
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
@@ -155,6 +159,7 @@ class OctopusTask(Task):
         elif self.task_name in self.added_post_processing_tasks:            
             td_info = self.dependent_tasks[1]
             if td_info:
+                # TODO
                 # modify relative paths to absolute path 
                 # by prefixing wf_dir
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
@@ -169,6 +174,7 @@ class OctopusTask(Task):
             return
         
         # relative paths
+        self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
         self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
         if self.task_name == tt.RT_TDDFT:
@@ -208,13 +214,13 @@ class OctopusTask(Task):
 
         if task == tt.GROUND_STATE:
             # Set Calculation Mode expliciltly            
-            param.update(create_oct_gs_inp(copy_input))
+            param.update(create_oct_gs_inp(copy_input, self.geom_fpath))
             self.user_input = param            
             return
 
         elif task == tt.RT_TDDFT:            
             param_copy.update(self.dependent_tasks[0].param)
-            gs_oct_param = create_oct_gs_inp(param_copy)
+            gs_oct_param = create_oct_gs_inp(param_copy, self.geom_fpath)
             param.update(gs_oct_param)
             oct_td_dict = get_oct_kw_dict(copy_input,task)            
             param.update(oct_td_dict)

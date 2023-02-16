@@ -28,7 +28,7 @@ class ComputeSpectrum(BaseNwchemTask):
 
     def _create_spectrum_cmd(self, remote=False ):
 
-        td_out = self.dependent_tasks[0].output.get('txt_out')
+        td_out = str(self.directory / self.dependent_tasks[0].output.get('txt_out'))
 
         self.pol, tag = get_pol_and_tag(self.dependent_tasks[0])
 
@@ -51,15 +51,13 @@ class ComputeSpectrum(BaseNwchemTask):
     def compute_spectrum(self):
         self.create_directory(self.task_dir)
         
-        td_out = self.dependent_tasks[0].output.get('txt_out')
+        td_out = str(self.directory / self.dependent_tasks[0].output.get('txt_out'))
 
         self.pol, tag = get_pol_and_tag(self.dependent_tasks[0])
         self.dipole_file = self.task_dir / 'dipole.dat'
         self.spectra_file = self.task_dir / f'spec_{self.pol}.dat'
-        # self.task_info.output['spectrum_file'] = str(self.spectra_file)
-        # self.task_info.output['dm_file'] = str(self.dipole_file)
-        self.task_info.output['spectrum_file'] = str(self.spectra_file.relative_to(self.project_dir))
-        self.task_info.output['dm_file'] = str(self.dipole_file.relative_to(self.project_dir))
+        self.task_info.output['spectrum_file'] = str(self.spectra_file.relative_to(self.directory))
+        self.task_info.output['dm_file'] = str(self.dipole_file.relative_to(self.directory))
         try:
             self.nwchem.get_td_dipole(self.dipole_file, td_out, tag, polarization=self.pol)
         except Exception:
@@ -93,12 +91,10 @@ class ComputeAvgSpectrum(BaseNwchemTask):
         self.network_done_file = self.task_dir / 'Done'
 
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
-        # self.task_info.output['spectrum_file'] = str(self.averaged_spec_file)
-        self.task_info.output['spectrum_file'] = str(self.averaged_spec_file.relative_to(self.project_dir))
+        self.task_info.output['spectrum_file'] = str(self.averaged_spec_file.relative_to(self.directory))
         self.spectrum_files = []
         for task in self.dependent_tasks:
-            # self.spectrum_files.append(str(self.project_dir / task.output['spectrum_file']))
-            self.spectrum_files.append(str(task.output['spectrum_file']))
+            self.spectrum_files.append(str(self.directory / task.output['spectrum_file']))
         
     def copmute_average(self):
         spec_data = []
