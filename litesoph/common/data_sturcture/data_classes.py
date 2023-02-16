@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field, asdict
+import copy
 from pathlib import Path
 from typing import Any, Dict, List, Union
 import json
@@ -62,6 +63,8 @@ class TaskInfo(Info):
     engine_param: Dict[Any, Any] = field(default_factory=dict)
     input: Dict[Any, Any] = field(default_factory=dict)
     output: Dict[Any, Any] = field(default_factory=dict)
+    local_copy_list: List[Any] = field(default_factory=list)
+    remote_copy_list: List[Any] = field(default_factory=list)
     network: Dict[Any, Any] = field(default_factory=dict)
     local : Dict[Any, Any] = field(default_factory=dict)
 
@@ -88,6 +91,9 @@ class TaskInfo(Info):
         path = data.get('path')
         if path is not None:
             path = Path(path)
+
+        local_copy_list = data.get('local_copy_list', list())
+        remote_copy_list = data.get('remote_copy_list', list())
         return cls(_uuid = uuid, 
                     _name = name,
                     path =path, 
@@ -96,10 +102,22 @@ class TaskInfo(Info):
                     param= param, 
                     input= input, 
                     output= output, 
+                    local_copy_list = local_copy_list,
+                    remote_copy_list = remote_copy_list,
                     task_data = data['task_data'],
                     engine_param = data['engine_param'],
                     network = network, 
                     local= local)
+    
+    @classmethod
+    def clone(cls, task_info):
+        for key, vlaue in task_info.__dict__.items():
+            if key  == 'name':
+                cls._name = vlaue
+            else:
+                setattr(cls, key, copy.deepcopy(vlaue))
+
+        return cls
 
 @dataclass
 class Container:
@@ -125,6 +143,18 @@ class Container:
                     next = data['next'],
                     previous = data['previous'])
 
+    @classmethod
+    def clone(cls, container, 
+                    task_uuid, 
+                    workflow_uuid, 
+                    next, 
+                    previous):
+        data = container.to_dict()
+        data.update(task_uuid,
+                    workflow_uuid,
+                    next=next, 
+                    previous=previous)
+        return cls.from_dict(data)
 
 @dataclass
 class WorkflowInfo(Info):
@@ -176,8 +206,6 @@ class WorkflowInfo(Info):
                     dependencies_map = data['dependencies_map'], 
                     current_step=current_step)
         
-    
-    
 @dataclass
 class ProjectInfo(Info):
 
@@ -196,7 +224,9 @@ class ProjectInfo(Info):
                     path =Path(data['path']), 
                     workflows= workflows)
 
-
+    @classmethod
+    def clone(cls, project_info):
+        return cls
 
 def factory_task_info(name: str) -> TaskInfo:
 
