@@ -1,4 +1,8 @@
 from typing import Dict, Union, List, Any, Union 
+import copy
+import os
+from pathlib import Path
+import shutil
 from litesoph.common.task import Task
 from litesoph.common.workflows_data import predefined_workflow
 from litesoph.common.engine_manager import EngineManager
@@ -143,7 +147,7 @@ class WorkflowManager:
             raise WorkflowEnded('No more tasks in the workflow.')
         
         self.current_step[0] += 1
-        self.current_container  = self.containers[self.current_step[0]]
+        self.current_container = self.containers[self.current_step[0]]
         self.current_task_info = self.tasks.get(self.current_container.task_uuid)
         self.prepare_task()
 
@@ -209,12 +213,17 @@ class WorkflowManager:
         for container in self.containers:
             if container.task_uuid == task_uuid:
                 return container
-    
+        raise ValueError(f'task_uuid:{task_uuid} not present in containers')
+
+    def get_container_index(self, task_uuid):
+        container = self.get_continer_by_task_uuid(task_uuid)
+        return container.id
+        
     def get_continer_by_block_id(self, block_id):
         for container in self.containers:
             if container.task_uuid == block_id:
                 return container
-
+        
     def prepare_task(self):
         if self.engine:
             self.current_task_info.engine = self.engine
@@ -232,7 +241,54 @@ class WorkflowManager:
 
     def previous(self):
         pass
+    
+    def clone(self, clone_workflow: WorkflowInfo,
+                    branch_point: int) -> WorkflowInfo:
 
+
+        previous_container = None
+        for _, container in enumerate(self.containers):
+
+            ctask_info = factory_task_info(container.task_type)
+            clone_container = container.clone(ctask_info.uuid,
+                                                self.workflow_info.uuid)
+            if previous_container is not None:
+                previous_container.next = clone_container.task_uuid
+                clone_container.previous = previous_container.task_uuid
+
+            clone_workflow.containers.append(clone_container)
+            previous_container = clone_container
+
+            parent_task_info = self.tasks.get(container.task_uuid)
+
+            if container.block_id <= branch_point:
+                ctask_info = parent_task_info.clone(ctask_info)
+                ctask_info.path = copy.deepcopy(clone_workflow.path)
+                copy_task_files(self.directory, 
+                                parent_task_info.local_copy_list,
+                                clone_workflow.path)
+
+            clone_workflow.tasks[ctask_info.uuid] = ctask_info
+
+            dependent_tasks = self.dependencies_map.get(container.task_uuid)
+
+            if not dependent_tasks:
+                clone_workflow.dependencies_map[ctask_info.uuid] = None
+
+            elif isinstance(dependent_tasks, str):
+                index = self.get_container_index(dependent_tasks)
+                clone_workflow.dependencies_map[ctask_info.uuid] = clone_workflow.containers[index].task_uuid
+
+            elif isinstance(dependent_tasks, list):
+                clone_workflow.dependencies_map[ctask_info.uuid] = []
+                for dtask in dependent_tasks:
+                    index = self.get_container_index(dtask)
+                    clone_workflow.dependencies_map[ctask_info.uuid].append(clone_workflow.containers[index].task_uuid)
+
+        clone_workflow.current_step.insert(0, branch_point)
+
+        return clone_workflow
+            
     def get_summary(self):
         pass
     
@@ -245,6 +301,22 @@ class WorkflowManager:
     def save(self):
         self.project_manager.save()
 
+def copy_task_files(source ,file_list, destination):
+    workflow_path = Path(source)
+    destination_path = Path(destination)
+    for path in file_list:
+        s_path = Path.joinpath(workflow_path, path)
+        d_path = Path.joinpath(destination_path, path)
+        sub_path = destination_path
+        for part in Path(path).parent.parts:
+            sub_path = sub_path / part
+            if not sub_path.exists():
+                os.mkdir(sub_path)
+                continue
+        if s_path.is_dir():
+            shutil.copytree(s_path, d_path)
+            continue
+        shutil.copy(s_path, d_path)
 
 def update_workflowinfo(workflow_dict:dict, workflowinfo: WorkflowInfo):
     
