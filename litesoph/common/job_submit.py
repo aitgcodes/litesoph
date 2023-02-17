@@ -222,7 +222,9 @@ class SubmitNetwork:
         cmd_filesize=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_filesize}'        
         (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)  
 
-        cmd_project_size=f'cd {self.remote_path}; du -sh "$PWD"'  
+        cmd_project_size=f'cd {self.remote_path}; du -sh'
+        cmd_project_size=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_project_size}'        
+  
         (error, message)= execute_rsync(cmd_project_size,self.password, timeout=None)  
         print("\nproject size: ",message)
       
