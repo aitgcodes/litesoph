@@ -1790,8 +1790,6 @@ class CreateWorkflowPage(tk.Toplevel):
             'target_wf': ['str']           
           }
 
-        self.wf_list = kwargs.get('workflow_list', 'workflow_1')
-        self.branch_points = ['Ground State', 'RT-TDDFT']
         self.wf_types = []
         self._var = var_define(self._default_var)
         
@@ -1826,20 +1824,20 @@ class CreateWorkflowPage(tk.Toplevel):
 
         self.clone_frame = None
 
-        for key,var in self._var.items():
-            self._var[key].trace("w", self.update_widgets) 
+        # for key,var in self._var.items():
+        #     self._var[key].trace("w", self.update_widgets) 
         self._var['workflow_option'].set(0)
-        self._var['branch_pt'].set('Ground State')
-        
+        self._var['branch_pt'].set(0)
+        #self._var['workflow_option'].trace_add('write', self.toggle_wf_option)
 
     def update_widgets(self, *_):
         for key in self._var.keys():
             if key == 'workflow_option':
                 self.toggle_wf_option()
-            if key == 'branch_pt':
-                self.toggle_target_wf()
+            # if key == 'branch_pt':
+            #     self.toggle_target_wf()
 
-    def toggle_wf_option(self):
+    def toggle_wf_option(self, *_):
         """ Creates Clone workflow frame widgets""" 
         if self._var['workflow_option'].get() == 1:
             self.clone_frame = ttk.Frame(self)
@@ -1851,12 +1849,12 @@ class CreateWorkflowPage(tk.Toplevel):
             self.label_wf_select['font'] = label_design['font']
             self.label_wf_select.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
 
-            self.entry_wf_select = ttk.Combobox(self.clone_frame, values= self.wf_list,
+            self.entry_wf_select = ttk.Combobox(self.clone_frame, 
                             textvariable=self._var['source_wf'],state='readonly'
             )
             self.entry_wf_select['font'] = myfont()
             self.entry_wf_select.grid(column=1, row= 3, sticky=tk.W)
-            self.entry_wf_select.current(0)
+            # self.entry_wf_select.current(0)
 
             self.label_branch_pt = tk.Label(self.clone_frame,text="Branch Point",
                         bg=label_design['bg'],fg=label_design['fg']
@@ -1864,7 +1862,7 @@ class CreateWorkflowPage(tk.Toplevel):
             self.label_branch_pt['font'] = label_design['font']
             self.label_branch_pt.grid(column=0, row= 4, sticky=tk.W,  pady=10, padx=10)  
 
-            self.entry_branch_pt = ttk.Combobox(self.clone_frame, values=self.branch_points,
+            self.entry_branch_pt = ttk.Combobox(self.clone_frame, 
                             textvariable=self._var['branch_pt'],state='readonly'
             )
             self.entry_branch_pt['font'] = myfont()
@@ -1889,7 +1887,7 @@ class CreateWorkflowPage(tk.Toplevel):
                 widget.grid_remove() 
 
     def toggle_target_wf(self):
-        if self._var['branch_pt'].get() == 'Ground State':
+        if self._var['branch_pt'].get() == 0:
             if self.clone_frame:
                 self.entry_target_wf.config(state='active')
                 self.entry_target_wf.config(state='readonly')  
