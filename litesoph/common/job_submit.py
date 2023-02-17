@@ -171,7 +171,6 @@ class SubmitNetwork:
         rpath = pathlib.Path(self.remote_path) / engine_log.relative_to(self.project_dir.parent)
         self.network_sub.download_files(str(rpath), str(engine_log))
 
-
     def run_job(self, cmd):
         "This method creates the job submission command and executes the command on the cluster"
         remote_path = pathlib.Path(self.remote_path) / self.task.project_dir.relative_to(self.project_dir.parent)
@@ -221,7 +220,12 @@ class SubmitNetwork:
   
         cmd_filesize=f'"cd {self.remote_path}; find "$PWD"  -type f -exec du --human {{}} + | sort --human --reverse"'
         cmd_filesize=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_filesize}'        
-        (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)          
+        (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)  
+
+        cmd_project_size=f'cd {self.remote_path}; du -sh "$PWD"'  
+        (error, message)= execute_rsync(cmd_project_size,self.password, timeout=None)  
+        print("\nproject size: ",message)
+      
         return (error, message)
         
     def get_job_status_remote(self):   
@@ -261,8 +265,7 @@ class SubmitNetwork:
         from litesoph.common.lfm_database import lfm_file_info_dict
         lfm_file_info=lfm_file_info_dict()
         file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
-        files_dict=filter_dict(file_info_dict,'file_type','input_file')
-        
+        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file']})        
         files_list=list(files_dict.keys())
         return files_list        
 
@@ -520,8 +523,8 @@ def download_files_from_remote(host,username,port,passwd,remote_proj_dir,local_p
     # if keys_exists(file_info_dict,'file_relevance')==False:
 
 
-    priority1_files_dict=filter_dict(file_info_dict,'file_relevance','very_impt')
-    priority2_files_dict=filter_dict(file_info_dict,'file_relevance','impt')
+    priority1_files_dict=filter_dict(file_info_dict,{'file_relevance':['very_impt']})
+    priority2_files_dict=filter_dict(file_info_dict,{'file_relevance':['impt']})
     
     for file in list(priority1_files_dict.keys()):
         (error, message)=file_transfer(file,priority1_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir)
@@ -575,15 +578,18 @@ def keys_exists(dictionary, keys):
             return False
     return True
 
-def filter_dict(dictionary,filter_key,filter_value):
+def filter_dict(dictionary,dict_filter_key_value):
     """
     function to filter dictionary using key-value pairs
     """
     filtered_dict={}
     for key in dictionary.keys():
-        if dictionary[key][filter_key]==filter_value:
-            filtered_dict[key]=dictionary[key]
+        for filter_key in list(dict_filter_key_value.keys()):
+            for subkey in dict_filter_key_value[filter_key]:
+                if dictionary[key][filter_key]==subkey:
+                    filtered_dict[key]=dictionary[key]
     return filtered_dict
+
 
 def read_file_info_list(filepath_file_list):
     "create python list from listOfFiles.list"    

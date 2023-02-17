@@ -269,8 +269,6 @@ class TaskController:
             i += 1
         return mapped_dict
 
-
-
     def _on_check_file_status_remote(self):    
         import pathlib            
         try:
@@ -493,8 +491,9 @@ class TaskController:
             if self.task.task_info.network['sub_returncode'] != 0:
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
             else:
-                 messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
-
+                self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+                self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+                messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
 
     def _get_remote_output(self):
         self.task.submit_network.download_output_files()

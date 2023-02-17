@@ -1599,6 +1599,7 @@ class JobSubPage(ttk.Frame):
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
             self.plot_file_button.config(state='disable')
             self.download_specific_file_button.config(state='disable')
+            # self.get_fi
             self.after(20, self.check_submit_thread)
         else:
             self.label_progressbar = tk.Label(self.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
