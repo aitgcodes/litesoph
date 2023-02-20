@@ -43,6 +43,16 @@ def add_element(dict, key, value):
         dict[key] = {}
     dict[key] = value
 
+def keys_exists(dictionary, keys):
+    nested_dict = dictionary
+
+    for key in keys:
+        try:
+            nested_dict = nested_dict[key]
+        except KeyError:
+            return False
+    return True
+    
 def lfm_file_info_dict():
     """
     function to generate a dictionary database of containing metadata information of all the possible files
@@ -76,71 +86,16 @@ def lfm_file_info_dict():
             add_element(lfm_file_info[file], 'file_type', 'checkpoint_file')
         else:
             add_element(lfm_file_info[file], 'file_type', None)
-                
-        # if (file in direct_transfer):
-        #     add_element(lfm_file_info[file], 'transfer_method', 'direct_transfer')
-        
+                        
         if (file in compress_transfer):
             add_element(lfm_file_info[file], 'transfer_method', 'compress_transfer')
             add_element(lfm_file_info[file], 'compress_method', compress_transfer[file]['compress_method'])
-
         elif (file in split_transfer):
             add_element(lfm_file_info[file], 'transfer_method', 'split_transfer')
             add_element(lfm_file_info[file], 'split_size', split_transfer[file]['split_size'])
-
         else:
             add_element(lfm_file_info[file], 'transfer_method', 'direct_transfer')
-
     return lfm_file_info
 
 if __name__ == "__main__":
     lfm_file_info_dict()
-
-def keys_exists(dictionary, keys):
-    nested_dict = dictionary
-
-    for key in keys:
-        try:
-            nested_dict = nested_dict[key]
-        except KeyError:
-            return False
-    return True
-
-# result = keys_exists(lfm_file_info_dict(), ['x'])
-# print(result)
-
-
-
-# print(lfm_file_info_dict())
-
-# lfm_file_info={ 
-#                 '.out':{'file_relevance':'very_impt','file_type':'', 'transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':'500k'}},
-#                 '.log':{'file_relevance':'very_impt','transfer_method':{'method':'direct_transfer','compress_method':'zstd','split_size':''}},
-#                 '.cube':{'file_relevance':'very_impt','transfer_method':{'method':'compress_transfer','compress_method':'zstd','split_size':''}},
-#                 '.ulm':{'file_relevance':'very_impt','transfer_method':{'method':'split_transfer','compress_method':'zstd','split_size':'200M'}},
-#                  }
-
-# from pathlib import Path
-# import glob
-# import os
-
-# dir_path='/home/anandsahu/myproject/aitg/ls/sample_ls_project/RuntimeQuery'
-
-# res = []
-# # Iterate directory
-# for path in os.listdir(dir_path):
-#     # check if current path is a file
-#     if os.path.isfile(os.path.join(dir_path, path)):
-#         res.append(path)
-# # print(res)
-
-# from os import walk
-
-# # list to store files name
-# res = []
-# for (dir_path, dir_names, file_names) in walk(dir_path):
-#     res.extend(file_names)
-# print(res)
-
-# s = set(res)
-# print(s)
