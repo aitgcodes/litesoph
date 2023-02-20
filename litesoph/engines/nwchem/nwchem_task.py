@@ -148,7 +148,7 @@ class NwchemTask(BaseNwchemTask):
         outfile_ext = '.nwo'
         task_dir = self.directory / 'nwchem' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        label = str(self.directory.name)
+        label = str(self.directory.parent.name)
         file_name = self.task_data.get('file_name')
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
@@ -165,6 +165,9 @@ class NwchemTask(BaseNwchemTask):
         param['perm'] = '../restart'
         param['geometry'] = '../../coordinate.xyz'
         
+        self.task_info.local_copy_files.extend(['coordinate.xyz',
+                                                str(self.task_dir.relative_to(self.directory)),
+                                                str(self.task_dir.relative_to(self.directory).parent / 'restart')])
         if self.task_name == tt.RT_TDDFT:
             param['restart_kw'] = 'restart'
             param['basis'] =self.dependent_tasks[0].engine_param.get('basis')
