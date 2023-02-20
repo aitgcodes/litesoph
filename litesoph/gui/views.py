@@ -1594,16 +1594,13 @@ class JobSubPage(ttk.Frame):
         self.rpath.set(remote_profile['remote_path'])
    
     def check_submit_thread(self):
-        # from litesoph.gui.task_controller import TaskController as TC
+    
         if self.submit_thread.is_alive():
             self.run_button.config(state='disable')
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
             self.plot_file_button.config(state='disable')
             self.download_specific_file_button.config(state='disable')
-            # TC._on_check_file_status_remote()
-            # print('_on_check_file_status_remote ran')
             self.after(20, self.check_submit_thread)
-            
         else:
             self.label_progressbar = tk.Label(self.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
             self.label_progressbar.grid(row=4, column=0,sticky='nsew')
@@ -1611,7 +1608,6 @@ class JobSubPage(ttk.Frame):
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
             self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
 
-        
     def enable_disable_buttons(self,list_of_buttons,state):
         for button in list_of_buttons:
             button.config(state=state)
@@ -1633,10 +1629,6 @@ class JobSubPage(ttk.Frame):
         self.submit_thread.start()
         self.after(20, self.check_submit_thread)
     
-    def monitor_project_size_remote(self):
-        
-        pass
-
     def runtime_query_local(self, check_job_status: callable,
                                   check_file_status:callable,
                                   view_specific_files:callable,
@@ -1716,11 +1708,6 @@ class JobSubPage(ttk.Frame):
         self.view_file_button['font'] = myfont()
         self.view_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
 
-        self.plot_axes = tk.Entry(self.monitor_file_frame, textvariable=tk.StringVar())
-        self.plot_axes['font'] = myfont()
-        self.plot_axes.insert(0, "select axes")
-        self.plot_axes.grid(row=5, column=0, sticky='nsew', padx=2, pady=4)
-
         self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         self.plot_file_button['font'] = myfont()
         self.plot_file_button.grid(row=5, column=1, sticky='nsew', padx=2, pady=4)
@@ -1773,8 +1760,7 @@ class JobSubPage(ttk.Frame):
     def show_run_network(self,
                         generate_job_script: callable,
                         save_job_script: callable,
-                        submit_job: callable,
-                        monitor_job:callable):
+                        submit_job: callable):
 
         """ Creates Network JobSub input widgets""" 
         for widget in self.sub_job_frame.winfo_children():
@@ -1862,7 +1848,7 @@ class JobSubPage(ttk.Frame):
         self.save_job_button['font'] = myfont()
         self.save_job_button.grid(row=10,column=1,sticky='nsew', padx=2, pady=4)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= lambda:[self.start_submit_thread(submit_job), monitor_job])
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
         self.run_button.grid(row=11,column=0,sticky='nsew', padx=2, pady=4)    
 
