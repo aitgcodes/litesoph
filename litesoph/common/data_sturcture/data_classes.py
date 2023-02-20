@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field, asdict
+import copy
 from pathlib import Path
 from typing import Any, Dict, List, Union
 import json
@@ -62,6 +63,8 @@ class TaskInfo(Info):
     engine_param: Dict[Any, Any] = field(default_factory=dict)
     input: Dict[Any, Any] = field(default_factory=dict)
     output: Dict[Any, Any] = field(default_factory=dict)
+    local_copy_files: List[Any] = field(default_factory=list)
+    remote_copy_files: List[Any] = field(default_factory=list)
     network: Dict[Any, Any] = field(default_factory=dict)
     local : Dict[Any, Any] = field(default_factory=dict)
 
@@ -78,16 +81,19 @@ class TaskInfo(Info):
     def from_dict(cls, data: Dict[Any, Any]):
         uuid = data['_uuid']
         name = data['_name']
-        engine = data['engine']
-        state = State.from_dict(data['state'])
-        param = data['param']
-        input = data['input']
-        output = data['output']
-        network = data['network']
-        local = data['local']
-        path = data.get('path')
+        engine = data.get('engine', None)
+        state = State.from_dict(data.get('state', dict()))
+        param = data.get('param', dict())
+        input = data.get('input', dict())
+        output = data.get('output', dict())
+        network = data.get('network', dict())
+        local = data.get('local', dict())
+        path = data.get('path', None)
         if path is not None:
             path = Path(path)
+
+        local_copy_files = data.get('local_copy_list', list())
+        remote_copy_files = data.get('remote_copy_list', list())
         return cls(_uuid = uuid, 
                     _name = name,
                     path =path, 
@@ -96,10 +102,20 @@ class TaskInfo(Info):
                     param= param, 
                     input= input, 
                     output= output, 
+                    local_copy_files = local_copy_files,
+                    remote_copy_files = remote_copy_files,
                     task_data = data['task_data'],
                     engine_param = data['engine_param'],
                     network = network, 
                     local= local)
+    
+    def clone(self, task_info):
+        for key, vlaue in self.__dict__.items():
+            if key in ['_uuid']:
+                continue
+            setattr(task_info, key, copy.deepcopy(vlaue))
+
+        return task_info
 
 @dataclass
 class Container:
@@ -122,8 +138,19 @@ class Container:
                     workflow_uuid = data['workflow_uuid'],
                     parameters = data.get('parameters', dict()),
                     env_parameters = data.get('env_parameters',  dict()),
-                    next = data['next'],
-                    previous = data['previous'])
+                    next = data.get('next', None),
+                    previous = data.get('previous', None))
+
+    def clone(self, task_uuid, 
+                    workflow_uuid):
+        data = self.to_dict()
+        data.update(dict(task_uuid = task_uuid,
+                    workflow_uuid = workflow_uuid))
+        return Container.from_dict(data)
+
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
@@ -176,8 +203,6 @@ class WorkflowInfo(Info):
                     dependencies_map = data['dependencies_map'], 
                     current_step=current_step)
         
-    
-    
 @dataclass
 class ProjectInfo(Info):
 
@@ -196,7 +221,9 @@ class ProjectInfo(Info):
                     path =Path(data['path']), 
                     workflows= workflows)
 
-
+    @classmethod
+    def clone(cls, project_info):
+        return cls
 
 def factory_task_info(name: str) -> TaskInfo:
 

@@ -41,7 +41,7 @@ class NWChem:
         restart_dir = self.parameters.get('perm', self.label)
         scratch_dir = self.parameters.get('scratch', restart_dir)
         
-        for dir in [restart_dir, scratch_dir]:
+        for dir in [self.directory/ restart_dir, self.directory / scratch_dir]:
             
             if dir != pathlib.Path.cwd() and not pathlib.Path(dir).is_dir():
                 os.makedirs(dir)
@@ -123,7 +123,6 @@ class NWChem:
         if homo_index:
             pop_data = nwchem_rt_parser(td_out_file, outfile=popl_file,
                             tag=tag, target='moocc', retrun_data=True)
-            print(np.shape(pop_data))
             
             extract_pop_window(pop_data, popl_file, homo_index, below_homo, above_lumo)
         else:

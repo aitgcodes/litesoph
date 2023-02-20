@@ -1,6 +1,7 @@
 import shutil
 from typing import Any, Dict
 import uuid
+import copy
 
 from pathlib import Path
 import os
@@ -34,18 +35,57 @@ class ProjectManager:
             self.new_workflow('workflow_1')
         self.save()
 
-    def new_workflow(self, label: str):
-        
+    def create_workflow_info(self, label: str, description: str =''):
         current_workflow = self.project_path / label
         try:
             create_dir(current_workflow)
         except Exception as e:
             raise WorkflowSetupError(f'Unable to create New workflow. Error:{e}')
 
-        self.current_workflow_info = WorkflowInfo(str(uuid.uuid4()), label=label, path= current_workflow)
+        workflow_info = WorkflowInfo(str(uuid.uuid4()), 
+                                        label=label, 
+                                        path= current_workflow,
+                                        description=description)
+        return workflow_info
+
+    def new_workflow(self, label: str, description: str =''):
+        
+        self.current_workflow_info = self.create_workflow_info(label=label, 
+                                                            description=description)
         self.append_workflow(self.current_workflow_info)
         self.save()
     
+    def clone_workflow(self, workflow_info_uuid : str,
+                            traget_workflow_type: str,
+                            branch_point: int, 
+                            label: str, 
+                            description: str =''):
+        
+        workflow_info  = self.get_workflow_info(workflow_info_uuid)
+        
+        if workflow_info.name != traget_workflow_type:
+            raise WorkflowSetupError('The traget worrkflow should be same as the parent workflow.')
+
+        workflow_manager = WorkflowManager(self, workflow_info, self.config)
+
+        cloned_workflow_info = self.create_workflow_info(label=label,
+                                                        description=description)
+        cloned_workflow_info.name = copy.deepcopy(workflow_info.name)
+        cloned_workflow_info = workflow_manager.clone(cloned_workflow_info,
+                                                            branch_point=branch_point)
+
+        self.append_workflow(cloned_workflow_info)
+        self.save()
+
+    def _get_workflow_manager(self, name):
+        if name == 'task_mode':
+            return WorkflowManager
+
+        workflow_type = predefined_workflow.get(name, None)
+        if not workflow_type:
+            raise WorkflowSetupError(f'Workflow:{name} not defined.')
+        
+        return WorkflowManager
 
     def start_workflow(self, workflow_type: str, param: Dict[str, Any]) -> WorkflowManager:
 
@@ -58,31 +98,22 @@ class ProjectManager:
         workflow_manager = workflow_manager(self, self.current_workflow_info, config=self.config)
         return workflow_manager
 
-    def open_workflow(self, uuid) -> WorkflowManager:
+    def open_workflow(self, workflow_uuid) -> WorkflowManager:
         
+        workflow_info = self.get_workflow_info(workflow_uuid)        
+        workflow_manager = self._get_workflow_manager(workflow_info.name)       
+        workflow_manager = workflow_manager(self, workflow_info, config=self.config)
+        self.current_workflow_info = workflow_info
+        return workflow_manager 
+    
+    def get_workflow_info(self, workflow_uuid):
         for workflow in self.workflow_list:
-            if workflow.uuid == uuid:
-                self.current_workflow_info = workflow 
-                workflow_manager = self._get_workflow_manager(workflow.name)       
-                workflow_manager = workflow_manager(self, workflow, config=self.config)
-                return workflow_manager
-            else:
-                continue
-        raise WorkflowSetupError("Workflow with uuid:{uuid} doest exists.")
-
-    def _get_workflow_manager(self, name):
-        if name == 'task_mode':
-            return WorkflowManager
-
-        workflow_type = predefined_workflow.get(name, None)
-        if not workflow_type:
-            raise WorkflowSetupError(f'Workflow:{name} not defined.')
-        
-        return WorkflowManager
-        
+            if workflow.uuid == workflow_uuid:
+                return  workflow
+        raise ValueError(f"workflow with uuid: {workflow_uuid} doesn't exists.")
 
     def list(self) -> list:
-        workflows = [[workflow.label, workflow.uuid] for workflow in self.workflow_list]
+        workflows = [(workflow.label, workflow.uuid) for workflow in self.workflow_list]
         return workflows
     
     def add_geometry(self, geometry_file):

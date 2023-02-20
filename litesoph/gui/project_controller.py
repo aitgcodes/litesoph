@@ -88,10 +88,28 @@ class ProjectController:
         
     def create_new_workflow(self):
         workflow_label = self.workflow_create_window.get_value('workflow_name')
-        try:
-            self.project_manager.new_workflow(workflow_label)
-        except WorkflowSetupError as e:
-            messagebox.showerror(title='Error creating workflow', message=e)
+        workflow_option = self.workflow_create_window.get_value('workflow_option')
+
+        if workflow_option == 0:
+            try:
+                self.project_manager.new_workflow(workflow_label)
+            except WorkflowSetupError as e:
+                messagebox.showerror(title='Error creating workflow', message=e)
+                return
+        else:
+            branch_point = self.workflow_create_window.get_value('branch_pt')
+            parent_workflow = self.workflow_create_window.get_value('source_wf')
+            traget_workflow_type = self.workflow_create_window.get_value('target_wf')
+            parent_workflow = parent_workflow.split(':')
+            branch_point = branch_point.split(':')
+            try:
+                self.project_manager.clone_workflow(parent_workflow[1].strip(),
+                                                    traget_workflow_type,
+                                                    int(branch_point[1].strip()),
+                                                    workflow_label)
+            except Exception as e:
+                messagebox.showerror(title='Error cloning workflow', message=e)
+                return
             return
         self.workflow_create_window.destroy()
         self.open_workflow()
@@ -101,9 +119,45 @@ class ProjectController:
     
     def remove_workflow(self):
         pass
+
+    def update_source_workflow_entry(self, *_):
+        workflow_option = self.workflow_create_window.get_value('workflow_option')
+
+        if workflow_option == 0:
+            return
+
+        workflow_names =  [] #self.project_manager.list()
+        for _, workflow in enumerate(self.project_manager.workflow_list):
+            workflow_names.append(f"{workflow.label}: {workflow.uuid}")
+
+        self.workflow_create_window.entry_wf_select.config(values=workflow_names)
+        self.workflow_create_window.entry_wf_select.current(0)
+
+    def update_branch_point_entry(self, *_):
+        source_workflow = self.workflow_create_window.get_value('source_wf')
+        source_workflow = source_workflow.split(':')
+        source_workflow_info = self.project_manager.get_workflow_info(source_workflow[1].strip())
+
+        branch_points = []
+        for i, block in enumerate(source_workflow_info.steps):
+            branch_points.append(f"{block}: {i}")
+
+        self.workflow_create_window.entry_branch_pt.config(values= branch_points)
+        self.workflow_create_window.entry_branch_pt.current(0)
     
+    def toggle_wf_option(self, *_):
+        self.workflow_create_window.toggle_wf_option()
+        self.update_source_workflow_entry()
+        
+        traget_workflows = self.project_manager.list_available_workflows()
+        self.workflow_create_window.entry_target_wf.config(values= traget_workflows)
+        self.workflow_create_window.entry_target_wf.current(0)
+
     def create_workflow_window(self, *_):
         self.workflow_create_window = CreateWorkflowPage(self.main_window)
+
+        self.workflow_create_window._var['workflow_option'].trace_add('write', self.toggle_wf_option)
+        self.workflow_create_window._var['source_wf'].trace_add('write', self.update_branch_point_entry)
         self.workflow_create_window.create_button.config(command= self.create_new_workflow)   
     
     def _on_get_geometry_file(self, *_):
