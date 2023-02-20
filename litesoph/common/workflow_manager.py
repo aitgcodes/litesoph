@@ -265,7 +265,7 @@ class WorkflowManager:
                 ctask_info = parent_task_info.clone(ctask_info)
                 ctask_info.path = copy.deepcopy(clone_workflow.path)
                 copy_task_files(self.directory, 
-                                parent_task_info.local_copy_list,
+                                parent_task_info.local_copy_files,
                                 clone_workflow.path)
 
             clone_workflow.tasks[ctask_info.uuid] = ctask_info
