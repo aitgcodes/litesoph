@@ -1,6 +1,6 @@
 import numpy as np
 
-def create_oct_gs_inp(gui_inp:dict):
+def create_oct_gs_inp(gui_inp:dict, geom_file=None):
     import copy
     # Add Validation for available options
     key2key = {
@@ -38,7 +38,7 @@ def create_oct_gs_inp(gui_inp:dict):
                 _dict.update(_key2key_dict)
             else:
                 if key == "boxshape":
-                    sim_box = get_box_dim(_boxshape= boxshape,
+                    sim_box = get_box_dim(geom_file,_boxshape= boxshape,
                                     _from_vacuum= not select_box,
                                 **copy_inp)
                     _dict.update(sim_box)               
@@ -49,13 +49,17 @@ def create_oct_gs_inp(gui_inp:dict):
     _dict.update({"Spacing": str(spacing_value)+'*angstrom'})
     return _dict
 
-def get_box_dim(_boxshape:str,_from_vacuum=False, **kwargs):
+def get_box_dim(geom_file,_boxshape:str,_from_vacuum=False, **kwargs):
     if _from_vacuum :
-        try:
-            _geom_file = kwargs.get("XYZCoordinates")
-            _vacuum = kwargs.get('vacuum', 6)
-        except:
-            raise KeyError("Geometry file not found")
+        _vacuum = kwargs.get('vacuum', 6)
+        if geom_file is not None:
+            # Taking geom file from arguments
+            _geom_file = geom_file
+        else:
+            try:
+                _geom_file = kwargs.get("XYZCoordinates")
+            except:
+                raise KeyError("Geometry file not found")
         _cell = get_box_dim_from_vacuum(_geom_file,_vacuum, _boxshape)
         
         if _boxshape == "parallelepiped":

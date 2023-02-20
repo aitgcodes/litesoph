@@ -53,10 +53,7 @@ octopus_data = {
 
     tt.TCM: {'inp': None,
             'ksd_file': 'ksd/transwt.dat'},
-            # 'req':[f'{engine_dir}/static/info',
-            # f'{engine_dir}/td.general/projections'],
-            # 'dir': 'ksd',
-            # 'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
+            
     # "tcm": {'inp': None,
     #         'req':[f'{engine_dir}/static/info',
     #         f'{engine_dir}/td.general/projections'],
@@ -67,8 +64,7 @@ octopus_data = {
             # 'req':[f'{engine_dir}/static/info',
             # f'{engine_dir}/td.general/projections'],
             'dir': 'population',
-            'population_file': 'population.dat'}
-
+            'population_file': 'population.dat'},
 
     # "ksd": {'inp': f'{engine_dir}/ksd/oct.inp',
     #     'req':[f'{engine_dir}/static/info',
@@ -96,6 +92,8 @@ class OctopusTask(Task):
         if dependent_tasks:
             self.dependent_tasks = dependent_tasks
 
+        self.wf_dir = self.project_dir
+
         self.task_data = octopus_data.get(self.task_name)
         self.params = copy.deepcopy(self.task_info.param)        
         self.user_input = {}
@@ -104,6 +102,61 @@ class OctopusTask(Task):
 
         self.setup_task(self.user_input) 
     
+    def pre_run(self):
+
+        self.input_filename = 'inp'
+        self.task_input_filename = self.task_data.get('task_inp', 'inp')
+       
+        geom_fname = self.user_input.get('geom_fname','coordinate.xyz')
+        self.geom_file = '../' + str(geom_fname)
+        self.geom_fpath = str(self.wf_dir / str(geom_fname))
+
+        # absolute path attributes
+        self.engine_dir = str(self.wf_dir / 'octopus')
+        self.task_dir = str(Path(self.engine_dir) / self.task_name)
+        self.output_dir = str(Path(self.engine_dir) / 'log')
+        self.network_done_file = Path(self.task_dir) / 'Done'
+        
+        self.task_info.input['engine_input']={}
+
+        for dir in [self.engine_dir, self.output_dir]:
+            self.create_directory(Path(dir))
+
+        if self.task_name == tt.COMPUTE_SPECTRUM:
+            td_info = self.dependent_tasks[0]
+            if td_info:
+                # TODO
+                # modify relative paths to absolute path 
+                # by prefixing wf_dir
+                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
+                td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
+                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+            return
+
+        elif self.task_name in self.added_post_processing_tasks:            
+            td_info = self.dependent_tasks[1]
+            if td_info:
+                # TODO
+                # modify relative paths to absolute path 
+                # by prefixing wf_dir
+                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
+                td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
+                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+
+
+    def update_task_info(self, **kwargs):
+        """ Updates self.task_info with current task info"""
+        if self.task_name in self.added_post_processing_tasks:
+            return
+        
+        # TODO:relative paths
+        self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
+        self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
+        self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+            
+        # self.task_info.input['engine_input']['path'] = str(Path(self.engine_dir) / self.input_filename)
+        # self.task_info.output['txt_out'] = str(Path(self.output_dir) / self.task_data.get('out_log'))
+
     def setup_task(self, param:dict):               
         if self.task_name in self.added_post_processing_tasks:
             relative_infile = None
@@ -113,40 +166,16 @@ class OctopusTask(Task):
         self.update_task_info()
 
         relative_infile = self.input_filename
+
+        # TODO:relative paths
         if self.task_info.output.get('txt_out'):
-            relative_outfile = Path(self.task_info.output['txt_out']).relative_to(self.engine_dir)
+            # relative_outfile = Path(self.task_info.output['txt_out']).relative_to(self.engine_dir)
+            relative_outfile = Path(self.task_info.output['txt_out'])
 
         self.octopus = Octopus(infile= relative_infile, outfile=relative_outfile,
                              directory=Path(self.engine_dir), **self.user_input)
 
-    def pre_run(self):
-
-        self.input_filename = 'inp'
-        self.task_input_filename = self.task_data.get('task_inp', 'inp')
-        self.geom_file = str(self.project_dir / 'coordinate.xyz')
-        self.engine_dir = str(self.project_dir / 'octopus')
-        self.task_dir = str(Path(self.engine_dir) / self.task_name)
-        self.output_dir = str(Path(self.engine_dir) / 'log')
-        self.task_info.input['engine_input']={}
-
-        for dir in [self.engine_dir, self.output_dir]:
-            self.create_directory(Path(dir))
-
-        if self.task_name == tt.COMPUTE_SPECTRUM:
-            td_info = self.dependent_tasks[0]
-            if td_info:
-                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
-                td_folder_path = str(Path(td_info.output['task_dir']) / 'td.general')
-                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
-            return
-
-        elif self.task_name in self.added_post_processing_tasks:            
-            td_info = self.dependent_tasks[1]
-            if td_info:
-                oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
-                td_folder_path = str(Path(td_info.output['task_dir']) / 'td.general')
-                shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
-
+    
     def update_task_param(self):
         """ Updates param for the task and returns"""
         task = self.task_name
@@ -160,13 +189,13 @@ class OctopusTask(Task):
 
         if task == tt.GROUND_STATE:
             # Set Calculation Mode expliciltly            
-            param.update(create_oct_gs_inp(copy_input))
+            param.update(create_oct_gs_inp(copy_input, self.geom_fpath))
             self.user_input = param            
             return
 
         elif task == tt.RT_TDDFT:            
             param_copy.update(self.dependent_tasks[0].param)
-            gs_oct_param = create_oct_gs_inp(param_copy)
+            gs_oct_param = create_oct_gs_inp(param_copy, self.geom_fpath)
             param.update(gs_oct_param)
             oct_td_dict = get_oct_kw_dict(copy_input,task)            
             param.update(oct_td_dict)
@@ -184,13 +213,7 @@ class OctopusTask(Task):
         elif task == tt.MO_POPULATION:
             pass
     
-    def update_task_info(self, **kwargs):
-        """ Updates self.task_info with current task info"""
-        if self.task_name in self.added_post_processing_tasks:
-            return
-            
-        self.task_info.input['engine_input']['path'] = str(Path(self.engine_dir) / self.input_filename)
-        self.task_info.output['txt_out'] = str(Path(self.output_dir) / self.task_data.get('out_log'))
+    
     
     def check_run_status(self):
         run_status = False
@@ -223,7 +246,7 @@ class OctopusTask(Task):
                 shutil.copy(Path(self.engine_dir) / item, Path(self.copy_task_dir)/ item)
 
     def write_input(self, template=None):
-        inp_filepath = self.task_info.input['engine_input']['path']
+        inp_filepath = self.wf_dir / str(self.task_info.input['engine_input']['path'])
 
         self.create_task_dir()             
         self.octopus.write_input(self.template)        
@@ -231,7 +254,10 @@ class OctopusTask(Task):
     
     def create_task_dir(self):
         self.copy_task_dir = get_new_directory(Path(self.task_dir))
-        self.task_info.output['task_dir'] = str(self.copy_task_dir)
+
+        # TODO:relative paths
+        self.task_info.output['task_dir'] = str(self.copy_task_dir.relative_to(self.wf_dir))
+        # self.task_info.output['task_dir'] = str(self.copy_task_dir)
 
         self.create_directory(self.copy_task_dir)   
 
@@ -247,12 +273,12 @@ class OctopusTask(Task):
        
         engine_path = copy.deepcopy(self.engine_path)
         mpi_path = copy.deepcopy(self.mpi_path)
-        cd_path = self.project_dir / self.engine_dir
+        cd_path = self.wf_dir / self.engine_dir
 
         if remote_path:
             mpi_path = 'mpirun'
             engine_path = 'octopus'
-            cd_path = Path(remote_path) / self.project_dir.parents[0].name / self.project_dir.name / 'octopus'
+            cd_path = Path(remote_path) / self.wf_dir.parents[0].name / self.wf_dir.name / 'octopus'
         
         extra_cmd = None
         if self.task_name == tt.GROUND_STATE and self.user_input['ExtraStates'] != 0:
