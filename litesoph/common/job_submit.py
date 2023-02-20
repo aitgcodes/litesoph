@@ -26,8 +26,8 @@ def execute(command, directory):
             raise 
         else:
             # print("returncode =", job.returncode)
-    
             # if job.returncode != 0:
+                # raise error
             #     # print("Error...")
             #     for line in output[1].decode(encoding='utf-8').split('\n'):
             #         print()
@@ -42,7 +42,79 @@ def execute(command, directory):
             out_dict['output'] = output[0].decode(encoding='utf-8')
             out_dict['error'] = output[1].decode(encoding='utf-8')
     return result
+
+
+def execute_cmd_local(command, directory):
+    """
+    Function to execute command locally
+
+    Paramter:
+    command: command to be run
+    directory: directory in which command need to be run
+    """
     
+    result = {}
+    
+    if type(command).__name__ == 'str':
+        command = [command]
+
+    for cmd in command:
+        out_dict = result[cmd] = {}
+        try:
+            job = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd= directory, shell=True)
+            output = job.communicate()
+        except Exception:
+            raise 
+        else:
+            if job.returncode != 0:
+                print("Error...")
+            else:
+                pass
+            
+            out_dict['returncode'] = job.returncode
+            out_dict['pid'] = job.pid
+            out_dict['output'] = output[0].decode(encoding='utf-8')
+            out_dict['error'] = output[1].decode(encoding='utf-8')
+    return result
+
+def execute_cmd_remote(command,passwd, timeout=None):
+    """
+    Function to run command on remote machine through local machine, Thus function requires password of remote machine
+    
+    paramter:
+
+    command: command to be run on remote machine
+    password: password of remote machine
+    timeout: timeperiod in seconds password prompt waits
+    """
+    intitial_response = ['Are you sure', 'assword','[#\$] ', pexpect.EOF]
+    
+    ssh = pexpect.spawn(command,timeout=timeout)
+    i = ssh.expect(intitial_response)
+    if i == 0 :
+        T = ssh.read(100)
+        ssh.sendline('yes')
+        ssh.expect('assword:')
+        ssh.sendline(passwd)
+    elif i == 1:
+        ssh.sendline(passwd)
+    elif i==2:
+        print('Connected Successfully.')
+        prompt = ssh.after
+        print('Shell Command Prompt:', prompt.decode(encoding='utf-8'))    
+    else:
+        str1 = str(ssh.before)
+        return (-3, 'Error: Unknown:'+ str1)
+
+    possible_response = ['assword:', pexpect.EOF]
+    i = ssh.expect(possible_response, timeout=5)
+
+    if i == 0:
+        return (-4, "Error: Incorrect password.")
+    else:
+        output = ssh.before.decode('utf-8')
+        return (0, output)
+
 class SubmitLocal:
 
     def __init__(self, task, nprocessors:int) -> None:
