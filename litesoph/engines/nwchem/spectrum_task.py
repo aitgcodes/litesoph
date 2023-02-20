@@ -21,8 +21,9 @@ class ComputeSpectrum(BaseNwchemTask):
         label = str(self.project_dir.name)
         self.network_done_file = self.task_dir / 'Done'
 
+        outfile = self.directory / self.dependent_tasks[0].output.get('txt_out')
         self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
-        outfile = self.dependent_tasks[0].output.get('txt_out')
+        
         self.nwchem = NWChem(outfile=outfile, 
                         label=label, directory=self.task_dir)
 
