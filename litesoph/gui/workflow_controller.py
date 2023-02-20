@@ -74,7 +74,7 @@ class WorkflowController:
 
         check, msg = check_properties_dependencies(task_name, task_list[0])
         if not check:
-            raise messagebox.showerror(message=msg)
+            messagebox.showerror(message=msg)
         
         tasks_uuids= [task_info.uuid for task_info in task_list]
         return tasks_uuids
