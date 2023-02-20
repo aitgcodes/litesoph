@@ -50,15 +50,17 @@ class DipoleMomentWriter(TDDFTObserver):
         if paw.niter != 0:
             return
         line = '# %s[version=%s]' % (self.__class__.__name__, self.version)
-        line += ('(center=%s, density=%s)\n' %
-                 (repr(self.do_center), repr(self.density_type)))
         if self.mask is not None:
-           line += ('# %15s %15s %22s %22s %22s %22s %22s %22s\n' %
-                 ('time', 'norm', 'dmx', 'dmy', 'dmz', 'dmx1', 'dmy1', 'dmz1'))
-        else:
-           line += ('# %15s %15s %22s %22s %22s\n' %
+            line += ('(center=%s, density=%s, Focus Region)\n' %
+                     (repr(self.do_center), repr(self.density_type)))
+        else:    
+            line += ('(center=%s, density=%s)\n' %
+                     (repr(self.do_center), repr(self.density_type)))
+                     
+        line += ('# %15s %15s %22s %22s %22s\n' %
                  ('time', 'norm', 'dmx', 'dmy', 'dmz'))
         self._write(line)
+
 
     def read_header(self, filename):
         with open(filename, 'r') as f:
@@ -120,23 +122,19 @@ class DipoleMomentWriter(TDDFTObserver):
             raise RuntimeError('Unknown density type: %s' % self.density_type)
 
         norm = gd.integrate(rho_g)
-        # dm = self.calculate_dipole_moment(gd, rho_g, center=self.do_center)
-
-
-        dm = gd.calculate_dipole_moment(rho_g, center=self.do_center)
-        line = ('%20.8lf %20.8le %22.12le %22.12le %22.12le' %
-                (time, norm, dm[0], dm[1], dm[2]))
 
         ##### Compute the dipole moment from the unmasked (illuminated) region
         #dm1 = dm.copy()
-        
-        if self.mask is not None: 
-           if paw.niter == 0:
-              self.maskgd = self.mask.create(gd)
-           rho_gm = np.multiply(self.maskgd,rho_g) 
-           dm1 = gd.calculate_dipole_moment(rho_gm, center=self.do_center)
-           line += (' %22.12le %22.12le %22.12le' %
-                (dm1[0], dm1[1], dm1[2]))
+        if self.mask is not None:
+            if paw.niter == 0:
+               self.maskgd = self.mask.create(gd)
+            rho_gm = np.multiply(self.maskgd,rho_g) 
+            dm = gd.calculate_dipole_moment(rho_gm, center=self.do_center)
+        else:
+            dm = gd.calculate_dipole_moment(rho_g, center=self.do_center)
+            
+        line = ('%20.8lf %20.8le %22.12le %22.12le %22.12le' %
+                (time, norm, dm[0], dm[1], dm[2]))
 
         line += '\n'
 
