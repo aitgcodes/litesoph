@@ -222,12 +222,15 @@ class SubmitNetwork:
         cmd_filesize=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_filesize}'        
         (error, message)= execute_rsync(cmd_filesize,self.password, timeout=None)  
 
-        cmd_project_size=f'cd {self.remote_path}; du -sh'
-        cmd_project_size=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_project_size}'        
+        cmd_project_size=f'cd {self.remote_path}; du -s'
+        cmd_project_size=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_project_size}'   
+        print(cmd_project_size)     
   
         (error, message)= execute_rsync(cmd_project_size,self.password, timeout=None)  
-        print("\nproject size: ",message)
-      
+        print(message)
+        project_size= [int(s) for s in message.split() if s.isdigit()]
+        self.project_size_GB=project_size[0]/(1024*1024)
+        print("\nproject size: ",self.project_size_GB)
         return (error, message)
         
     def get_job_status_remote(self):   
@@ -630,7 +633,6 @@ def check_available_compress_methd(local_proj_dir,host,username,port,passwd):
 
     return available_methods_local_remote
         
-    
 def file_transfer(file,priority_files_dict,host,username,port,passwd,remote_proj_dir,local_proj_dir):
     """
     function to selectively transfer files from remote to local    

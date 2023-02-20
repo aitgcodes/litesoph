@@ -24,7 +24,6 @@ class TaskController:
         self.task_view = None
         self.job_sub_page = None
         
-
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
         self.workflow_manager = workflow_manager
         self.task_info = workflow_manager.current_task_info
@@ -125,7 +124,8 @@ class TaskController:
         self.job_sub_page.view_output_button.config(command= self._on_out_remote_view_button)
         self.job_sub_page.show_run_network(self._on_create_remote_job_script,
                                             self._on_save_job_script,
-                                            self._run_network)
+                                            self._run_network,
+                                            self._on_monitor_project_size_remote)
 
         self.job_sub_page.runtime_query_remote(self._on_check_job_status_remote,
                                                self._on_check_file_status_remote,
@@ -268,9 +268,25 @@ class TaskController:
                         
             i += 1
         return mapped_dict
+    
+    def _on_monitor_project_size_remote(self,threshold):
+        import threading,time
+        
+        # while self.job_sub_page.submit_thread.is_alive():
+        print(time.ctime())
+        threading.Timer(60, self._on_check_file_status_remote()).start()
 
+            
+            # if self.task.submit_network.project_size_GB> threshold:
+                # messagebox.showinfo(title='Info', message='threshold exceed')
+        # else:
+            # pass
+            
+        
     def _on_check_file_status_remote(self):    
         import pathlib            
+        print('_on_check_file_status_remote ran')
+
         try:
             error, msg=self.task.submit_network.get_fileinfo_remote()            
         except TaskFailed:
@@ -480,7 +496,7 @@ class TaskController:
             return
         try:
             print("cmd :", cmd)
-            self.task.submit_network.run_job(cmd)
+            self.task.submit_network.run_job(cmd)              
             # self.task.submit_network.run_job_remote(cmd)
             
         except Exception as e:
