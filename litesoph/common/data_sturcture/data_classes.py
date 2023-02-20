@@ -63,8 +63,8 @@ class TaskInfo(Info):
     engine_param: Dict[Any, Any] = field(default_factory=dict)
     input: Dict[Any, Any] = field(default_factory=dict)
     output: Dict[Any, Any] = field(default_factory=dict)
-    local_copy_list: List[Any] = field(default_factory=list)
-    remote_copy_list: List[Any] = field(default_factory=list)
+    local_copy_files: List[Any] = field(default_factory=list)
+    remote_copy_files: List[Any] = field(default_factory=list)
     network: Dict[Any, Any] = field(default_factory=dict)
     local : Dict[Any, Any] = field(default_factory=dict)
 
