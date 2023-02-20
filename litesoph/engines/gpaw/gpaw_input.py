@@ -276,10 +276,11 @@ def generate_laser_text(lasers):
         add_import_line(lines, import_str)
         
         # mask dict for each laser
-        lines.append(f"mask_{str(i)} = {laser['mask']}")
-        if laser['mask'] is None:
+        
+        if laser.get('mask', None) is None:
             lines.append(f"ext_{str(i)} = ConstantElectricField(Hartree / Bohr,{laser['polarization']} )")
         else:
+            lines.append(f"mask_{str(i)} = {laser['mask']}")
             len_masks += 1
             for line in masked_import_lines:
                 add_import_line(lines, line)
