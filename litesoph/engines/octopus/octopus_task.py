@@ -325,7 +325,7 @@ class OctopusTask(Task):
             return        
 
         if self.task_name == tt.TCM: 
-            from litesoph.common.job_submit import execute
+            from litesoph.common.job_submit import execute_cmd_local
 
             fmin = kwargs.get('fmin')
             fmax = kwargs.get('fmax')
@@ -338,7 +338,7 @@ class OctopusTask(Task):
             ksd_file = self.copy_task_dir / 'transwt.dat'
             cmd = f'{path_python} {path_plotdmat} {ksd_file} {fmin} {fmax} {axis_limit} -i'
         
-            result = execute(cmd, self.task_dir)
+            result = execute_cmd_local(cmd, self.task_dir)
             
             if result[cmd]['returncode'] != 0:
                 raise Exception(f"{result[cmd]['error']}")
