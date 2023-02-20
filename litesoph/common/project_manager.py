@@ -1,6 +1,7 @@
 import shutil
 from typing import Any, Dict
 import uuid
+import copy
 
 from pathlib import Path
 import os
@@ -69,6 +70,7 @@ class ProjectManager:
 
         cloned_workflow_info = self.create_workflow_info(label=label,
                                                         description=description)
+        cloned_workflow_info.name = copy.deepcopy(workflow_info.name)
         cloned_workflow_info = workflow_manager.clone(cloned_workflow_info,
                                                             branch_point=branch_point)
 
