@@ -94,6 +94,35 @@ def get_direction(direction:list):
     index = direction.index(1)
     return index , pol_map[str(index)]
 
+#----------------------Dipole Moment extraction------------------------------------------------
+
+def read_dm(dm_file):
+    """Reads single dm file"""
+    data = np.loadtxt(str(dm_file),comments="#")
+    return data
+
+def read_multiple_dms(list_dm_file):
+    """Reads multiple dm files and returns the list of array(dmx,dmy,dmz)"""
+    arr_dm = list()
+    arr_time = read_dm(list_dm_file[0])[:,0]
+    for i,dm_file in enumerate(list_dm_file):        
+        # dmx, dmy, dmz
+        arr_dm.append(read_dm(dm_file)[:,[2,3,4]])
+    return (arr_time,arr_dm)
+
+def combine_focus_region_dm(region_dm_list):
+    """List of arrays for x,y,z components of dipole moments with identical shape"""
+    dm_combined = np.zeros(shape = region_dm_list[0].shape, dtype=region_dm_list[0].dtype)
+    for i,dm in enumerate(region_dm_list):
+        dm_combined += dm
+    return dm_combined
+
+def complement_dm(total_dm, region_dm):
+    """Input arrays for x,y,z components of dipole moments with identical shape,
+    Substracts region dipole momennt from the total"""
+    _dm = total_dm - region_dm
+    return _dm   
+
 class MaskedDipoleAnaylsis:
 
     def __init__(self, sim_total_dm : Path, task_dir: Path) -> None:
