@@ -122,9 +122,30 @@ class GpawTask(Task):
         
         if  tt.RT_TDDFT in self.task_name:
             param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
-            param['dm_file'] = 'dm.dat'
             
-            self.task_info.output['dm_file'] = str(self.task_dir.relative_to(self.directory) / param['dm_file'])
+            # TODO: add dm files
+            dm_list = ['dm.dat']
+            num_masks = 0
+            self.masked_dm_files = []
+            lasers = param.get('laser', None)
+            if lasers is not None:
+                for i, laser in enumerate(lasers):
+                    mask = laser.get('mask', None)
+                    if mask is not None:
+                        if isinstance(mask, dict):
+                            num_masks += 1
+                for i in range(num_masks):
+                    dm_filename = 'dm.dat'+'_masked_'+ str(i+1) 
+                    dm_list.append(dm_filename)     
+
+            param['dm_files'] = dm_list
+            # TODO: add dm files
+            dm_files = []
+            for i,dm in enumerate(dm_list):
+                dm_rel_path = str(self.task_dir.relative_to(self.directory) / dm)
+                dm_files.append(dm_rel_path)
+            self.task_info.output['dm_files'] = dm_files
+            # self.task_info.output['dm_file'] = str(self.task_dir.relative_to(self.directory) / param['dm_file'])
             
             if 'ksd' in param['properties'] or 'mo_population' in param['properties']:
                 param['wfile'] = 'wf.ulm'
