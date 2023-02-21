@@ -308,11 +308,9 @@ def add_import_line(lines, import_str):
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)
-    len_masks = 0
+    len_masks = 0    
 
-    if laser is not None:
-        #TODO: update for multiple lasers
-        
+    if laser is not None:        
         # mask as a key in laser dictionary
         template = external_field_template.format(**kwargs) 
         lines = template.splitlines()
@@ -326,11 +324,17 @@ def assemable_rt(**kwargs):
     tlines = template.splitlines()
     
     if 'dipole' in tools:
-        if len_masks > 0:
-            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', mask=masks[0], interval={kwargs.get('output_freq', 1)})")
-        else:
-            tlines.insert(0, 'from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter')
-            tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{kwargs.get('dm_file', 'dipole.dat')}', interval={kwargs.get('output_freq', 1)})")
+        dm_files = kwargs.get('dm_files')
+        num_dm_files = len(dm_files)
+
+        if (num_dm_files == len_masks+1):
+            if len_masks > 0:                
+                tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{dm_files[0]}', mask=None, interval={kwargs.get('output_freq', 1)})")
+                for i in range(len_masks):             
+                    tlines.insert(-5, f"DipoleMomentWriter(td_calc,'{dm_files[i+1]}', mask=masks[{str(i)}], interval={kwargs.get('output_freq', 1)})")
+            else:
+                tlines.insert(0, 'from gpaw.lcaotddft.dipolemomentwriter import DipoleMomentWriter')
+                tlines.insert(-5, f"DipoleMomentWriter(td_calc, '{dm_files[0]}', interval={kwargs.get('output_freq', 1)})")
         
     if "wavefunction" in tools:  
         tlines.insert(0, "from gpaw.lcaotddft.wfwriter import WaveFunctionWriter")
