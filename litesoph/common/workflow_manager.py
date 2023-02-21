@@ -245,7 +245,7 @@ class WorkflowManager:
     def clone(self, clone_workflow: WorkflowInfo,
                     branch_point: int) -> WorkflowInfo:
 
-
+        clone_workflow.engine = copy.deepcopy(self.engine)
         previous_container = None
         for _, container in enumerate(self.containers):
 
@@ -285,6 +285,7 @@ class WorkflowManager:
                     index = self.get_container_index(dtask)
                     clone_workflow.dependencies_map[ctask_info.uuid].append(clone_workflow.containers[index].task_uuid)
 
+        clone_workflow.steps = copy.deepcopy(self.steps)
         clone_workflow.current_step.insert(0, branch_point)
 
         return clone_workflow
@@ -314,7 +315,7 @@ def copy_task_files(source ,file_list, destination):
                 os.mkdir(sub_path)
                 continue
         if s_path.is_dir():
-            shutil.copytree(s_path, d_path)
+            shutil.copytree(s_path, d_path, dirs_exist_ok=True)
             continue
         shutil.copy(s_path, d_path)
 
