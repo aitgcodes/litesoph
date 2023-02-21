@@ -43,16 +43,19 @@ class ProjectController:
         for event, callback in event_callbacks.items():
             self.main_window.bind_all(event, callback)          
 
-    def open_workflow(self):
+    def open_workflow(self, workflow_uuid: str = ''):
         self.app.create_workflow_frames()
-        workflow_info = self.project_manager.current_workflow_info
+        
+        if workflow_uuid:
+            workflow_info = self.project_manager.get_workflow_info(workflow_uuid)
+        else:
+            workflow_info = self.project_manager.current_workflow_info
         
         if workflow_info.name and not workflow_info.task_mode:
             self._create_workflow_navigation(workflow_info.name)
-
+            self.workflow_manager = self.project_manager.open_workflow(workflow_info.uuid)
             workflow_controller = self._get_workflow_controller(workflow_info.name)
             self.workflow_controller = workflow_controller(self, self.app)
-            self.workflow_manager = self.project_manager.open_workflow(workflow_info.uuid)
             self.workflow_controller.start(self.workflow_manager)
             return
 
@@ -110,6 +113,9 @@ class ProjectController:
             except Exception as e:
                 messagebox.showerror(title='Error cloning workflow', message=e)
                 return
+            else:
+                messagebox.showinfo(title= 'Info', message= f"successfully created New workflow: {workflow_label}")
+                self.workflow_create_window._var['workflow_name'].set('')
             return
         self.workflow_create_window.destroy()
         self.open_workflow()
@@ -141,7 +147,6 @@ class ProjectController:
         branch_points = []
         for i, block in enumerate(source_workflow_info.steps):
             branch_points.append(f"{block}: {i}")
-
         self.workflow_create_window.entry_branch_pt.config(values= branch_points)
         self.workflow_create_window.entry_branch_pt.current(0)
     
