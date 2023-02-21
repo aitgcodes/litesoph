@@ -24,8 +24,12 @@ least_impt=[]
 input_file={'.xyz':{'subfiletype':'coordinate_file'},'.sh':{'subfiletype':'bash_file'},'.py':{'subfiletype':None}, '.nwi':{'subfiletype':None}}
 redirected_outfile=['.log']
 script_generated_outfile=['.nwo','.gpw','.out']
-property_file=['.dat']
 checkpoint_file=['.db','.movecs','gridpts.0']
+
+property_file=['.dat']
+coordinate_files=['.xyz']
+dipole_files=['dm.dat','multipoles']
+
 
 #transfer_method
 direct_transfer=['.out','.log','.xyz','.sh','.py', '.nwi']
