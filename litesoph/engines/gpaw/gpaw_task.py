@@ -420,36 +420,56 @@ def get_eigen_energy(td_out_file):
 
 class GpawPostProMasking(GpawTask):
 
+    def get_dm_files(self):
+        """Gets dipole moment file names from TD task info"""
+        td_info = self.dependent_tasks[0]
+        self.dm_files = td_info.output.get('dm_files')
+        copy_dms = copy.deepcopy(self.dm_files)
+        self.total_dm_fname = copy_dms.pop(0)
+        self.masked_dms = copy_dms
 
-    def setup_task(self, param):
-        task_dir = self.directory / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)   
-
-        self.sim_total_dm = self.directory / (self.dependent_tasks[0].output.get('dm_file'))     
-        self.state_mask_dm = False
-        from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
-        self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
+        self.total_dm_path = self.project_dir / str(self.total_dm_fname)
+        self.masked_dm_files = []
+        for dm in self.masked_dms:
+            dm_fpath = self.project_dir / str(dm)
+            self.masked_dm_files.append(dm_fpath)
 
     def extract_masked_dm(self):
+        from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
+        self.masked_dm_analysis = MaskedDipoleAnaylsis(task_dir=self.task_dir, 
+                                                        focus_region_dms= self.masked_dm_files, 
+                                                        total_dm= self.total_dm_path)
         self.create_directory(self.task_dir)
         self.state_mask_dm = True
-        self.masked_dm_analysis.extract_dipolemoment_data()
+        # TODO:store masked dm files to task info
+        for i, dm_file in enumerate(self.masked_dm_files):
+            self.masked_dm_analysis.get_dm_complement(region_i=i+1)
 
-    def get_energy_coupling_constant(self, **kwargs) -> str:
-        
+    def setup_task(self, param):
+        task_dir = self.project_dir / 'gpaw' / self.task_name
+        self.task_dir = get_new_directory(task_dir)  
+        self.get_dm_files()
+        self.state_mask_dm = False
+        self.extract_masked_dm()   
+
+    def get_energy_coupling_constant(self, **kwargs):        
         if not self.state_mask_dm:
             self.extract_masked_dm()
-        region = kwargs.get('region')
+        region = kwargs.get('region_id')
         axis = kwargs.get('direction')
-        return self.masked_dm_analysis.get_energy_coupling(region, axis)
+        focus = kwargs.get('focus')
+
+        try:
+            # TODO: store envelope data files to task info
+            coupling_val = self.masked_dm_analysis.get_energy_coupling(axis, region,focus= focus)
+            return coupling_val
+        except Exception as e:
+            raise e
 
     def plot(self, **kwargs):
-
         if not self.state_mask_dm:
             self.extract_masked_dm()
-        region = kwargs.get('region')
-        axis = kwargs.get('direction')
-        envelope = kwargs.get('envelope', False)
-        plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
+        list_to_plot = kwargs.get('plot_data')
+        plt = self.masked_dm_analysis.plot(list_to_plot)
         plt.show()
 
