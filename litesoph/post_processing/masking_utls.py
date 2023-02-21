@@ -63,16 +63,30 @@ def timeperiod_by_fourier_transform(input_envelope_data, time_window, directiona
         freq =(fourier_transformed[0])
         signal_transformed   =np.abs(fourier_transformed[1])
 
-        freq = freq[range(int(len(freq)/2))]
-        signal_transformed = signal_transformed[range(int(len(signal_transformed)/2))]
+        from scipy import signal
+        # Finding peaks for FT envelope data
+        peaks = signal.find_peaks(signal_transformed)
+        list_peaks = list(peaks[0])
+        peak_values = [signal_transformed[i] for i in list_peaks]
 
-        signal_transformed_max=max(signal_transformed)
-        freq_max_pos=np.where(signal_transformed == signal_transformed_max)
-        freq_max=float(freq[freq_max_pos]) 
-        fourier_timeperiod= (1/freq_max) if freq_max !=0 else print("No freq found, try some other method")
-        time_period_for_envelope= 2*fourier_timeperiod
- 
-        return time_period_for_envelope
+        freq_max_pos=np.where(signal_transformed == max(peak_values))
+        freq_max=float(freq[freq_max_pos])
+
+        # freq = freq[range(int(len(freq)/2))]
+        # signal_transformed = signal_transformed[range(int(len(signal_transformed)/2))]
+        
+        # signal_transformed_max=max(signal_transformed)
+        # freq_max_pos=np.where(signal_transformed == signal_transformed_max)
+        # freq_max=float(freq[freq_max_pos])
+
+        try:
+            # added conversion of frequency
+            f = abs(freq_max)/(2.*numpy.pi)
+            fourier_timeperiod= (1/abs(f))
+            time_period_for_envelope= 2*fourier_timeperiod
+            return time_period_for_envelope
+        except ZeroDivisionError as e:
+            raise e    
 
 
 def get_direction(direction:list):
