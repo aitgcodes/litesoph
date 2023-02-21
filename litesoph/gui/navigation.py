@@ -10,6 +10,7 @@ class ProjectTreeNavigation:
 
     def __init__(self, app):
         
+        self.app = app
         self.treedata = dict()
         self.current_path_list = []
         self.project_id_logger_dict=dict()
@@ -27,17 +28,18 @@ class ProjectTreeNavigation:
         
         if not self.node_exists(self.project_info.uuid):
             self.treeview.insert('', 'end', iid= self.project_info.uuid,
-                                        text = project_name)
+                                        text = project_name, tags = 'project')
 
         for worfklow in self.project_info.workflows:
             
             if not self.node_exists(worfklow.uuid):
                 self.treeview.insert(self.project_info.uuid, 'end', iid= worfklow.uuid,
-                                        text= worfklow.label)
+                                        text= worfklow.label, tags = 'workflow')
             for task in worfklow.tasks.values():
                 if self.node_exists(task.uuid):
                     continue
-                self.treeview.insert(worfklow.uuid, 'end', iid= task.uuid, text= task.name)
+                self.treeview.insert(worfklow.uuid, 'end', iid= task.uuid,
+                                        text= task.name, tags= 'task')
 
     def node_exists(self, node_id):
         try:
@@ -48,5 +50,7 @@ class ProjectTreeNavigation:
             return True
         
     def OnDoubleClick(self, event):
-        item = self.treeview.selection()[0]
-        # print("you clicked on", self.treeview.item(item,"text"))
+        item_id = self.treeview.selection()[0]
+        item = self.treeview.item(item_id)
+        if item['tags'][0] == 'workflow':
+            self.app.project_controller.open_workflow(item_id)
