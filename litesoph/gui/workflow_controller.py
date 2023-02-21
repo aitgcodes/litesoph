@@ -234,8 +234,9 @@ def get_task_controller( task_view, workflow_controller, app) -> TaskController:
     
     if task_view == v.LaserDesignPage:
         task_controller = LaserPageController
-    elif task_view == v.MaskingPage:
+    elif task_view == maskingpage.MaskingPage:
         task_controller = masking_controller.MaskingPageController
+    # elif task_view == v.MaskingPage:
         # task_controller = MaskingPageController
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
