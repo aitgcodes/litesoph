@@ -1606,7 +1606,8 @@ class JobSubPage(ttk.Frame):
             self.label_progressbar.grid(row=4, column=0,sticky='nsew')
             self.progressbar.stop()
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
-            self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
+            # self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
+            self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button],'disable')
 
     def enable_disable_buttons(self,list_of_buttons,state):
         for button in list_of_buttons:
@@ -1654,11 +1655,6 @@ class JobSubPage(ttk.Frame):
         self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View Specific File",activebackground="#78d6ff",command=view_specific_files)
         self.download_specific_file_button['font'] = myfont()
         self.download_specific_file_button.grid(row=3, column=1, sticky='nsew', padx=2, pady=4)
-
-        self.plot_axes = tk.Entry(self.monitor_file_frame, textvariable=tk.StringVar())
-        self.plot_axes['font'] = myfont()
-        self.plot_axes.insert(0, "select axes")
-        self.plot_axes.grid(row=4, column=0, sticky='nsew', padx=2, pady=4)
 
         self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
         self.plot_file_button['font'] = myfont()

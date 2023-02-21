@@ -166,50 +166,46 @@ class TaskController:
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)
             return            
-        self.view_panel.insert_text(msg, 'disabled')
+        # self.view_panel.insert_text(msg, 'disabled')
         self.task.submit_local.generate_list_of_files_local()
         
         choose_file= self.job_sub_page.combobox
-        list_of_files=[]
-        for file_path in self.task.submit_local.get_list_of_files_local():
-            file = str(file_path).replace(str(self.task.submit_local.project_dir),'')
-            list_of_files.append(file)
+        list_of_files=self.task.submit_local.get_list_of_files_local()
+        self.dict_of_files_combobox=self.encode_decode_combobox_items(list_of_files)        
+        list_of_files=list(self.dict_of_files_combobox.keys())
+
         choose_file['values'] = list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)        
         self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
-
-    def _on_view_specific_file_local(self):
+    
+    def _on_view_specific_file_local(self):        
         try:
-            file= str(self.task.submit_local.project_dir)+str(self.selected_file)
-            error, message=self.task.submit_local.view_specific_file_local(file)                               
+            error, message=self.task.submit_local.view_specific_file_local(self.selected_file)  
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
+            self.view_panel.insert_text(message, 'disabled')
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File") 
         self.view_panel.insert_text(message, 'disabled')
-    
+
     def _on_plot_file_local(self):
-        import os
-
+        import os        
         try:
-            cmd=f'xmgrace {file}'
-            # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
-            os.system(cmd)
+            if os.path.exists(self.selected_file)==True:
+                cmd=f'xmgrace {self.selected_file}'
+                # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
+                os.system(cmd)
+            else:
+                messagebox.showinfo(title='Info', message="File not found")
         except ValueError:
-            messagebox.showinfo(title='Info', message="Axes Not Selected") 
-               
-        try:            
-            file= str(self.task.submit_local.project_dir)+str(self.selected_file)
-            print("\nfile :", file)
-            # plot_spectrum(str(file),str("img.png"),X_axis, y_axis, "X", "Y")
-            cmd=f'xmgrace {file}'
-            os.system(cmd)
-
-        except ValueError:
-            messagebox.showinfo(title='Info', message="Cannot plot selected File") 
+            messagebox.showinfo(title='Info', message="Cannot plot selected File")   
         except FileNotFoundError:
-            messagebox.showinfo(title='Info', message="File not found") 
-    
+            messagebox.showinfo(title='Info', message="File not found")  
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File")                    
+            
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
             messagebox.showinfo(title='Info', message="Job is Running")
@@ -225,11 +221,9 @@ class TaskController:
         
     def encode_decode_combobox_items(self,list_of_files):
         import pathlib
+        from litesoph.common.lfm_database import coordinate_files,dipole_files
 
         mapped_dict={}
-
-        coordinate_files=['.xyz']
-        dipole_files=['dm.dat','multipoles']
 
         i = 0
         coordinate_count=0
@@ -261,7 +255,7 @@ class TaskController:
             error, msg=self.task.submit_network.get_fileinfo_remote()            
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)            
-        self.view_panel.insert_text(msg, 'disabled')
+        # self.view_panel.insert_text(msg, 'disabled')
         
         choose_file= self.job_sub_page.combobox
         list_of_files=self.task.submit_network.get_list_of_files_remote()
@@ -275,6 +269,7 @@ class TaskController:
         self.job_sub_page.download_specific_file_button.config(state='active')
         self.job_sub_page.view_file_button.config(state='active')
         self.job_sub_page.plot_file_button.config(state='active')
+        messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
 
     def _on_check_job_status_remote(self):
         try:
@@ -290,7 +285,6 @@ class TaskController:
             messagebox.showinfo(title='Info', message=error)                    
         messagebox.showinfo(title='Info', message=message)   
         self.job_sub_page.progressbar.stop()
-        # self.job_sub_page.label_progressbar.set('hello')
         label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
         label_progressbar.grid(row=4, column=0,sticky='nsew')
 
@@ -301,13 +295,14 @@ class TaskController:
             messagebox.showinfo(title='Info', message=error)                    
         return (error, message)
     
-    def _on_download_specific_file(self):
-        # file_path= str(self.task.submit_network.remote_path) + str(self.selected_file)
-        priority1_files_dict={self.selected_file: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}        
+    def _on_download_specific_file(self):        
         try:
+            priority1_files_dict={self.selected_file: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}        
             error, message=self.task.submit_network.download_specific_file_remote(self.selected_file,priority1_files_dict)                
         except TaskFailed:
             messagebox.showinfo(title='Info', message=error)                    
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the file")
         messagebox.showinfo(title='Info', message=message)   
 
     def _on_view_specific_file_remote(self):        
@@ -315,21 +310,27 @@ class TaskController:
             error, message=self.task.submit_network.view_specific_file_remote(self.selected_file)  
         except UnicodeDecodeError:
             messagebox.showinfo(title='Info', message="Unable to Read File")                    
+            self.view_panel.insert_text(message, 'disabled')
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File") 
         self.view_panel.insert_text(message, 'disabled')
 
     def _on_plot_file_remote(self):
-        import os
-        
-        file = str(self.selected_file).replace( str(self.task.submit_network.remote_path), str(self.task.submit_network.project_dir))
+        import os        
         try:
-            cmd=f'xmgrace {file}'
-            # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
-            os.system(cmd)
-
+            file = str(self.selected_file).replace( str(self.task.submit_network.remote_path), str(self.task.submit_network.project_dir))
+            if os.path.exists(file)==True:
+                cmd=f'xmgrace {file}'
+                # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
+                os.system(cmd)
+            else:
+                messagebox.showinfo(title='Info', message="First download the file")
         except ValueError:
             messagebox.showinfo(title='Info', message="Cannot plot selected File")   
         except FileNotFoundError:
             messagebox.showinfo(title='Info', message="File not found")  
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File")                    
             
     def _on_plot_button(self, *_):
         
@@ -382,9 +383,10 @@ class TaskController:
             if self.task.task_info.local['returncode'] != 0:
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.local['error']}")
             else:
+                self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+                self.label_progressbar.grid(row=4, column=0,sticky='nsew')
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
-
     def _on_out_local_view_button(self, *_):
 
         try:
@@ -437,9 +439,7 @@ class TaskController:
             self.job_sub_page.set_run_button_state('active')
             return
         try:
-            print("cmd :", cmd)
             self.task.submit_network.run_job(cmd)              
-            # self.task.submit_network.run_job_remote(cmd)
             
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
