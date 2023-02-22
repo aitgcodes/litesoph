@@ -16,7 +16,7 @@ from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
 from litesoph.gui.design import maskingpage 
-from litesoph.gui.controller import masking_controller
+from litesoph.gui.controllers import masking_controller
 
 
 task_view_map={
