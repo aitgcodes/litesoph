@@ -28,7 +28,8 @@ class ComputeSpectrum(GpawTask):
         self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.input_filename)
         # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.input_filename)
 
-        param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_file')
+        # param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_file')
+        param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_files')[0]
         # param['dm_file'] = self.dependent_tasks[0].output.get('dm_file')
         self.pol = get_polarization_direction(self.dependent_tasks[0])
         param['polarization'] = list(self.pol)
