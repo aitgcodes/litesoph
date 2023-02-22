@@ -139,9 +139,8 @@ class MaskedDipoleAnaylsis:
         self.t = _data[0]
         self.dms = _data[1]
 
+        self.envelope_files = []
         self.energy_coupling_file = self.task_dir / 'energy_coupling.dat'
-        # self.energy_coupling_data = [['Region', 'Direction', 'Energy Coupling']]
-        # Adding energy coupling data 
         self.energy_coupling_data = [['Region/Mask_Index','Focus_Value', 'Direction', 'Energy_Coupling(in eV)']]
 
 
@@ -215,7 +214,9 @@ class MaskedDipoleAnaylsis:
 
         index, pol = get_direction(axis)
         if region_i is not None:
-            envelope_file = self.task_dir / f'envelope_{suffix}_dm_{pol}.dat'               
+            envelope_file = self.task_dir / f'envelope_{suffix}_dm_{pol}.dat'
+            if str(envelope_file) not in self.envelope_files:
+                self.envelope_files.append(str(envelope_file))
          
         time = self.t*units.au_to_fs
         total_time_steps=len(time)
