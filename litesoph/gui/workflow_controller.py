@@ -15,6 +15,8 @@ from litesoph.gui.task_controller import (TaskController,
 from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
+from litesoph.gui.design import maskingpage 
+from litesoph.gui.controllers import masking_controller
 
 
 task_view_map={
@@ -24,7 +26,8 @@ task_view_map={
     tt.COMPUTE_AVERAGED_SPECTRUM: v.PlotSpectraPage,
     tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
-    tt.MASKING: v.MaskingPage,
+    tt.MASKING: maskingpage.MaskingPage
+    # tt.MASKING: v.MaskingPage,
 }
 
 class WorkflowController:
@@ -231,8 +234,10 @@ def get_task_controller( task_view, workflow_controller, app) -> TaskController:
     
     if task_view == v.LaserDesignPage:
         task_controller = LaserPageController
-    elif task_view == v.MaskingPage:
-        task_controller = MaskingPageController
+    elif task_view == maskingpage.MaskingPage:
+        task_controller = masking_controller.MaskingPageController
+    # elif task_view == v.MaskingPage:
+        # task_controller = MaskingPageController
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
     else:

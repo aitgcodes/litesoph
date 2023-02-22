@@ -122,9 +122,30 @@ class GpawTask(Task):
         
         if  tt.RT_TDDFT in self.task_name:
             param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
-            param['dm_file'] = 'dm.dat'
             
-            self.task_info.output['dm_file'] = str(self.task_dir.relative_to(self.directory) / param['dm_file'])
+            # TODO: add dm files
+            dm_list = ['dm.dat']
+            num_masks = 0
+            self.masked_dm_files = []
+            lasers = param.get('laser', None)
+            if lasers is not None:
+                for i, laser in enumerate(lasers):
+                    mask = laser.get('mask', None)
+                    if mask is not None:
+                        if isinstance(mask, dict):
+                            num_masks += 1
+                for i in range(num_masks):
+                    dm_filename = 'dm_masked_'+ str(i+1)+'.dat' 
+                    dm_list.append(dm_filename)     
+
+            param['dm_files'] = dm_list
+            # TODO: add dm files
+            dm_files = []
+            for i,dm in enumerate(dm_list):
+                dm_rel_path = str(self.task_dir.relative_to(self.directory) / dm)
+                dm_files.append(dm_rel_path)
+            self.task_info.output['dm_files'] = dm_files
+            # self.task_info.output['dm_file'] = str(self.task_dir.relative_to(self.directory) / param['dm_file'])
             
             if 'ksd' in param['properties'] or 'mo_population' in param['properties']:
                 param['wfile'] = 'wf.ulm'
@@ -399,36 +420,79 @@ def get_eigen_energy(td_out_file):
 
 class GpawPostProMasking(GpawTask):
 
+    def get_dm_files(self):
+        """Gets dipole moment file names from TD task info"""
+        td_info = self.dependent_tasks[0]
+        self.dm_files = td_info.output.get('dm_files')
+        copy_dms = copy.deepcopy(self.dm_files)
+        self.total_dm_fname = copy_dms.pop(0)
+        self.masked_dms = copy_dms
 
-    def setup_task(self, param):
-        task_dir = self.directory / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)   
-
-        self.sim_total_dm = self.directory / (self.dependent_tasks[0].output.get('dm_file'))     
-        self.state_mask_dm = False
-        from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
-        self.masked_dm_analysis = MaskedDipoleAnaylsis(self.sim_total_dm, self.task_dir)
+        self.total_dm_path = self.project_dir / str(self.total_dm_fname)
+        self.masked_dm_files = []
+        for dm in self.masked_dms:
+            dm_fpath = self.project_dir / str(dm)
+            self.masked_dm_files.append(dm_fpath)
 
     def extract_masked_dm(self):
+        """Extracts dipole moment data"""
+        from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
+        self.masked_dm_analysis = MaskedDipoleAnaylsis(task_dir=self.task_dir, 
+                                                        focus_region_dms= self.masked_dm_files, 
+                                                        total_dm= self.total_dm_path)
         self.create_directory(self.task_dir)
         self.state_mask_dm = True
-        self.masked_dm_analysis.extract_dipolemoment_data()
-
-    def get_energy_coupling_constant(self, **kwargs) -> str:
+        masked_dm_fpaths = []
+        for i, dm_file in enumerate(self.masked_dm_files):
+            r_i = i+1
+            # out_fname = 'dm.dat_mask_complement_'+str(r_i)
+            out_fname = 'dm_mask_complement_'+str(r_i)+'.dat'
+            self.masked_dm_analysis.get_dm_complement(region_i=r_i, out_file=out_fname)
+            out_fpath = self.task_dir.relative_to(self.directory) / out_fname
+            masked_dm_fpaths.append(str(out_fpath))
         
+        self.task_info.output['mask_dm_complement_files'] = masked_dm_fpaths
+        self.task_info.local_copy_files.extend(masked_dm_fpaths)
+
+    def setup_task(self, param):
+        task_dir = self.project_dir / 'gpaw' / self.task_name
+        self.task_dir = get_new_directory(task_dir)  
+        self.get_dm_files()
+        self.state_mask_dm = False
+        self.extract_masked_dm()   
+
+    def get_energy_coupling_constant(self, **kwargs):        
         if not self.state_mask_dm:
             self.extract_masked_dm()
-        region = kwargs.get('region')
+        region = kwargs.get('region_id')
         axis = kwargs.get('direction')
-        return self.masked_dm_analysis.get_energy_coupling(region, axis)
+        focus = kwargs.get('focus')
+
+        try:
+            files_to_copy = []
+            envelope_fpaths = []
+            coupling_fpath = self.masked_dm_analysis.energy_coupling_file.relative_to(self.directory)
+            coupling_val = self.masked_dm_analysis.get_energy_coupling(axis, region,focus= focus)
+            for envelope_file in self.masked_dm_analysis.envelope_files:
+                env_fpath = Path(envelope_file).relative_to(self.directory)
+                envelope_fpaths.append(str(env_fpath))
+                files_to_copy.append(str(env_fpath))
+
+            self.task_info.output['envelope_files'] = envelope_fpaths
+            self.task_info.output['energy_coupling_file'] = str(coupling_fpath)
+            files_to_copy.append(str(coupling_fpath))
+            
+            for file in files_to_copy:
+                if file not in self.task_info.local_copy_files:
+                    self.task_info.local_copy_files.append(file)            
+            return coupling_val
+        except Exception as e:
+            raise e
 
     def plot(self, **kwargs):
-
         if not self.state_mask_dm:
             self.extract_masked_dm()
-        region = kwargs.get('region')
-        axis = kwargs.get('direction')
-        envelope = kwargs.get('envelope', False)
-        plt = self.masked_dm_analysis.plot(region, axis, envelope=envelope)
+        list_to_plot = kwargs.get('plot_data')
+        plt = self.masked_dm_analysis.plot(list_to_plot)
         plt.show()
 
