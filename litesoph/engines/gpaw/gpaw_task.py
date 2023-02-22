@@ -135,7 +135,7 @@ class GpawTask(Task):
                         if isinstance(mask, dict):
                             num_masks += 1
                 for i in range(num_masks):
-                    dm_filename = 'dm.dat'+'_masked_'+ str(i+1) 
+                    dm_filename = 'dm_masked_'+ str(i+1)+'.dat' 
                     dm_list.append(dm_filename)     
 
             param['dm_files'] = dm_list
@@ -435,15 +435,24 @@ class GpawPostProMasking(GpawTask):
             self.masked_dm_files.append(dm_fpath)
 
     def extract_masked_dm(self):
+        """Extracts dipole moment data"""
         from litesoph.post_processing.masking_utls import MaskedDipoleAnaylsis
         self.masked_dm_analysis = MaskedDipoleAnaylsis(task_dir=self.task_dir, 
                                                         focus_region_dms= self.masked_dm_files, 
                                                         total_dm= self.total_dm_path)
         self.create_directory(self.task_dir)
         self.state_mask_dm = True
-        # TODO:store masked dm files to task info
+        masked_dm_fpaths = []
         for i, dm_file in enumerate(self.masked_dm_files):
-            self.masked_dm_analysis.get_dm_complement(region_i=i+1)
+            r_i = i+1
+            # out_fname = 'dm.dat_mask_complement_'+str(r_i)
+            out_fname = 'dm_mask_complement_'+str(r_i)+'.dat'
+            self.masked_dm_analysis.get_dm_complement(region_i=r_i, out_file=out_fname)
+            out_fpath = self.task_dir.relative_to(self.directory) / out_fname
+            masked_dm_fpaths.append(str(out_fpath))
+        
+        self.task_info.output['mask_dm_complement_files'] = masked_dm_fpaths
+        self.task_info.local_copy_files.extend(masked_dm_fpaths)
 
     def setup_task(self, param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
@@ -460,8 +469,22 @@ class GpawPostProMasking(GpawTask):
         focus = kwargs.get('focus')
 
         try:
-            # TODO: store envelope data files to task info
+            files_to_copy = []
+            envelope_fpaths = []
+            coupling_fpath = self.masked_dm_analysis.energy_coupling_file.relative_to(self.directory)
             coupling_val = self.masked_dm_analysis.get_energy_coupling(axis, region,focus= focus)
+            for envelope_file in self.masked_dm_analysis.envelope_files:
+                env_fpath = Path(envelope_file).relative_to(self.directory)
+                envelope_fpaths.append(str(env_fpath))
+                files_to_copy.append(str(env_fpath))
+
+            self.task_info.output['envelope_files'] = envelope_fpaths
+            self.task_info.output['energy_coupling_file'] = str(coupling_fpath)
+            files_to_copy.append(str(coupling_fpath))
+            
+            for file in files_to_copy:
+                if file not in self.task_info.local_copy_files:
+                    self.task_info.local_copy_files.append(file)            
             return coupling_val
         except Exception as e:
             raise e
