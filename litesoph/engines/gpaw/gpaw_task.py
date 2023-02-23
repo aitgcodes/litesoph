@@ -515,7 +515,8 @@ class PumpProbePostpro(GpawTask):
     def setup_task(self,param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+
     def extract_dm(self, gpaw_dm_file, index):
         data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
         dm_axis_data=data[:,[0,index]]  
