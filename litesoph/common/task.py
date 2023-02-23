@@ -211,14 +211,14 @@ def write2file(directory,filename, template) -> None:
         f.write(template)
 
 
-def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
+def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_path: str=None, 
                         mpi_path: str = None,
                         remote : bool = False,
                         scheduler_block : str = None,
                         module_load_block : str = None,
                         extra_block : str = None) -> str:
     job_script_first_line = "#!/bin/bash"
-    remote_job_script_last_line = "touch Done"
+    remote_job_script_last_line = f"touch Done_{job_id}"
     
     job_script = [job_script_first_line]
     
@@ -228,9 +228,11 @@ def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None,
         if module_load_block:
             job_script.append(module_load_block)
 
+    job_script.append(f'touch start_{id}')
     if cd_path:
         job_script.append(f'cd {cd_path};')
-    
+        
+
     if engine_cmd:
         if np > 1:
             if not mpi_path:

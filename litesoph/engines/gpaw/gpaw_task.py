@@ -103,6 +103,7 @@ class GpawTask(Task):
         task_dir = self.directory / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
         input_filename = self.task_data.get('file_name', None)
+        self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
         self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
@@ -205,11 +206,13 @@ class GpawTask(Task):
             python_path = 'python3'
             engine_cmd = python_path + engine_cmd
             rpath = Path(remote_path) / self.task_dir.relative_to(self.directory.parent.parent)
-            job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(rpath),
+            job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path= str(rpath),
                                             remote=True, module_load_block=self.get_engine_network_job_cmd())
         else:
             engine_cmd = python_path + engine_cmd
-            job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(self.task_dir),
+            job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path=str(self.task_dir),
                                             mpi_path=self.mpi_path)
     
         self.job_script = job_script
