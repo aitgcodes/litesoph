@@ -105,6 +105,7 @@ class GpawTask(Task):
         input_filename = self.task_data.get('file_name', None)
         self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
         self.network_done_file = self.task_dir / 'Done'
+        self.network_start_file = self.task_dir / 'Start'
         self.task_info.input['engine_input']={}
         self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         

@@ -271,7 +271,7 @@ class SubmitNetwork:
             
     def get_job_status_remote(self):
         
-        job_start_file = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+        job_start_file = pathlib.Path(self.remote_path) / self.task.network_start_file.relative_to(self.project_dir.parent)
         job_start_status=self.network_sub.check_file(str(job_start_file))
         
         job_done_file = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
@@ -285,6 +285,10 @@ class SubmitNetwork:
         
         elif job_start_status==True and job_done_status==True:
             job_status="Job Done"    
+
+        else:
+            job_status="SSH session not active"
+
         return job_status
 
     def kill_job_remote(self):

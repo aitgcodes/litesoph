@@ -20,6 +20,7 @@ class ComputeSpectrum(BaseNwchemTask):
         self.task_dir = get_new_directory(task_dir)
         label = str(self.project_dir.name)
         self.network_done_file = self.task_dir / 'Done'
+        self.network_start_file = self.task_dir / 'Start'
 
         outfile = self.directory / self.dependent_tasks[0].output.get('txt_out')
         self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
@@ -91,6 +92,7 @@ class ComputeAvgSpectrum(BaseNwchemTask):
         task_dir = self.project_dir / 'nwchem' / self.task_name
         self.task_dir = get_new_directory(task_dir)
         self.network_done_file = self.task_dir / 'Done'
+        self.network_start_file = self.task_dir / 'Start'
         
         self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'

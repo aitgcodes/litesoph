@@ -154,6 +154,7 @@ class NwchemTask(BaseNwchemTask):
         file_name = self.task_data.get('file_name')
         self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
         self.network_done_file = self.task_dir / 'Done'
+        self.network_start_file = self.task_dir / 'Start'
         self.task_info.input['engine_input']={}
 
         if self.task_name in self.post_processing_tasks:
