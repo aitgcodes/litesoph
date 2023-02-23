@@ -272,21 +272,31 @@ class TaskController:
         messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
 
     def _on_check_job_status_remote(self):
-        try:
-            error, message=self.task.submit_network.get_job_status_remote()                
-        except TaskFailed:
-            messagebox.showinfo(title='Info', message=error)                    
-        messagebox.showinfo(title='Info', message=message)   
+        cmd = self.job_sub_page.sub_command.get()
+        
+        if cmd!='bash':
+            messagebox.showinfo(title='Info', message="Scheduler not implemented yet")
+        else:
+            try:
+                error, message=self.task.submit_network.get_job_status_remote()                
+            except TaskFailed:
+                messagebox.showinfo(title='Info', message=error)                    
+            messagebox.showinfo(title='Info', message=message)   
 
     def _on_kill_job_remote(self):
-        try:
-            error, message=self.task.submit_network.kill_job_remote()                
-        except TaskFailed:
-            messagebox.showinfo(title='Info', message=error)                    
-        messagebox.showinfo(title='Info', message=message)   
-        self.job_sub_page.progressbar.stop()
-        label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-        label_progressbar.grid(row=4, column=0,sticky='nsew')
+        cmd = self.job_sub_page.sub_command.get()
+        
+        if cmd!='bash':
+            messagebox.showinfo(title='Info', message="Scheduler not implemented yet")
+        else:
+            try:
+                error, message=self.task.submit_network.kill_job_remote()                
+            except TaskFailed:
+                messagebox.showinfo(title='Info', message=error)                    
+            messagebox.showinfo(title='Info', message=message)   
+            self.job_sub_page.progressbar.stop()
+            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            label_progressbar.grid(row=4, column=0,sticky='nsew')
 
     def _on_download_all_files(self):
         try:
@@ -397,7 +407,6 @@ class TaskController:
             
         self.view_panel.insert_text(log_txt, 'disabled')
 
-
     def _run_network(self):
 
         try:
@@ -422,7 +431,6 @@ class TaskController:
                 self.job_sub_page.set_run_button_state('active')
                 return
 
-        
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
         
@@ -434,25 +442,47 @@ class TaskController:
                                     port=login_dict['port'],
                                     remote_path=login_dict['remote_path'],
                                     passwordless_ssh=login_dict['passwordless_ssh'])
+            self.task.submit_network.run_job(cmd)
         except Exception as e:
+            self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Network Connection Error",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            self.label_progressbar.grid(row=4, column=0,sticky='nsew')
             messagebox.showerror(title = "Error", message = 'Unable to connect to the network', detail= e)
             self.job_sub_page.set_run_button_state('active')
             return
+  
         try:
-            self.task.submit_network.run_job(cmd)              
-            
+            self.task.submit_network.run_job(cmd)             
         except Exception as e:
+            self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Run Error",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            self.label_progressbar.grid(row=4, column=0,sticky='nsew')
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.set_run_button_state('active')
             return
+        
+        if self.task.task_info.network['sub_returncode'] == 0:
+            self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+            messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
+            # return                
         else:
-            if self.task.task_info.network['sub_returncode'] != 0:
-                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
-            else:
-                self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-                self.label_progressbar.grid(row=4, column=0,sticky='nsew')
-                messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
-
+            self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Submission Error",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+            messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
+            # return         
+            
+        
+        # else:
+        #     if self.task.task_info.network['sub_returncode'] != 0:
+        #         self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Submission Error",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        #         self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+        #         messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
+        #         return
+        #     else:
+        #         self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        #         self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+        #         messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
+        #         return
+            
     def _get_remote_output(self):
         self.task.submit_network.download_output_files()
 
