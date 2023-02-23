@@ -230,7 +230,7 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
 
     if cd_path:
         job_script.append(f'cd {cd_path};')
-        job_script.append(f'touch start')
+        job_script.append(f'touch Start')
         
     if engine_cmd:
         if np > 1:
