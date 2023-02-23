@@ -283,7 +283,6 @@ class SubmitNetwork:
         """
         kill the running job at remote
         """
-    
         job_name=self.task.BASH_filename
         cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_name}; then echo Job killed; else echo No Job found; fi"
         cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
@@ -303,7 +302,7 @@ class SubmitNetwork:
         from litesoph.common.lfm_database import lfm_file_info_dict
         lfm_file_info=lfm_file_info_dict()
         file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
-        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file']})        
+        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file','script_generated_outfile']})        
         files_list=list(files_dict.keys())
         return files_list        
 
