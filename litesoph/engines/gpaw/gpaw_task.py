@@ -105,7 +105,8 @@ class GpawTask(Task):
         input_filename = self.task_data.get('file_name', None)
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
-
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+        
         if input_filename:
             self.input_filename = input_filename + infile_ext
         
@@ -117,7 +118,9 @@ class GpawTask(Task):
             self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.directory) / param['gpw_out'])
 
         if tt.GROUND_STATE in self.task_name:
-            param['geometry'] = '../../coordinate.xyz'
+            geom_path = '../../coordinate.xyz'
+            self.task_info.local_copy_files.append('coordinate.xyz')
+            param['geometry'] = geom_path
             return
         
         if  tt.RT_TDDFT in self.task_name:
@@ -427,7 +430,6 @@ class GpawPostProMasking(GpawTask):
         copy_dms = copy.deepcopy(self.dm_files)
         self.total_dm_fname = copy_dms.pop(0)
         self.masked_dms = copy_dms
-
         self.total_dm_path = self.project_dir / str(self.total_dm_fname)
         self.masked_dm_files = []
         for dm in self.masked_dms:
@@ -459,7 +461,9 @@ class GpawPostProMasking(GpawTask):
         self.task_dir = get_new_directory(task_dir)  
         self.get_dm_files()
         self.state_mask_dm = False
-        self.extract_masked_dm()   
+        self.extract_masked_dm()  
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+
 
     def get_energy_coupling_constant(self, **kwargs):        
         if not self.state_mask_dm:
