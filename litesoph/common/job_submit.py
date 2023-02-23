@@ -293,7 +293,6 @@ class SubmitNetwork:
         job_start_file = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
         job_start_status=self.network_sub.check_file(str(job_start_file))
         
-
         job_done_file = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
         job_done_status=self.network_sub.check_file(str(job_done_file))
         
@@ -304,25 +303,8 @@ class SubmitNetwork:
             job_status="Job in Progress"
         
         elif job_start_status==True and job_done_status==True:
-            job_status="Job Done"
-
-
-    # if os.path.exists(job_start_file)==False:
-    #         messagebox.showinfo(title='Info', message="Job Not Started")
-
-    #     elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==False:
-    #         messagebox.showinfo(title='Info', message="Job in Progress")
-
-    #     elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==True:
-    #         messagebox.showinfo(title='Info', message="Job Done")
-    #             
-        
-        
-        # print("\nrpath :",rpath)
-        # print("\ndecision :",decision)    
+            job_status="Job Done"    
         return job_status
-
-        
 
     def kill_job_remote(self):
         """
