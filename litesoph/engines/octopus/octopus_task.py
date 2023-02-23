@@ -325,7 +325,7 @@ class OctopusTask(Task):
             return        
 
         if self.task_name == tt.TCM: 
-            from litesoph.common.job_submit import execute
+            from litesoph.common.job_submit import execute_cmd_local
 
             fmin = kwargs.get('fmin')
             fmax = kwargs.get('fmax')
@@ -338,7 +338,7 @@ class OctopusTask(Task):
             ksd_file = self.copy_task_dir / 'transwt.dat'
             cmd = f'{path_python} {path_plotdmat} {ksd_file} {fmin} {fmax} {axis_limit} -i'
         
-            result = execute(cmd, self.task_dir)
+            result = execute_cmd_local(cmd, self.task_dir)
             
             if result[cmd]['returncode'] != 0:
                 raise Exception(f"{result[cmd]['error']}")
@@ -375,7 +375,7 @@ class OctopusTask(Task):
         if self.task_name in [tt.TCM, tt.MO_POPULATION]:
             return
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.run_job(cmd)
+        self.submit_local.run_job(cmd)
         if self.check_run_status()[0]:
             self.post_run()
 
@@ -707,7 +707,7 @@ def calc_td_range(spacing:float):
 #         if self.task_name in ['tcm','mo_population']:
 #             return
 #         cmd = cmd + ' ' + self.BASH_filename
-#         self.sumbit_local.run_job(cmd)
+#         self.submit_local.run_job(cmd)
 
 #     def get_ksd_popln(self):        
 #         _axis = self.get_pol_list(self.status)
