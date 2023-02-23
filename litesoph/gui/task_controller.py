@@ -293,10 +293,7 @@ class TaskController:
             messagebox.showinfo(title='Info', message=job_status)   
         except TaskFailed:
             messagebox.showinfo(title='Info', message='error')   
-        self.job_sub_page.progressbar.stop()
-        label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-        label_progressbar.grid(row=4, column=0,sticky='nsew')
-
+        
     def _on_kill_job_remote(self):
         cmd = self.job_sub_page.sub_command.get()
         
