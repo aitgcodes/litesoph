@@ -288,16 +288,14 @@ class TaskController:
         messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
 
     def _on_check_job_status_remote(self):
-        cmd = self.job_sub_page.sub_command.get()
-        
-        if cmd!='bash':
-            messagebox.showinfo(title='Info', message="Scheduler not implemented yet")
-        else:
-            try:
-                error, message=self.task.submit_network.get_job_status_remote()                
-            except TaskFailed:
-                messagebox.showinfo(title='Info', message=error)                    
-            messagebox.showinfo(title='Info', message=message)   
+        try:
+            job_status=self.task.submit_network.get_job_status_remote()    
+            messagebox.showinfo(title='Info', message=job_status)   
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message='error')   
+        self.job_sub_page.progressbar.stop()
+        label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        label_progressbar.grid(row=4, column=0,sticky='nsew')
 
     def _on_kill_job_remote(self):
         cmd = self.job_sub_page.sub_command.get()
@@ -314,23 +312,27 @@ class TaskController:
             label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
             label_progressbar.grid(row=4, column=0,sticky='nsew')
 
-    def _on_check_job_status_remote2(self):
-        # from pathlib import Path
-        import os
-        job_start_file=''
-        job_done_file=''
+    # def _on_check_job_status_remote2(self):
+    #     from pathlib import Path
+    #     import os
+    #     #   self.network_done_file = self.task_dir / 'Done'
+    #     job_start_file=''
+    #     job_done_file=self.task.submit_network.remote_path
 
-        if os.path.exists(job_start_file)==False:
-            messagebox.showinfo(title='Info', message="Job Not Started")
+    #     rpath = Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
 
-        elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==False:
-            messagebox.showinfo(title='Info', message="Job in Progress")
 
-        elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==True:
-            messagebox.showinfo(title='Info', message="Job Done")
-            self.job_sub_page.progressbar.stop()
-            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-            label_progressbar.grid(row=4, column=0,sticky='nsew')
+    #     if os.path.exists(job_start_file)==False:
+    #         messagebox.showinfo(title='Info', message="Job Not Started")
+
+    #     elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==False:
+    #         messagebox.showinfo(title='Info', message="Job in Progress")
+
+    #     elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==True:
+    #         messagebox.showinfo(title='Info', message="Job Done")
+    #         self.job_sub_page.progressbar.stop()
+    #         label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+    #         label_progressbar.grid(row=4, column=0,sticky='nsew')
 
         # cmd = self.job_sub_page.sub_command.get()
         

@@ -269,15 +269,60 @@ class SubmitNetwork:
         self.project_size_GB=project_size[0]/(1024*1024)
         return (error, message)
         
-    def get_job_status_remote(self):   
+    def get_job_status_remote2(self):   
         """
         get the running status of submitted job at remote
         """
         job_name=self.task.BASH_filename
-        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        # cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
+        job_done_file=''
+        
+        cmd_check_running_process=f'if test -f {job_done_file}; then echo "Job compeleted" else echo "Job not completed"' 
+        
+        
         cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
+        
+        # rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+
+        
         (error, message)=execute_cmd_remote(cmd_check_running_process, self.password)            
         return (error, message)
+
+    def get_job_status_remote(self):
+        
+        job_start_file = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+        job_start_status=self.network_sub.check_file(str(job_start_file))
+        
+
+        job_done_file = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+        job_done_status=self.network_sub.check_file(str(job_done_file))
+        
+        if job_start_status==False:
+            job_status="Job Not Started Yet"
+        
+        elif job_start_status==True and job_done_status==False: 
+            job_status="Job in Progress"
+        
+        elif job_start_status==True and job_done_status==True:
+            job_status="Job Done"
+
+
+    # if os.path.exists(job_start_file)==False:
+    #         messagebox.showinfo(title='Info', message="Job Not Started")
+
+    #     elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==False:
+    #         messagebox.showinfo(title='Info', message="Job in Progress")
+
+    #     elif os.path.exists(job_start_file)==True and os.path.exists(job_done_file)==True:
+    #         messagebox.showinfo(title='Info', message="Job Done")
+    #             
+        
+        
+        # print("\nrpath :",rpath)
+        # print("\ndecision :",decision)    
+        return job_status
+
+        
 
     def kill_job_remote(self):
         """

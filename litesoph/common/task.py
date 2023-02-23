@@ -218,7 +218,7 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
                         module_load_block : str = None,
                         extra_block : str = None) -> str:
     job_script_first_line = "#!/bin/bash"
-    remote_job_script_last_line = f"touch Done_{job_id}"
+    remote_job_script_last_line = f"touch Done"
     
     job_script = [job_script_first_line]
     
@@ -228,7 +228,7 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
         if module_load_block:
             job_script.append(module_load_block)
 
-    job_script.append(f'touch start_{id}')
+    job_script.append(f'touch start')
     if cd_path:
         job_script.append(f'cd {cd_path};')
         
