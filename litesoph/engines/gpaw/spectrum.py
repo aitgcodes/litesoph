@@ -21,7 +21,6 @@ class ComputeSpectrum(GpawTask):
         self.task_dir = get_new_directory(task_dir)
         input_filename = self.task_data.get('file_name', 'spec')
         self.network_done_file = self.task_dir / 'Done'
-        self.network_start_file = self.task_dir / 'Start'
         self.task_info.input['engine_input']={}
         self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.input_filename = input_filename + infile_ext

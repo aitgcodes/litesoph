@@ -271,11 +271,16 @@ class SubmitNetwork:
             
     def get_job_status_remote(self):
         
-        job_start_file = pathlib.Path(self.remote_path) / self.task.network_start_file.relative_to(self.project_dir.parent)
-        job_start_status=self.network_sub.check_file(str(job_start_file))
+        job_id=self.task_info.uuid
         
-        job_done_file = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+        job_start_file = pathlib.Path(self.remote_path) / self.task.network_done_file.parent.relative_to(self.project_dir.parent) / f"Start_{job_id}"
+        job_start_status=self.network_sub.check_file(str(job_start_file))
+        job_done_file = pathlib.Path(self.remote_path) / self.task.network_done_file.parent.relative_to(self.project_dir.parent)/ f"Done_{job_id}"
         job_done_status=self.network_sub.check_file(str(job_done_file))
+        
+        print('\njob_done_file: ', job_done_file)
+        print('\njob_done_status: ', job_done_status)
+
         
         if job_start_status==False:
             job_status="Job Not Started Yet"
