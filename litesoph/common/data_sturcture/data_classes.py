@@ -25,7 +25,7 @@ def factory_state():
 
     return State()
 
-@dataclass()
+@dataclass
 class Info:
 
     _uuid: str
@@ -52,6 +52,30 @@ class Info:
     #     fp.write(json_txt)
 
 @dataclass
+class JobInfo:
+    id: Union[str, None] = field(default= None)
+    directory: Union[Path, None] = field(default=None)
+    state: Union[str, None] = field(default= None)
+    submit_mode: Union[str, None] = field(default= None)
+    returncode: Union[int, None] = field(default= None)
+    output: Union[str, None] = field(default= None)
+    error: Union[str, None] = field(default= None)
+
+    @classmethod
+    def from_dict(cls, data):
+        cls = cls()
+        for key, value in data.items():
+            if key == 'directory' and isinstance(value, str):
+                value = Path(value)
+
+            setattr(cls, key, value)
+        return cls
+
+
+def factory_job_info():
+    return JobInfo()
+    
+@dataclass
 class TaskInfo(Info):
 
     _name: str
@@ -65,6 +89,7 @@ class TaskInfo(Info):
     output: Dict[Any, Any] = field(default_factory=dict)
     local_copy_files: List[Any] = field(default_factory=list)
     remote_copy_files: List[Any] = field(default_factory=list)
+    job_info: JobInfo = field(default_factory= factory_job_info)
     network: Dict[Any, Any] = field(default_factory=dict)
     local : Dict[Any, Any] = field(default_factory=dict)
 
@@ -94,6 +119,11 @@ class TaskInfo(Info):
 
         local_copy_files = data.get('local_copy_list', list())
         remote_copy_files = data.get('remote_copy_list', list())
+        
+        job_info = data.get('job_info', JobInfo())
+        if isinstance(job_info, dict):
+            job_info = JobInfo.from_dict(job_info)
+
         return cls(_uuid = uuid, 
                     _name = name,
                     path =path, 
@@ -106,6 +136,7 @@ class TaskInfo(Info):
                     remote_copy_files = remote_copy_files,
                     task_data = data['task_data'],
                     engine_param = data['engine_param'],
+                    job_info = job_info,
                     network = network, 
                     local= local)
     

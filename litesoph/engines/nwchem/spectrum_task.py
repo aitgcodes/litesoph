@@ -68,7 +68,8 @@ class ComputeSpectrum(BaseNwchemTask):
 
     def create_job_script(self, np=1, remote_path=None) -> list:
                 
-        job_script = assemable_job_cmd(cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))
+        job_script = assemable_job_cmd(job_id= self.task_info.uuid,
+                                        cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))
 
         self.job_script = job_script
         return self.job_script

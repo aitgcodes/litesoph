@@ -103,9 +103,11 @@ class GpawTask(Task):
         task_dir = self.directory / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
         input_filename = self.task_data.get('file_name', None)
+        self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
-
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+        
         if input_filename:
             self.input_filename = input_filename + infile_ext
         
@@ -117,7 +119,9 @@ class GpawTask(Task):
             self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.directory) / param['gpw_out'])
 
         if tt.GROUND_STATE in self.task_name:
-            param['geometry'] = '../../coordinate.xyz'
+            geom_path = '../../coordinate.xyz'
+            self.task_info.local_copy_files.append('coordinate.xyz')
+            param['geometry'] = geom_path
             return
         
         if  tt.RT_TDDFT in self.task_name:
@@ -202,11 +206,13 @@ class GpawTask(Task):
             python_path = 'python3'
             engine_cmd = python_path + engine_cmd
             rpath = Path(remote_path) / self.task_dir.relative_to(self.directory.parent.parent)
-            job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(rpath),
+            job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path= str(rpath),
                                             remote=True, module_load_block=self.get_engine_network_job_cmd())
         else:
             engine_cmd = python_path + engine_cmd
-            job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(self.task_dir),
+            job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path=str(self.task_dir),
                                             mpi_path=self.mpi_path)
     
         self.job_script = job_script
@@ -432,7 +438,6 @@ class GpawPostProMasking(GpawTask):
         copy_dms = copy.deepcopy(self.dm_files)
         self.total_dm_fname = copy_dms.pop(0)
         self.masked_dms = copy_dms
-
         self.total_dm_path = self.project_dir / str(self.total_dm_fname)
         self.masked_dm_files = []
         for dm in self.masked_dms:
@@ -464,7 +469,9 @@ class GpawPostProMasking(GpawTask):
         self.task_dir = get_new_directory(task_dir)  
         self.get_dm_files()
         self.state_mask_dm = False
-        self.extract_masked_dm()   
+        self.extract_masked_dm()  
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+
 
     def get_energy_coupling_constant(self, **kwargs):        
         if not self.state_mask_dm:
@@ -511,7 +518,8 @@ class PumpProbePostpro(GpawTask):
     def setup_task(self,param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+
     def extract_dm(self, gpaw_dm_file, index):
         data = np.loadtxt(str(gpaw_dm_file),comments="#",usecols=(0,2,3,4))      
         dm_axis_data=data[:,[0,index]]  

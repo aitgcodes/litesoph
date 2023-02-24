@@ -132,7 +132,8 @@ class OctopusTask(Task):
 
         # absolute path attributes
         self.engine_dir = str(self.wf_dir / 'octopus')
-        self.task_dir = str(Path(self.engine_dir) / self.task_name)
+        task_dir = (Path(self.engine_dir) / self.task_name)
+        self.task_dir = get_new_directory(task_dir)
         self.output_dir = str(Path(self.engine_dir) / 'log')
         self.network_done_file = Path(self.task_dir) / 'Done'
         
@@ -148,7 +149,6 @@ class OctopusTask(Task):
         if self.task_name == tt.COMPUTE_SPECTRUM:
             td_info = self.dependent_tasks[0]
             if td_info:
-                # TODO
                 # modify relative paths to absolute path 
                 # by prefixing wf_dir
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
@@ -159,7 +159,6 @@ class OctopusTask(Task):
         elif self.task_name in self.added_post_processing_tasks:            
             td_info = self.dependent_tasks[1]
             if td_info:
-                # TODO
                 # modify relative paths to absolute path 
                 # by prefixing wf_dir
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
@@ -175,6 +174,7 @@ class OctopusTask(Task):
         
         # relative paths
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
+
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
         self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
         if self.task_name == tt.RT_TDDFT:
@@ -357,7 +357,7 @@ class OctopusTask(Task):
             return        
 
         if self.task_name == tt.TCM: 
-            from litesoph.common.job_submit import execute
+            from litesoph.common.job_submit import execute_cmd_local
 
             fmin = kwargs.get('fmin')
             fmax = kwargs.get('fmax')
@@ -370,7 +370,7 @@ class OctopusTask(Task):
             ksd_file = self.task_dir / 'transwt.dat'
             cmd = f'{path_python} {path_plotdmat} {ksd_file} {fmin} {fmax} {axis_limit} -i'
         
-            result = execute(cmd, self.task_dir)
+            result = execute_cmd_local(cmd, self.task_dir)
             
             if result[cmd]['returncode'] != 0:
                 raise Exception(f"{result[cmd]['error']}")
@@ -407,7 +407,7 @@ class OctopusTask(Task):
         if self.task_name in [tt.TCM, tt.MO_POPULATION]:
             return
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.run_job(cmd)
+        self.submit_local.run_job(cmd)
         if self.check_run_status()[0]:
             self.post_run()
 
