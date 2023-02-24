@@ -228,11 +228,10 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
         if module_load_block:
             job_script.append(module_load_block)
 
-    job_script.append(f'touch start_{id}')
     if cd_path:
         job_script.append(f'cd {cd_path};')
+        job_script.append(f'touch Start_{job_id}')
         
-
     if engine_cmd:
         if np > 1:
             if not mpi_path:

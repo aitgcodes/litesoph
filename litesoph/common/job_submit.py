@@ -268,22 +268,33 @@ class SubmitNetwork:
         project_size= [int(s) for s in message.split() if s.isdigit()]
         self.project_size_GB=project_size[0]/(1024*1024)
         return (error, message)
+            
+    def get_job_status_remote(self):
         
-    def get_job_status_remote(self):   
-        """
-        get the running status of submitted job at remote
-        """
-        job_name=self.task.BASH_filename
-        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; then echo Job is running; else echo No Job found; fi"
-        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
-        (error, message)=execute_cmd_remote(cmd_check_running_process, self.password)            
-        return (error, message)
+        job_id=self.task_info.uuid        
+        job_start_file = pathlib.Path(self.remote_path) / self.task.network_done_file.parent.relative_to(self.project_dir.parent) / f"Start_{job_id}"
+        job_start_status=self.network_sub.check_file(str(job_start_file))
+        job_done_file = pathlib.Path(self.remote_path) / self.task.network_done_file.parent.relative_to(self.project_dir.parent)/ f"Done_{job_id}"
+        job_done_status=self.network_sub.check_file(str(job_done_file))
+            
+        if job_start_status==False:
+            job_status="Job Not Started Yet"
+        
+        elif job_start_status==True and job_done_status==False: 
+            job_status="Job in Progress"
+        
+        elif job_start_status==True and job_done_status==True:
+            job_status="Job Done"    
+
+        else:
+            job_status="SSH session not active"
+
+        return job_status
 
     def kill_job_remote(self):
         """
         kill the running job at remote
         """
-    
         job_name=self.task.BASH_filename
         cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_name}; then echo Job killed; else echo No Job found; fi"
         cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
@@ -303,7 +314,7 @@ class SubmitNetwork:
         from litesoph.common.lfm_database import lfm_file_info_dict
         lfm_file_info=lfm_file_info_dict()
         file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
-        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file']})        
+        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file','script_generated_outfile']})        
         files_list=list(files_dict.keys())
         return files_list        
 

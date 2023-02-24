@@ -29,6 +29,8 @@ checkpoint_file=['.db','.movecs','gridpts.0']
 property_file=['.dat']
 coordinate_files=['.xyz']
 dipole_files=['dm.dat','multipoles']
+spectrum_files=['spec.dat']
+script_output_files=['gs.out','gs.nwo','td.nwo']
 
 
 #transfer_method

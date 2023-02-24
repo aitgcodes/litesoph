@@ -221,16 +221,20 @@ class TaskController:
         
     def encode_decode_combobox_items(self,list_of_files):
         import pathlib
-        from litesoph.common.lfm_database import coordinate_files,dipole_files
+        from litesoph.common.lfm_database import coordinate_files,dipole_files,spectrum_files,script_output_files
 
         mapped_dict={}
 
         i = 0
         coordinate_count=0
         dipole_count=0
-        while i < len(list_of_files):
+        spectrum_file_count=0
+        script_output_count=0
 
+        while i < len(list_of_files):
+            
             file_path=pathlib.Path(list_of_files[i]).parent
+            last_folder_name=pathlib.Path(list_of_files[i]).parent.name
             file_name=pathlib.Path(list_of_files[i]).name
             file_ext=pathlib.Path(list_of_files[i]).suffix
             
@@ -241,11 +245,23 @@ class TaskController:
                 coordinate_count+=1    
         
             if  file_name in dipole_files:
-                dipole_file=f'dipole_file_{dipole_count+1}'
+                dipole_file=f'dipole-file-{dipole_count+1}'
                 mapped_dict[dipole_file] = list_of_files[i]
                 list_of_files[i] = dipole_files            
                 dipole_count+=1    
-                        
+            
+            if  file_name in spectrum_files:
+                spectrum_file=f'spectrum-file-{spectrum_file_count+1}'
+                mapped_dict[spectrum_file] = list_of_files[i]
+                list_of_files[i] = spectrum_files            
+                spectrum_file_count+=1    
+            
+            if  file_name in script_output_files:
+                file=f'script-output-{script_output_count+1}'
+                mapped_dict[file] = list_of_files[i]
+                list_of_files[i] = script_output_files            
+                script_output_count+=1    
+                                    
             i += 1
         return mapped_dict
             
@@ -261,7 +277,7 @@ class TaskController:
         list_of_files=self.task.submit_network.get_list_of_files_remote()
         self.dict_of_files_combobox=self.encode_decode_combobox_items(list_of_files)        
         list_of_files=list(self.dict_of_files_combobox.keys())
-                
+        
         choose_file['values'] =  list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
@@ -272,17 +288,12 @@ class TaskController:
         messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
 
     def _on_check_job_status_remote(self):
-        cmd = self.job_sub_page.sub_command.get()
+        try:
+            job_status=self.task.submit_network.get_job_status_remote()    
+            messagebox.showinfo(title='Info', message=job_status)   
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message='error')   
         
-        if cmd!='bash':
-            messagebox.showinfo(title='Info', message="Scheduler not implemented yet")
-        else:
-            try:
-                error, message=self.task.submit_network.get_job_status_remote()                
-            except TaskFailed:
-                messagebox.showinfo(title='Info', message=error)                    
-            messagebox.showinfo(title='Info', message=message)   
-
     def _on_kill_job_remote(self):
         cmd = self.job_sub_page.sub_command.get()
         
