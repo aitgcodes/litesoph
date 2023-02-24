@@ -31,8 +31,9 @@ task_types = {
 "ground_state": ["calc","common","scf","states","xc_pseudo"],
 "unocc": ["calc","common","scf","states","xc_pseudo"],
 "rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out"],
-"rt_tddft_laser": ["calc","common", "td", "td_laser", "td_out"],
-"rt_tddft_pump_probe": ["calc","common", "td", "td_laser", "td_delta","td_out"],
+"rt_tddft_laser": ["calc","common", "td", "td_laser","td_delta", "td_out"],
+# "rt_tddft_laser": ["calc","common", "td", "td_laser", "td_out"],
+# "rt_tddft_pump_probe": ["calc","common", "td", "td_laser", "td_delta","td_out"],
 "spectrum": ["spectrum"]
 }
 
@@ -214,7 +215,7 @@ def generate_input(inp_dict:dict, check = True):
         "unocc": validate_gs_input,
         "rt_tddft_delta": validate_td_delta_input,
         "rt_tddft_laser": validate_td_laser_input,
-        "rt_tddft_pump_probe" : validate_td_laser_input,
+        # "rt_tddft_pump_probe" : validate_td_laser_input,
         "spectrum": validate_spec_input
     }
     
