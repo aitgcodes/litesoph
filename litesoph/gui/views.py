@@ -1534,9 +1534,12 @@ class JobSubPage(ttk.Frame):
         self.rpath = tk.StringVar()
         self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
-        self.sub_command = tk.StringVar()
+        self.sub_command = tk.StringVar()        
+        self.sub_stat_command = tk.StringVar()        
+        self.sub_kill_command = tk.StringVar()        
         self.sub_job_type = tk.IntVar()
         self.password_option = tk.IntVar()
+        self.job_id = tk.StringVar()
 
         self.sub_job_type.trace_add(['write'], self._sub_command_option)
         self.sub_command.set('bash')
@@ -1675,13 +1678,21 @@ class JobSubPage(ttk.Frame):
         
         self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])   
 
+        job_id_label = tk.Label(self.monitor_job_frame, text= "Job ID", bg='gray', fg='black')
+        job_id_label['font'] = myfont()
+        job_id_label.grid(row=2,column=0,sticky='nsew', padx=2, pady=4)
+
+        job_id_entry = tk.Entry(self.monitor_job_frame,textvariable= self.job_id, width=20)
+        job_id_entry['font'] = myfont()
+        job_id_entry.grid(row=2,column=1,sticky='nsew', padx=2, pady=4)
+
         self.job_status_button = tk.Button(self.monitor_job_frame, text="Job Status",activebackground="#78d6ff",command=check_job_status)
         self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
+        self.job_status_button.grid(row=3, column=0,sticky='nsew', padx=2, pady=4)
 
         self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_remote)
         self.job_kill_button['font'] = myfont()
-        self.job_kill_button.grid(row=2, column=1,sticky='nsew', padx=2, pady=4)
+        self.job_kill_button.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
 
         self.file_status_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
         self.file_status_button['font'] = myfont()
@@ -1835,18 +1846,35 @@ class JobSubPage(ttk.Frame):
         self.entry_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_command)
         self.entry_command['font'] = myfont()
         self.entry_command.grid(row=9, column=1, ipadx=2, ipady=2)
+
+        self.label_stat_command = tk.Label(self.sub_job_frame, text="Stat command", bg='gray', fg='black')
+        self.label_stat_command['font'] = myfont()
+        self.label_stat_command.grid(row=10, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.entry_stat_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_stat_command)
+        self.entry_stat_command['font'] = myfont()
+        self.entry_stat_command.grid(row=10, column=1, ipadx=2, ipady=2)
+      
+        self.label_kill_command = tk.Label(self.sub_job_frame, text="Kill command", bg='gray', fg='black')
+        self.label_kill_command['font'] = myfont()
+        self.label_kill_command.grid(row=11, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.entry_kill_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_kill_command)
+        self.entry_kill_command['font'] = myfont()
+        self.entry_kill_command.grid(row=11, column=1, ipadx=2, ipady=2)
+      
       
         self.generate_job_button = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = generate_job_script)
         self.generate_job_button['font'] = myfont()
-        self.generate_job_button.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)
+        self.generate_job_button.grid(row=12,column=0,sticky='nsew', padx=2, pady=4)
 
         self.save_job_button = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = save_job_script)
         self.save_job_button['font'] = myfont()
-        self.save_job_button.grid(row=10,column=1,sticky='nsew', padx=2, pady=4)
+        self.save_job_button.grid(row=12,column=1,sticky='nsew', padx=2, pady=4)
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=11,column=0,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=13,column=0,sticky='nsew', padx=2, pady=4)    
 
     def _sub_command_option(self, *_):
         if self.sub_job_type.get() == 0:

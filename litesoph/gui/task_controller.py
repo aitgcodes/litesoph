@@ -295,19 +295,31 @@ class TaskController:
             messagebox.showinfo(title='Info', message='error')   
         
     def _on_kill_job_remote(self):
-        cmd = self.job_sub_page.sub_command.get()
+        # cmd = self.job_sub_page.sub_command.get()
+        job_id=self.job_sub_page.job_id.get()        
         
-        if cmd!='bash':
-            messagebox.showinfo(title='Info', message="Scheduler not implemented yet")
-        else:
-            try:
-                error, message=self.task.submit_network.kill_job_remote()                
-            except TaskFailed:
-                messagebox.showinfo(title='Info', message=error)                    
-            messagebox.showinfo(title='Info', message=message)   
-            self.job_sub_page.progressbar.stop()
-            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-            label_progressbar.grid(row=4, column=0,sticky='nsew')
+        scheduler=self.job_sub_page.sub_command.get()
+        scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
+        scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
+        print("job_id: ",job_id)
+        print("submit_command: ",scheduler)
+        print("scheduler_stat_cmd: ",scheduler_stat_cmd)
+        print("scheduler_kill_cmd: ",scheduler_kill_cmd)
+
+        # error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
+
+
+        # if scheduler!='bash':
+            # error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
+        # else:
+        try:
+            error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)                    
+        messagebox.showinfo(title='Info', message=message)   
+        self.job_sub_page.progressbar.stop()
+        label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        label_progressbar.grid(row=4, column=0,sticky='nsew')
 
     def _on_download_all_files(self):
         try:
@@ -469,6 +481,8 @@ class TaskController:
             else:
                 self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
                 self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+                output=self.task.task_info.network['output']
+                self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
             
     def _get_remote_output(self):
