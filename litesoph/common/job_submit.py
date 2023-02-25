@@ -235,7 +235,6 @@ class SubmitNetwork:
                                             'output':ssh_output.decode(encoding='utf-8'),
                                             'error':ssh_error.decode(encoding='utf-8')})
         
-
     def run_job_remote(self, cmd): 
         self.task_info.state.local = True   
         result = execute_cmd_local(cmd, self.project_dir)    
