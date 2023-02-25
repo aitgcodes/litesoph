@@ -27,33 +27,45 @@ octopus_data = {
                     'task_inp': 'gs.inp',
                     'out_log': 'gs.log',
                     'req' : ['coordinate.xyz'],
-                    'check_list':['SCF converged']},
+                    'check_list':['SCF converged'],
+                    'copy_list': ['exec', 'static'],
+                    'restart': 'restart/gs'
+                    },
 
     tt.RT_TDDFT: {'inp':general_input_file,
                     'task_inp': 'td.inp',
                     'out_log': 'td.log',
                     'req' : ['coordinate.xyz'],
-                    'check_list':['Finished writing information', 'Calculation ended']},
-
-    "rt_tddft_delta": {'inp':general_input_file,
-                    'task_inp': 'td_delta.inp',
-                    'out_log': 'delta.log',
-                    'req' : ['coordinate.xyz'],
-                    'check_list':['Finished writing information', 'Calculation ended']},   
-
-    "rt_tddft_laser": {'inp':general_input_file,
-                    'task_inp': 'td_laser.inp',
-                    'out_log': f'{engine_log_dir}/laser.log',
-                    'req' : ['coordinate.xyz']},
+                    'check_list':['Finished writing information', 'Calculation ended'],
+                    'copy_list': ['exec', 'td.general'],
+                    'restart': 'restart/td'
+                    },
 
     tt.COMPUTE_SPECTRUM: {'inp':general_input_file,
                 'task_inp': 'spec.inp',
                 'out_log': 'spec.log',
                 'req' : ['coordinate.xyz'],
-                'spectra_file': ['cross_section_vector']},
-
+                'spectra_file': ['cross_section_vector'],
+                'copy_list': ['cross_section_vector']
+                },
+                
     tt.TCM: {'inp': None,
             'ksd_file': 'ksd/transwt.dat'},
+
+    tt.MO_POPULATION:{'inp': None,
+        'dir': 'population',
+        'population_file': 'population.dat'},
+    
+    # "rt_tddft_delta": {'inp':general_input_file,
+    #                 'task_inp': 'td_delta.inp',
+    #                 'out_log': 'delta.log',
+    #                 'req' : ['coordinate.xyz'],
+    #                 'check_list':['Finished writing information', 'Calculation ended']},   
+
+    # "rt_tddft_laser": {'inp':general_input_file,
+    #                 'task_inp': 'td_laser.inp',
+    #                 'out_log': f'{engine_log_dir}/laser.log',
+    #                 'req' : ['coordinate.xyz']},
             
     # "tcm": {'inp': None,
     #         'req':[f'{engine_dir}/static/info',
@@ -61,16 +73,15 @@ octopus_data = {
     #         'dir': 'ksd',
     #         'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
 
-    tt.MO_POPULATION:{'inp': None,
-            # 'req':[f'{engine_dir}/static/info',
-            # f'{engine_dir}/td.general/projections'],
-            'dir': 'population',
-            'population_file': 'population.dat'},
-
     # "ksd": {'inp': f'{engine_dir}/ksd/oct.inp',
     #     'req':[f'{engine_dir}/static/info',
     #     f'{engine_dir}/td.general/projections'],
-    #     'ksd_file': f'{engine_dir}/ksd/transwt.dat'}          
+    #     'ksd_file': f'{engine_dir}/ksd/transwt.dat'}
+    # tt.MO_POPULATION:{'inp': None,
+        # 'req':[f'{engine_dir}/static/info',
+        # f'{engine_dir}/td.general/projections'],
+        # 'dir': 'population',
+        # 'population_file': 'population.dat'},          
 }
 class OctTask(Task):
     pass
