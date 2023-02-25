@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, List, Dict, Union
 
 from numpy import true_divide
-from litesoph.common.task import Task, TaskFailed, TaskNotImplementedError, assemable_job_cmd
+from litesoph.common.task import Task, InputError, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.octopus.octopus import Octopus
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
