@@ -175,7 +175,13 @@ class OctopusTask(Task):
                 td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
                 shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
 
-
+        # Adding local copy files/folders
+        geom_path = str(Path(self.geom_fpath).relative_to(self.wf_dir))
+        restart_dir = self.task_data.get('restart')
+        restart_path = 'octopus/'+str(restart_dir)
+        self.task_info.local_copy_files.extend([geom_path,restart_path])
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.wf_dir)))
+        
     def update_task_info(self, **kwargs):
         """ Updates current task info with relative paths of input and output files"""
         
