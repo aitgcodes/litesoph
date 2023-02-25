@@ -234,7 +234,7 @@ class SubmitNetwork:
         self.task_info.network.update({'sub_returncode': exit_status,
                                             'output':ssh_output.decode(encoding='utf-8'),
                                             'error':ssh_error.decode(encoding='utf-8')})
-    
+        
     def run_job_remote(self, cmd): 
         self.task_info.state.local = True   
         result = execute_cmd_local(cmd, self.project_dir)    
@@ -290,15 +290,19 @@ class SubmitNetwork:
             job_status="SSH session not active"
 
         return job_status
-
-    def kill_job_remote(self):
+   
+    def kill_job_remote(self,job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd):
         """
         kill the running job at remote
         """
-        job_name=self.task.BASH_filename
-        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_name}; then echo Job killed; else echo No Job found; fi"
-        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
-        (error, message)=execute_cmd_remote(cmd_check_running_process, self.password)            
+        if scheduler=='bash':
+            cmd_kill=f"ps aux | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_id}; then echo Job killed; else echo No Job found; fi"
+            cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_kill}'    
+        else:
+            cmd_kill=f"{scheduler_stat_cmd} | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; {scheduler_kill_cmd} {job_id}; then echo Job killed {job_id}; else echo No Job found; fi"        
+            cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_kill}'            
+        
+        (error, message)=execute_cmd_remote(cmd,self.password)          
         return (error, message)
 
     def download_all_files_remote(self):
