@@ -291,31 +291,7 @@ class SubmitNetwork:
             job_status="SSH session not active"
 
         return job_status
-
-    def kill_job_remote0(self):
-        """
-        kill the running job at remote
-        """
-        job_name=self.task.BASH_filename
-        cmd_check_running_process=f"ps aux | grep -w {job_name}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_name}; then echo Job killed; else echo No Job found; fi"
-        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
-        (error, message)=execute_cmd_remote(cmd_check_running_process, self.password)            
-        return (error, message)
-
-    def kill_job_remote2(self,scheduler_del_cmd,job_id):
-        """
-        kill the running job at remote
-        """
-        # login_cmd=f'ssh -p {self.port} {self.username}@{self.hostname}'
-        # job_kill_cmd=f'{scheduler_del_cmd} {job_id}'
-        # job_name=self.task.BASH_filename
-
-        cmd_check_running_process=f"ps aux | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_id}; then echo Job killed; else echo No Job found; fi"
-        cmd_check_running_process=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
-        
-        (error, message)=execute_cmd_remote(cmd_check_running_process, self.password)            
-        return (error, message)
-    
+   
     def kill_job_remote(self,job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd):
         """
         kill the running job at remote

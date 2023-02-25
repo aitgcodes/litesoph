@@ -295,18 +295,11 @@ class TaskController:
             messagebox.showinfo(title='Info', message='error')   
         
     def _on_kill_job_remote(self):
-        # cmd = self.job_sub_page.sub_command.get()
-        job_id=self.job_sub_page.job_id.get()        
-        
+    
+        job_id=self.job_sub_page.job_id.get()            
         scheduler=self.job_sub_page.sub_command.get()
         scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
         scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
-        print("job_id: ",job_id)
-        print("submit_command: ",scheduler)
-        print("scheduler_stat_cmd: ",scheduler_stat_cmd)
-        print("scheduler_kill_cmd: ",scheduler_kill_cmd)
-
-        # error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
 
         if job_id == None:
             messagebox.showinfo(title='Info', message="Enter Job ID first")                  
