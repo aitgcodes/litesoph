@@ -308,18 +308,17 @@ class TaskController:
 
         # error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
 
-
-        # if scheduler!='bash':
-            # error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
-        # else:
-        try:
-            error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
-        except TaskFailed:
-            messagebox.showinfo(title='Info', message=error)                    
-        messagebox.showinfo(title='Info', message=message)   
-        self.job_sub_page.progressbar.stop()
-        label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-        label_progressbar.grid(row=4, column=0,sticky='nsew')
+        if job_id == None:
+            messagebox.showinfo(title='Info', message="Enter Job ID first")                  
+        else:
+            try:
+                error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
+            except TaskFailed:
+                messagebox.showinfo(title='Info', message=error)                    
+            messagebox.showinfo(title='Info', message=message)   
+            self.job_sub_page.progressbar.stop()
+            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            label_progressbar.grid(row=4, column=0,sticky='nsew')
 
     def _on_download_all_files(self):
         try:

@@ -321,7 +321,6 @@ class SubmitNetwork:
         kill the running job at remote
         """
         if scheduler=='bash':
-
             cmd_check_running_process=f"ps aux | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_id}; then echo Job killed; else echo No Job found; fi"
             cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
         else:
