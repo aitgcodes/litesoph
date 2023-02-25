@@ -103,9 +103,7 @@ class OctopusTask(Task):
 
         if dependent_tasks:
             self.dependent_tasks = dependent_tasks
-
         self.wf_dir = self.project_dir
-
         self.task_data = octopus_data.get(self.task_name)
         self.params = copy.deepcopy(self.task_info.param)        
         self.user_input = {}
@@ -134,8 +132,7 @@ class OctopusTask(Task):
         For post-processing tasks, copies the required files to octopus folder structure"""
 
         self.input_filename = 'inp'
-        self.task_input_filename = self.task_data.get('task_inp', 'inp')
-       
+        self.task_input_filename = self.task_data.get('task_inp', 'inp')       
         geom_fname = self.user_input.get('geom_fname','coordinate.xyz')
         self.geom_file = '../' + str(geom_fname)
         self.geom_fpath = str(self.wf_dir / str(geom_fname))
@@ -146,7 +143,8 @@ class OctopusTask(Task):
         self.task_dir = get_new_directory(task_dir)
         self.output_dir = str(Path(self.engine_dir) / 'log')
         self.network_done_file = Path(self.task_dir) / 'Done'
-        
+        self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
+
         self.task_info.input['engine_input']={}
 
         for dir in [self.engine_dir, self.output_dir]:
@@ -159,8 +157,6 @@ class OctopusTask(Task):
         if self.task_name == tt.COMPUTE_SPECTRUM:
             td_info = self.dependent_tasks[0]
             if td_info:
-                # modify relative paths to absolute path 
-                # by prefixing wf_dir
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
                 td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
                 shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
@@ -169,8 +165,6 @@ class OctopusTask(Task):
         elif self.task_name in self.added_post_processing_tasks:            
             td_info = self.dependent_tasks[1]
             if td_info:
-                # modify relative paths to absolute path 
-                # by prefixing wf_dir
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
                 td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
                 shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
@@ -186,11 +180,8 @@ class OctopusTask(Task):
         """ Updates current task info with relative paths of input and output files"""
         
         if self.task_name in self.added_post_processing_tasks:
-            return
-        
-        # TODO:relative paths
+            return        
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
-
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
         self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
         if self.task_name == tt.RT_TDDFT:
@@ -208,8 +199,6 @@ class OctopusTask(Task):
         self.update_task_info()
 
         relative_infile = self.input_filename
-
-        # relative paths
         if self.task_info.output.get('txt_out'):
             relative_outfile = Path(self.task_info.output['txt_out'])
 
@@ -272,13 +261,15 @@ class OctopusTask(Task):
         return run_status, check
 
     def post_run(self):
-        """Handles copying output folders to task directory from octopus specific folder structure"""
+        """Handles copying output folders to task directory from octopus specific folder structure
+        for local run"""
+        # TODO: log folder to be removed
         log_files = list(Path(self.output_dir).iterdir())
         for log in log_files:
             shutil.copy(Path(self.output_dir)/log, Path(self.task_dir))
         task = self.task_name
         if task == tt.GROUND_STATE:
-            folders = ['exec']
+            folders = ['exec', 'static']
             for item in folders:
                 shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item)
         elif task == tt.RT_TDDFT:
@@ -301,7 +292,6 @@ class OctopusTask(Task):
 
     def create_task_dir(self):
         """Craetes task dir and stores to task info"""
-        # relative paths
         self.task_info.output['task_dir'] = str(self.task_dir.relative_to(self.wf_dir))
         self.create_directory(self.task_dir)  
 
@@ -310,35 +300,61 @@ class OctopusTask(Task):
         self.task_info.engine_param.update(self.user_input)
         self.task_info.input['engine_input']['data'] = self.template
 
-    def create_job_script(self, np=1, remote_path=None) -> list:
+    def add_cp_mv_on_remote(self, dst:str):
+        task_data = octopus_data.get(self.task_name)
+        copy_list = task_data.get('copy_list', None)
+        add_lines = []
+        if isinstance(copy_list, list):
+            for item in copy_list:
+                line = "mv "+ str(item) + ' '+ dst
+                add_lines.append(line)
+            lines_str = "\n".join(add_lines)
+        else:
+            lines_str = None       
+        return lines_str
+
+    def create_job_script(self, np=1, remote_path=None):
         
         job_script = super().create_job_script()      
-        ofilename = 'log/'+ str(self.task_data['out_log'])
+        # ofilename = 'log/'+ str(self.task_data['out_log'])
+        task_dir_name = self.task_dir.name
+        ofilename = str(task_dir_name)+ '/'+ str(self.task_data['out_log'])
        
         engine_path = copy.deepcopy(self.engine_path)
         mpi_path = copy.deepcopy(self.mpi_path)
         cd_path = self.wf_dir / self.engine_dir
-
-        if remote_path:
-            mpi_path = 'mpirun'
-            engine_path = 'octopus'
-            cd_path = Path(remote_path) / self.wf_dir.parents[0].name / self.wf_dir.name / 'octopus'
-        
         extra_cmd = None
+        cp_mv_lines = None
+
+        # Unoccupied state calculation
         if self.task_name == tt.GROUND_STATE and self.user_input['ExtraStates'] != 0:
                 unocc_ofilename = Path(octopus_data['unoccupied_task']['out_log']).relative_to('octopus')
                 extra_cmd = "perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp\n"
                 extra_cmd = extra_cmd + f"{mpi_path} -np {np:d} {str(engine_path)} &> {str(unocc_ofilename)}"
                 
+        # Absorption Spectrum utility
         if self.task_name == tt.COMPUTE_SPECTRUM:
             engine_path = Path(self.engine_path).parent / 'oct-propagation_spectrum'
 
+        if remote_path:
+            mpi_path = 'mpirun'
+            engine_path = 'octopus'
+            cd_path = Path(remote_path) / self.wf_dir.parents[0].name / self.wf_dir.name / 'octopus'
+            r_task_path = Path(remote_path) / self.wf_dir.parents[0].name / self.wf_dir.name / self.task_dir.relative_to(self.wf_dir)
+            cp_mv_lines = self.add_cp_mv_on_remote(dst= str(r_task_path))
+        
+        #TODO: adding cp/mv lines for local condition     
+        # Adding lines to copy/move folders
+        if cp_mv_lines is not None:
+            if isinstance(extra_cmd, str):
+                extra_cmd = extra_cmd + cp_mv_lines 
+            else:
+                extra_cmd = cp_mv_lines
         engine_cmd = str(engine_path) + ' ' + '&>' + ' ' + str(ofilename)
-        job_script = assemable_job_cmd(engine_cmd, np, cd_path, mpi_path=mpi_path, remote=bool(remote_path),
+        job_script = assemable_job_cmd(self.task_info.uuid, engine_cmd, np, cd_path, mpi_path=mpi_path, remote=bool(remote_path),
                                                 module_load_block=self.get_engine_network_job_cmd(),
                                                 extra_block=extra_cmd)
         self.job_script = job_script
-
         return self.job_script
 
     def prepare_input(self):
@@ -355,7 +371,8 @@ class OctopusTask(Task):
 
     def get_engine_log(self):
         """Gets engine log filepath and content, if check_output() returns True"""
-        out_log = Path(self.output_dir) / self.task_data.get('out_log')
+        # out_log = Path(self.output_dir) / self.task_data.get('out_log')
+        out_log = Path(self.task_dir) / self.task_data.get('out_log')
         if self.check_output():
             return self.read_log(out_log)
 
