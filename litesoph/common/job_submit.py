@@ -297,11 +297,11 @@ class SubmitNetwork:
         kill the running job at remote
         """
         if scheduler=='bash':
-            cmd_check_running_process=f"ps aux | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_id}; then echo Job killed; else echo No Job found; fi"
-            cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'    
+            cmd_kill=f"ps aux | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_id}; then echo Job killed; else echo No Job found; fi"
+            cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_kill}'    
         else:
-            cmd_check_running_process=f"{scheduler_stat_cmd} | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; {scheduler_kill_cmd} {job_id}; then echo Job killed {job_id}; else echo No Job found; fi"        
-            cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_check_running_process}'            
+            cmd_kill=f"{scheduler_stat_cmd} | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; {scheduler_kill_cmd} {job_id}; then echo Job killed {job_id}; else echo No Job found; fi"        
+            cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_kill}'            
         
         (error, message)=execute_cmd_remote(cmd,self.password)          
         return (error, message)
