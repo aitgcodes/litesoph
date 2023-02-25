@@ -308,13 +308,17 @@ class TaskController:
             messagebox.showinfo(title='Info', message='error')   
         
     def _on_kill_job_remote(self):
-        cmd = self.job_sub_page.sub_command.get()
-        
-        if cmd!='bash':
-            messagebox.showinfo(title='Info', message="Scheduler not implemented yet")
+    
+        job_id=self.job_sub_page.job_id.get()            
+        scheduler=self.job_sub_page.sub_command.get()
+        scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
+        scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
+
+        if job_id == None:
+            messagebox.showinfo(title='Info', message="Enter Job ID first")                  
         else:
             try:
-                error, message=self.task.submit_network.kill_job_remote()                
+                error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
             except TaskFailed:
                 messagebox.showinfo(title='Info', message=error)                    
             messagebox.showinfo(title='Info', message=message)   
@@ -482,6 +486,8 @@ class TaskController:
             else:
                 self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
                 self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+                output=self.task.task_info.network['output']
+                self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
             
     def _get_remote_output(self):
