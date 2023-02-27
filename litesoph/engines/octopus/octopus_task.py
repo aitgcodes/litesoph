@@ -142,7 +142,7 @@ class OctopusTask(Task):
         task_dir = (Path(self.engine_dir) / self.task_name)
         self.task_dir = get_new_directory(task_dir)
         self.output_dir = str(Path(self.engine_dir) / 'log')
-        self.network_done_file = Path(self.task_dir) / 'Done'
+        self.network_done_file = Path(self.engine_dir) / 'Done'
         self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
 
         self.task_info.input['engine_input']={}
