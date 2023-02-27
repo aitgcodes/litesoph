@@ -46,3 +46,23 @@ def get_new_directory(path:Path) -> Path:
         else:
             break
     return path
+
+#----------------------------------------------
+def get_pol_list(pol_var:str):
+    assert pol_var in ["X", "Y", "Z"] 
+    if pol_var == "X":
+        pol_list = [1,0,0]         
+    elif pol_var == "Y":
+        pol_list = [0,1,0] 
+    elif pol_var == "Z":
+        pol_list = [0,0,1]                
+    return pol_list
+
+def get_pol_var(pol_list:list):
+    if pol_list == [1,0,0]:
+        pol_var = "X"          
+    elif pol_list == [0,1,0]:
+        pol_var = "Y" 
+    elif pol_list == [0,0,1]    :
+        pol_var = "Z"                
+    return pol_var
