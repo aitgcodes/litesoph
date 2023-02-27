@@ -8,6 +8,7 @@ from typing import Any, Dict
 from litesoph.common.data_sturcture.data_types import DataTypes as  DT
 from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
 from litesoph.pre_processing.laser_design import laser_design, GaussianPulse, DeltaPulse
+from litesoph.common.utils import get_pol_list
 
 @dataclass
 class AutoModeModel:
@@ -102,7 +103,6 @@ class OctopusModel:
             'rel_eigen' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0},
             'extra_states' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 0}
         }
-    
 
 class LaserDesignModel:
 
@@ -126,7 +126,7 @@ class LaserDesignModel:
         range = self.user_input['total_time']
         self.range = range*1e3
         self.freq = self.user_input['frequency']
-        self.strength = self.user_input['strength']
+        self.strength = self.user_input['strength']    
 
     def create_pulse(self):
         """ creates gaussian pulse with given inval,fwhm value """
@@ -187,109 +187,6 @@ def plot(x_data, y_data, x_label, y_label):
  
     # return figure    
 
-class LaserDesignModelNew:
-
-    laser_input = {
-
-        "strength": {'req' : True, 'type': DT.decimal},
-        "inval" : {'req' : True, 'type': DT.decimal},
-        #"pol_x": {'req' : True, 'type': DT.integer},
-        #"pol_y" : {'req' : True, 'type': DT.integer},
-        #"pol_z" : {'req' : True, 'type': DT.integer},
-        "fwhm" : {'req' : True, 'type': DT.decimal},
-        "frequency" : {'req' : True, 'type': DT.decimal},
-        "time_step" : {'req' : True, 'type': DT.decimal},
-        "number_of_steps": {'req' : True, 'type': DT.decimal},
-        "tin" : {'req' : True, 'type': DT.decimal}
-        
-        }
-    def __init__(self,user_input) -> None:
-        self.user_input = user_input
-    #     # # range = int(self.user_input['number_of_steps'])* float(self.user_input['time_step'])
-        # range = self.user_input['total_time']
-        # self.range = range*1e3
-        # self.freq = self.user_input['frequency']
-        # self.strength = self.user_input['strength']
-        
-    def create_pulse(self):
-        user_input = self.user_input
-        from litesoph.pre_processing.laser_design import GaussianPulse
-        from litesoph.pre_processing.laser_design import laser_design
-        from litesoph.pre_processing.laser_design import G_DeltaPulse
-        import matplotlib.pyplot as plt
-        # print(user_input)
-        laser_details =[]
-        for n, laser in enumerate (user_input):
-
-            if laser['type']== 'Gaussian':
-
-                freq=laser['frequency']
-                strength = laser['strength']
-                t_total=laser['total_time']*1e3
-                in_value=laser['inval']
-                t_in=laser['tin']
-                F_fwhm=laser['fwhm']
-                
-                """ creates gaussian pulse with given inval,fwhm value """
-                l_design = laser_design(in_value,t_in,F_fwhm)
-                l_design['frequency'] = freq
-                l_design['strength'] = strength
-                sigma = round(autime_to_eV/l_design['sigma'], 2)
-                time0 = round(l_design['time0']*au_to_as, 2)                                 
-                l_design['type']= 'Gaussian'     
-                       
-                
-                delay_array=[x * 1e3 for x in [2,4,6,8,10]] 
-
-                # # ##### probe pulse train Generation  ###############
-                if n > 0:
-                    for  delay in delay_array:
-
-                        pulse=GaussianPulse(strength,float(time0)+delay,freq, float(sigma), 'sin')
-                        strength_t = pulse.strength(np.arange(t_total)*as_to_au)
-                        plt.plot(time_t*as_to_au*au_to_fs,strength_t)
-                else:
-
-                # ##### Generating Pulse by invoking GaussianPulse function
-                    pulse = GaussianPulse(strength,float(time0),freq, float(sigma), 'sin')        
-            
-                # ##Ploting all LASERs in single file#######
-                    time_t = np.arange(t_total)
-                    strength_t = pulse.strength(np.arange(t_total)*as_to_au)
-                    plt.plot(time_t*as_to_au*au_to_fs,strength_t) #, 'Time (in fs)', 'Pulse Strength (in au)'
-            else:
-                               
-                strength = laser['strength']
-                l_design={}
-                l_design['strength'] = strength
-                time0 = 0 
-                l_design['time0'] =time0                                
-                l_design['type']= 'Delta'         
-                
-                delay_array=[x * 1e3 for x in [2,4,6,8,10]] 
-
-                # # ##### Delta probe pulse train Generation  ###############
-                
-                for  delay in delay_array:
-
-                    pulse=G_DeltaPulse(strength,float(time0)+delay)
-                    strength_t = pulse.strength(np.arange(t_total)*as_to_au)
-                    plt.plot(time_t*as_to_au*au_to_fs,strength_t)
-                
-            laser_details.append(l_design)        
-
-        plt.xlabel('Time (in fs)')
-        plt.ylabel('Pulse Strength (in au)')
-        plt.show()
-        
-        # self.derivative_t = self.pulse.derivative(np.arange(self.range)*as_to_au)
-
-    # def write_laser(self,filename):
-    #     """ writes laser pulse to file """
-    #     filename = pathlib.Path(filename) 
-    #     self.pulse.write(filename, np.arange(self.range))
-
-
 class LaserDesignPlotModel:
     """ laser_inputs: list of laser inputs
         laser_profile_time: in femtosecond
@@ -298,140 +195,278 @@ class LaserDesignPlotModel:
     def __init__(self, laser_inputs:list, laser_profile_time) -> None:
         self.laser_inputs  = laser_inputs
         if laser_profile_time:
-            self.laser_profile_time = laser_profile_time       
-    
-    def compute_laser_design_param(self, laser_type:str, laser_param:dict):
-        """ Calculates laser parameters specific to laser type"""
-        assert laser_type in ["gaussian", "delta"]
+            self.laser_profile_time = laser_profile_time  
 
-        t_in=laser_param['tin']  #au unit
+    def compute_laser_design_param(self, laser_type:str, laser_param:dict):
+        """ Calculates laser parameters specific to laser pulse shape
+        \n and returns pulse objects
+        \n eg: Delta/Gaussian"""
+
+        # Collecting laser parameters
+        tag = laser_param.get('tag', None)
+        pol_var = laser_param.get('polarization')
+        pol_list = get_pol_list(pol_var)
+
         # delay wrt the time origin of first laser 
-        delay_time_fs = laser_param['delay_time']          
+        # delay_time_fs = laser_param['delay_time']          
         strength_au = laser_param['strength']
+        t_in = laser_param['tin']
 
         if laser_type == "gaussian":
-            freq_eV=laser_param['frequency']
-            strength_au = laser_param['strength']
-            inval=laser_param['inval']
+            # Collecting parameter specific to Gaussian
+            inval=laser_param.get('inval')
+            freq_eV=laser_param.get('frequency')
+            fwhm_eV=laser_param.get('fwhm')            
 
-            # fwhm in frequency space 
-            fwhm_eV=laser_param['fwhm']
+            # Calculates fwhm/sigma(in time) and pulse centre/time0(in time)
+            # creates gaussian pulse with given inval,fwhm value 
+            l_design = laser_design(inval,t_in,fwhm_eV)
 
-            # Calculates fwhm/sigma(in time) and pulse centre(in time)
-            # creates gaussian pulse with given inval,fwhm value """
-            t_in_plus_delay = t_in + delay_time_fs*1e3*as_to_au
-            l_design = laser_design(inval,t_in_plus_delay,fwhm_eV)
             l_design.update(
                 {'type': 'gaussian', 
-                # 'tin': t_in,
+                'tag': tag,
                 'frequency': freq_eV,
-                'strength': strength_au
+                'strength': strength_au,
+                'polarization': pol_list
                 })
                 
+            # Unit conversion required for Pulse creation
             sigma_eV = round(autime_to_eV/l_design['sigma'], 2)
             time0_fs = round(l_design['time0']*au_to_fs,2) 
+
+            # GaussianPulse 
             pulse = GaussianPulse(strength= strength_au,
                                 time0= time0_fs*1e3,frequency= freq_eV,
                                  sigma= sigma_eV, sincos='sin')
-            return (pulse, l_design) 
 
-        elif laser_type == "delta":  
-            time0=t_in*au_to_as + delay_time_fs *1e3
+        elif laser_type == "delta": 
+            # Collecting parameter specific to Delta
+            time0=t_in*au_to_as
+
+            # DeltaPulse
             pulse = DeltaPulse(strength= strength_au,
             time0= time0, total_time=self.laser_profile_time)
 
             l_design={
-            'type': 'delta', 
+            'type': 'delta',
+            'tag': tag, 
             "strength": strength_au,
-            "time0": time0,
+            "time0": round(time0*as_to_au,2),
+            'polarization': pol_list
             } 
-            return (pulse, l_design)
-       
+
+        pulse.laser_input = laser_param                   
+        pulse.laser_design = l_design
+        return pulse
+
     def get_laser_pulse_list(self):
+        """Returns list of pulse objects for list of laser inputs"""
 
         self.list_of_pulse = []
-        self.list_of_laser_param = []
-
         for n, laser in enumerate (self.laser_inputs):
             laser_type = laser.get('type')
             pulse_info = self.compute_laser_design_param(laser_type, laser)
-            self.list_of_pulse.append(pulse_info[0])
-            self.list_of_laser_param.append(pulse_info[1])
+            self.list_of_pulse.append(pulse_info)
             
         return self.list_of_pulse
 
-    def get_time_strength(self, list_of_pulse:list):
-        """Plots single/multiple lasers given the delay"""
+    def get_laser_param_pulse(self, laser_input:dict):
+        """Returns pulse object for laser
+        \n laser_input variables: 'type', 'time0'"""
+        # TODO: Modify this method to decide type if not present
 
-        if list_of_pulse:
-            self.pulse_sets = list_of_pulse
-        else:
-            self.pulse_sets = self.get_laser_pulse()
+        laser_type = laser_input.get('type')
+        if laser_type in ["gaussian", "delta"]:
+            self.pulse_info = self.compute_laser_design_param(laser_type, laser_input)            
+            return self.pulse_info
 
-        laser_profile_time_fs = self.laser_profile_time
-        laser_profile_time_as = laser_profile_time_fs*1e3
-        time_array = np.arange(laser_profile_time_as)
+def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
+    """Plots multiple lasers,\n
+    laser_profile_time(in fs): total time"""
 
-        laser_strengths = []        
-        for pulse in self.pulse_sets:
-            if pulse.name == "delta":
-                strength_value = pulse.strength()
-            if pulse.name == "gaussian":
-                strength_value = pulse.strength(time_array*as_to_au)
-            laser_strengths.append(strength_value)
-        self.time = time_array
-        self.strengths = laser_strengths
+    laser_sets = list_of_laser_params
+    laser_profile_time_as = laser_profile_time*1e3    
+    time_array = np.arange(laser_profile_time_as)
+    laser_strengths = []   
 
-        return (time_array,laser_strengths)     
-                
-    def write(self, fname, time_t, laser_strengths:list):
-        """
-        Write the values of the pulse to a file.
+    for i,laser in enumerate(laser_sets):                     
+        if laser.get('type') == "delta": 
+            time0 = laser.get('time0')*au_to_as
+            pulse = DeltaPulse(strength= laser.get('strength'),
+                                time0 = time0,  
+                                total_time=laser_profile_time)
+            strength_value = pulse.strength()
 
-        Parameters
-        ----------
-        fname
-            filename
-        time_t
-            times in attoseconds
-        """
-        time_t = time_t * as_to_au
-        fmt = '%20.10e'
-        # fmt = '%12.6f'
-        header = '{:^10}'
+        if laser.get('type') == "gaussian": 
+            time0 = laser.get('time0')*au_to_as                 
+            sigma_eV = round(autime_to_eV/laser['sigma'], 2)
+            freq_eV = laser.get('frequency')
+            pulse = GaussianPulse(strength= laser.get('strength'),
+                                time0= time0,
+                                frequency= freq_eV,
+                                sigma= sigma_eV, 
+                                sincos='sin')              
+            strength_value = pulse.strength(time_array*as_to_au)
 
-        # fmt_str = '%12.6f %20.10e %20.10e'
-        fmt_str = '%12.6f'
-        header_str = ''
+        laser_strengths.append(strength_value) 
+    return (time_array,laser_strengths)      
 
-        for i in range(len(laser_strengths)):
-            fmt_str = fmt_str + ' '+ fmt
-            header_str = header_str+header
-        
-        # Format header_string            
-        np.savetxt(fname, np.stack((time_t, *laser_strengths)).T,
-                   fmt=fmt_str, 
-                #    header=header
-                   )
+def write(fname, time_t, laser_strengths:list):
+    """
+    Write the values of the pulse to a file.
+    Parameters
+    ----------
+    fname
+        filename
+    time_t
+        times in attoseconds
+    """
+    time_t = time_t * as_to_au
+    fmt = '%20.10e'
+    # fmt = '%12.6f'
+    header = '{:^10}'
 
-    def plot_laser(self, fname= None):
-        from litesoph.visualization.plot_spectrum import plot_multiple_column
-        if fname:
-            data = np.loadtxt(str(fname))
-        else:
-            data = np.stack((self.time, *self.strengths)).T
-        num_of_lasers = len(self.strengths)
-        data[:,0] = data[:,0]*as_to_au*au_to_fs
+    # fmt_str = '%12.6f %20.10e %20.10e'
+    fmt_str = '%12.6f'
+    header_str = ''
 
-        plot_multiple_column(data_array=data,
-        column_list=(1,num_of_lasers), xlabel= 'Time (in fs)', ylabel= 'Pulse Strength (in au)', xcolumn=0,        
-        column_dict = format_laser_label(num_of_lasers)
-        )
+    for i in range(len(laser_strengths)):
+        fmt_str = fmt_str + ' '+ fmt
+        header_str = header_str+header
+    
+    # Format header_string            
+    np.savetxt(fname, np.stack((time_t, *laser_strengths)).T,
+                fmt=fmt_str, 
+            #    header=header
+                )
+
+def plot_laser(time_arr, strength_arr,fname= None):
+    """Plots Strengths as function of time"""
+
+    from litesoph.visualization.plot_spectrum import plot_multiple_column
+    if fname:
+        data = np.loadtxt(str(fname))
+    else:
+        data = np.stack((time_arr, *strength_arr)).T
+
+    num_of_lasers = len(strength_arr)
+    data[:,0] = data[:,0]*as_to_au*au_to_fs
+    plot_multiple_column(data_array=data,
+                        column_list=(1,num_of_lasers), 
+                        xlabel= 'Time (in fs)', 
+                        ylabel= 'Pulse Strength (in au)', xcolumn=0,        
+                        column_dict = format_laser_label(num_of_lasers)
+                        )
 
 def format_laser_label(number_of_lasers:int):
-    laser_label_dict = {}
-    
+    """Formats laser labels with index"""
+    laser_label_dict = {}    
     for i in range(number_of_lasers):
         laser_label_dict.update({(i+1): "laser"+ str(i+1)})
-
     return laser_label_dict
+
+class LaserInfo:
+    def __init__(self, laser_dict:dict) -> None:
+        self.data = laser_dict
+
+    def add_systems_to_laser_data(self, system_tag:str, laser_list:list=[]):
+        system_key = system_tag
+        system_dict = {'tag': system_tag,
+                        'lasers': laser_list}
+
+        self.data.update({system_key:system_dict})
+
+    def add_laser(self, system_key:str, laser_param:dict, index:int = None):
+        """ Appends lasers to laser database 
+        or adds to list index, if index is given"""
+
+        if system_key in self.data.keys():
+            try:
+                existing_lasers = self.data[system_key]['lasers']
+                assert isinstance(existing_lasers, list)  
+                if index is None:
+                    existing_lasers.append(laser_param)
+                else:
+                    try:
+                        existing_lasers[index] = laser_param
+                    except IndexError:
+                        raise IndexError('List index:{} is not found'.format(index))     
+
+                self.data[system_key]['lasers'] = existing_lasers
+            except KeyError:
+                self.data[system_key]['lasers'] = [laser_param]
+        else:
+            self.add_systems_to_laser_data(system_tag=system_key,laser_list=[laser_param])
+
+    def add_pulse(self, system_key:str, laser_pulse, index:int=None):
+        """ Appends laser pulse object to laser database 
+        or adds to list index, if index is given"""
+
+        pulse_info = laser_pulse
+        try:
+            laser_pulses =self.data[system_key]['pulses']
+            assert isinstance(laser_pulses, list)
+            if index is None:
+                laser_pulses.append(pulse_info)
+            else:
+                try:
+                    laser_pulses[index] = pulse_info
+                except IndexError:
+                    raise IndexError('List index:{} is not found'.format(index))
+            self.data[system_key]['pulses'] = laser_pulses
+
+        except KeyError:
+            self.data[system_key]['pulses'] = [pulse_info]
+
+    def remove_info(self, system_key:str, laser_index:int):
+        """Removes laser details on the given index from laser_database"""
+        
+        if system_key in self.data.keys():
+            laser_system = self.data[system_key]
+            lasers = laser_system.get('lasers')
+            pulses = laser_system.get('pulses')
+
+            assert isinstance(lasers, list)
+            assert isinstance(pulses, list)
+            try:
+                lasers.pop(laser_index)
+                pulses.pop(laser_index)
+                self.data[system_key]['lasers'] = lasers
+                self.data[system_key]['pulses'] = pulses
+            except IndexError:
+                raise IndexError('List index:{} is not found'.format(laser_index))
+
+    def check_laser_exists(self, system_tag:str):
+        """ Validates availability of laser/pulse and returns bool"""
+
+        lasers_exist = False
+        pulses_exist = False
+        if system_tag in self.data.keys():
+            laser_system = self.data[system_tag]
+            lasers = laser_system.get('lasers')
+            pulses = laser_system.get('pulses')
+            assert isinstance(lasers, list)
+            assert isinstance(pulses, list)
+
+            if len(lasers)> 0:
+                lasers_exist = True
+            if len(pulses)> 0:
+                pulses_exist = True
+        else:
+            # TODO: handle this keyerror
+            return False
+            # raise KeyError("{} key is missing".format(system_tag))            
+
+        if all([lasers_exist, pulses_exist]):
+            return True
+        else:
+            # TODO: add condition to get the false condition
+            return False
+
+    def get_number_lasers(self, system_tag):
+        try:
+            lasers = self.data[system_tag]['lasers']
+            num_lasers = len(lasers)
+        except KeyError:
+            num_lasers=0
+        return num_lasers
