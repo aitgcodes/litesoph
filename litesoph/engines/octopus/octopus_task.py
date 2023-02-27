@@ -183,7 +183,8 @@ class OctopusTask(Task):
             return        
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
-        self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        # self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
         if self.task_name == tt.RT_TDDFT:
             self.task_info.output['multipoles'] = str(Path(self.task_dir).relative_to(self.wf_dir) / 'td.general'/ 'multipoles')
             
