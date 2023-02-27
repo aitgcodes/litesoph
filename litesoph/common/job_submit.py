@@ -245,8 +245,12 @@ class SubmitNetwork:
         
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
-        rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
-        return self.network_sub.check_file(str(rpath))
+        # rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+        # return self.network_sub.check_file(str(rpath))        
+        job_id=self.task_info.uuid    
+        job_done_file = pathlib.Path(self.remote_path) / self.task.network_done_file.parent.relative_to(self.project_dir.parent)/ f"Done_{job_id}"
+        job_done_status=self.network_sub.check_file(str(job_done_file))           
+        return job_done_status
 
     def get_fileinfo_remote(self):   
         """
