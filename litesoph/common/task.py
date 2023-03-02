@@ -56,8 +56,9 @@ class PropertyNotPresent(TaskError):
 class Task:
 
     """Base-class for all tasks."""
-
-    BASH_filename = 'job_script.sh'
+    import uuid
+    id=str(uuid.uuid4())
+    BASH_filename = f'ls_job_script_{id}.sh'
     job_script_first_line = "#!/bin/bash"
     remote_job_script_last_line = "touch Done"
 
@@ -155,11 +156,11 @@ class Task:
             self.write_input()
 
     def set_submit_local(self, *args):
-        self.sumbit_local = SubmitLocal(self, *args)
+        self.submit_local = SubmitLocal(self, *args)
 
     def run_job_local(self,cmd):
         cmd = cmd + ' ' + self.BASH_filename
-        self.sumbit_local.run_job(cmd)
+        self.submit_local.run_job(cmd)
 
     def connect_to_network(self, *args, **kwargs):
         self.submit_network = SubmitNetwork(self, *args, **kwargs)
@@ -210,14 +211,14 @@ def write2file(directory,filename, template) -> None:
         f.write(template)
 
 
-def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None, 
+def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_path: str=None, 
                         mpi_path: str = None,
                         remote : bool = False,
                         scheduler_block : str = None,
                         module_load_block : str = None,
                         extra_block : str = None) -> str:
     job_script_first_line = "#!/bin/bash"
-    remote_job_script_last_line = "touch Done"
+    remote_job_script_last_line = f"touch Done_{job_id}"
     
     job_script = [job_script_first_line]
     
@@ -228,22 +229,24 @@ def assemable_job_cmd(engine_cmd:str = None, np: int =1, cd_path: str=None,
             job_script.append(module_load_block)
 
     if cd_path:
-        job_script.append(f'cd {cd_path}')
-    
+        job_script.append(f'cd {cd_path};')
+        job_script.append(f'touch Start_{job_id}')
+        
     if engine_cmd:
         if np > 1:
             if not mpi_path:
                 mpi_path = 'mpirun'
             job_script.append(f'{mpi_path} -np {np:d} {engine_cmd}')
         else:
-            job_script.append(engine_cmd)
+            job_script.append(f"bash -c 'echo $$;  {engine_cmd}'")
+            # job_script.append(engine_cmd)
 
     if extra_block:
         job_script.append(extra_block)
 
     if remote:
         job_script.append(remote_job_script_last_line)
-
+    
     job_script = '\n'.join(job_script)
     return job_script
 

@@ -22,13 +22,14 @@ class ComputeSpectrum(GpawTask):
         input_filename = self.task_data.get('file_name', 'spec')
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
-
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.input_filename = input_filename + infile_ext
         
         self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.input_filename)
         # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.input_filename)
 
-        param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_file')
+        # param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_file')
+        param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_files')[0]
         # param['dm_file'] = self.dependent_tasks[0].output.get('dm_file')
         self.pol = get_polarization_direction(self.dependent_tasks[0])
         param['polarization'] = list(self.pol)
@@ -58,7 +59,7 @@ class ComputeAveragedSpectrum(GpawTask):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
-
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         # self.task_info.output['spectrum_file'] = str(self.averaged_spec_file)
         self.task_info.output['spectrum_file'] = self.task_dir.relative_to(self.project_dir) /Path(self.averaged_spec_file).name
         self.spectrum_files = []

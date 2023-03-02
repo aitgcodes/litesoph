@@ -21,14 +21,15 @@ class ComputeSpectrum(BaseNwchemTask):
         label = str(self.project_dir.name)
         self.network_done_file = self.task_dir / 'Done'
 
-
-        outfile = self.dependent_tasks[0].output.get('txt_out')
+        outfile = self.directory / self.dependent_tasks[0].output.get('txt_out')
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+        
         self.nwchem = NWChem(outfile=outfile, 
                         label=label, directory=self.task_dir)
 
     def _create_spectrum_cmd(self, remote=False ):
 
-        td_out = self.dependent_tasks[0].output.get('txt_out')
+        td_out = str(self.directory / self.dependent_tasks[0].output.get('txt_out'))
 
         self.pol, tag = get_pol_and_tag(self.dependent_tasks[0])
 
@@ -51,13 +52,13 @@ class ComputeSpectrum(BaseNwchemTask):
     def compute_spectrum(self):
         self.create_directory(self.task_dir)
         
-        td_out = self.dependent_tasks[0].output.get('txt_out')
+        td_out = str(self.directory / self.dependent_tasks[0].output.get('txt_out'))
 
         self.pol, tag = get_pol_and_tag(self.dependent_tasks[0])
         self.dipole_file = self.task_dir / 'dipole.dat'
         self.spectra_file = self.task_dir / f'spec_{self.pol}.dat'
-        self.task_info.output['spectrum_file'] = str(self.spectra_file)
-        self.task_info.output['dm_file'] = str(self.dipole_file)
+        self.task_info.output['spectrum_file'] = str(self.spectra_file.relative_to(self.directory))
+        self.task_info.output['dm_file'] = str(self.dipole_file.relative_to(self.directory))
         try:
             self.nwchem.get_td_dipole(self.dipole_file, td_out, tag, polarization=self.pol)
         except Exception:
@@ -67,7 +68,8 @@ class ComputeSpectrum(BaseNwchemTask):
 
     def create_job_script(self, np=1, remote_path=None) -> list:
                 
-        job_script = assemable_job_cmd(cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))
+        job_script = assemable_job_cmd(job_id= self.task_info.uuid,
+                                        cd_path=str(self.task_dir), extra_block= self._create_spectrum_cmd(bool(remote_path)))
 
         self.job_script = job_script
         return self.job_script
@@ -89,12 +91,13 @@ class ComputeAvgSpectrum(BaseNwchemTask):
         task_dir = self.project_dir / 'nwchem' / self.task_name
         self.task_dir = get_new_directory(task_dir)
         self.network_done_file = self.task_dir / 'Done'
-
+        
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
-        self.task_info.output['spectrum_file'] = str(self.averaged_spec_file)
+        self.task_info.output['spectrum_file'] = str(self.averaged_spec_file.relative_to(self.directory))
         self.spectrum_files = []
         for task in self.dependent_tasks:
-            self.spectrum_files.append(str(task.output['spectrum_file']))
+            self.spectrum_files.append(str(self.directory / task.output['spectrum_file']))
         
     def copmute_average(self):
         spec_data = []

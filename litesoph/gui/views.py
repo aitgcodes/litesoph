@@ -13,6 +13,7 @@ from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design
 from litesoph.common.models import AutoModeModel
 from litesoph.gui.engine_views import get_gs_engine_page
 from litesoph.gui.models import inputs as inp
+import threading
 
 
 def show_message(label_name, message):
@@ -1062,7 +1063,7 @@ class PlotSpectraPage(View):
         self.Frame3 = ttk.Frame(parent, borderwidth=2, relief='groove')
         self.Frame3.grid(row=r, column=c, sticky='nswe')
 
-        self.submit_button = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff")
+        self.submit_button = tk.Button(self.Frame3, text="Submit Local", activebackground="#78d6ff",command=lambda: self.event_generate('<<SubLocal'+task_name+'>>'))
         self.submit_button['font'] = myfont()
         self.submit_button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
         
@@ -1518,7 +1519,7 @@ class MaskingPage(View):
 class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent,*args, **kwargs):
         super().__init__(parent,*args, **kwargs)
         
         self.parent = parent
@@ -1533,26 +1534,53 @@ class JobSubPage(ttk.Frame):
         self.rpath = tk.StringVar()
         self.port = tk.IntVar()
         self.network_job_type = tk.IntVar()
-        self.sub_command = tk.StringVar()
+        self.sub_command = tk.StringVar()        
+        self.sub_stat_command = tk.StringVar()   
+        self.sub_stat_command.set(None)     
+        self.sub_kill_command = tk.StringVar()  
+        self.sub_kill_command.set(None)        
         self.sub_job_type = tk.IntVar()
         self.password_option = tk.IntVar()
+        self.job_id = tk.StringVar()
+        self.job_id.set(None)    
 
         self.sub_job_type.trace_add(['write'], self._sub_command_option)
         self.sub_command.set('bash')
         self.processors.set(1)
         self.port.set(22)
+        
         self.Frame1 = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.Frame1.pack(fill=tk.BOTH)
+        self.Frame1.pack(fill=tk.BOTH)    
+        self.Frame2 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame2.pack(fill=tk.BOTH)        
+        self.Frame3 = ttk.Frame(self, borderwidth=2, relief='groove')
+        self.Frame3.pack(fill=tk.BOTH)
+                
         self.frame_button = ttk.Frame(self, borderwidth=2, relief='groove')
         self.frame_button.pack(fill=tk.BOTH)
 
         self.sub_job_frame = ttk.Frame(self.Frame1)
         self.sub_job_frame.grid(row=1, column=0, sticky='nsew')
+        self.monitor_job_frame = ttk.Frame(self.Frame2)
+        self.monitor_job_frame.grid(row=1, column=0, sticky='nsew')
+        self.monitor_file_frame = ttk.Frame(self.Frame3)
+        self.monitor_file_frame.grid(row=1, column=0, sticky='nsew') 
+         
+        self.progressbar = ttk.Progressbar(self.Frame1, mode='indeterminate')
+        self.progressbar.grid(row=4, column=0, sticky='nsew')
+        
+        self.Frame_label1 = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
+        self.Frame_label1['font'] = myfont1()
+        self.Frame_label1.grid(row=0, column=0)       
 
-        self.Frame_label = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
-        self.Frame_label['font'] = myfont1()
-        self.Frame_label.grid(row=0, column=0)       
+        self.Frame_label2 = tk.Label(self.Frame2, text="LITESOPH Job Monitoring", fg='blue')
+        self.Frame_label2['font'] = myfont1()
+        self.Frame_label2.grid(row=0, column=0)       
 
+        self.Frame_label3 = tk.Label(self.Frame3, text="LITESOPH Files Monitoring", fg='blue')
+        self.Frame_label3['font'] = myfont1()
+        self.Frame_label3.grid(row=0, column=0)       
+        
         self.view_output_button = tk.Button(self.Frame1, text="View Output",activebackground="#78d6ff",command=lambda:[self.view_outfile(self.task)])
         self.view_output_button['font'] = myfont()
         self.view_output_button.grid(row=2, column=0, sticky='e', pady=5)
@@ -1564,13 +1592,137 @@ class JobSubPage(ttk.Frame):
         self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff")
         self.back2main['font'] = myfont()
         self.back2main.pack(side= tk.RIGHT)
-
-    
+            
     def set_network_profile(self, remote_profile: dict):
         self.username.set(remote_profile['username'])
         self.ip.set(remote_profile['ip'])
         self.port.set(remote_profile['port'])
         self.rpath.set(remote_profile['remote_path'])
+   
+    def check_submit_thread(self):
+    
+        if self.submit_thread.is_alive():
+            self.run_button.config(state='disable')
+            self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
+            self.plot_file_button.config(state='disable')
+            self.download_specific_file_button.config(state='disable')
+            self.after(20, self.check_submit_thread)
+        else:
+            self.label_progressbar = tk.Label(self.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+            self.progressbar.stop()
+            self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
+            # self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
+            self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button],'disable')
+
+    def enable_disable_buttons(self,list_of_buttons,state):
+        for button in list_of_buttons:
+            button.config(state=state)
+
+    def enable_disable_frame_elements(self,list_of_frames,state):
+        for frame in list_of_frames:
+            for widget in frame.winfo_children():
+                widget.configure(state=state)
+
+    def destroy_frame_elements(self,list_of_frames):    
+        for frame in list_of_frames:
+            for widget in frame.winfo_children():
+                widget.destroy()
+        
+    def start_submit_thread(self,job):                
+        self.submit_thread = threading.Thread(target=job)
+        self.submit_thread.daemon = True        
+        self.progressbar.start()
+        self.submit_thread.start()
+        self.after(20, self.check_submit_thread)
+    
+    def runtime_query_local(self, check_job_status: callable,
+                                  check_file_status:callable,
+                                  view_specific_files:callable,
+                                  plot_file:callable):
+        """
+        runtime query for local job submit
+        """
+        self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])
+        
+        self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
+        
+        self.job_track_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
+        self.job_track_button['font'] = myfont()
+        self.job_track_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
+        
+        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = tk.StringVar())
+        self.combobox['font'] = myfont()
+        self.combobox.set("select a file")
+        self.combobox.grid(row = 3,column = 0, sticky='nsew', padx=2, pady=4)
+        
+        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="View Specific File",activebackground="#78d6ff",command=view_specific_files)
+        self.download_specific_file_button['font'] = myfont()
+        self.download_specific_file_button.grid(row=3, column=1, sticky='nsew', padx=2, pady=4)
+
+        self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
+        self.plot_file_button['font'] = myfont()
+        self.plot_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
+
+        self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'disable')
+        
+    def runtime_query_remote(self, check_job_status: callable,
+                                  check_file_status:callable,
+                                  kill_job_remote:callable,
+                                  download_all_files:callable,
+                                  download_specific_files:callable,
+                                  view_specific_files:callable,
+                                  plot_file:callable):
+        """
+        runtime query for remote job submit
+        """
+        
+        self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])   
+
+        job_id_label = tk.Label(self.monitor_job_frame, text= "Job ID", bg='gray', fg='black')
+        job_id_label['font'] = myfont()
+        job_id_label.grid(row=2,column=0,sticky='nsew', padx=2, pady=4)
+
+        job_id_entry = tk.Entry(self.monitor_job_frame,textvariable= self.job_id, width=20)
+        job_id_entry['font'] = myfont()
+        job_id_entry.grid(row=2,column=1,sticky='nsew', padx=2, pady=4)
+
+        self.job_status_button = tk.Button(self.monitor_job_frame, text="Job Status",activebackground="#78d6ff",command=check_job_status)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=3, column=0,sticky='nsew', padx=2, pady=4)
+
+        self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_remote)
+        self.job_kill_button['font'] = myfont()
+        self.job_kill_button.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
+
+        self.file_status_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
+        self.file_status_button['font'] = myfont()
+        self.file_status_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
+ 
+        self.download_all_files_button = tk.Button(self.monitor_file_frame, text="Download all Files",activebackground="#78d6ff",command=download_all_files)
+        self.download_all_files_button['font'] = myfont()
+        self.download_all_files_button.grid(row=2, column=1, sticky='nsew', padx=2, pady=4)
+                
+        self.combobox = ttk.Combobox(self.monitor_file_frame, state = "readonly",  textvariable = tk.StringVar())
+        self.combobox['font'] = myfont()
+        self.combobox.set("select a file")
+        self.combobox.grid(row = 3,column = 0)
+
+        self.download_specific_file_button = tk.Button(self.monitor_file_frame, text="Download File",activebackground="#78d6ff",command=download_specific_files)
+        self.download_specific_file_button['font'] = myfont()
+        self.download_specific_file_button.grid(row=3, column=1, sticky='nsew', padx=2, pady=4)
+
+        self.view_file_button = tk.Button(self.monitor_file_frame, text="View File",activebackground="#78d6ff",command=view_specific_files)
+        self.view_file_button['font'] = myfont()
+        self.view_file_button.grid(row=4, column=1, sticky='nsew', padx=2, pady=4)
+
+        self.plot_file_button = tk.Button(self.monitor_file_frame, text="Plot File",activebackground="#78d6ff",command=plot_file)
+        self.plot_file_button['font'] = myfont()
+        self.plot_file_button.grid(row=5, column=1, sticky='nsew', padx=2, pady=4)
+
+        self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'disable')
 
     def show_run_local(self,
                         generate_job_script: callable,
@@ -1609,12 +1761,12 @@ class JobSubPage(ttk.Frame):
 
         self.save_job_button = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = save_job_script)
         self.save_job_button['font'] = myfont()
-        self.save_job_button.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
-
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command= submit_job)
+        self.save_job_button.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)        
+        
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff",command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)        
-
+        self.run_button.grid(row=5, column=0,sticky='nsew', pady=5)   
+        
     def show_run_network(self,
                         generate_job_script: callable,
                         save_job_script: callable,
@@ -1697,19 +1849,42 @@ class JobSubPage(ttk.Frame):
         self.entry_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_command)
         self.entry_command['font'] = myfont()
         self.entry_command.grid(row=9, column=1, ipadx=2, ipady=2)
+
+        self.label_stat_command = tk.Label(self.sub_job_frame, text="Stat command", bg='gray', fg='black')
+        self.label_stat_command['font'] = myfont()
+        self.label_stat_command.grid(row=10, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.entry_stat_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_stat_command)
+        self.entry_stat_command['font'] = myfont()
+        self.entry_stat_command.grid(row=10, column=1, ipadx=2, ipady=2)
+      
+        self.label_kill_command = tk.Label(self.sub_job_frame, text="Kill command", bg='gray', fg='black')
+        self.label_kill_command['font'] = myfont()
+        self.label_kill_command.grid(row=11, column=0,sticky='nsew', padx=5, pady=5)
+
+        self.entry_kill_command = tk.Entry(self.sub_job_frame, textvariable=self.sub_kill_command)
+        self.entry_kill_command['font'] = myfont()
+        self.entry_kill_command.grid(row=11, column=1, ipadx=2, ipady=2)
+      
       
         self.generate_job_button = tk.Button(self.sub_job_frame, text="Generate Job Script",activebackground="#78d6ff",command = generate_job_script)
         self.generate_job_button['font'] = myfont()
-        self.generate_job_button.grid(row=10,column=0,sticky='nsew', padx=2, pady=4)
+        self.generate_job_button.grid(row=12,column=0,sticky='nsew', padx=2, pady=4)
 
         self.save_job_button = tk.Button(self.sub_job_frame, text="Save Job Script",activebackground="#78d6ff",command = save_job_script)
         self.save_job_button['font'] = myfont()
-        self.save_job_button.grid(row=10,column=1,sticky='nsew', padx=2, pady=4)
+        self.save_job_button.grid(row=12,column=1,sticky='nsew', padx=2, pady=4)
 
-        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= submit_job)
+        self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=11,column=0,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=13,column=0,sticky='nsew', padx=2, pady=4)  
 
+    def check_jobdone_progressbar(self):
+
+        pb=self.Frame1
+        self.label_progressbar = tk.Label(pb, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        self.label_progressbar.pack()
+    
     def _sub_command_option(self, *_):
         if self.sub_job_type.get() == 0:
             self.sub_command.set('bash')
@@ -1783,29 +1958,120 @@ class CreateWorkflowPage(tk.Toplevel):
         super().__init__(parent, *args, **kwargs)
 
         self._default_var = {
-              'workflow_name' : ['str'],
-              
+            'workflow_option' : ['int'],
+            'workflow_name' : ['str'],  
+            'branch_pt': ['str'],
+            'source_wf': ['str'], 
+            'target_wf': ['str']           
           }
 
+        self.wf_types = []
         self._var = var_define(self._default_var)
+        
         self.attributes("-topmost", True)
         self.grab_set()
         self.lift()
         self.title("Create New Workflow")     
-        self.geometry("550x200")
-        self.label_proj = tk.Label(self,text="Workflow Name",bg=label_design['bg'],fg=label_design['fg'])
-        self.label_proj['font'] = label_design['font']
-        self.label_proj.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+        self.geometry("550x300")
 
-        self.entry_proj = tk.Entry(self,textvariable=self._var['workflow_name'])
+        self.default_frame = ttk.Frame(self)
+        self.default_frame.grid(row=0, column=0)
+
+        values = {"New Workflow": 0, "Clone from Existing Workflow": 1}
+        for (text, value) in values.items():
+            tk.Radiobutton(self.default_frame, text=text, variable=self._var['workflow_option'], font=myfont2(),
+             justify='left',value=value).grid(row=value, column=0, ipady=5, sticky='w')   
+
+        self.label_proj = tk.Label(self.default_frame,text="Workflow Name",
+                        bg=label_design['bg'],fg=label_design['fg']
+        )
+        self.label_proj['font'] = label_design['font']
+        self.label_proj.grid(column=0, row= 2, sticky=tk.W,  pady=10, padx=10)  
+
+        self.entry_proj = tk.Entry(self.default_frame,textvariable=self._var['workflow_name'])
         self.entry_proj['font'] = myfont()
-        self.entry_proj.grid(column=1, row= 3, sticky=tk.W)
+        self.entry_proj.grid(column=1, row= 2, sticky=tk.W)
         self.entry_proj.delete(0, tk.END)
 
-        self.create_button = tk.Button(self,text="Create",width=18, activebackground="#78d6ff")
+        self.create_button = tk.Button(self.default_frame,text="Create",width=18, activebackground="#78d6ff")
         self.create_button['font'] = myfont()
-        self.create_button.grid(column=2, row= 3, sticky=tk.W, padx= 10, pady=10)  
+        self.create_button.grid(column=2, row= 2, sticky=tk.W, padx= 10, pady=10) 
+
+        self.clone_frame = None
+
+        # for key,var in self._var.items():
+        #     self._var[key].trace("w", self.update_widgets) 
+        self._var['workflow_option'].set(0)
+        self._var['branch_pt'].set(0)
+        #self._var['workflow_option'].trace_add('write', self.toggle_wf_option)
+
+    def update_widgets(self, *_):
+        for key in self._var.keys():
+            if key == 'workflow_option':
+                self.toggle_wf_option()
+            # if key == 'branch_pt':
+            #     self.toggle_target_wf()
+
+    def toggle_wf_option(self, *_):
+        """ Creates Clone workflow frame widgets""" 
+        if self._var['workflow_option'].get() == 1:
+            self.clone_frame = ttk.Frame(self)
+            self.clone_frame.grid(row=1, column=0, sticky='we')
+
+            self.label_wf_select = tk.Label(self.clone_frame,text="Select Workflow Name",
+                                            bg=label_design['bg'],fg=label_design['fg']
+            )
+            self.label_wf_select['font'] = label_design['font']
+            self.label_wf_select.grid(column=0, row= 3, sticky=tk.W,  pady=10, padx=10)  
+
+            self.entry_wf_select = ttk.Combobox(self.clone_frame, 
+                            textvariable=self._var['source_wf'],state='readonly'
+            )
+            self.entry_wf_select['font'] = myfont()
+            self.entry_wf_select.grid(column=1, row= 3, sticky=tk.W)
+            # self.entry_wf_select.current(0)
+
+            self.label_branch_pt = tk.Label(self.clone_frame,text="Branch Point",
+                        bg=label_design['bg'],fg=label_design['fg']
+            )
+            self.label_branch_pt['font'] = label_design['font']
+            self.label_branch_pt.grid(column=0, row= 4, sticky=tk.W,  pady=10, padx=10)  
+
+            self.entry_branch_pt = ttk.Combobox(self.clone_frame, 
+                            textvariable=self._var['branch_pt'],state='readonly'
+            )
+            self.entry_branch_pt['font'] = myfont()
+            self.entry_branch_pt.grid(column=1, row= 4, sticky=tk.W)
             
+
+            self.label_target_wf = tk.Label(self.clone_frame,text="Target Workflow Type",
+                                        bg=label_design['bg'],fg=label_design['fg']
+            )
+            self.label_target_wf['font'] = label_design['font']
+            self.label_target_wf.grid(column=0, row= 5, sticky=tk.W,  pady=10, padx=10)  
+
+            self.entry_target_wf = ttk.Combobox(self.clone_frame,values=self.wf_types,
+                            textvariable=self._var['target_wf'],state='readonly'
+            )
+            self.entry_target_wf['font'] = myfont()
+            self.entry_target_wf.grid(column=1, row= 5, sticky=tk.W)
+
+        else:
+           if self.clone_frame:
+               for widget in self.clone_frame.winfo_children():
+                widget.grid_remove() 
+
+    def toggle_target_wf(self):
+        if self._var['branch_pt'].get() == 0:
+            if self.clone_frame:
+                self.entry_target_wf.config(state='active')
+                self.entry_target_wf.config(state='readonly')  
+                self.label_target_wf.config(state='normal')              
+        else:
+            if self.clone_frame:
+                self.entry_target_wf.config(state='disabled')
+                self.label_target_wf.config(state='disabled')
+
     def get_value(self, key):
         return self._var[key].get()
     

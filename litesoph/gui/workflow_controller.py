@@ -15,16 +15,19 @@ from litesoph.gui.task_controller import (TaskController,
 from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
+from litesoph.gui import design
+from litesoph.gui.controllers import masking_controller, td_page
 
 
 task_view_map={
     tt.GROUND_STATE: v.GroundStatePage,
-    tt.RT_TDDFT: [v.TimeDependentPage, v.LaserDesignPage],
+    tt.RT_TDDFT: [v.TimeDependentPage, design.TDPage],
     tt.COMPUTE_SPECTRUM: v.PlotSpectraPage,
     tt.COMPUTE_AVERAGED_SPECTRUM: v.PlotSpectraPage,
     tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
-    tt.MASKING: v.MaskingPage,
+    tt.MASKING: design.MaskingPage
+    # tt.MASKING: v.MaskingPage,
 }
 
 class WorkflowController:
@@ -71,7 +74,7 @@ class WorkflowController:
 
         check, msg = check_properties_dependencies(task_name, task_list[0])
         if not check:
-            raise messagebox.showerror(message=msg)
+            messagebox.showerror(message=msg)
         
         tasks_uuids= [task_info.uuid for task_info in task_list]
         return tasks_uuids
@@ -108,7 +111,7 @@ class WorkflowController:
 
         simulation_type = [('electrons', 'None', '<<event>>'),
                         ('electrons', 'Delta Pulse',v.TimeDependentPage),
-                        ('electrons', 'Gaussian Pulse', v.LaserDesignPage),
+                        ('electrons', 'Gaussian Pulse', design.TDPage),
                         ('electrons', 'Customised Pulse', '<<event>>'),
                         ('electron+ion', 'None', '<<event>>'),
                         ('electron+ion', 'Delta Pulse', '<<event>>'),
@@ -168,7 +171,7 @@ class WorkflowController:
             return (tt.MO_POPULATION, v.PopulationPage)
             #self.main_window.event_generate(actions.SHOW_MO_POPULATION_CORRELATION_PAGE)
         if sub_task == "Masking":
-            return (tt.MASKING, v.MaskingPage)
+            return (tt.MASKING, design.MaskingPage)
             #self.main_window.event_generate(actions.SHOW_MASKING_PAGE) 
 
     
@@ -229,10 +232,12 @@ class WorkflowModeController(WorkflowController):
 
 def get_task_controller( task_view, workflow_controller, app) -> TaskController:
     
-    if task_view == v.LaserDesignPage:
-        task_controller = LaserPageController
-    elif task_view == v.MaskingPage:
-        task_controller = MaskingPageController
+    if task_view == design.TDPage:
+        task_controller = td_page.TDPageController
+    elif task_view == design.MaskingPage:
+        task_controller = masking_controller.MaskingPageController
+    # elif task_view == v.MaskingPage:
+        # task_controller = MaskingPageController
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
     else:

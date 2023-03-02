@@ -1,4 +1,5 @@
 from typing import List, Dict, Union
+from abc import abstractmethod
 import copy
 import pathlib
 from pathlib import Path
@@ -81,52 +82,10 @@ class BaseNwchemTask(Task):
             self.user_input = param
         self.create_engine(self.user_input)
     
+    @abstractmethod
     def create_engine(self, param):
-        infile_ext = '.nwi'
-        outfile_ext = '.nwo'
-        task_dir = self.project_dir / 'nwchem' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
-        label = str(self.project_dir.name)
-        file_name = self.task_data.get('file_name')
-        self.network_done_file = self.task_dir / 'Done'
-        self.task_info.input['engine_input']={}
+        pass
 
-        if self.task_name in self.post_processing_tasks:
-
-             # TODO:relative paths
-            outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
-            # outfile = self.dependent_tasks[0].output.get('txt_out')
-                # self.engine_log = self.task_dir / self.outfile
-            if self.task_name == tt.MO_POPULATION:
-                 # TODO:relative paths
-                outfile = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
-                # outfile = self.dependent_tasks[1].output.get('txt_out')
-
-            self.nwchem = NWChem(outfile=outfile, 
-                            label=label, directory=self.task_dir)
-            return
-
-        param['perm'] = str(self.task_dir.parent / 'restart')
-        param['geometry'] = str(self.project_dir / 'coordinate.xyz')
-        
-        if self.task_name == tt.RT_TDDFT:
-            param['restart_kw'] = 'restart'
-            param['basis'] =self.dependent_tasks[0].engine_param.get('basis')
-            update_td_param(param)
-
-        file_name = self.task_data.get('file_name')
-        self.infile = file_name + infile_ext
-        self.outfile = file_name + outfile_ext
-        # self.engine_log = self.task_dir / self.outfile
-
-         # TODO:relative paths
-        self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.infile)
-        self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.project_dir) / self.outfile)
-        # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.infile)
-        # self.task_info.output['txt_out'] = str(self.task_dir / self.outfile)
-        self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
-                            label=label, directory=self.task_dir, **param)
-            
     def write_input(self,):
         if not self.task_dir.exists():
             self.create_directory(self.task_dir)
@@ -149,11 +108,13 @@ class BaseNwchemTask(Task):
             engine_cmd = self.engine_path + ' ' + str(ifilename) + ' ' + '>' + ' ' + str(ofilename)
 
             if remote_path:
-                rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent.parent)
-                job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(rpath),
+                rpath = Path(remote_path) / self.task_dir.relative_to(self.directory.parent.parent)
+                job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path=str(rpath),
                                         remote=True, module_load_block=self.get_engine_network_job_cmd())
             else:
-                job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(self.task_dir),
+                job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path= str(self.task_dir),
                                                 mpi_path=self.mpi_path)
         self.job_script = job_script
         return self.job_script
@@ -163,11 +124,8 @@ class BaseNwchemTask(Task):
 
     def get_engine_log(self):
         if self.check_output():
-            # TODO:relative paths
-
-            log_file_path = str(self.project_dir/self.task_info.output['txt_out'])
+            log_file_path = str(self.directory/self.task_info.output['txt_out'])
             return self.read_log(log_file_path)
-            # return self.read_log(self.task_info.output['txt_out'])
 
 
     def plot(self,**kwargs):
@@ -190,31 +148,29 @@ class NwchemTask(BaseNwchemTask):
     def create_engine(self, param):
         infile_ext = '.nwi'
         outfile_ext = '.nwo'
-        task_dir = self.project_dir / 'nwchem' / self.task_name
+        task_dir = self.directory / 'nwchem' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        label = str(self.project_dir.name)
+        label = str(self.directory.parent.name)
         file_name = self.task_data.get('file_name')
+        self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
 
         if self.task_name in self.post_processing_tasks:
-
-             # TODO:relative paths
-            outfile = str(self.project_dir / self.dependent_tasks[0].output.get('txt_out'))
-            # outfile = self.dependent_tasks[0].output.get('txt_out')
-                # self.engine_log = self.task_dir / self.outfile
+            outfile = str(self.directory / self.dependent_tasks[0].output.get('txt_out'))
             if self.task_name == tt.MO_POPULATION:
-                 # TODO:relative paths
-                outfile = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
-                # outfile = self.dependent_tasks[1].output.get('txt_out')
+                outfile = str(self.directory / self.dependent_tasks[1].output.get('txt_out'))
 
             self.nwchem = NWChem(outfile=outfile, 
                             label=label, directory=self.task_dir)
             return
 
-        param['perm'] = str(self.task_dir.parent / 'restart')
-        param['geometry'] = str(self.project_dir / 'coordinate.xyz')
+        param['perm'] = '../restart'
+        param['geometry'] = '../../coordinate.xyz'
         
+        self.task_info.local_copy_files.extend(['coordinate.xyz',
+                                                str(self.task_dir.relative_to(self.directory)),
+                                                str(self.task_dir.relative_to(self.directory).parent / 'restart')])
         if self.task_name == tt.RT_TDDFT:
             param['restart_kw'] = 'restart'
             param['basis'] =self.dependent_tasks[0].engine_param.get('basis')
@@ -223,9 +179,8 @@ class NwchemTask(BaseNwchemTask):
         file_name = self.task_data.get('file_name')
         self.infile = file_name + infile_ext
         self.outfile = file_name + outfile_ext
-        # self.engine_log = self.task_dir / self.outfile
-        self.task_info.input['engine_input']['path'] = str(self.task_dir / self.infile)
-        self.task_info.output['txt_out'] = str(self.task_dir / self.outfile)
+        self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.directory) / self.infile)
+        self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / self.outfile)
         self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
                             label=label, directory=self.task_dir, **param)
             
@@ -246,9 +201,7 @@ class NwchemTask(BaseNwchemTask):
         self.above_lumo = above_lumo = self.user_input['num_unoccupied_mo']
 
         self.create_directory(self.task_dir)
-         # TODO:relative paths
-        td_out = str(self.project_dir / self.dependent_tasks[1].output.get('txt_out'))
-        # td_out = self.dependent_tasks[1].output.get('txt_out')
+        td_out = str(self.directory / self.dependent_tasks[1].output.get('txt_out'))
 
         #self.energy_file = self.task_dir / 'energy_format.dat'
         eigen_data = self.nwchem.get_eigen_energy(td_out)
@@ -256,11 +209,11 @@ class NwchemTask(BaseNwchemTask):
         if (len(occ) < below_homo) or (len(unocc) < above_lumo):
             raise InputError(f'The selected MO is out of range. Number of MO: below HOMO = {len(occ)}, above_LUMO = {len(unocc)}')
         self.mo_population_file = self.task_dir / 'mo_population.dat'
-        self.task_info.output['mopop_file'] = str(self.mo_population_file)
+        self.task_info.output['mopop_file'] = str(self.mo_population_file.relative_to(self.directory))
         self.nwchem.get_td_moocc(str(self.mo_population_file), td_out, homo_index=len(occ),
                                      below_homo=below_homo, above_lumo=above_lumo)
         self.mo_population_diff_file = self.task_dir/ 'mo_pop_diff.dat'
-        self.task_info.output['mopop_diff_file'] = str(self.mo_population_diff_file)
+        self.task_info.output['mopop_diff_file'] = str(self.mo_population_diff_file.relative_to(self.directory))
         calc_population_diff(homo_index=self.below_homo, infile=self.mo_population_file,
                                 outfile=self.mo_population_diff_file)
         #get_energy_window(eigen_data, self.energy_file, below_homo, above_lumo)
@@ -296,11 +249,13 @@ class NwchemTask(BaseNwchemTask):
             engine_cmd = self.engine_path + ' ' + str(ifilename) + ' ' + '>' + ' ' + str(ofilename)
 
             if remote_path:
-                rpath = Path(remote_path) / self.task_dir.relative_to(self.project_dir.parent.parent)
-                job_script = assemable_job_cmd(engine_cmd, np, cd_path=str(rpath),
+                rpath = Path(remote_path) / self.task_dir.relative_to(self.directory.parent.parent)
+                job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path=str(rpath),
                                         remote=True, module_load_block=self.get_engine_network_job_cmd())
             else:
-                job_script = assemable_job_cmd(engine_cmd, np, cd_path= str(self.task_dir),
+                job_script = assemable_job_cmd(job_id= self.task_info.uuid
+                                            ,engine_cmd= engine_cmd, np=np, cd_path= str(self.task_dir),
                                                 mpi_path=self.mpi_path)
         self.job_script = job_script
         return self.job_script
@@ -334,7 +289,7 @@ class NwchemTask(BaseNwchemTask):
 
     def get_engine_log(self):
         if self.check_output():
-            return self.read_log(self.task_info.output['txt_out'])
+            return self.read_log(self.directory / self.task_info.output['txt_out'])
 
 
     def plot(self,**kwargs):
@@ -460,6 +415,7 @@ def read_pol_dir(pol):
 
 
 def get_pol_and_tag(taskinfo):
+    # if the multiple lasers are passed in the field, polarization will be taken for first laser
     pol = taskinfo.engine_param['rt_tddft']['field'].get('polarization', 'x')
     tag = taskinfo.engine_param['rt_tddft'].get('tag', 'rt_tddft')
     return pol, tag

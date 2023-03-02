@@ -11,6 +11,7 @@ from litesoph.common import models as m
 from litesoph.gui.models.gs_model import choose_engine
 from litesoph.common.decision_tree import EngineDecisionError
 
+
 class TaskController:
 
     def __init__(self, workflow_controller, app) -> None:
@@ -23,7 +24,6 @@ class TaskController:
         self.task_view = None
         self.job_sub_page = None
         
-
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
         self.workflow_manager = workflow_manager
         self.task_info = workflow_manager.current_task_info
@@ -50,6 +50,17 @@ class TaskController:
     #     self.task_view.grid(row=0, column=0, sticky ='NSEW')
     #     self.task_view.tkraise()
     
+    def update_wf_view_defaults(self, get_default_func=None):
+        """ Checks task mode bool.
+        If task mode: passes the engine updated task defaults.
+        If workflow mode: updates the engine updated task defaults in context of workflow"""
+
+        default_param = copy.deepcopy(self.task_info.param)
+        if not self.workflow_manager.workflow_info.task_mode: 
+            if get_default_func is not None:
+                default_param.update(get_default_func())
+        return default_param
+
     def show_task_view(self):
         self.task_view.tkraise()
 
@@ -125,6 +136,15 @@ class TaskController:
         self.job_sub_page.show_run_network(self._on_create_remote_job_script,
                                             self._on_save_job_script,
                                             self._run_network)
+
+        self.job_sub_page.runtime_query_remote(self._on_check_job_status_remote,
+                                               self._on_check_file_status_remote,
+                                               self._on_kill_job_remote,
+                                               self._on_download_all_files,
+                                               self._on_download_specific_file,
+                                               self._on_view_specific_file_remote,
+                                               self._on_plot_file_remote)
+                        
         remote = get_remote_profile()
         if remote:
             self.job_sub_page.set_network_profile(remote)
@@ -138,14 +158,216 @@ class TaskController:
             return
        
         self.job_sub_page.back2main.config(command= self.workflow_controller.show_workmanager_page)
-        self.job_sub_page.view_output_button.config(command= self._on_out_local_view_button)
+        self.job_sub_page.view_output_button.config(command= self._on_out_local_view_button)        
         self.job_sub_page.show_run_local(self._on_create_local_job_script,
                                         self._on_save_job_script,
                                         self._run_local)
+        
+        self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
+                                        self._on_check_file_status_local,
+                                        self._on_view_specific_file_local,
+                                        self._on_plot_file_local)
 
-        self.job_sub_page.set_run_button_state('disable')
+        self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
 
+    def _on_check_file_status_local(self):
+        try:
+            error,msg=self.task.submit_local.get_fileinfo_local()                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)
+            return            
+        # self.view_panel.insert_text(msg, 'disabled')
+        self.task.submit_local.generate_list_of_files_local()
+        
+        choose_file= self.job_sub_page.combobox
+        list_of_files=self.task.submit_local.get_list_of_files_local()
+        self.dict_of_files_combobox=self.encode_decode_combobox_items(list_of_files)        
+        list_of_files=list(self.dict_of_files_combobox.keys())
+
+        choose_file['values'] = list_of_files
+        choose_file.current()
+        self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)        
+        self.job_sub_page.plot_file_button.config(state='active')
+        self.job_sub_page.download_specific_file_button.config(state='active')
+    
+    def _on_view_specific_file_local(self):        
+        try:
+            error, message=self.task.submit_local.view_specific_file_local(self.selected_file)  
+        except UnicodeDecodeError:
+            messagebox.showinfo(title='Info', message="Unable to Read File")                    
+            self.view_panel.insert_text(message, 'disabled')
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File") 
+        self.view_panel.insert_text(message, 'disabled')
+
+    def _on_plot_file_local(self):
+        import os        
+        try:
+            if os.path.exists(self.selected_file)==True:
+                cmd=f'xmgrace {self.selected_file}'
+                # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
+                os.system(cmd)
+            else:
+                messagebox.showinfo(title='Info', message="File not found")
+        except ValueError:
+            messagebox.showinfo(title='Info', message="Cannot plot selected File")   
+        except FileNotFoundError:
+            messagebox.showinfo(title='Info', message="File not found")  
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File")                    
+            
+    def _on_check_job_status_local(self):        
+        if self.job_sub_page.submit_thread.is_alive(): 
+            messagebox.showinfo(title='Info', message="Job is Running")
+        else:
+            messagebox.showinfo(title='Info', message="No Job Found")
+
+    def selection_changed(self,event):
+        selected_file = self.job_sub_page.combobox.get()
+        self.selected_file=self.dict_of_files_combobox[selected_file]
+        messagebox.showinfo(
+        title="New Selection",
+        message=f"Selected option: {self.selected_file}")
+        
+    def encode_decode_combobox_items(self,list_of_files):
+        import pathlib
+        from litesoph.common.lfm_database import coordinate_files,dipole_files,spectrum_files,script_output_files
+
+        mapped_dict={}
+
+        i = 0
+        coordinate_count=0
+        dipole_count=0
+        spectrum_file_count=0
+        script_output_count=0
+
+        while i < len(list_of_files):
+            
+            file_path=pathlib.Path(list_of_files[i]).parent
+            last_folder_name=pathlib.Path(list_of_files[i]).parent.name
+            file_name=pathlib.Path(list_of_files[i]).name
+            file_ext=pathlib.Path(list_of_files[i]).suffix
+            
+            if  file_ext in coordinate_files:                
+                coordinate_file=f'coordinate_file_{coordinate_count+1}'
+                mapped_dict[coordinate_file] = list_of_files[i]
+                list_of_files[i] = coordinate_file            
+                coordinate_count+=1    
+        
+            if  file_name in dipole_files:
+                dipole_file=f'dipole-file-{dipole_count+1}'
+                mapped_dict[dipole_file] = list_of_files[i]
+                list_of_files[i] = dipole_files            
+                dipole_count+=1    
+            
+            if  file_name in spectrum_files:
+                spectrum_file=f'spectrum-file-{spectrum_file_count+1}'
+                mapped_dict[spectrum_file] = list_of_files[i]
+                list_of_files[i] = spectrum_files            
+                spectrum_file_count+=1    
+            
+            if  file_name in script_output_files:
+                file=f'script-output-{script_output_count+1}'
+                mapped_dict[file] = list_of_files[i]
+                list_of_files[i] = script_output_files            
+                script_output_count+=1    
+                                    
+            i += 1
+        return mapped_dict
+            
+    def _on_check_file_status_remote(self):    
+
+        try:
+            error, msg=self.task.submit_network.get_fileinfo_remote()            
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)            
+        # self.view_panel.insert_text(msg, 'disabled')
+        
+        choose_file= self.job_sub_page.combobox
+        list_of_files=self.task.submit_network.get_list_of_files_remote()
+        self.dict_of_files_combobox=self.encode_decode_combobox_items(list_of_files)        
+        list_of_files=list(self.dict_of_files_combobox.keys())
+        
+        choose_file['values'] =  list_of_files
+        choose_file.current()
+        self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)
+        
+        self.job_sub_page.download_specific_file_button.config(state='active')
+        self.job_sub_page.view_file_button.config(state='active')
+        self.job_sub_page.plot_file_button.config(state='active')
+        messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
+
+    def _on_check_job_status_remote(self):
+        try:
+            job_status=self.task.submit_network.get_job_status_remote()    
+            messagebox.showinfo(title='Info', message=job_status)   
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message='error')   
+        
+    def _on_kill_job_remote(self):
+    
+        job_id=self.job_sub_page.job_id.get()            
+        scheduler=self.job_sub_page.sub_command.get()
+        scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
+        scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
+
+        if job_id == None:
+            messagebox.showinfo(title='Info', message="Enter Job ID first")                  
+        else:
+            try:
+                error, message=self.task.submit_network.kill_job_remote(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
+            except TaskFailed:
+                messagebox.showinfo(title='Info', message=error)                    
+            messagebox.showinfo(title='Info', message=message)   
+            self.job_sub_page.progressbar.stop()
+            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            label_progressbar.grid(row=4, column=0,sticky='nsew')
+
+    def _on_download_all_files(self):
+        try:
+            error, message=self.task.submit_network.download_all_files_remote()                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)                    
+        return (error, message)
+    
+    def _on_download_specific_file(self):        
+        try:
+            priority1_files_dict={self.selected_file: {'file_relevance': 'very_impt', 'file_lifetime': '', 'transfer_method': {'method': 'direct_transfer', 'compress_method': 'zstd', 'split_size': ''}}}        
+            error, message=self.task.submit_network.download_specific_file_remote(self.selected_file,priority1_files_dict)                
+        except TaskFailed:
+            messagebox.showinfo(title='Info', message=error)                    
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the file")
+        messagebox.showinfo(title='Info', message=message)   
+
+    def _on_view_specific_file_remote(self):        
+        try:
+            error, message=self.task.submit_network.view_specific_file_remote(self.selected_file)  
+        except UnicodeDecodeError:
+            messagebox.showinfo(title='Info', message="Unable to Read File")                    
+            self.view_panel.insert_text(message, 'disabled')
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File") 
+        self.view_panel.insert_text(message, 'disabled')
+
+    def _on_plot_file_remote(self):
+        import os        
+        try:
+            file = str(self.selected_file).replace( str(self.task.submit_network.remote_path), str(self.task.submit_network.project_dir))
+            if os.path.exists(file)==True:
+                cmd=f'xmgrace {file}'
+                # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
+                os.system(cmd)
+            else:
+                messagebox.showinfo(title='Info', message="First download the file")
+        except ValueError:
+            messagebox.showinfo(title='Info', message="Cannot plot selected File")   
+        except FileNotFoundError:
+            messagebox.showinfo(title='Info', message="File not found")  
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First Select the File")                    
+            
     def _on_plot_button(self, *_):
         
         param = {}
@@ -169,9 +391,8 @@ class TaskController:
         else:
             np = self.job_sub_page.get_processors()
             sub_job_type = self.job_sub_page.sub_job_type.get()
-
             cmd = self.job_sub_page.sub_command.get()
-            
+
         if sub_job_type == 1:
             
             if not cmd:
@@ -185,8 +406,7 @@ class TaskController:
                 return
 
         self.task.set_submit_local(np)
-    
-
+        
         try:
             self.task.run_job_local(cmd)
         except FileNotFoundError as e:
@@ -199,9 +419,12 @@ class TaskController:
             if self.task.task_info.local['returncode'] != 0:
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.local['error']}")
             else:
+                try:
+                    self.job_sub_page.check_jobdone_progressbar()
+                except:
+                    AttributeError
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
-
     def _on_out_local_view_button(self, *_):
 
         try:
@@ -211,7 +434,6 @@ class TaskController:
             return
             
         self.view_panel.insert_text(log_txt, 'disabled')
-
 
     def _run_network(self):
 
@@ -236,11 +458,9 @@ class TaskController:
                 messagebox.showerror(title="Error", message=" Only bash is used for command line execution")
                 self.job_sub_page.set_run_button_state('active')
                 return
-
         
         login_dict = self.job_sub_page.get_network_dict()
         update_remote_profile_list(login_dict)
-
         
         try:
             self.task.connect_to_network(hostname=login_dict['ip'],
@@ -264,9 +484,14 @@ class TaskController:
             if self.task.task_info.network['sub_returncode'] != 0:
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
             else:
-                 messagebox.showinfo(title= "Well done!", message='Job submitted successfully!', detail = f"output:{self.task.task_info.network['output']}")
-
-
+                try:
+                    self.job_sub_page.check_jobdone_progressbar()
+                except:
+                    AttributeError
+                output=self.task.task_info.network['output']
+                self.view_panel.insert_text(output, 'disabled')
+                messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
+            
     def _get_remote_output(self):
         self.task.submit_network.download_output_files()
 
