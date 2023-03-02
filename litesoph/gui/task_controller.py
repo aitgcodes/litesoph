@@ -408,8 +408,10 @@ class TaskController:
             if self.task.task_info.local['returncode'] != 0:
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.local['error']}")
             else:
-                self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-                self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+                try:
+                    self.job_sub_page.check_jobdone_progressbar()
+                except:
+                    AttributeError
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
     def _on_out_local_view_button(self, *_):
@@ -471,8 +473,10 @@ class TaskController:
             if self.task.task_info.network['sub_returncode'] != 0:
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
             else:
-                self.label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-                self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+                try:
+                    self.job_sub_page.check_jobdone_progressbar()
+                except:
+                    AttributeError
                 output=self.task.task_info.network['output']
                 self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
