@@ -1878,8 +1878,14 @@ class JobSubPage(ttk.Frame):
 
         self.run_button = tk.Button(self.sub_job_frame, text="Run Job",activebackground="#78d6ff", command= lambda:self.start_submit_thread(submit_job))
         self.run_button['font'] = myfont()
-        self.run_button.grid(row=13,column=0,sticky='nsew', padx=2, pady=4)    
+        self.run_button.grid(row=13,column=0,sticky='nsew', padx=2, pady=4)  
 
+    def check_jobdone_progressbar(self):
+
+        pb=self.Frame1
+        self.label_progressbar = tk.Label(pb, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        self.label_progressbar.pack()
+    
     def _sub_command_option(self, *_):
         if self.sub_job_type.get() == 0:
             self.sub_command.set('bash')

@@ -8,6 +8,7 @@ from typing import Any, Dict
 from litesoph.common.data_sturcture.data_types import DataTypes as  DT
 from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs, fs_to_au
 from litesoph.pre_processing.laser_design import laser_design, GaussianPulse, DeltaPulse
+from litesoph.common.utils import get_pol_list
 
 @dataclass
 class AutoModeModel:
@@ -102,7 +103,6 @@ class OctopusModel:
             'rel_eigen' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0},
             'extra_states' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 0}
         }
-    
 
 class LaserDesignModel:
 
@@ -126,7 +126,7 @@ class LaserDesignModel:
         range = self.user_input['total_time']
         self.range = range*1e3
         self.freq = self.user_input['frequency']
-        self.strength = self.user_input['strength']
+        self.strength = self.user_input['strength']    
 
     def create_pulse(self):
         """ creates gaussian pulse with given inval,fwhm value """
@@ -195,19 +195,17 @@ class LaserDesignPlotModel:
     def __init__(self, laser_inputs:list, laser_profile_time) -> None:
         self.laser_inputs  = laser_inputs
         if laser_profile_time:
-            self.laser_profile_time = laser_profile_time       
-    
+            self.laser_profile_time = laser_profile_time  
+
     def compute_laser_design_param(self, laser_type:str, laser_param:dict):
         """ Calculates laser parameters specific to laser pulse shape
         \n and returns pulse objects
         \n eg: Delta/Gaussian"""
 
-        from litesoph.gui import views as v
-
         # Collecting laser parameters
         tag = laser_param.get('tag', None)
         pol_var = laser_param.get('polarization')
-        pol_list = v.get_pol_list(pol_var)
+        pol_list = get_pol_list(pol_var)
 
         # delay wrt the time origin of first laser 
         # delay_time_fs = laser_param['delay_time']          
@@ -240,7 +238,7 @@ class LaserDesignPlotModel:
             pulse = GaussianPulse(strength= strength_au,
                                 time0= time0_fs*1e3,frequency= freq_eV,
                                  sigma= sigma_eV, sincos='sin')
-            
+
         elif laser_type == "delta": 
             # Collecting parameter specific to Delta
             time0=t_in*au_to_as
@@ -311,12 +309,11 @@ def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
             strength_value = pulse.strength(time_array*as_to_au)
 
         laser_strengths.append(strength_value) 
-    return (time_array,laser_strengths)            
-                
+    return (time_array,laser_strengths)      
+
 def write(fname, time_t, laser_strengths:list):
     """
     Write the values of the pulse to a file.
-
     Parameters
     ----------
     fname
@@ -367,7 +364,6 @@ def format_laser_label(number_of_lasers:int):
     for i in range(number_of_lasers):
         laser_label_dict.update({(i+1): "laser"+ str(i+1)})
     return laser_label_dict
-
 
 class LaserInfo:
     def __init__(self, laser_dict:dict) -> None:
@@ -474,6 +470,3 @@ class LaserInfo:
         except KeyError:
             num_lasers=0
         return num_lasers
-
-
-   
