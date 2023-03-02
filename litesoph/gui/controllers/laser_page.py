@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import copy
-from litesoph.gui import views as v
+from litesoph.gui import design
 from litesoph.common import models as m
 from litesoph.gui.utils import dict2string
 
@@ -178,7 +178,7 @@ class LaserDesignController:
                     self.view.tree.move(id, str(parent), 'end')
 
     def show_and_update_plot_page(self, *_):
-        self.laser_plot_view = v.LaserPlotPage(self.main_window)
+        self.laser_plot_view = design.LaserPlotPage(self.main_window)
         self.update_tree_and_view_on_plot()
 
     def update_tree_and_view_on_plot(self):

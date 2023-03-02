@@ -11,6 +11,7 @@ from litesoph.common import models as m
 from litesoph.gui.models import inputs as inp
 from litesoph.gui.utils import dict2string
 from litesoph.gui.task_controller import TaskController
+from litesoph.gui import design
 from litesoph.gui.controllers.laser_page import (LaserDesignController, 
                                                 extract_lasers_from_pulses,
                                                 add_delay_to_lasers)
@@ -112,7 +113,7 @@ class TDPageController(TaskController):
     def _on_show_laser_page(self, show_stored:bool, *_):
         """ Assigns LaserDesignController and shows the LaserDesignPage """
 
-        self.laser_view = self.app.show_frame(v.LaserDesignPage)   
+        self.laser_view = self.app.show_frame(design.LaserDesignPage)   
         self.view_panel.clear_text()
         self.laser_controller = LaserDesignController(app= self.app, view=self.laser_view, 
                                                     td_param= self.task_view_param,

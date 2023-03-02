@@ -50,6 +50,17 @@ class TaskController:
     #     self.task_view.grid(row=0, column=0, sticky ='NSEW')
     #     self.task_view.tkraise()
     
+    def update_wf_view_defaults(self, get_default_func=None):
+        """ Checks task mode bool.
+        If task mode: passes the engine updated task defaults.
+        If workflow mode: updates the engine updated task defaults in context of workflow"""
+
+        default_param = copy.deepcopy(self.task_info.param)
+        if not self.workflow_manager.workflow_info.task_mode: 
+            if get_default_func is not None:
+                default_param.update(get_default_func())
+        return default_param
+
     def show_task_view(self):
         self.task_view.tkraise()
 
