@@ -147,12 +147,6 @@ def update_laser_defaults(laser_default:dict):
         gui_default_dict.update({'laser_type': "Gaussian Pulse"})
 
     pol_dir = laser_default.get('polarization')
-    # if pol_list == [1,0,0] :
-    #     pol_dir = "X"
-    # elif pol_list == [0,1,0] :
-    #     pol_dir = "Y"
-    # elif pol_list == [0,0,1] :
-    #     pol_dir = "Z"
     gui_default_dict.update({"pol_dir": pol_dir})
 
     if pump_probe_tag == "Probe":
