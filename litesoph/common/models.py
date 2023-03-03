@@ -311,33 +311,37 @@ def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
         laser_strengths.append(strength_value) 
     return (time_array,laser_strengths)      
 
-def write(fname, time_t, laser_strengths:list):
+def write_lasers(fname, time_t, laser_strengths:list):
     """
-    Write the values of the pulse to a file.
+    Write the time (in au)-laser strengths to a file.
     Parameters
     ----------
     fname
         filename
     time_t
         times in attoseconds
+    laser_strengths
+        list of laser_strength arrays
     """
     time_t = time_t * as_to_au
+
     fmt = '%20.10e'
-    # fmt = '%12.6f'
-    header = '{:^10}'
-
-    # fmt_str = '%12.6f %20.10e %20.10e'
+    header = '{:^20}'
     fmt_str = '%12.6f'
-    header_str = ''
+    column_str = '{:^20}'
+    header_list = ['Time(in au)']
 
+    # Get the format strings
     for i in range(len(laser_strengths)):
         fmt_str = fmt_str + ' '+ fmt
-        header_str = header_str+header
+        column_str = column_str+header
+        header_list.append('pulse'+ str(i+1))
     
-    # Format header_string            
+    # Format header_string       
+    header_str = column_str.format(*header_list)         
     np.savetxt(fname, np.stack((time_t, *laser_strengths)).T,
                 fmt=fmt_str, 
-            #    header=header
+               header=header_str
                 )
 
 def plot_laser(time_arr, strength_arr,fname= None):
