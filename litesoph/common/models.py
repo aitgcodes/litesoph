@@ -105,7 +105,7 @@ class OctopusModel:
         }
 
 class LaserDesignModel:
-
+    """Laser Design Model with Gaussian Pulse"""
     laser_input = {
 
         "strength": {'req' : True, 'type': DT.decimal},
@@ -182,13 +182,13 @@ def plot(x_data, y_data, x_label, y_label):
     ax.xaxis.set_ticks_position('bottom')
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-
-    plt.show()
- 
+    plt.show() 
     # return figure    
 
 class LaserDesignPlotModel:
-    """ laser_inputs: list of laser inputs
+    """ Laser Design Model to handle multiple lasers\n
+        Currently added laser types: Gaussian, Delta
+        laser_inputs: list of laser input dictionaries
         laser_profile_time: in femtosecond
     """
     
@@ -200,23 +200,24 @@ class LaserDesignPlotModel:
     def compute_laser_design_param(self, laser_type:str, laser_param:dict):
         """ Calculates laser parameters specific to laser pulse shape
         \n and returns pulse objects
-        \n eg: Delta/Gaussian"""
+        Parameters:
+            laser_type : gaussian/delta
+            laser_param : 'tag','polarization','strength','tin' (common)
+                            'inval','frequency','fwhm' (gaussian type)
+        """
 
-        # Collecting laser parameters
+        # Collecting  common laser parameters
         tag = laser_param.get('tag', None)
-        pol_var = laser_param.get('polarization')
-        pol_list = get_pol_list(pol_var)
-
-        # delay wrt the time origin of first laser 
-        # delay_time_fs = laser_param['delay_time']          
-        strength_au = laser_param['strength']
-        t_in = laser_param['tin']
+        pol_var = laser_param.get('polarization', 'X')
+        pol_list = get_pol_list(pol_var)   
+        strength_au = laser_param.get('strength')    # in au
+        t_in = laser_param.get('tin')                # in as
 
         if laser_type == "gaussian":
             # Collecting parameter specific to Gaussian
             inval=laser_param.get('inval')
-            freq_eV=laser_param.get('frequency')
-            fwhm_eV=laser_param.get('fwhm')            
+            freq_eV=laser_param.get('frequency')     # in eV
+            fwhm_eV=laser_param.get('fwhm')          # in eV  
 
             # Calculates fwhm/sigma(in time) and pulse centre/time0(in time)
             # creates gaussian pulse with given inval,fwhm value 
@@ -279,6 +280,9 @@ class LaserDesignPlotModel:
         if laser_type in ["gaussian", "delta"]:
             self.pulse_info = self.compute_laser_design_param(laser_type, laser_input)            
             return self.pulse_info
+
+
+# ---------------------------Helper Methods for multiple laser pulses---------------------------
 
 def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
     """Plots multiple lasers,\n
@@ -368,6 +372,8 @@ def format_laser_label(number_of_lasers:int):
     for i in range(number_of_lasers):
         laser_label_dict.update({(i+1): "laser"+ str(i+1)})
     return laser_label_dict
+
+#--------------------------------------------------------------------------------------------
 
 class LaserInfo:
     def __init__(self, laser_dict:dict) -> None:
