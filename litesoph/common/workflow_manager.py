@@ -125,13 +125,18 @@ class WorkflowManager:
 
     
     def get_task_dependencies(self):
-        denpendices_uuid = self.dependencies_map.get(self.current_task_info.uuid)
-        if denpendices_uuid is None:
-            return []
-        elif isinstance(denpendices_uuid ,str):
-            return [self.tasks.get(denpendices_uuid)]
-        elif isinstance(denpendices_uuid, list):
-            return [self.tasks.get(task_uuid) for task_uuid in denpendices_uuid]
+        dependices_uuid = self.dependencies_map.get(self.current_task_info.uuid)
+        depedent_task_infos = [] 
+        if isinstance(dependices_uuid ,str):
+            depedent_task_infos.append(self.tasks.get(dependices_uuid))
+        elif isinstance(dependices_uuid, list):
+            depedent_task_infos.extend(self.tasks.get(task_uuid) for task_uuid in dependices_uuid)
+
+        for task_info in depedent_task_infos:
+            if not check_task_completion(task_info):
+                raise TaskSetupError(f'The Dependent task : {task_info.name}, uuid:{task_info.uuid} is not completed.')
+
+        return depedent_task_infos
 
     def next(self):
         
