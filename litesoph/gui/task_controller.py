@@ -546,66 +546,6 @@ class TaskController:
             else:
                 return
 
-
-class LaserPageController(TaskController):
-
-    def __init__(self, workflow_controller, app) -> None:
-        super().__init__(workflow_controller, app)
-        self.laser_design = None
-
-    def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
-        super().set_task(workflow_manager, task_view)
-        self.main_window.bind_all('<<DesignLaser>>', self._on_design_laser)
-
-    def generate_input(self, *_):
-        self.task_info.param.clear()
-        if not self._on_choose_laser():
-            return
-        # self.task_view.set_laser_design_dict(self.laser_design.l_design)
-        self.task_view.set_laser_design_dict(self.laser_design.list_of_laser_param)
-
-        inp_dict = self.task_view.get_parameters()
-        if not inp_dict:
-            return
-
-        check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
-        if not check:
-            return
-        self.task_info.param.clear()
-        self.task_info.param.update(inp_dict)
-        self.task = self.workflow_manager.get_engine_task()
-        self.task.create_input()
-        txt = self.task.get_engine_input()
-        self.view_panel.insert_text(text=txt, state='normal')
-        self.bind_task_events()
-
-    def _on_design_laser(self, *_):
-        # laser_desgin_inp = self.task_view.get_laser_pulse()
-        laser_desgin_inp = self.task_view.get_laser_details()
-        laser_total_time = laser_desgin_inp.pop(0)
-        # self.laser_design = m.LaserDesignModel(laser_desgin_inp)
-        self.laser_design = m.LaserDesignPlotModel(laser_inputs =laser_desgin_inp,
-        laser_profile_time= laser_total_time)
-        # self.laser_design.create_pulse()
-        # self.laser_design.plot_time_strength()
-        pulse_list = self.laser_design.get_laser_pulse_list()
-        (time_arr, list_strength_arr) = self.laser_design.get_time_strength(pulse_list)
-        # self.laser_design.write('laser',time_arr, list_strength_arr)
-        self.laser_design.plot_laser()
-
-    def _on_choose_laser(self, *_):
-        if not self.laser_design:
-            messagebox.showerror(message="Laser is not set. Please choose the laser")
-            return
-        check = messagebox.askokcancel(message= "Do you want to proceed with this laser set up?")
-        if check is True:
-            self.laser_design.write(self.task_info.path /'laser.dat',self.laser_design.time, self.laser_design.strengths)
-            # self.laser_design.write_laser("laser.dat")
-            return True
-        else:
-            self.laser_design = None 
-
-
 class PostProcessTaskController(TaskController):
 
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
