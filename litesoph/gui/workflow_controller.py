@@ -10,12 +10,13 @@ from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError, Wo
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
 from litesoph.gui.task_controller import (TaskController,
-                                            PostProcessTaskController)
+                                            PostProcessTaskController,)
 from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
 from litesoph.gui import design
-from litesoph.gui.controllers import masking_controller, td_page, PumpProbePostProcessController
+from litesoph.gui import controllers as ctrl
+from litesoph.gui.controllers import masking_controller, td_page
 
 
 task_view_map={
@@ -258,7 +259,7 @@ def get_task_controller( task_view, workflow_controller, app) -> TaskController:
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
     elif task_view == v.PumpProbePostProcessPage:
-        task_controller = PumpProbePostProcessController
+        task_controller = ctrl.PumpProbePostProcessController
     else:
         task_controller = TaskController
         
