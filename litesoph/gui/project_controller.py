@@ -51,6 +51,8 @@ class ProjectController:
         else:
             workflow_info = self.project_manager.current_workflow_info
         
+        self.app.set_title(self.project_manager.label, workflow_info.label)
+        
         if workflow_info.name and not workflow_info.task_mode:
             self._create_workflow_navigation(workflow_info.name)
             self.workflow_manager = self.project_manager.open_workflow(workflow_info.uuid)
