@@ -22,6 +22,7 @@ class ProjectManager:
     def __init__(self, ls_manager, project_info: ProjectInfo) -> None:
         self.ls_manager = ls_manager
         self.project_info = project_info
+        self.label = project_info.label
         self.workflow_list = project_info.workflows
         self.project_path = project_info.path
         self.config = project_info.config
