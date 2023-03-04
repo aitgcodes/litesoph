@@ -11,7 +11,6 @@ from litesoph.gui import actions, images
 from litesoph.gui.input_validation import EntryPattern, Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.common.models import AutoModeModel
-from litesoph.gui.engine_views import get_gs_engine_page
 from litesoph.gui.models import inputs as inp
 import threading
 
