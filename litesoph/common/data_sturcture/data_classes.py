@@ -71,7 +71,41 @@ class JobInfo:
             setattr(cls, key, value)
         return cls
 
+@dataclass
+class Block:
+    """This class stores information about a block in a the workflow.
+    The block is a collection of tasks.
+    
+    name: The name of the block.
+    store_same_task_type: true if all tasks in the block are of same type.
+    task_type: The type of task if "store_same_task_type" is true else None.
+    task_uuids: The list of task ids associated with the task.
+    metadata: any optional information about the tasks."""
 
+    name: str
+    store_same_task_type: bool = False
+    task_type: Union[str, None] = field(default= None)
+    task_uuids: List[str] = field(default_factory= list)
+    metadata: Dict[str, str] = field(default_factory= dict)
+
+    
+    @classmethod
+    def from_dict(cls, data):
+        return cls(name = data['name'],
+                    store_same_task_type = data.get('store_same_task_type', False),
+                    task_type = data.get('task_type', None),
+                    task_uuids = data.get('task_uuids', list()),
+                    metadata = data.get('metadata', dict()))
+
+    def clone(self):
+        data = self.to_dict()
+        data['task_uuids'].clear()
+        return Block.from_dict(data)
+
+    def to_dict(self):
+        return asdict(self)
+
+    
 def factory_job_info():
     return JobInfo()
     
@@ -194,7 +228,7 @@ class WorkflowInfo(Info):
     engine: Union[str, None] = field(default=None)
     task_mode: bool = field(default=False)
     param: Dict[Any, Any] = field(default_factory=dict)
-    steps: List[str] = field(default_factory=list)
+    steps: List[Block] = field(default_factory=list)
     containers: List[Container] = field(default_factory=list)
     state: State = field(default_factory= factory_state)
     dependencies_map : Dict[str, str] = field(default_factory=dict)
@@ -219,6 +253,26 @@ class WorkflowInfo(Info):
         tasks = {uuid : TaskInfo.from_dict(task) for uuid, task in data['tasks'].items()} 
         containers = [Container.from_dict(container) for container in data['containers']]
         current_step = data['current_step']
+        steps_data = data['steps']
+        steps = []
+        if not steps_data:
+            steps.append(Block(name= 'task_mode'))
+            
+            for container in containers:
+                steps[0].task_uuids.append(container.task_uuid)
+
+        elif isinstance(steps_data[0], str):
+            for block in steps_data:
+                steps.append(Block(name= block,
+                                    store_same_task_type=True))
+
+            for container in containers:
+                steps[container.block_id].task_uuids.append(container.task_uuid)
+        
+        else:
+            steps = [Block.from_dict(block) for block in steps_data]
+
+        steps_data = steps
         return cls(_uuid = data['_uuid'],
                      _name=data['_name'], 
                     description= data.get('description'), 
@@ -228,7 +282,7 @@ class WorkflowInfo(Info):
                     param= data.get('param'), 
                     state= state, 
                     task_mode = data.get('task_mode', False),
-                    steps = data['steps'],
+                    steps = steps,
                     containers = containers,
                     tasks= tasks, 
                     dependencies_map = data['dependencies_map'], 
