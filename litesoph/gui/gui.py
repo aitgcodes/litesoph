@@ -114,10 +114,15 @@ class GUIAPP:
     def on_bpanel_button_clicked(self):
         self.log_panel.on_bpanel_button_clicked()
 
-    def set_title(self, newtitle):
-        self.current_title = newtitle
-        default_title = 'LITESOPH - {0}'
-        title = default_title.format(newtitle)
+    def set_title(self, project_name = None, workflow_name = None):
+        title = 'LITESOPH'
+
+        if project_name:
+            title = project_name + '-' + title
+
+        if workflow_name:
+            title = workflow_name + '-' + title
+        
         self.main_window.wm_title(title)
 
     def _get_engine(self):
@@ -190,7 +195,6 @@ class GUIAPP:
 
     def _init_project(self, path):
         
-        self.set_title(path.name)
         self.show_project_summary()
         update_proj_list(path)
         self._get_engine()
@@ -251,7 +255,8 @@ class GUIAPP:
 
     def show_project(self, project_manager: ProjectManager):
         self.project_controller.open_project(project_manager)
-
+        self.set_title(project_manager.label, project_manager.current_workflow_info.label)
+    
     def show_project_summary(self):
         summary = self.ls_manager.get_project_summary()
         self.view_panel.insert_text(summary, state='disabled')

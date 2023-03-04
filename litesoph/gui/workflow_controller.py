@@ -4,19 +4,18 @@ from typing import Union
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 
 from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task_manager import check_task_completion
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError, WorkflowEnded
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
 from litesoph.gui.task_controller import (TaskController,
-                                            TDPageController,
-                                            PostProcessTaskController,
-                                            MaskingPageController,
-                                            PumpProbePostProcessController)
+                                            PostProcessTaskController,)
 from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
 from litesoph.gui import design
+from litesoph.gui import controllers as ctrl
 from litesoph.gui.controllers import masking_controller, td_page
 
 
@@ -70,14 +69,19 @@ class WorkflowController:
 
         task_list = self.workflow_manager.get_taskinfo(dependent_tasks[0])
         
-        if not task_list:
+        completed_task_list =[]
+        for task_info in task_list:
+            if check_task_completion(task_info):
+                completed_task_list.append(task_info)
+
+        if not completed_task_list:
             messagebox.showwarning(message = f"Dependent task:{dependent_tasks} not done")
 
-        check, msg = check_properties_dependencies(task_name, task_list[0])
+        check, msg = check_properties_dependencies(task_name, completed_task_list[0])
         if not check:
             messagebox.showerror(message=msg)
         
-        tasks_uuids= [task_info.uuid for task_info in task_list]
+        tasks_uuids= [task_info.uuid for task_info in completed_task_list]
         return tasks_uuids
 
     def start_task(self, *_):
@@ -98,12 +102,27 @@ class WorkflowController:
         else:
             step_id = step_id[0] + 1
 
+        if not self.workflow_manager.check_block(block_id=0):
+
+            try:
+                self.workflow_manager.add_block(block_id=0,
+                                            name ='task mode',
+                                            store_same_task_type=False)
+            except TaskSetupError as e:
+                messagebox.showerror(title='Error', message=e)
+                return
+
         self.workflow_manager.add_task(task_name,
                                         block_id=0,
                                         step_id= step_id,
                                         dependent_tasks_uuid= self.get_task_dependencies(task_name))   
-        
-        self.workflow_manager.next()
+
+        try:
+            self.workflow_manager.next()
+        except TaskSetupError as e:
+            messagebox.showinfo(title='Error', message=e)
+            return
+
         self.task_controller = get_task_controller(task_view, self, self.app)
         self.task_controller.set_task(self.workflow_manager, task_view)
         self.app.proceed_button.config(state = 'disabled')
@@ -240,7 +259,7 @@ def get_task_controller( task_view, workflow_controller, app) -> TaskController:
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
     elif task_view == v.PumpProbePostProcessPage:
-        task_controller = PumpProbePostProcessController
+        task_controller = ctrl.PumpProbePostProcessController
     else:
         task_controller = TaskController
         
