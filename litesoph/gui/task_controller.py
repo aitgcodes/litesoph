@@ -11,6 +11,7 @@ from litesoph.gui import views as v
 from litesoph.common import models as m
 from litesoph.gui.models.gs_model import choose_engine
 from litesoph.common.decision_tree import EngineDecisionError
+from litesoph.gui.utils import dict2string
 from litesoph.gui.models import inputs as inp
 
 
@@ -621,16 +622,6 @@ class PumpProbePostProcessController(TaskController):
             messagebox.showerror(title='Error', message=f'{e}')
 
 
-def input_param_report(engine, input_param):
-    pass            
-
-def dict2string(inp_dict):
-
-    txt = []
-    for key, value in inp_dict.items():
-        txt.append(f"{key} =  {value}")
-
-    return '\n'.join(txt)
 
 def get_laser_labels(laser_defined = False, num_lasers:int= 0):
     if not laser_defined:
