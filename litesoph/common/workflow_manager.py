@@ -6,10 +6,10 @@ import shutil
 from litesoph.common.task import Task
 from litesoph.common.workflows_data import predefined_workflow
 from litesoph.common.engine_manager import EngineManager
-from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info, Container
+from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info, Container, Block
 import importlib
+from litesoph.common.task_manager import check_task_completion
 from litesoph.common.decision_tree import decide_engine, EngineDecisionError
-
 engine_classname = {
     'gpaw' : 'GPAW',
     'nwchem': 'NWChem',
@@ -151,6 +151,19 @@ class WorkflowManager:
         self.current_task_info = self.tasks.get(self.current_container.task_uuid)
         self.prepare_task()
 
+    def add_block(self, 
+                    block_id, 
+                    name, store_same_task_type = False,
+                    task_type = None,
+                    metadata = dict()):
+
+        if not store_same_task_type and task_type is not None:
+            raise TaskSetupError('task_type must be None if store_same_task_type is True.')
+
+        block = Block(name, store_same_task_type,
+                    task_type=task_type, metadata=metadata)
+
+        self.steps.insert(block_id, block)
 
     def add_task(self, task_name: str,
                          block_id: int, 
@@ -160,6 +173,12 @@ class WorkflowManager:
                          dependent_tasks_uuid: Union[str, list]= list()):
 
         task_info = factory_task_info(task_name)
+        
+        try :
+            self.steps[block_id].task_uuids.append(task_info.uuid)
+        except IndexError:
+            raise TaskSetupError(f'The block:{block_id} is not defined.')
+
         self.tasks[task_info.uuid] = task_info
         
         new_container = Container(step_id,
@@ -208,7 +227,12 @@ class WorkflowManager:
             dependent_id.extend(dependent_list)
             self.dependencies_map.update({task_uuid: dependent_id})
 
-    
+    def check_block(self, block_id):
+        check = True
+        if block_id > len(self.steps)-1:
+            check = False
+        return check
+
     def get_continer_by_task_uuid(self, task_uuid):
         for container in self.containers:
             if container.task_uuid == task_uuid:
@@ -233,9 +257,6 @@ class WorkflowManager:
             self.current_task_info.param.update(param)
         self.current_task_info.path = self.directory
 
-    def add_block(self, block_id, block_name):
-        pass
-
     def check(self):
         pass
 
@@ -246,6 +267,10 @@ class WorkflowManager:
                     branch_point: int) -> WorkflowInfo:
 
         clone_workflow.engine = copy.deepcopy(self.engine)
+
+        for block in self.steps:
+            clone_workflow.steps.append(block.clone())
+
         previous_container = None
         for _, container in enumerate(self.containers):
 
@@ -259,6 +284,7 @@ class WorkflowManager:
             clone_workflow.containers.append(clone_container)
             previous_container = clone_container
 
+            clone_workflow.steps[clone_container.block_id].task_uuids.append(ctask_info.uuid)
             parent_task_info = self.tasks.get(container.task_uuid)
 
             if container.block_id <= branch_point:
@@ -285,7 +311,6 @@ class WorkflowManager:
                     index = self.get_container_index(dtask)
                     clone_workflow.dependencies_map[ctask_info.uuid].append(clone_workflow.containers[index].task_uuid)
 
-        clone_workflow.steps = copy.deepcopy(self.steps)
         clone_workflow.current_step.insert(0, branch_point)
 
         return clone_workflow
@@ -322,7 +347,7 @@ def copy_task_files(source ,file_list, destination):
 def update_workflowinfo(workflow_dict:dict, workflowinfo: WorkflowInfo):
     
     blocks = workflow_dict.get('blocks')
-    wstepslist = workflow_dict.get('steps')
+    task_sequence = workflow_dict.get('task_sequence')
     w_dependency = workflow_dict.get('dependency_map')
 
     steps = workflowinfo.steps
@@ -332,23 +357,30 @@ def update_workflowinfo(workflow_dict:dict, workflowinfo: WorkflowInfo):
     tasks.clear()
     dependencies.clear()
 
-    steps.extend(blocks)
+    for block in blocks: 
+        steps.append(Block(name= block['name'],
+                            store_same_task_type= block.get('store_same_task_type', True),
+                            task_type=block.get('task_type'),
+                            metadata= block.get('metadata', dict())))
     prev_cont = None
-    for wstep in wstepslist:
+    for wstep in task_sequence:
         taskinfo = factory_task_info(wstep.task_type)
-        container = Container(wstepslist.index(wstep), 
+        container = Container(task_sequence.index(wstep), 
                                 wstep.block_id, 
                                 wstep.task_type, 
                                 taskinfo.uuid, 
                                 workflowinfo.uuid,
                                 wstep.parameters,
                                 wstep.env_parameters)
+        
+        steps[wstep.block_id].task_uuids.append(taskinfo.uuid)
+        
         if prev_cont is not None:
             prev_cont.next = container.task_uuid
             container.previous = prev_cont.task_uuid
         containers.append(container)
         prev_cont = container
-        dependent_tasks = w_dependency.get(str(wstepslist.index(wstep)))
+        dependent_tasks = w_dependency.get(str(task_sequence.index(wstep)))
         if dependent_tasks is None:
             dependencies[taskinfo.uuid] = None
         elif isinstance(dependent_tasks, str):
