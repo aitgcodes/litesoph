@@ -10,15 +10,12 @@ from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError, Wo
 from litesoph.gui.workflow_navigation import WorkflowNavigation
 from litesoph.gui import actions
 from litesoph.gui.task_controller import (TaskController,
-                                            TDPageController,
-                                            PostProcessTaskController,
-                                            MaskingPageController,
-                                            PumpProbePostProcessController)
+                                            PostProcessTaskController)
 from litesoph.gui import views as v
 from litesoph.common.task_data import (task_dependencies_map,
                                     check_properties_dependencies)
 from litesoph.gui import design
-from litesoph.gui.controllers import masking_controller, td_page
+from litesoph.gui.controllers import masking_controller, td_page, PumpProbePostProcessController
 
 
 task_view_map={

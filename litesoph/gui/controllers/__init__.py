@@ -1,2 +1,3 @@
 from litesoph.gui.controllers.td_page import TDPageController
 from litesoph.gui.controllers.postprocess import PostProcessTaskController
+from litesoph.gui.controllers.pump_probe import PumpProbePostProcessController
