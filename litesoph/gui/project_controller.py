@@ -242,8 +242,8 @@ def get_workflow_block(workflow, name=False):
     if name:
         workflow = get_workflow_type(workflow)
 
-    workflow_branch =  predefined_workflow.get(workflow)['blocks']
-    return workflow_branch
+    blocks =  predefined_workflow.get(workflow)['blocks']
+    return [block['name'] for block in blocks]
 
 def get_workflow_type(workflow_name):
     for workflow in predefined_workflow:
