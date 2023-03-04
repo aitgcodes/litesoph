@@ -546,47 +546,6 @@ class TaskController:
             else:
                 return
 
-class MaskingPageController(TaskController):
-
-    def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
-        self.workflow_manager = workflow_manager
-        self.task_info = workflow_manager.current_task_info
-        self.task_name = self.task_info.name
-        self.engine = self.task_info.engine
-        self.task_view = task_view
-        self.task = None
-
-        try:
-            self.task = self.workflow_manager.get_engine_task()
-        except TaskSetupError as e:
-            messagebox.showerror("Error", str(e))
-            return
-            
-
-        self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)
-        
-        self.task_view.energy_coupling_button.config(command = self._on_masking_page_compute)
-        self.task_view.plot_button.config(command = self._on_plot_dm_file)
-        self.task_view.back_button.config(command= self.workflow_controller.show_workmanager_page)
-
-
-        if hasattr(self.task_view, 'set_parameters'):
-            self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
-
-    def _on_masking_page_compute(self, *_):
-        inp_dict = self.task_view.get_parameters()
-        try:
-            txt = self.task.get_energy_coupling_constant(**inp_dict)
-            self.view_panel.insert_text(text= txt, state= 'disabled')
-        except Exception as e:
-            messagebox.showerror(title='Error', message=e)
-
-    def _on_plot_dm_file(self, *_):
-        inp_dict = self.task_view.get_parameters()
-        try:
-            self.task.plot(**inp_dict)
-        except Exception as e:
-            messagebox.showerror(title='Error', message=e)
 
 class LaserPageController(TaskController):
 
