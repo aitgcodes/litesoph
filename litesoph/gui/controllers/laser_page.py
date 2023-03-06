@@ -275,34 +275,17 @@ class LaserDesignController:
             laser_params.append(laser[0])
         return laser_params  
 
-    # def _on_plot_w_delay_button(self, *_):
-    #     from litesoph.utilities.units import fs_to_au, as_to_au, au_to_fs
-    #     systems_selected = self.laser_plot_view.laser_selected()
-    #     if len(systems_selected) == 0:
-    #         systems_selected = self.laser_plot_view.tree.get_children()
-
-    #     assert len(systems_selected) == 2
-
-    #     name_1 = systems_selected[0]
-    #     name_2 = systems_selected[1]
-
-    #     laser_data_1 = copy.deepcopy(self.laser_info.data[name_1])
-    #     laser_data_2 = copy.deepcopy(self.laser_info.data[name_2])
-
-    #     delay_in_fs = self.laser_plot_view._var['delay'].get()
-    #     delay_in_au = float(delay_in_fs)*fs_to_au        
-    #     laser_list = list(add_delay_to_lasers(system_1= laser_data_1, 
-    #                             system_2= laser_data_2, delay=delay_in_au))        
-
-    #     lasers_to_plot = []
-    #     for laser in laser_list:
-    #         lasers_to_plot.extend(laser)
-
-    #     (time_arr, list_strength_arr) = m.get_time_strength(lasers_to_plot,
-    #                                         laser_profile_time= self.total_time*as_to_au*au_to_fs)
-    #     m.plot_laser(time_arr, list_strength_arr)
-
-
+    def create_laser_file(self, fname='laser.dat'):
+        'Writes designed laser data to file'
+        from litesoph.common.models import write_lasers
+        from litesoph.utilities.units import as_to_au, au_to_fs, fs_to_au
+        lasers = []
+        for laser_system in self.laser_info.data.keys():
+            _lasers = self.extract_laser_param_from_system(laser_system)
+            lasers.extend(_lasers)
+        (time_arr, list_strength_arr) = m.get_time_strength(list_of_laser_params=lasers,
+                                                laser_profile_time= self.total_time*as_to_au*au_to_fs)    
+        write_lasers(fname, time_t=time_arr*as_to_au, laser_strengths=list_strength_arr)
 
 def get_laser_labels(laser_defined = False, num_lasers:int= 0):
     if not laser_defined:
