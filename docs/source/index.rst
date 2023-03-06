@@ -27,9 +27,9 @@ Contents
    Upcoming_Feature
    Simulations
    Tutorials/Tutorials
-   FAQ
+   FAQs/FAQ   
+   developer_documentation/developer_documentation_index
    Issues
-   Developer_Guideline
    
    
 
