@@ -1,19 +1,16 @@
 import os
 import copy
+import numpy as np
 import shutil
 from pathlib import Path
 from typing import Any, List, Dict, Union
 
-from numpy import true_divide
 from litesoph.common.task import Task, InputError, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.octopus.octopus import Octopus
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
 from litesoph.common.utils import get_new_directory
-from litesoph.engines.octopus.octopus_input import get_task
-from litesoph import config
-from litesoph.engines.octopus.gs2oct import create_oct_gs_inp
-import numpy as np
+from litesoph.engines.octopus.format_oct import get_gs_dict, get_oct_kw_dict
 
 
 engine_log_dir = 'octopus/log'
@@ -48,6 +45,15 @@ octopus_data = {
                 'req' : ['coordinate.xyz'],
                 'spectra_file': ['cross_section_vector'],
                 'copy_list': ['cross_section_vector']
+                },
+    tt.COMPUTE_AVERAGED_SPECTRUM: {'inp':general_input_file,
+                'task_inp': 'spec.inp',
+                'out_log': 'spec.log',
+                'req' : ['coordinate.xyz'],
+                'output': ['avg_spectrum.dat'],
+                'spectra_file': ['cross_section_tensor','cross_section_vector.1', 
+                        'cross_section_vector.2', 'cross_section_vector.3']
+                # 'copy_list': ['cross_section_vector']
                 },
                 
     tt.TCM: {'inp': None,
@@ -84,16 +90,14 @@ octopus_data = {
         # 'dir': 'population',
         # 'population_file': 'population.dat'},          
 }
-class OctTask(Task):
-    pass
 
 class OctopusTask(Task):
     """ Wrapper class to perform Octopus tasks """
     NAME = 'octopus'
 
     simulation_tasks =  [tt.GROUND_STATE, tt.RT_TDDFT]
-    post_processing_tasks = [tt.COMPUTE_SPECTRUM, tt.TCM, tt.MO_POPULATION]
-    added_post_processing_tasks = [tt.TCM, tt.MO_POPULATION]
+    post_processing_tasks = [tt.COMPUTE_SPECTRUM, tt.COMPUTE_AVERAGED_SPECTRUM, tt.TCM, tt.MO_POPULATION]    
+    added_post_processing_tasks = [tt.TCM, tt.MO_POPULATION]     # Post-Processing Tasks without octopus simulation
     implemented_task = simulation_tasks + post_processing_tasks
     
     def __init__(self, lsconfig, 
@@ -115,10 +119,12 @@ class OctopusTask(Task):
         self.setup_task(self.user_input) 
     
     def validate_task_param(self):
-        """Engine level validation of the input dict for the task\n
+        """Engine level validation of the input dict for the task
+        \n
         """
         name = self.task_info.name
         if name == tt.RT_TDDFT:
+            from litesoph.engines.octopus.format_oct import calc_td_range
             # Time step for TD simulation has a maximum limit bound by grid-spacing
             t_step = float(self.params.get('time_step'))                      
             gs_info = self.dependent_tasks[0]
@@ -128,32 +134,64 @@ class OctopusTask(Task):
             if t_step > t_step_max:
                 raise InputError(f'Expected time step less than {t_step_max} as')
     
-    def pre_run(self):
-        """Sets task_dir for current task, creates engine dir and output dir if not exists\n
-        For post-processing tasks, copies the required files to octopus folder structure"""
+    def setup_task(self, param:dict): 
+        """
+        General method for Octopus driven tasks,
+        Sets the tasks and initiates Octopus class by default.\n
 
+        Needs modification for added post-processing task        
+        """  
+
+        if self.task_name in self.added_post_processing_tasks:
+            relative_infile = None
+            relative_outfile = None
+        
+        self.set_dir()
+        self.pre_run()
+        self.update_task_param()   
+        self.update_task_info()
+
+        relative_infile = self.input_filename
+        if self.task_info.output.get('txt_out'):
+            relative_outfile = Path(self.task_info.output['txt_out'])
+
+        self.octopus = Octopus(infile= relative_infile, outfile=relative_outfile,
+                             directory=Path(self.engine_dir), **self.user_input)
+    
+    def set_dir(self):
+        """
+        Sets task_dir for current task, creates engine dir and output dir if not exists.
+        """
+
+        # Task dir
+        self.engine_dir = str(self.wf_dir / 'octopus')
+        task_dir = (Path(self.engine_dir) / self.task_name)
+        self.task_dir = get_new_directory(task_dir)
+        
+        # TODO: Only needed for Octopus simulation
+        # Specific to Octopus interfaced tasks
         self.input_filename = 'inp'
         self.task_input_filename = self.task_data.get('task_inp', 'inp')       
         geom_fname = self.user_input.get('geom_fname','coordinate.xyz')
         self.geom_file = '../' + str(geom_fname)
         self.geom_fpath = str(self.wf_dir / str(geom_fname))
-
-        # absolute path attributes
-        self.engine_dir = str(self.wf_dir / 'octopus')
-        task_dir = (Path(self.engine_dir) / self.task_name)
-        self.task_dir = get_new_directory(task_dir)
         self.output_dir = str(Path(self.engine_dir) / 'log')
         self.network_done_file = Path(self.engine_dir) / 'Done'
-        self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
-
-        self.task_info.input['engine_input']={}
 
         for dir in [self.engine_dir, self.output_dir]:
             self.create_directory(Path(dir))
-
         log_files = list(Path(self.output_dir).iterdir())
         for log in log_files:
-            os.remove(Path(self.output_dir)/log)
+            os.remove(Path(self.output_dir)/log)       
+        
+    def pre_run(self):
+        """
+        Handles file related actions.
+        Uses dependent task info in context of current task,
+        Includes:
+            Defining task related variable for required/output files, 
+            Copying the required files to octopus folder structure
+        """
 
         if self.task_name == tt.COMPUTE_SPECTRUM:
             td_info = self.dependent_tasks[0]
@@ -169,46 +207,46 @@ class OctopusTask(Task):
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
                 td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
                 shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+        
+    def update_task_info(self, **kwargs):
+        """ Updates current task info with relative paths of input and output files
+        """    
+
+        # TODO: add these
+        if self.task_name in self.added_post_processing_tasks:
+            return  
+
+        self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
+        # Specific to Octopus interfaced tasks 
+        self.task_info.input['engine_input']={}
+        self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
+        self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
+        self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
 
         # Adding local copy files/folders
         geom_path = str(Path(self.geom_fpath).relative_to(self.wf_dir))
         restart_dir = self.task_data.get('restart')
-        restart_path = 'octopus/'+str(restart_dir)
-        self.task_info.local_copy_files.extend([geom_path,restart_path])
+        if restart_dir is not None:
+            restart_path = 'octopus/'+str(restart_dir)
+            self.task_info.local_copy_files.extend([geom_path,restart_path])
         self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.wf_dir)))
-        
-    def update_task_info(self, **kwargs):
-        """ Updates current task info with relative paths of input and output files"""
-        
-        if self.task_name in self.added_post_processing_tasks:
-            return        
-        self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
-        self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
-        self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
-        # self.task_info.output['txt_out'] = str(Path(self.output_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        self.update_added_task_info()
+
+    def update_added_task_info(self):
+        """Updates task info specific to the tasks, related to output files"""
+
         if self.task_name == tt.RT_TDDFT:
-            self.task_info.output['multipoles'] = str(Path(self.task_dir).relative_to(self.wf_dir) / 'td.general'/ 'multipoles')
-            
-    def setup_task(self, param:dict): 
-        """Sets the tasks and initiates Octopus class"""  
-
-        if self.task_name in self.added_post_processing_tasks:
-            relative_infile = None
-            relative_outfile = None
+            self.task_info.output['multipoles'] = str(Path(self.task_dir).relative_to(self.wf_dir)
+                                                     / 'td.general'/ 'multipoles')
+        elif self.task_name == tt.COMPUTE_SPECTRUM:
+            self.task_info.output['spectra_file'] = []
+            for spec_file in self.task_data.get('spectra_file'):
+                spectra_fpath = str(Path(self.task_dir).relative_to(self.wf_dir) / spec_file)
+                self.task_info.output['spectra_file'].append(spectra_fpath)
         
-        self.pre_run()
-        self.update_task_param()   
-        self.update_task_info()
-
-        relative_infile = self.input_filename
-        if self.task_info.output.get('txt_out'):
-            relative_outfile = Path(self.task_info.output['txt_out'])
-
-        self.octopus = Octopus(infile= relative_infile, outfile=relative_outfile,
-                             directory=Path(self.engine_dir), **self.user_input)
-    
     def update_task_param(self):
-        """ Updates task parameters to engine-specific parameters"""
+        """ Updates input task parameters to engine-specific parameters
+        """
 
         task = self.task_name
         copy_input = copy.deepcopy(self.user_input)
@@ -221,30 +259,26 @@ class OctopusTask(Task):
 
         if task == tt.GROUND_STATE:
             # Set Calculation Mode expliciltly            
-            param.update(create_oct_gs_inp(copy_input, self.geom_fpath))
+            param.update(get_gs_dict(copy_input, self.geom_fpath))
             self.user_input = param            
             return
 
         elif task == tt.RT_TDDFT:            
             param_copy.update(self.dependent_tasks[0].param)
-            gs_oct_param = create_oct_gs_inp(param_copy, self.geom_fpath)
+            gs_oct_param = get_gs_dict(param_copy, self.geom_fpath)
             param.update(gs_oct_param)
             oct_td_dict = get_oct_kw_dict(copy_input,task)            
             param.update(oct_td_dict)
             self.user_input = param            
             return
 
-        elif task == tt.COMPUTE_SPECTRUM:
+        elif task in [tt.COMPUTE_SPECTRUM, tt.COMPUTE_AVERAGED_SPECTRUM]:
             param.update(get_oct_kw_dict(copy_input, task))
             self.user_input = param  
-            return 
+            return      
+            
+    #--------------------------------------------------------------------------------------------
 
-        elif task == tt.TCM:
-            pass
-
-        elif task == tt.MO_POPULATION:
-            pass
-   
     def check_run_status(self):
         """Returns run_status bool and returncode value"""
 
@@ -478,160 +512,84 @@ class OctopusTask(Task):
             self.task_info.local['returncode'] = 1
             # self.local_cmd_out = [1]
 
-##---------------------------------------------------------------------------------------------------------------
 
-pol_list2dir = [([1,0,0], 1),
-                ([0,1,0], 2),
-                ([0,0,1], 3)]
+class OctAveragedSpectrum(OctopusTask):
+    """Added Post-Processing Class to compute Averaged Spectrum"""
 
-property_dict = {
-    "default": ["energy", "multipoles"],
-    "ksd": ["td_occup"],
-    "mo_population": ["td_occup"]}
+    def validate_task_param(self):
+        pass
 
-def get_oct_kw_dict(inp_dict:dict, task_name:str):
-    """ Acts on the input dictionary to return Octopus specifc keyword dictionary
-        inp_dict: dictionary from gui
-        task_name
-    """
-    from litesoph.utilities.units import as_to_au
+    def pre_run(self):
+        """Gets dependent tasks info and defines class variables"""
 
-    if 'rt_tddft' in task_name:
-        t_step = inp_dict.pop('time_step')
-        property_list = inp_dict.pop('properties')
-        laser = inp_dict.pop('laser', None)
-                  
-        ### add appropriate keywords from property list
-        _list = []
-        td_out_list = []
-        for item in property_list:
-            td_key = property_dict.get(item, ["energy", "multipoles"])
-            if td_key:
-                _list.extend(td_key)
-        td_list = list(set(_list))
-        for item in td_list:
-            td_out_list.append([item])
+        self.spectrum_files = []
+        for i, td_task in enumerate(self.dependent_tasks):
+            td_info = td_task
+            if td_info:
+                spec_file = td_info.output['spectra_file'][0]
+                spec_file_path = str(self.wf_dir / spec_file)
+                self.spectrum_files.append(spec_file_path)
+        self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
+
+        # For using oct-propagation_spectrum ultility for multiploes
+        # for i, td_task in enumerate(self.dependent_tasks):
+        #     td_info = td_task
+        #     if td_info:
+        #         oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
+        #         td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
+        #         shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+        #         shutil.move(src=td_folder_path+'/multipoles',
+        #                dst= td_folder_path+'/multipoles'+str(i+1))
         
-        _dict ={
-        'CalculationMode': 'td', 
-        'TDPropagator': 'aetrs',
-        'TDMaxSteps': inp_dict.pop('number_of_steps'),
-        'TDTimeStep':round(t_step*as_to_au, 3),
-        'TDOutput': td_out_list ,
-        'TDOutputComputeInterval':inp_dict.pop('output_freq')
-        }
+    def update_added_task_info(self):
+        """Modified to store output files"""
 
-        if laser:
-            # State Preparation/Pump-Probe
-            assert isinstance(laser, list)
-            _dict2update = {'task': 'rt_tddft_laser'}
+        self.task_info.output['spectra_file'] = []
+        for spec_file in self.task_data.get('spectra_file'):
+            spectra_fpath = str(Path(self.task_dir).relative_to(self.wf_dir) / spec_file)
+            self.task_info.output['spectra_file'].append(spectra_fpath)
+
+    def setup_task(self, param: dict):        
+        self.set_dir()
+        self.pre_run()
+        self.update_task_info()
                 
-            td_functions_list = []
-            td_ext_fields_list = []
+    def prepare_input(self):
+        """Modifies the same method in Task class\n
+        Creates/writes input and job script"""
 
-            for i, laser_inp in enumerate(laser):
-                laser_type = laser_inp.get("type")
-                pol_list = laser_inp.get('polarization')    
+        self.create_task_dir()
+        self.compute_avg_spectra()
+    
+    def compute_avg_spectra(self):
+        """Computes average of spectra data"""
 
-                if laser_type != "delta":
-                    # for laser other than delta pulse
-                    # Construct the td_functions, ext fields block
-                    laser_str = "laser"+str(i)
-                    td_functions_list.append(get_td_function(laser_dict=laser_inp,
-                                            laser_type= laser_type,
-                                            td_function_name=laser_str
-                                            ))
-                    td_ext_field = ['electric_field',
-                                pol_list[0],pol_list[1],pol_list[2],
-                                str(laser[i]['frequency'])+"*eV",
-                                str('"'+laser_str+'"')
-                                ]
-                    td_ext_fields_list.append(td_ext_field)
+        spec_data = []
+        time_data = []
+        for i, file in enumerate(self.spectrum_files):
+            data = np.loadtxt(file)
+            time_data.append(data[:,0])
+            spec_data.append(data[:,4])
 
-                    _dict2update.update({
-            'TDFunctions': td_functions_list,
-            'TDExternalFields': td_ext_fields_list
-                })
+        spec_data = np.column_stack(tuple(spec_data))
+        averaged_data = np.average(spec_data, axis=1)
+        spec_avg_data = np.column_stack((time_data[0], averaged_data))
+        with open(self.averaged_spec_file, 'ab') as f:
+            np.savetxt(f, np.array(spec_avg_data))
 
-                else:
-                    # Get dict for delta pulse
-                    # td_laser_dict = laser[i]
-                    pol_list = laser_inp.get('polarization') 
+    def plot(self,**kwargs):
+        """Method related to plot in average spectrum"""
 
-                    if isinstance(pol_list, list):      
-                        for item in pol_list2dir:
-                            if item[0] == pol_list:
-                                pol_dir = item[1]
-                    _dict2update.update({
-                    "TDDeltaStrength": laser_inp.get('strength'),
-                    "TDPolarizationDirection": pol_dir,
-                    "TDDeltaKickTime":laser_inp.get('time0'),
-                })
-               
-            # else:
-            #     _dict2update = {'TDFunctions':[[str('"'+"envelope_gauss"+'"'),
-            #                             'tdf_gaussian',
-            #                             inp_dict.get('strength'),
-            #                             laser[0]['sigma'],
-            #                             laser[0]['time0']
-            #                             ]],
-            #             'TDExternalFields':[['electric_field',
-            #                                 pol_list[0],pol_list[1],pol_list[2],
-            #                                 str(laser[0]['frequency'])+"*eV",
-            #                                 str('"'+"envelope_gauss"+'"')
-            #                                 ]] }
-        else:
-            # Delta Kick for spectrum calculation
-            pol_list = inp_dict.pop('polarization')
-            if isinstance(pol_list, list):      
-                for item in pol_list2dir:
-                    if item[0] == pol_list:
-                        pol_dir = item[1]
+        from litesoph.visualization.plot_spectrum import plot_spectrum
+        energy_min = self.task_info.param['e_min']
+        energy_max = self.task_info.param['e_max']
+        img = self.averaged_spec_file.parent / f"avg_spectrum.png"
+        plot_spectrum(self.averaged_spec_file,img, 0, 1,
+                        "Energy (in eV)", "Strength(in /eV)", 
+                        xlimit=(float(energy_min), float(energy_max)))
+        return    
 
-            _dict2update = {
-                'TDDeltaStrength':inp_dict.get('strength'),
-                'TDPolarizationDirection':pol_dir,
-        }
-        _dict.update(_dict2update)
 
-    elif task_name == 'spectrum':
-        delta_e = inp_dict.pop('delta_e')
-        e_max = inp_dict.pop('e_max')
-        e_min = inp_dict.pop('e_min') 
-        
-        _dict = {
-        "UnitsOutput": 'eV_angstrom',
-        "PropagationSpectrumEnergyStep": str(delta_e)+"*eV",
-        "PropagationSpectrumMaxEnergy": str(e_max)+"*eV",
-        "PropagationSpectrumMinEnergy": str(e_min)+"*eV"
-        }
-    return _dict
-
-def calc_td_range(spacing:float):
-    """ spacing:float = Grid-spacing in angstrom\n
-    calculates max limit(in as) for time step specific to Octopus engine
-    """
-
-    from litesoph.utilities.units import ang_to_au, au_to_as
-    h = spacing*ang_to_au
-    dt = 0.0426-0.207*h+0.808*h*h
-    max_dt_as = round(dt*au_to_as, 2)
-    return max_dt_as
-
-def get_td_function(laser_dict:dict,laser_type:str,td_function_name:str = "envelope_gauss"):
-    laser_td_function_map = {
-        "gaussian": "tdf_gaussian"
-    }
-    # td_function block for gaussian pulse
-    td_func = [str('"'+td_function_name+'"'),
-                    laser_td_function_map.get(laser_type),
-                    laser_dict.get('strength'),
-                    laser_dict['sigma'],
-                    laser_dict['time0']
-                    ]
-    return td_func
-
-        
 class PumpProbePostpro(OctopusTask):
 
     """
@@ -702,4 +660,5 @@ class PumpProbePostpro(OctopusTask):
         
         plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
         return plot
-        
+
+

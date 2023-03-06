@@ -328,6 +328,16 @@ class TDPageController(TaskController):
         else:
             messagebox.showinfo(message='No Laser is designed.')
 
+    def _on_save_button(self, task:Task, view, *_):
+        """Modified save method for td laser"""
+        template = self.view_panel.get_text()
+        task.set_engine_input(template)
+        task.save_input()
+        # Writing laser pulses
+        laser_fpath = task.task_dir / 'laser.dat'
+        self.laser_controller.create_laser_file(fname= laser_fpath)
+        view.set_sub_button_state('active')
+        view.set_label_msg('saved')
 
 def validate_laser_defined(laser_data:dict, exp_type:str):
     """ Validates laser_defined wrt exp_type and returns the bool"""
