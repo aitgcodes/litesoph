@@ -1,15 +1,3 @@
-.. _faq:
-
-==========================
-Frequently Asked Questions
-==========================
-
-.. contents::
-
-
-General
-=======
-
 How to enable passwordless SSH?
 ===============================
 
@@ -19,7 +7,7 @@ Step 1: Check or Create Authentication SSH-Keygen Keys on local machine
 >>> $ ssh-keygen -t rsa      # Keep pressing enter
 
 
-.. image:: ./Commands/terminal.png
+.. image:: ./terminal.png
    :width: 1000
    :alt: terminal
 
@@ -35,15 +23,6 @@ If above step failed, try the command given below with your credential
 Step 3: Test SSH Passwordless Login from local  machine to remote
 
 >>> $ ssh remote_username@server_ip_address
-
-
-
-
-
-
-
-
-
 
 
 
