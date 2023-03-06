@@ -1,18 +1,16 @@
 import os
 import copy
+import numpy as np
 import shutil
 from pathlib import Path
 from typing import Any, List, Dict, Union
 
-from numpy import true_divide
 from litesoph.common.task import Task, InputError, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.octopus.octopus import Octopus
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
 from litesoph.common.utils import get_new_directory
-from litesoph.engines.octopus.octopus_input import get_task
-from litesoph import config
-from litesoph.engines.octopus.gs2oct import create_oct_gs_inp
+from litesoph.engines.octopus.format_oct import get_gs_dict, get_oct_kw_dict
 
 
 engine_log_dir = 'octopus/log'
@@ -112,10 +110,12 @@ class OctopusTask(Task):
         self.setup_task(self.user_input) 
     
     def validate_task_param(self):
-        """Engine level validation of the input dict for the task\n
+        """Engine level validation of the input dict for the task
+        \n
         """
         name = self.task_info.name
         if name == tt.RT_TDDFT:
+            from litesoph.engines.octopus.format_oct import calc_td_range
             # Time step for TD simulation has a maximum limit bound by grid-spacing
             t_step = float(self.params.get('time_step'))                      
             gs_info = self.dependent_tasks[0]
@@ -250,30 +250,26 @@ class OctopusTask(Task):
 
         if task == tt.GROUND_STATE:
             # Set Calculation Mode expliciltly            
-            param.update(create_oct_gs_inp(copy_input, self.geom_fpath))
+            param.update(get_gs_dict(copy_input, self.geom_fpath))
             self.user_input = param            
             return
 
         elif task == tt.RT_TDDFT:            
             param_copy.update(self.dependent_tasks[0].param)
-            gs_oct_param = create_oct_gs_inp(param_copy, self.geom_fpath)
+            gs_oct_param = get_gs_dict(param_copy, self.geom_fpath)
             param.update(gs_oct_param)
             oct_td_dict = get_oct_kw_dict(copy_input,task)            
             param.update(oct_td_dict)
             self.user_input = param            
             return
 
-        elif task == tt.COMPUTE_SPECTRUM:
+        elif task in [tt.COMPUTE_SPECTRUM, tt.COMPUTE_AVERAGED_SPECTRUM]:
             param.update(get_oct_kw_dict(copy_input, task))
             self.user_input = param  
-            return 
+            return      
+            
+    #--------------------------------------------------------------------------------------------
 
-        elif task == tt.TCM:
-            pass
-
-        elif task == tt.MO_POPULATION:
-            pass
-   
     def check_run_status(self):
         """Returns run_status bool and returncode value"""
 
