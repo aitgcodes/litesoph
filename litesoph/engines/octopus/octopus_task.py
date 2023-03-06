@@ -46,6 +46,15 @@ octopus_data = {
                 'spectra_file': ['cross_section_vector'],
                 'copy_list': ['cross_section_vector']
                 },
+    tt.COMPUTE_AVERAGED_SPECTRUM: {'inp':general_input_file,
+                'task_inp': 'spec.inp',
+                'out_log': 'spec.log',
+                'req' : ['coordinate.xyz'],
+                'output': ['avg_spectrum.dat'],
+                'spectra_file': ['cross_section_tensor','cross_section_vector.1', 
+                        'cross_section_vector.2', 'cross_section_vector.3']
+                # 'copy_list': ['cross_section_vector']
+                },
                 
     tt.TCM: {'inp': None,
             'ksd_file': 'ksd/transwt.dat'},
@@ -503,156 +512,82 @@ class OctopusTask(Task):
             self.task_info.local['returncode'] = 1
             # self.local_cmd_out = [1]
 
-##---------------------------------------------------------------------------------------------------------------
 
-pol_list2dir = [([1,0,0], 1),
-                ([0,1,0], 2),
-                ([0,0,1], 3)]
+class OctAveragedSpectrum(OctopusTask):
+    """Added Post-Processing Class to compute Averaged Spectrum"""
 
-property_dict = {
-    "default": ["energy", "multipoles"],
-    "ksd": ["td_occup"],
-    "mo_population": ["td_occup"]}
+    def validate_task_param(self):
+        pass
 
-def get_oct_kw_dict(inp_dict:dict, task_name:str):
-    """ Acts on the input dictionary to return Octopus specifc keyword dictionary
-        inp_dict: dictionary from gui
-        task_name
-    """
-    from litesoph.utilities.units import as_to_au
+    def pre_run(self):
+        """Gets dependent tasks info and defines class variables"""
 
-    if 'rt_tddft' in task_name:
-        t_step = inp_dict.pop('time_step')
-        property_list = inp_dict.pop('properties')
-        laser = inp_dict.pop('laser', None)
-                  
-        ### add appropriate keywords from property list
-        _list = []
-        td_out_list = []
-        for item in property_list:
-            td_key = property_dict.get(item, ["energy", "multipoles"])
-            if td_key:
-                _list.extend(td_key)
-        td_list = list(set(_list))
-        for item in td_list:
-            td_out_list.append([item])
+        self.spectrum_files = []
+        for i, td_task in enumerate(self.dependent_tasks):
+            td_info = td_task
+            if td_info:
+                spec_file = td_info.output['spectra_file'][0]
+                spec_file_path = str(self.wf_dir / spec_file)
+                self.spectrum_files.append(spec_file_path)
+        self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
+
+        # For using oct-propagation_spectrum ultility for multiploes
+        # for i, td_task in enumerate(self.dependent_tasks):
+        #     td_info = td_task
+        #     if td_info:
+        #         oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
+        #         td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
+        #         shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
+        #         shutil.move(src=td_folder_path+'/multipoles',
+        #                dst= td_folder_path+'/multipoles'+str(i+1))
         
-        _dict ={
-        'CalculationMode': 'td', 
-        'TDPropagator': 'aetrs',
-        'TDMaxSteps': inp_dict.pop('number_of_steps'),
-        'TDTimeStep':round(t_step*as_to_au, 3),
-        'TDOutput': td_out_list ,
-        'TDOutputComputeInterval':inp_dict.pop('output_freq')
-        }
+    def update_added_task_info(self):
+        """Modified to store output files"""
 
-        if laser:
-            # State Preparation/Pump-Probe
-            assert isinstance(laser, list)
-            _dict2update = {'task': 'rt_tddft_laser'}
-                
-            td_functions_list = []
-            td_ext_fields_list = []
+        self.task_info.output['spectra_file'] = []
+        for spec_file in self.task_data.get('spectra_file'):
+            spectra_fpath = str(Path(self.task_dir).relative_to(self.wf_dir) / spec_file)
+            self.task_info.output['spectra_file'].append(spectra_fpath)
 
-            for i, laser_inp in enumerate(laser):
-                laser_type = laser_inp.get("type")
-                pol_list = laser_inp.get('polarization')    
-
-                if laser_type != "delta":
-                    # for laser other than delta pulse
-                    # Construct the td_functions, ext fields block
-                    laser_str = "laser"+str(i)
-                    td_functions_list.append(get_td_function(laser_dict=laser_inp,
-                                            laser_type= laser_type,
-                                            td_function_name=laser_str
-                                            ))
-                    td_ext_field = ['electric_field',
-                                pol_list[0],pol_list[1],pol_list[2],
-                                str(laser[i]['frequency'])+"*eV",
-                                str('"'+laser_str+'"')
-                                ]
-                    td_ext_fields_list.append(td_ext_field)
-
-                    _dict2update.update({
-            'TDFunctions': td_functions_list,
-            'TDExternalFields': td_ext_fields_list
-                })
-
-                else:
-                    # Get dict for delta pulse
-                    # td_laser_dict = laser[i]
-                    pol_list = laser_inp.get('polarization') 
-
-                    if isinstance(pol_list, list):      
-                        for item in pol_list2dir:
-                            if item[0] == pol_list:
-                                pol_dir = item[1]
-                    _dict2update.update({
-                    "TDDeltaStrength": laser_inp.get('strength'),
-                    "TDPolarizationDirection": pol_dir,
-                    "TDDeltaKickTime":laser_inp.get('time0'),
-                })
-               
-            # else:
-            #     _dict2update = {'TDFunctions':[[str('"'+"envelope_gauss"+'"'),
-            #                             'tdf_gaussian',
-            #                             inp_dict.get('strength'),
-            #                             laser[0]['sigma'],
-            #                             laser[0]['time0']
-            #                             ]],
-            #             'TDExternalFields':[['electric_field',
-            #                                 pol_list[0],pol_list[1],pol_list[2],
-            #                                 str(laser[0]['frequency'])+"*eV",
-            #                                 str('"'+"envelope_gauss"+'"')
-            #                                 ]] }
-        else:
-            # Delta Kick for spectrum calculation
-            pol_list = inp_dict.pop('polarization')
-            if isinstance(pol_list, list):      
-                for item in pol_list2dir:
-                    if item[0] == pol_list:
-                        pol_dir = item[1]
-
-            _dict2update = {
-                'TDDeltaStrength':inp_dict.get('strength'),
-                'TDPolarizationDirection':pol_dir,
-        }
-        _dict.update(_dict2update)
-
-    elif task_name == 'spectrum':
-        delta_e = inp_dict.pop('delta_e')
-        e_max = inp_dict.pop('e_max')
-        e_min = inp_dict.pop('e_min') 
+    def setup_task(self, param: dict):        
+        self.set_dir()
+        self.pre_run()
+        self.update_task_info()
         
-        _dict = {
-        "UnitsOutput": 'eV_angstrom',
-        "PropagationSpectrumEnergyStep": str(delta_e)+"*eV",
-        "PropagationSpectrumMaxEnergy": str(e_max)+"*eV",
-        "PropagationSpectrumMinEnergy": str(e_min)+"*eV"
-        }
-    return _dict
+    def prepare_input(self):
+        """Modifies the same method in Task class\n
+        Creates/writes input and job script"""
 
-def calc_td_range(spacing:float):
-    """ spacing:float = Grid-spacing in angstrom\n
-    calculates max limit(in as) for time step specific to Octopus engine
-    """
+        self.create_task_dir()
+        self.compute_avg_spectra()
+    
+    def compute_avg_spectra(self):
+        """Computes average of spectra data"""
 
-    from litesoph.utilities.units import ang_to_au, au_to_as
-    h = spacing*ang_to_au
-    dt = 0.0426-0.207*h+0.808*h*h
-    max_dt_as = round(dt*au_to_as, 2)
-    print(dt)
-    return max_dt_as
+        spec_data = []
+        time_data = []
+        for i, file in enumerate(self.spectrum_files):
+            data = np.loadtxt(file)
+            time_data.append(data[:,0])
+            spec_data.append(data[:,4])
 
-def get_td_function(laser_dict:dict,laser_type:str,td_function_name:str = "envelope_gauss"):
-    laser_td_function_map = {
-        "gaussian": "tdf_gaussian"
-    }
-    # td_function block for gaussian pulse
-    td_func = [str('"'+td_function_name+'"'),
-                    laser_td_function_map.get(laser_type),
-                    laser_dict.get('strength'),
-                    laser_dict['sigma'],
-                    laser_dict['time0']
-                    ]
-    return td_func
+        spec_data = np.column_stack(tuple(spec_data))
+        averaged_data = np.average(spec_data, axis=1)
+        spec_avg_data = np.column_stack((time_data[0], averaged_data))
+        with open(self.averaged_spec_file, 'ab') as f:
+            np.savetxt(f, np.array(spec_avg_data))
+
+    def plot(self,**kwargs):
+        """Method related to plot in average spectrum"""
+
+        from litesoph.visualization.plot_spectrum import plot_spectrum
+        energy_min = self.task_info.param['e_min']
+        energy_max = self.task_info.param['e_max']
+        img = self.averaged_spec_file.parent / f"avg_spectrum.png"
+        plot_spectrum(self.averaged_spec_file,img, 0, 1,
+                        "Energy (in eV)", "Strength(in /eV)", 
+                        xlimit=(float(energy_min), float(energy_max)))
+        return    
+
+
+
