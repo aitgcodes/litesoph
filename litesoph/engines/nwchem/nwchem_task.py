@@ -11,8 +11,6 @@ from litesoph.common.task import InputError, Task, TaskFailed, TaskNotImplemente
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.engines.nwchem.nwchem import NWChem
 from litesoph.engines.nwchem.spectrum import photoabsorption_spectrum
-from litesoph.post_processing.mo_population_correlation.moocc_correlation_plot import plot_mo_population_correlations
-from litesoph.post_processing import mo_population_correlation
 from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum
 import numpy as np
 from litesoph.post_processing.mo_population import create_states_index

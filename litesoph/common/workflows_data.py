@@ -192,13 +192,28 @@ predefined_workflow = {
     },
     "pump_probe": {
         "name": "Pump Probe", 
-        "blocks": ['Ground State', 
-                    'RT TDDFT', 
-                    'Compute Spectrum',
-                    'RT TDDFT',
-                    'Compute TAS',
-                    'End'],
-        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+        "blocks": [{'name' : 'Ground State',
+                    'store_same_task_type': True,
+                    'task_type': tt.GROUND_STATE
+                    }, 
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    }, 
+                    {'name':'Compute Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_SPECTRUM
+                    },
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    },
+                    {'name':'Compute Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_TAS
+                    },
+                    {'name': 'End'}],
+        "task_sequence" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1, 1, tt.RT_TDDFT,{
                                             'properties':['spectrum'],
                                             }),
