@@ -19,8 +19,42 @@ class TaskSetupError(Exception):
 class WorkflowEnded(Exception):
     """Raised when the workflow has ended."""
 
-class WorkflowManager:
+class WorkflowManager:   
+    """This is the main interface to edit, modify and run workflows. 
+    
+    project_manager: The class that manages creation and deletion of workflows:
+    workflow_info: This objects is used to store all the information about a
+                workflow.
+    config: The configurations used to run the tasks in the workflow.
 
+    In litesoph workflow is modeled a chain of blocks, where each block contains a list
+    of simple tasks that user can create and run it.
+
+    For example: consider the average spectrum workflow.
+    we represent average spectrum workflow as chain of 4 blocks, where each block contains
+    same type of tasks but with different input parameters.
+        
+            Block-1                  Block-2                  Block-3                  Block-4
+        |---------------|      |-----------------|      |--------------------|    |----------------|
+        |               |      |                 |      |                    |    |                |
+        | 1. ground     |----> |  2. RT-TDDFT- x |----->| 5.compute-spectra-x|--->| 8. compute     | 
+        |    state      |      |  3. RT-TDDFT- y |      | 6.compute-spectra-y|    | average spectra|
+        |---------------|      |  4. RT-TDDFT- z |      | 7.compute-spectra-z|    |----------------|
+                               |-----------------|      |--------------------|  
+    
+    The dependenices_map maps how each simple task depends on the previous tasks.
+    so for above workflow:
+                1 --> None : ground state doesn't depend on any tasks
+                2 --> 1    : RT-TDDFT-x dependents on ground state.
+                3 --> 1    : RT-TDDFT-y dependents on ground state.
+                4 --> 1    : RT-TDDFT-z dependents on ground state.
+                5 --> 2    : compute_spectra-x dependents on RT-TDDFT-x.
+                6 --> 3    : compute_spectra-y dependents on RT-TDDFT-y.
+                7 --> 4    : compute_spectra-z dependents on RT-TDDFT-z.
+                8 --> (5, 6, 7) : compute average spectra dependent on compute_spectra-x. 
+                                    compute_spectra-y and compute-spectra-z.
+    
+    """
     def __init__(self, 
                 project_manager, 
                 workflow_info: WorkflowInfo, 
@@ -61,6 +95,8 @@ class WorkflowManager:
 
         
     def choose_default_engine(self):
+        """Chooses a default engine for a given workflow type and sets the 
+        engine for the workflow."""
         self.workflow_info.engine = decide_engine(self.workflow_type)
         self.engine = self.workflow_info.engine
 
@@ -74,7 +110,7 @@ class WorkflowManager:
 
     
     def get_engine_task(self) -> Task:
-        
+        """This method returns the Task object of the current_task in the workflow."""
         return self._get_task(self.current_task_info, 
                             task_dependencies=self.get_task_dependencies())
 
@@ -87,7 +123,8 @@ class WorkflowManager:
 
     
     def get_taskinfo(self, task_name) -> List[TaskInfo]:
-
+        """This method returns the list of TaskInfo object with the given name
+        in the workflow."""
         task_list = []
 
         for task_info in self.tasks.values():
@@ -99,6 +136,7 @@ class WorkflowManager:
 
     
     def check_engine(self, engine)-> bool:
+        """Checks whether a given engine implements the current workflow type"""
         engine_manager = self._get_engine_manager(engine)
         workflow_list = engine_manager.get_workflow_list()
         if self.workflow_type in workflow_list:
@@ -108,7 +146,7 @@ class WorkflowManager:
 
     
     def set_engine(self, engine):
-        
+        """sets the engine of the workflow"""
         if self.workflow_info.task_mode:
             self.workflow_info.engine = engine
             self.engine = self.workflow_info.engine
@@ -122,6 +160,8 @@ class WorkflowManager:
 
     
     def get_task_dependencies(self):
+        """Returns a list of previous task_infos that the present task in dependent on."""
+
         dependices_uuid = self.dependencies_map.get(self.current_task_info.uuid)
         depedent_task_infos = [] 
         if isinstance(dependices_uuid ,str):
@@ -136,7 +176,7 @@ class WorkflowManager:
         return depedent_task_infos
 
     def next(self):
-        
+        """This method changes the current task to the next task in the workflow."""
         self.save()
         if not self.current_step:
             self.current_container = self.containers[0]
@@ -154,10 +194,20 @@ class WorkflowManager:
         self.prepare_task()
 
     def add_block(self, 
-                    block_id, 
-                    name, store_same_task_type = False,
+                    block_id: int, 
+                    name: str, 
+                    store_same_task_type:bool = False,
                     task_type = None,
                     metadata = dict()):
+        
+        """ This method inserts a block into the workflow.
+        block_id: The index where block to be palce in the workflow.
+        name: The name of the block.
+        store_same_task_type: the variable which indicative if the block contain
+            same type of the tasks.
+        task_type: task type if the store_same_task_type is true.
+        metadata: This stores information about the tasks in the blocks
+            in the context of the workflow."""
 
         if not store_same_task_type and task_type is not None:
             raise TaskSetupError('task_type must be None if store_same_task_type is True.')
@@ -173,6 +223,16 @@ class WorkflowManager:
                          parameters= dict(),
                          env_parameters= dict(),
                          dependent_tasks_uuid: Union[str, list]= list()):
+        
+        """This method adds a task into the workflow.
+        
+        task_name: The task type.
+        block_id: The index of the block to which the task to be added.
+        step_id: The index in the task execution list to where task to be added.
+        paremeter: The default input parameters of the task.
+        env_parameters: This stores information about the task in the context of the workflow.
+        dependent_tasks_uuid: The list of task_uuids to which the task dependents on.
+        """
 
         task_info = factory_task_info(task_name)
         
@@ -211,6 +271,8 @@ class WorkflowManager:
 
     def add_dependency(self, task_uuid: str, 
                         dependent_tasks_uuid: Union[str, list]= list()):
+        
+        """Adds a dependency task list to the given task."""
 
         dependent_list =[]
         if isinstance(dependent_tasks_uuid, str):
@@ -267,6 +329,15 @@ class WorkflowManager:
     
     def clone(self, clone_workflow: WorkflowInfo,
                     branch_point: int) -> WorkflowInfo:
+        
+        """This method clones a new workflow_info from the existing workflow_info.
+        It clones the task_info from the existing workflow_info and with that it copies all the 
+        input and output files generated from that task into the new directory of the cloned task.
+        """
+
+        # The concept of the blocks was introduced later then the concept of containers, so 
+        # loop over containers to clone the workflow.
+        # The better solution might be to loop over blocks instead of containers.
 
         clone_workflow.engine = copy.deepcopy(self.engine)
 
@@ -327,6 +398,7 @@ class WorkflowManager:
         pass
 
     def save(self):
+        """ saves the workflow_info into the hard drive."""
         self.project_manager.save()
 
 def copy_task_files(source ,file_list, destination):
