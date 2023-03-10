@@ -10,11 +10,8 @@ from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_
 import importlib
 from litesoph.common.task_manager import check_task_completion
 from litesoph.common.decision_tree import decide_engine, EngineDecisionError
-engine_classname = {
-    'gpaw' : 'GPAW',
-    'nwchem': 'NWChem',
-    'octopus': 'OCTOPUS'
-}
+from litesoph.engines import engine_classname
+
 
 class TaskSetupError(Exception):
     """Raised when unable to creating or opening task."""
