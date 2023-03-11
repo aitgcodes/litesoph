@@ -16,9 +16,19 @@ class WorkflowSetupError(Exception):
     """Raised when unable to creating or opening task."""
 
 class ProjectManager:
+    """This class is responsible for creating, loading and managing
+    all the workflows in the projects.
     
-    workflow_data_file_name = '.workflow.json'
-
+    Parameters
+    ----------
+    
+    ls_manager: 
+        LSManager object loaded with a project.
+    project_info:
+        ProjectInfo to store all the information generated in 
+        the project.
+    """
+    
     def __init__(self, ls_manager, project_info: ProjectInfo) -> None:
         self.ls_manager = ls_manager
         self.project_info = project_info
@@ -36,7 +46,8 @@ class ProjectManager:
             self.new_workflow('workflow_1')
         self.save()
 
-    def create_workflow_info(self, label: str, description: str =''):
+    def _create_workflow_info(self, label: str, description: str =''):
+        
         current_workflow = self.project_path / label
         try:
             create_dir(current_workflow)
@@ -50,8 +61,19 @@ class ProjectManager:
         return workflow_info
 
     def new_workflow(self, label: str, description: str =''):
+        """This method creates a new workflow info and saves it in the
+        project.
         
-        self.current_workflow_info = self.create_workflow_info(label=label, 
+        Parameters
+        ----------
+
+        label:
+            user given name of the workflow
+        description:
+            description or comments about the workflow.
+        """
+        
+        self.current_workflow_info = self._create_workflow_info(label=label, 
                                                             description=description)
         self.append_workflow(self.current_workflow_info)
         self.save()
@@ -62,6 +84,24 @@ class ProjectManager:
                             label: str, 
                             description: str =''):
         
+        """This method creates new workflow by clone any workflows 
+        in the project into
+        
+        Parameters
+        ----------
+        workflow_info_uuid:
+                The uuid of the source workflow
+        traget_workflow_type:
+                The workflow type of the cloned workflow.
+        branch_point:
+            It's is the block id in the workflow. It is the point upto 
+            which workflow is cloned.
+        label:
+            label of the new cloned workflow
+        description:
+            description or comments about the cloned workflow."""
+        
+        
         workflow_info  = self.get_workflow_info(workflow_info_uuid)
         
         if workflow_info.name != traget_workflow_type:
@@ -69,7 +109,7 @@ class ProjectManager:
 
         workflow_manager = WorkflowManager(self, workflow_info, self.config)
 
-        cloned_workflow_info = self.create_workflow_info(label=label,
+        cloned_workflow_info = self._create_workflow_info(label=label,
                                                         description=description)
         cloned_workflow_info.name = copy.deepcopy(workflow_info.name)
         cloned_workflow_info = workflow_manager.clone(cloned_workflow_info,
@@ -89,6 +129,16 @@ class ProjectManager:
         return WorkflowManager
 
     def start_workflow(self, workflow_type: str, param: Dict[str, Any]) -> WorkflowManager:
+        """This method instantiates the workflow manager with the workflow_type and
+        returns the workflow manager.
+        
+        Parameters
+        ----------
+        
+        workflow_type:
+            The workflow indentifier.
+        param:
+            parameters."""
 
         if not self.current_workflow_info:
             raise WorkflowSetupError('Create workflow')
@@ -99,8 +149,8 @@ class ProjectManager:
         workflow_manager = workflow_manager(self, self.current_workflow_info, config=self.config)
         return workflow_manager
 
-    def open_workflow(self, workflow_uuid) -> WorkflowManager:
-        
+    def open_workflow(self, workflow_uuid: str) -> WorkflowManager:
+        """This method opens already existing and defined workflow."""
         workflow_info = self.get_workflow_info(workflow_uuid)        
         workflow_manager = self._get_workflow_manager(workflow_info.name)       
         workflow_manager = workflow_manager(self, workflow_info, config=self.config)
@@ -108,12 +158,15 @@ class ProjectManager:
         return workflow_manager 
     
     def get_workflow_info(self, workflow_uuid):
+        """returns WorkflowInfo object from the uuid."""
         for workflow in self.workflow_list:
             if workflow.uuid == workflow_uuid:
                 return  workflow
         raise ValueError(f"workflow with uuid: {workflow_uuid} doesn't exists.")
 
     def list(self) -> list:
+        """returns list of tuples contain label and uuids of all the workflows
+        in the project."""
         workflows = [(workflow.label, workflow.uuid) for workflow in self.workflow_list]
         return workflows
     
@@ -148,6 +201,8 @@ class ProjectManager:
             f.write(json_txt)
 
     def remove(self, workflow_uuid):
+        """This removes a workflow from the project. It will
+        also delete the corresponding directory. """
         for workflow in self.workflow_list:
             if workflow.uuid == workflow_uuid:
                 shutil.rmtree(str(workflow.path))
@@ -159,6 +214,7 @@ class ProjectManager:
         os.chdir(path)
 
     def list_available_workflows(self):
+        """Returns a list of all the predefined workflow types."""
         return [workflow for workflow in predefined_workflow.keys()]
 
     def append_workflow(self, workflow_info: WorkflowInfo):
