@@ -208,7 +208,7 @@ predefined_workflow = {
                     'store_same_task_type': True,
                     'task_type': tt.RT_TDDFT
                     },
-                    {'name':'Compute Spectrum',
+                    {'name':'Compute TAS',
                     'store_same_task_type': True,
                     'task_type': tt.COMPUTE_TAS
                     },
