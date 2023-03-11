@@ -174,7 +174,8 @@ class TaskInfo(Info):
         Contains information about the job that was submitted to network. 
     local: 
         Contains information about the job that was submitted locally.
-    (network and the local variable will be removed once the job_info is incorporated.)   
+        (network and the local variable will be removed once the job_info is incorporated.)   
+        
     """
 
     _name: str
@@ -312,6 +313,16 @@ class Container:
 @dataclass
 class WorkflowInfo(Info):
     """This class store all the information of a workflow.
+
+
+    The workflow is modeled order sequence of blocks, where each contains
+    a list of same type of task but with different parameters.
+    For example Average specrtrum workflow is::
+    
+        block_1(Ground state tasks) -> block_2(RT TDDFT tasks) -> block_3(compute spectrum tasks) -> block_4(compute average spectrum)
+                ground_state               rt tddft in x             compute spectrum in x                   compute average spectrum
+                                            rt tddft in y             compute spectrun in y 
+                                            rt tddft in z             compute spectrun in z
     
     parameters
     ----------
@@ -334,20 +345,14 @@ class WorkflowInfo(Info):
     param: 
         any parameters related to the workflow.
     steps: 
-        It's a list of blocks. For example, Averaged Spectrum workflow is.
-
-        ::
-            block_1(Ground state tasks) -> block_2(RT TDDFT tasks) -> block_3(compute spectrum tasks) -> block_4(compute average spectrum)
-                  ground_state               rt tddft in x             compute spectrum in x                   compute average
-                                             rt tddft in y             compute spectrun in y 
-                                             rt tddft in z             compute spectrun in z
+        It's a list of blocks. 
     containers: 
         It's a list of containers. In a workflow, each task is associated with a container,
         which stores information about the task in context of the workflow.
         Currently, this list is used to navigate one task to another in a workflow.
     state: 
         It stores information about what tasks are running and what step the workflow is in.
-            (currently this variable is not in use)
+        (currently this variable is not in use)
     dependencies_map: 
         It's a dictionary that maps each tasks with the list of tasks that it depend on it.
     tasks: 
