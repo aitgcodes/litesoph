@@ -22,12 +22,13 @@ class WorkflowEnded(Exception):
 class WorkflowManager:   
     """This is the main interface to edit, modify and run workflows. 
 
-    In litesoph workflow is modeled a chain of blocks, where each block contains a list
-    of simple tasks that user can create and run it.
+    In litesoph, workflow is modeled as a chain of blocks, where each block contains a list
+    of simple tasks that the user can create and run.
 
-    For example: consider the average spectrum workflow.
-    we represent average spectrum workflow as chain of 4 blocks, where each block contains
-    same type of tasks but with different input parameters.
+    For example, consider the average spectrum workflow.
+    We represent the average spectrum workflow as a chain of four blocks, where 
+    each block contains the same types of tasks but with different 
+    input parameters.
     
     ::
         
@@ -40,7 +41,7 @@ class WorkflowManager:
                                |-----------------|      |--------------------|  
     
     The dependenices_map maps how each simple task depends on the previous tasks.
-    so for above workflow
+    so, for above workflow
     ::
 
                 1 --> None : ground state doesn't depend on any tasks
