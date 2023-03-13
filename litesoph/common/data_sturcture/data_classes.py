@@ -315,7 +315,7 @@ class WorkflowInfo(Info):
     """This class store all the information of a workflow.
 
 
-    The workflow is modeled order sequence of blocks, where each contains
+    The workflow is modeled ordered sequence of blocks, where each contains
     a list of same type of task but with different parameters.
     For example Average specrtrum workflow is::
     
