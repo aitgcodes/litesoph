@@ -7,9 +7,14 @@ from litesoph.common.task import TaskNotImplementedError
 class EngineManager(ABC):
     """Base class for all litesoph engines.
     
-    Name: name of the engine.
-    implemented_tasks: list of task identifiers of the tasks that are implemented.
-    implemented_workflows: list of workflow identifiers of the workflows that are implemented.
+    parameters
+    ----------
+    Name: 
+        name of the engine.
+    implemented_tasks: 
+        list of task identifiers of the tasks that are implemented.
+    implemented_workflows: 
+        list of workflow identifiers of the workflows that are implemented.
     """
     
     NAME : str = ''

@@ -21,18 +21,16 @@ class WorkflowEnded(Exception):
 
 class WorkflowManager:   
     """This is the main interface to edit, modify and run workflows. 
+
+    In litesoph, workflow is modeled as a chain of blocks, where each block contains a list
+    of simple tasks that the user can create and run.
+
+    For example, consider the average spectrum workflow.
+    We represent the average spectrum workflow as a chain of four blocks, where 
+    each block contains the same types of tasks but with different 
+    input parameters.
     
-    project_manager: The class that manages creation and deletion of workflows:
-    workflow_info: This objects is used to store all the information about a
-                workflow.
-    config: The configurations used to run the tasks in the workflow.
-
-    In litesoph workflow is modeled a chain of blocks, where each block contains a list
-    of simple tasks that user can create and run it.
-
-    For example: consider the average spectrum workflow.
-    we represent average spectrum workflow as chain of 4 blocks, where each block contains
-    same type of tasks but with different input parameters.
+    ::
         
             Block-1                  Block-2                  Block-3                  Block-4
         |---------------|      |-----------------|      |--------------------|    |----------------|
@@ -43,7 +41,9 @@ class WorkflowManager:
                                |-----------------|      |--------------------|  
     
     The dependenices_map maps how each simple task depends on the previous tasks.
-    so for above workflow:
+    so, for above workflow
+    ::
+
                 1 --> None : ground state doesn't depend on any tasks
                 2 --> 1    : RT-TDDFT-x dependents on ground state.
                 3 --> 1    : RT-TDDFT-y dependents on ground state.
@@ -53,6 +53,19 @@ class WorkflowManager:
                 7 --> 4    : compute_spectra-z dependents on RT-TDDFT-z.
                 8 --> (5, 6, 7) : compute average spectra dependent on compute_spectra-x. 
                                     compute_spectra-y and compute-spectra-z.
+
+
+    parameters
+    ----------
+
+    project_manager: 
+                The class that manages creation and deletion of workflows:
+    workflow_info: 
+                This objects is used to store all the information about a
+                workflow.
+    config: 
+        The configurations used to run the tasks in the workflow.
+
     
     """
     def __init__(self, 
@@ -201,12 +214,20 @@ class WorkflowManager:
                     metadata = dict()):
         
         """ This method inserts a block into the workflow.
-        block_id: The index where block to be palce in the workflow.
-        name: The name of the block.
-        store_same_task_type: the variable which indicative if the block contain
-            same type of the tasks.
-        task_type: task type if the store_same_task_type is true.
-        metadata: This stores information about the tasks in the blocks
+
+        parameters
+        ----------
+
+        block_id: 
+            The index where block to be palce in the workflow.
+        name: 
+            The name of the block.
+        store_same_task_type: 
+            the variable which indicative if the block contain same type of the tasks.
+        task_type: 
+            task type if the store_same_task_type is true.
+        metadata: 
+            This stores information about the tasks in the blocks
             in the context of the workflow."""
 
         if not store_same_task_type and task_type is not None:
@@ -226,12 +247,20 @@ class WorkflowManager:
         
         """This method adds a task into the workflow.
         
-        task_name: The task type.
-        block_id: The index of the block to which the task to be added.
-        step_id: The index in the task execution list to where task to be added.
-        paremeter: The default input parameters of the task.
-        env_parameters: This stores information about the task in the context of the workflow.
-        dependent_tasks_uuid: The list of task_uuids to which the task dependents on.
+        parameters
+        ----------
+        task_name: 
+            The task type.
+        block_id: 
+            The index of the block to which the task to be added.
+        step_id: 
+            The index in the task execution list to where task to be added.
+        paremeter: 
+            The default input parameters of the task.
+        env_parameters: 
+            This stores information about the task in the context of the workflow.
+        dependent_tasks_uuid: 
+            The list of task_uuids to which the task dependents on.
         """
 
         task_info = factory_task_info(task_name)
