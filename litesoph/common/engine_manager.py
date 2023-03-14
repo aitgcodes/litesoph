@@ -23,7 +23,7 @@ class EngineManager(ABC):
     implemented_workflows: List[str] = []
 
     @abstractmethod
-    def get_task(self, config, task_info, dependent_task):
+    def get_task(self, config, workflow_type, task_info, dependent_task):
         """This class checks if a task is implemented and if it is implemented
         it returns the task object else raises a TaskNotImplementedError."""
         ...
