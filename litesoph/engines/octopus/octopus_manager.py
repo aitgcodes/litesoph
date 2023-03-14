@@ -1,6 +1,7 @@
+import copy
 from typing import List, Dict, Any, Union
 from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.task import TaskNotImplementedError
+from litesoph.common.task import TaskNotImplementedError, InputError
 from litesoph.common.task_data import TaskTypes as tt                    
 from litesoph.common.workflows_data import WorkflowTypes as wt     
 from litesoph.common.engine_manager import EngineManager
@@ -50,5 +51,15 @@ class OCTOPUSManager(EngineManager):
     def get_workflow(self, name):
         pass
     
-
+    def validate_workflow_task(self, workflow, task_info: TaskInfo):
+        """Method to handle validation of task in context of workflow"""
+        
+        task = task_info.name
+        param = task_info.param
+        if workflow in [wt.KOHN_SHAM_DECOMPOSITION, wt.MO_POPULATION_TRACKING]:
+            if task == tt.GROUND_STATE:
+                gs_param = copy.deepcopy(param)
+                extra_states = int(gs_param.get('bands'))  
+                if extra_states <= 0:
+                    raise InputError(f'Expected non zero value for Extra States.')
 
