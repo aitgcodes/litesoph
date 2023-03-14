@@ -131,7 +131,7 @@ class WorkflowManager:
     def _get_task(self, current_task_info, task_dependencies ) -> Task:
         engine_manager = self._get_engine_manager(self.engine)
         current_task_info.engine = self.engine
-        task = engine_manager.get_task(self.config, current_task_info, task_dependencies)
+        task = engine_manager.get_task(self.config, self.workflow_type, current_task_info, task_dependencies)
         return task
 
     
