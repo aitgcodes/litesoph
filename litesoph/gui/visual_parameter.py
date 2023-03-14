@@ -1,5 +1,6 @@
 from tkinter import font
 import tkinter as tk
+from tkinter import ttk
 
 def myfont1():
     myFont15= font.Font(family='Helvetica', size=15, weight='bold')
@@ -50,4 +51,36 @@ def create_design_feature():
                     'font': myfont()})
 button_design={}
 
-       
+
+# --------------------------tkinter Style objects-------------------------------
+
+def set_inp_frame_style():
+    inp_frame_style = ttk.Style()
+    inp_frame_style.theme_use('default')
+    # Notebook and tabs
+    inp_frame_style.configure(
+        'InputFrame.TNotebook', 
+    )
+    inp_frame_style.configure(
+        'InputFrame.TNotebook.Tab', 
+        font = ('Helvetica', 10)
+    )
+    inp_frame_style.map("InputFrame.TNotebook.Tab", 
+                        background= [("selected", 'light blue')])
+
+def set_wf_style():
+    wf_design_style = ttk.Style()
+    wf_design_style.theme_use('default')
+    wf_design_style.configure('Wf.TLabel',
+    relief='solid', anchor=tk.CENTER,
+    font = ('Times New Roman', 15)
+            )
+    wf_design_style.configure('Default.Wf.TLabel',
+                background='light blue',
+                )
+    wf_design_style.configure('Done.Wf.TLabel',
+                background='pale green',
+                            )
+    wf_design_style.configure('Current.Wf.TLabel',
+                background='light yellow',
+                            )
