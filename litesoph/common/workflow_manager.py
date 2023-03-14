@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import shutil
 from litesoph.common.task import Task
-from litesoph.common.workflows_data import predefined_workflow
+from litesoph.common.workflows_data import predefined_workflow, WorkflowTypes
 from litesoph.common.engine_manager import EngineManager
 from litesoph.common.data_sturcture import TaskInfo, WorkflowInfo, factory_task_info, Container, Block
 import importlib
@@ -92,7 +92,7 @@ class WorkflowManager:
 
         if not self.current_step:
             
-            if self.workflow_type == 'task_mode':
+            if self.workflow_type == WorkflowTypes.TASK_MODE:
                 self.task_mode = workflow_info.task_mode = True
             
             else:

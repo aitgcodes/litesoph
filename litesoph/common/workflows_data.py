@@ -7,6 +7,7 @@ from enum import Enum
 
 
 class WorkflowTypes(str, Enum):
+    TASK_MODE: str = 'task_mode'
     SPECTRUM: str = 'spectrum'
     AVERAGED_SPECTRUM: str = 'averaged_spectrum'
     KOHN_SHAM_DECOMPOSITION: str = 'kohn_sham_decomposition'
