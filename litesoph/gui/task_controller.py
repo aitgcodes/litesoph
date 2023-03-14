@@ -4,7 +4,7 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 import copy
 from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task import Task, TaskFailed, InputError
 from litesoph.common.task_data import TaskTypes as tt                                  
 from litesoph.gui import views as v
 from litesoph.common import models as m
@@ -82,16 +82,34 @@ class TaskController:
                 messagebox.showerror(title="Engine Error", message=e)
                 return
 
+        #---------------------------------------------------------------
+        self.task_info.param.clear()
+        self.task_info.param.update(inp_dict)
+        try:
+            self.task = self.workflow_manager.get_engine_task()
+        except InputError as error_msg:
+            messagebox.showerror(message= error_msg)            
+            return
+
         check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
         if not check:
             return
         
-        self.task_info.param.update(inp_dict)
-        self.task = self.workflow_manager.get_engine_task()
         self.task.create_input()
         txt = self.task.get_engine_input()
         self.view_panel.insert_text(text=txt, state='normal')
         self.bind_task_events()
+
+        # check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
+        # if not check:
+        #     return
+        
+        # self.task_info.param.update(inp_dict)
+        # self.task = self.workflow_manager.get_engine_task()
+        # self.task.create_input()
+        # txt = self.task.get_engine_input()
+        # self.view_panel.insert_text(text=txt, state='normal')
+        # self.bind_task_events()
     
 
     @staticmethod
