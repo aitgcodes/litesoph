@@ -18,9 +18,12 @@ class OCTOPUSManager(EngineManager):
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM, wt.KOHN_SHAM_DECOMPOSITION, 
                                         wt.MO_POPULATION_TRACKING]
 
-    def get_task(self, config, task_info: TaskInfo, 
-                        dependent_tasks: Union[List[TaskInfo], None] =None ):
+    def get_task(self, config, workflow_type:str, task_info: TaskInfo, 
+                        dependent_tasks: Union[List[TaskInfo], None] =None,
+                        ):
         self.check_task(task_info.name)
+        self.validate_workflow_task(workflow=workflow_type,task_info=task_info)
+    
         if task_info.name == tt.COMPUTE_AVERAGED_SPECTRUM:
             return OctAveragedSpectrum(config, task_info, dependent_tasks)
         else:
