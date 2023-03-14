@@ -42,7 +42,7 @@ class OCTOPUSManager(EngineManager):
                 gs_spacing = gs_info.param.get('spacing')
             
             task_default = get_func()
-            task_default.update({'time_step': calc_td_range(gs_spacing)/2})
+            task_default.update({'time_step': calc_td_range(gs_spacing)})
             return task_default
         else:
             return get_func()
