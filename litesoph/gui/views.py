@@ -1557,7 +1557,7 @@ class GroundStatePage(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        from litesoph.gui.view_gs import InputFrame
+        from litesoph.gui.design.template import InputFrame
         from litesoph.gui.models.inputs import gs_input, gs_visible_default
 
         self.parent = parent
@@ -1720,7 +1720,7 @@ class GroundStatePage(View):
 class TimeDependentPage(View):           
     def __init__(self, parent, engine, task_name, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        from litesoph.gui.view_gs import InputFrame
+        from litesoph.gui.design.template import InputFrame
         from litesoph.gui.models.inputs import td_delta_input
 
         self.parent = parent
