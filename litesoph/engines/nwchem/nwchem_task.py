@@ -422,7 +422,6 @@ def get_pol_and_tag(taskinfo):
     return pol, tag
 
 
-
 class PumpProbePostpro(NwchemTask):
 
     """
@@ -430,12 +429,17 @@ class PumpProbePostpro(NwchemTask):
     Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
     Step 3: generate x,y,z data for contour plot from spectrum file and delay data
     """        
-    
+
     def create_engine(self, param):
         task_dir = self.project_dir / 'nwchem' / self.task_name
         self.task_dir = get_new_directory(task_dir)
-        self.network_done_file = self.task_dir / 'Done'
+        if not self.task_dir.exists():
+            self.create_directory(self.task_dir)  
 
+        self.network_done_file = self.task_dir / 'Done'
+        self.only_workflow_dirpath=self.project_dir.name
+        self.only_task_dirpath=Path(self.task_dir).relative_to(self.project_dir)
+    
     def extract_dm(self,td_out_file,pol,tag):
         from litesoph.engines.nwchem.nwchem_read_rt import nwchem_rt_parser                
         dm_data=nwchem_rt_parser(td_out_file, outfile=None, tag=tag,
@@ -449,25 +453,39 @@ class PumpProbePostpro(NwchemTask):
         
         for i in range(len(self.dependent_tasks)):            
             self.pol, tag = get_pol_and_tag(self.dependent_tasks[i])
-            td_out_file = (self.project_dir / (self.dependent_tasks[i].output.get('txt_out')))               
-            delay=self.dependent_tasks[i].param.get('delay')             
-            spectrum_file= td_out_file.parent /f'spec_delay_{delay}.dat'            
-            out_spectrum_file = str(spectrum_file).replace(str(self.project_dir.parent), '')
-            self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
+            td_out_file = (self.project_dir / (self.dependent_tasks[i].output.get('txt_out'))) 
+
             gen_standard_dm_file=self.extract_dm(td_out_file,self.pol,tag)
-            out_standard_dm_file= td_out_file.parent /f'std_dm_delay_{delay}.dat'   
-            np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t')
+            delay=self.dependent_tasks[i].param.get('delay')             
             
-            from litesoph.post_processing.spectrum import photoabsorption_spectrum            
-            photoabsorption_spectrum(out_standard_dm_file, f'{self.project_dir.parent}{out_spectrum_file}',  process_zero=False,damping=damping,padding=padding)
-    
+            out_spectrum_file= Path(self.only_task_dirpath) /f'spec_delay_{delay}.dat'            
+            self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
+            out_standard_dm_file= Path(self.project_dir.parent/self.only_workflow_dirpath/self.only_task_dirpath) /f'dm_delay_{delay}.dat'                        
+            np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
+            
+            from litesoph.post_processing.spectrum import photoabsorption_spectrum      
+            damping_var= None if damping is None else damping 
+            padding_var= None if padding is None else padding       
+            spec_file_path= Path(self.project_dir.parent/self.only_workflow_dirpath)/out_spectrum_file
+            photoabsorption_spectrum(out_standard_dm_file,spec_file_path, process_zero=False,damping=damping_var,padding=padding_var)
+
     def generate_tas_data(self):
-        from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_tas_data
-        if not self.task_dir.exists():
-            self.create_directory(self.task_dir)  
+        from litesoph.visualization.plot_spectrum import get_spectrums_delays,prepare_tas_data                
         
-        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir)
-        prepare_tas_data(self.task_info,self.project_dir,spectrum_data_list,delay_list,self.task_dir)
+        self.contour_x_data_file= Path(self.only_task_dirpath) /'contour_x_data.dat' 
+        self.contour_y_data_file= Path(self.only_task_dirpath) /'contour_y_data.dat' 
+        self.contour_z_data_file= Path(self.only_task_dirpath) /'contour_z_data.dat' 
+        
+        self.task_info.output['contour_x_data']=self.contour_x_data_file       
+        self.task_info.output['contour_y_data']=self.contour_y_data_file             
+        self.task_info.output['contour_z_data']=self.contour_z_data_file             
+        
+        contour_x_data_file=Path(self.project_dir.parent/self.only_workflow_dirpath)/self.contour_x_data_file
+        contour_y_data_file=Path(self.project_dir.parent/self.only_workflow_dirpath)/self.contour_y_data_file
+        contour_z_data_file=Path(self.project_dir.parent/self.only_workflow_dirpath)/self.contour_z_data_file
+        
+        delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir,self.only_workflow_dirpath)
+        prepare_tas_data(spectrum_data_list,delay_list,contour_x_data_file,contour_y_data_file,contour_z_data_file)
                             
     def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
         from litesoph.visualization.plot_spectrum import contour_plot
@@ -483,3 +501,27 @@ class PumpProbePostpro(NwchemTask):
         plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
         return plot
         
+    def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
+        from litesoph.visualization.plot_spectrum import contour_plot
+        x_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_x_data')))
+        y_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_y_data')))
+        z_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_z_data')))
+                        
+        if delay_min is None: x_min= np.min(x_data)
+        elif delay_min < np.min(x_data): raise InputError(f'Minimum delay limit out of range. Allowed minimum delay limit is {np.min(x_data)}')
+        else: x_min= delay_min
+
+        if delay_max is None: x_max= np.max(x_data)
+        elif delay_max > np.max(x_data): raise InputError(f'Maximum delay limit out of range. Allowed maximum delay limit is {np.max(x_data)}')
+        else: x_max= delay_max
+    
+        if freq_min is None: y_min= np.min(y_data)
+        elif freq_min < np.min(y_data): raise InputError(f'Minimum frequency limit out of range. Allowed minimum frequency limit is {np.min(y_data)}')
+        else: y_min= freq_min
+
+        if freq_max is None:y_max= np.max(y_data)
+        elif freq_max > np.max(y_data):raise InputError(f'Maximum frequency limit out of range. Allowed maximum frequency is {np.max(y_data)}')
+        else: y_max= freq_max
+    
+        plot=contour_plot(x_data,y_data,z_data, 'Delay Time (femtosecond)','Frequency (eV)', 'Pump Probe Analysis',x_min,x_max,y_min,y_max)
+        return plot
