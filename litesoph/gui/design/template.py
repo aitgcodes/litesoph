@@ -135,6 +135,7 @@ class InputFrame(ttk.Frame):
         self.master = master
         self.fields = fields
         self.visible_state = visible_state
+        v.set_inp_frame_style()
         self.tab_template()
 
     def tab_template(self):
@@ -146,6 +147,7 @@ class InputFrame(ttk.Frame):
         self.add_frame = {}
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True)
+        self.notebook.configure(style='InputFrame.TNotebook')
 
         if self.fields is None:
             return

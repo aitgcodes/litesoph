@@ -1,6 +1,7 @@
+import copy
 from typing import List, Dict, Any, Union
 from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.task import TaskNotImplementedError
+from litesoph.common.task import TaskNotImplementedError, InputError
 from litesoph.common.task_data import TaskTypes as tt                    
 from litesoph.common.workflows_data import WorkflowTypes as wt     
 from litesoph.common.engine_manager import EngineManager
@@ -18,14 +19,17 @@ class OCTOPUSManager(EngineManager):
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM, wt.KOHN_SHAM_DECOMPOSITION, 
                                         wt.MO_POPULATION_TRACKING, wt.PUMP_PROBE]
 
-    def get_task(self, config, task_info: TaskInfo, 
-                        dependent_tasks: Union[List[TaskInfo], None] =None ):
+    def get_task(self, config, workflow_type:str, task_info: TaskInfo, 
+                        dependent_tasks: Union[List[TaskInfo], None] =None,
+                        ):
         self.check_task(task_info.name)
-        if task_info.name == tt.COMPUTE_TAS:
-            return PumpProbePostpro(config, task_info, dependent_tasks)
 
+        self.validate_workflow_task(workflow=workflow_type,task_info=task_info)
+    
         if task_info.name == tt.COMPUTE_AVERAGED_SPECTRUM:
             return OctAveragedSpectrum(config, task_info, dependent_tasks)
+        if task_info.name == tt.COMPUTE_TAS:
+            return PumpProbePostpro(config, task_info, dependent_tasks)
         else:
             return OctopusTask(config, task_info, dependent_tasks)
     
@@ -46,7 +50,7 @@ class OCTOPUSManager(EngineManager):
                 gs_spacing = gs_info.param.get('spacing')
             
             task_default = get_func()
-            task_default.update({'time_step': calc_td_range(gs_spacing)/2})
+            task_default.update({'time_step': calc_td_range(gs_spacing)})
             return task_default
         else:
             return get_func()
@@ -54,5 +58,15 @@ class OCTOPUSManager(EngineManager):
     def get_workflow(self, name):
         pass
     
-
+    def validate_workflow_task(self, workflow, task_info: TaskInfo):
+        """Method to handle validation of task in context of workflow"""
+        
+        task = task_info.name
+        param = task_info.param
+        if workflow in [wt.KOHN_SHAM_DECOMPOSITION, wt.MO_POPULATION_TRACKING]:
+            if task == tt.GROUND_STATE:
+                gs_param = copy.deepcopy(param)
+                extra_states = int(gs_param.get('bands'))  
+                if extra_states <= 0:
+                    raise InputError(f'Expected non zero value for Extra States.')
 
