@@ -10,12 +10,13 @@ class WorkflowNavigation:
     config_current = {'background':'light yellow'}
 
     def __init__(self, parent, workflow_list:list) -> None:
-        self.config_default = work_flow_ui_design
+        #self.config_default = work_flow_ui_design
         self.parent = parent
         self.workflow_list = workflow_list
         self.widgets = {}
         self.current_index = -1
         self.default_state = 'default'
+        v.set_wf_style()
         self.create_widgets(parent, self.workflow_list)
            
     def create_widgets(self, parent, workflow_list:list):
@@ -30,10 +31,13 @@ class WorkflowNavigation:
         i = 0
         for n ,task_name in enumerate(workflow_list):
             self.widgets[str(n)] = []
-            widget= tk.Button(canvas_workflow, text = task_name, width=25)
+            # widget= tk.Button(canvas_workflow, text = task_name, width=25)
+            widget= ttk.Label(canvas_workflow, text = str(task_name), 
+                            width=25, padding=(5, 5, 5, 5), borderwidth=1)
             self.widgets[str(n)].append(widget)
             self.widgets[str(n)].append(self.default_state)
-            config_widget(self.widgets[str(n)][0], config_dict=self.config_default)
+            self.widgets[str(n)][0].configure(style= 'Default.Wf.TLabel')
+            # config_widget(self.widgets[str(n)][0], config_dict=self.config_default)
             self.widgets[str(n)][0].grid(row=i, column=0, sticky='nsew', padx=5, pady=5)
             i+=3
 
@@ -76,11 +80,14 @@ class WorkflowNavigation:
         """ Assigns the visual config"""
         for key,value in self.widgets.items():
             if value[1] == 'done':
-                config_widget(value[0], config_dict=self.config_done)
+                value[0].configure(style= 'Done.Wf.TLabel')
+                # config_widget(value[0], config_dict=self.config_done)
             elif value[1] == 'current':
-                config_widget(value[0], config_dict=self.config_current)
+                value[0].configure(style= 'Current.Wf.TLabel')
+                # config_widget(value[0], config_dict=self.config_current)
             elif value[1] == 'default':
-                config_widget(value[0], config_dict=self.config_default)
+                value[0].configure(style= 'Default.Wf.TLabel')
+                # config_widget(value[0], config_dict=self.config_default)
 
     def clear(self):
 

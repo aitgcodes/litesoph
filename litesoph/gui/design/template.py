@@ -55,6 +55,8 @@ def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_fr
 
 
 class View(ttk.Frame):
+    """Tkinter Frame template for generic LITESOPH page.
+    Defines a parent frame to hold multiple sub-frames."""
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -90,7 +92,32 @@ class View(ttk.Frame):
 
 
 class InputFrame(ttk.Frame):
-    
+    """ 
+    Tkinter Frame template for Input collecting.
+    Parameters:
+        master: (ttk.Frame) Parent tkinter frame
+        fields: (dict) Nested dictionary for inputs defined by 
+        example dictionary 
+        padx: (int)
+        pady: (int)
+        column_minsize: (int)
+
+    example_dict =
+        {    'variable assigned for the input parameter':    
+                    {
+                    "tab": Tab name assigned for the input key(default: Main),
+                    "group": Group name under the tab if applicable,
+                    "text": Text to display,
+                    "help": Additional details to the input key,
+                    "widget": type of tkinter widget,
+                    "default_value": default value,
+                    "values": list of values (for Combobox widget type),
+                    "type": variable type (assigned from default_value/values if not explicitly defined),
+                    "visible": boolean for show/hide the input on default view,
+                    "switch_keys": toggle condition for dependencies with preceeding keys defined
+                    }
+        }
+    """
     def __init__(
     self,
     master=None,
@@ -108,6 +135,7 @@ class InputFrame(ttk.Frame):
         self.master = master
         self.fields = fields
         self.visible_state = visible_state
+        v.set_inp_frame_style()
         self.tab_template()
 
     def tab_template(self):
@@ -119,6 +147,7 @@ class InputFrame(ttk.Frame):
         self.add_frame = {}
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True)
+        self.notebook.configure(style='InputFrame.TNotebook')
 
         if self.fields is None:
             return
@@ -202,8 +231,6 @@ class InputFrame(ttk.Frame):
                     raise ValueError(
                         f"could not infer default, please specify: {desc}"
                     )
-            # if desc["type"] is int or desc["type"] is np.int64:
-            #     self.variable[name] = tk.IntVar(self)
             if desc["type"] is int :
                 self.variable[name] = tk.IntVar(self)
             elif desc["type"] is bool:
@@ -212,8 +239,6 @@ class InputFrame(ttk.Frame):
                 self.variable[name] = tk.StringVar(self)
             elif desc["type"] is float:
                 self.variable[name] = tk.DoubleVar(self)
-                # if "values" in desc:
-                #     values = [np.round(v, 2) for v in values]
             else:
                 raise ValueError(f"unknown type '{desc['type']}' for '{name}'")
             if "text" in desc:
@@ -246,7 +271,6 @@ class InputFrame(ttk.Frame):
                     row=i, column=1, sticky="ew", padx=self.padx, pady=self.pady
                 )
             
-            # config_widget(self.widget[name], config_dict={'font':v.label_design['font']})
 ##--------------hovering option
             # if "help" in desc:
             #     create_tooltip(self.widget[name], desc["help"])
@@ -277,6 +301,11 @@ class InputFrame(ttk.Frame):
             self.update_widgets(var_state=self.visible_state)
 
     def frame_template(self, parent_frame,row, column, padx, pady, fields:dict):
+        """
+        Method to add additional frame to the default view designed by fields.
+        Required in case of displaying new frames bound with some tkinter events 
+        which can not be handled by switch_keys condition
+        """
         obj = parent_frame
         obj.variable = {}     
         obj.label = {}      
@@ -334,8 +363,6 @@ class InputFrame(ttk.Frame):
                 obj.variable[name] = tk.StringVar(self)
             elif desc["type"] is float:
                 obj.variable[name] = tk.DoubleVar(self)
-                # if "values" in desc:
-                #     values = [np.round(v, 2) for v in values]
             else:
                 raise ValueError(f"unknown type '{desc['type']}' for '{name}'")
             if "text" in desc:
@@ -463,16 +490,18 @@ class InputFrame(ttk.Frame):
                                         else:
                                             self.widget[name].config(state = 'normal')
                             else:
-                                self.disable(name)
-                                
-          
-            ## TODO 
-            # check condition for parent frame/tab widgets from corresponding dict first,
-            # then go for the individual switch of widgets
+                                self.disable(name)    
 
-    def init_widgets(self, fields=None, *args, ignore_state=False, var_values:dict=None, **kwargs):
-        """Sets the default values from fields option.
-        Updates defaults from var_values if ignore_state is False"""
+    def init_widgets(self, fields=None, ignore_state=False, var_values:dict=None, **kwargs):
+        """
+        Method to handle defaults.
+        Sets the default values from fields option, by default.
+        Updates defaults from var_values if ignore_state is False
+        Parameters:
+            fields: dictionary with key and default values
+            ignore_state: boolean to check whether to update the assigned defaults or not
+            var_values: dictionary to update required set of input defaults
+        """
 
         init_values = {}   
 
@@ -493,7 +522,7 @@ class InputFrame(ttk.Frame):
                 raise KeyError("Key missing")
     
     def get_values(self, *_):
-        """Return a dictionary of all variable values."""
+        """Return a dictionary of selected fields values."""
 
         values = {}
         for name in self.variable:
@@ -522,9 +551,9 @@ class InputFrame(ttk.Frame):
         return values
 
     def trace_variables(self, *_):
-        # for name in name_list:
-        #     if name in self.variable.keys():
-        #         self.variable[name].trace("w", self.update_widgets) 
-
+        """
+        Method to trace the events on any update of widgets using switch_keys defined with fields.
+        Needs modification for cases beyond simple switch conditions
+        """
         for name, var in self.variable.items():
             var.trace("w", self.update_widgets) 

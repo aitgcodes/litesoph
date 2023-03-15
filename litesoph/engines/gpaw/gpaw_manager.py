@@ -20,7 +20,7 @@ class GPAWManager(EngineManager):
                                         wt.MO_POPULATION_TRACKING, wt.MASKING, wt.PUMP_PROBE]
 
 
-    def get_task(self, config, task_info: TaskInfo, 
+    def get_task(self, config, workflow_type: str, task_info: TaskInfo, 
                         dependent_tasks: Union[List[TaskInfo], None] =None ):
         self.check_task(task_info.name)
         if task_info.name == tt.COMPUTE_SPECTRUM:

@@ -130,7 +130,7 @@ class OctopusTask(Task):
             gs_info = self.dependent_tasks[0]
             if gs_info:
                 gs_spacing = gs_info.param.get('spacing')
-            t_step_max = calc_td_range(gs_spacing)/2
+            t_step_max = calc_td_range(gs_spacing)
             if t_step > t_step_max:
                 raise InputError(f'Expected time step less than {t_step_max} as')
     
