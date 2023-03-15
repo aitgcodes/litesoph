@@ -11,7 +11,6 @@ import os,subprocess,shutil
 from pathlib import Path 
 from litesoph.common.utils import get_new_directory
 from litesoph.common.job_submit import execute_cmd_local,execute_cmd_remote
-# from litesoph.common.task import Task
 from litesoph.gui.gui import GUIAPP
 
 def create_directory(directory):
@@ -20,17 +19,25 @@ def create_directory(directory):
             os.makedirs(directory)
 
 def python_list_to_tcl_list(py_list):
-        if type(py_list) == list:
-            out_str = "{ "
-            for item in py_list:
-                out_str += python_list_to_tcl_list(item)
-            out_str += "} "
-            return out_str
-        else:
-            out_str = str(py_list) + " "
-            for c in ["\\", "{", "}", "[", "]", "$"]:
-                out_str = out_str.replace(c, "\\" + c)
-            return out_str
+    """function to convert python list to tcl list format
+
+    Args:
+        py_list (list): python list
+
+    Returns:
+        _type_: tcl list
+    """        
+    if type(py_list) == list:
+        out_str = "{ "
+        for item in py_list:
+            out_str += python_list_to_tcl_list(item)
+        out_str += "} "
+        return out_str
+    else:
+        out_str = str(py_list) + " "
+        for c in ["\\", "{", "}", "[", "]", "$"]:
+            out_str = out_str.replace(c, "\\" + c)
+        return out_str
 
 class CollapsibleFrame(ttk.Frame):
 	"""
@@ -127,14 +134,6 @@ class GuiAppTemplate(tk.Toplevel):
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.right_pane)
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        # toolbar = NavigationToolbar2Tk(self.canvas, self.right_pane, pack_toolbar=False)
-        # toolbar.update()
-
-        # self.canvas.mpl_connect("key_press_event", lambda event: print(f"you pressed {event.key}"))
-        # self.canvas.mpl_connect("key_press_event", key_press_handler)
-
-
-        # toolbar = NavigationToolbar2Tk(self.fig, self.right_pane)
         toolbar = NavigationToolbar2Tk(self.canvas,self.right_pane)
         toolbar.update()
         toolbar.pack()
