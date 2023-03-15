@@ -7,6 +7,7 @@ from enum import Enum
 
 
 class WorkflowTypes(str, Enum):
+    TASK_MODE: str = 'task_mode'
     SPECTRUM: str = 'spectrum'
     AVERAGED_SPECTRUM: str = 'averaged_spectrum'
     KOHN_SHAM_DECOMPOSITION: str = 'kohn_sham_decomposition'
@@ -28,8 +29,21 @@ predefined_workflow = Dict[str, Any]
 predefined_workflow = {
     "spectrum": {
         "name": "Spectrum",
-        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'End'],
-        "steps" : [step(0 ,0, tt.GROUND_STATE),
+        "blocks": [{'name' : 'Ground State',
+                    'store_same_task_type': True,
+                    'task_type': tt.GROUND_STATE
+                    }, 
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    }, 
+                    {'name':'Compute Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_SPECTRUM
+                    }, 
+                    {'name': 'End'}],
+
+        "task_sequence" : [step(0 ,0, tt.GROUND_STATE),
                     step(1 ,1, tt.RT_TDDFT),
                     step(2 ,2, tt.COMPUTE_SPECTRUM)],
         "dependency_map": {'0' : None,
@@ -39,8 +53,25 @@ predefined_workflow = {
 
     "averaged_spectrum": {
         "name": "Averaged Spectrum",
-        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute Averaged Spectrum', 'End'],
-        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+        "blocks": [{'name' : 'Ground State',
+                    'store_same_task_type': True,
+                    'task_type': tt.GROUND_STATE
+                    }, 
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    }, 
+                    {'name':'Compute Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_SPECTRUM
+                    },  
+                    {'name': 'Compute Averaged Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_AVERAGED_SPECTRUM
+                    },  
+                    {'name': 'End'}],
+
+        "task_sequence" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1 ,1 ,tt.RT_TDDFT, {
                                         'polarization':[1,0,0],
                                                 }),
@@ -66,8 +97,25 @@ predefined_workflow = {
     },
     "kohn_sham_decomposition": {
         "name" : "Kohn Sham Decomposition",
-        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute KSD', 'End'],
-        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+        "blocks": [{'name' : 'Ground State',
+                    'store_same_task_type': True,
+                    'task_type': tt.GROUND_STATE
+                    }, 
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    }, 
+                    {'name':'Compute Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_SPECTRUM
+                    }, 
+                    {'name':'Compute KSD',
+                    'store_same_task_type': True,
+                    'task_type': tt.TCM
+                    }, 
+                    {'name': 'End'}],
+
+        "task_sequence" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1 ,1 ,tt.RT_TDDFT,{
                                         'properties':['spectrum', 'ksd'],
                                                 } ),
@@ -82,8 +130,25 @@ predefined_workflow = {
     },
     "mo_population_tracking": {
         "name": "MO Population Tracking",
-        "blocks": ['Ground State', 'RT TDDFT', 'Compute Spectrum', 'Compute MO population', 'End'],
-        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+        "blocks": [{'name' : 'Ground State',
+                    'store_same_task_type': True,
+                    'task_type': tt.GROUND_STATE
+                    }, 
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    }, 
+                    {'name':'Compute Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_SPECTRUM
+                    },  
+                    {'name':'Compute MO population',
+                    'store_same_task_type': True,
+                    'task_type': tt.MO_POPULATION
+                    }, 
+                    {'name': 'End'}],
+
+        "task_sequence" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1 ,1 ,tt.RT_TDDFT,{
                                         'properties':['spectrum', 'ksd'],
                                                 } ),
@@ -97,8 +162,21 @@ predefined_workflow = {
     },
     "masking": {
         "name": "Masking", 
-        "blocks": ['Ground State', 'RT TDDFT', 'Diople Moment Analysis', 'End'],
-        "steps" : [step(0 ,0 , tt.GROUND_STATE),
+        "blocks": [{'name' : 'Ground State',
+                    'store_same_task_type': True,
+                    'task_type': tt.GROUND_STATE
+                    }, 
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    }, 
+                    {'name':'Diople Moment Analysis',
+                    'store_same_task_type': True,
+                    'task_type': tt.MASKING
+                    }, 
+                    {'name': 'End'}],
+
+        "task_sequence" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1 ,1 ,tt.RT_TDDFT,{
                                         'properties':['spectrum'],
                                                 }, 

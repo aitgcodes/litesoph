@@ -17,7 +17,7 @@ class NWChemManager(EngineManager):
     implemented_workflows: List[str] = [wt.SPECTRUM, wt.AVERAGED_SPECTRUM,
                                         wt.MO_POPULATION_TRACKING]
 
-    def get_task(self, config, task_info: TaskInfo, 
+    def get_task(self, config, workflow_type:str, task_info: TaskInfo, 
                         dependent_tasks: Union[List[TaskInfo], None] =None ):
         
         self.check_task(task_info.name)

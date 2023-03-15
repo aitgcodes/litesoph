@@ -4,12 +4,13 @@ from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_
 import copy
 from litesoph.common.workflow_manager import WorkflowManager, TaskSetupError
 from litesoph.common.data_sturcture.data_classes import TaskInfo
-from litesoph.common.task import Task, TaskFailed
+from litesoph.common.task import Task, TaskFailed, InputError
 from litesoph.common.task_data import TaskTypes as tt                                  
 from litesoph.gui import views as v
 from litesoph.common import models as m
 from litesoph.gui.models.gs_model import choose_engine
 from litesoph.common.decision_tree import EngineDecisionError
+from litesoph.gui.utils import dict2string
 
 
 class TaskController:
@@ -81,16 +82,34 @@ class TaskController:
                 messagebox.showerror(title="Engine Error", message=e)
                 return
 
+        #---------------------------------------------------------------
+        self.task_info.param.clear()
+        self.task_info.param.update(inp_dict)
+        try:
+            self.task = self.workflow_manager.get_engine_task()
+        except InputError as error_msg:
+            messagebox.showerror(message= error_msg)            
+            return
+
         check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
         if not check:
             return
         
-        self.task_info.param.update(inp_dict)
-        self.task = self.workflow_manager.get_engine_task()
         self.task.create_input()
         txt = self.task.get_engine_input()
         self.view_panel.insert_text(text=txt, state='normal')
         self.bind_task_events()
+
+        # check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
+        # if not check:
+        #     return
+        
+        # self.task_info.param.update(inp_dict)
+        # self.task = self.workflow_manager.get_engine_task()
+        # self.task.create_input()
+        # txt = self.task.get_engine_input()
+        # self.view_panel.insert_text(text=txt, state='normal')
+        # self.bind_task_events()
     
 
     @staticmethod
@@ -546,107 +565,6 @@ class TaskController:
             else:
                 return
 
-class MaskingPageController(TaskController):
-
-    def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
-        self.workflow_manager = workflow_manager
-        self.task_info = workflow_manager.current_task_info
-        self.task_name = self.task_info.name
-        self.engine = self.task_info.engine
-        self.task_view = task_view
-        self.task = None
-
-        try:
-            self.task = self.workflow_manager.get_engine_task()
-        except TaskSetupError as e:
-            messagebox.showerror("Error", str(e))
-            return
-            
-
-        self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)
-        
-        self.task_view.energy_coupling_button.config(command = self._on_masking_page_compute)
-        self.task_view.plot_button.config(command = self._on_plot_dm_file)
-        self.task_view.back_button.config(command= self.workflow_controller.show_workmanager_page)
-
-
-        if hasattr(self.task_view, 'set_parameters'):
-            self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
-
-    def _on_masking_page_compute(self, *_):
-        inp_dict = self.task_view.get_parameters()
-        try:
-            txt = self.task.get_energy_coupling_constant(**inp_dict)
-            self.view_panel.insert_text(text= txt, state= 'disabled')
-        except Exception as e:
-            messagebox.showerror(title='Error', message=e)
-
-    def _on_plot_dm_file(self, *_):
-        inp_dict = self.task_view.get_parameters()
-        try:
-            self.task.plot(**inp_dict)
-        except Exception as e:
-            messagebox.showerror(title='Error', message=e)
-
-class LaserPageController(TaskController):
-
-    def __init__(self, workflow_controller, app) -> None:
-        super().__init__(workflow_controller, app)
-        self.laser_design = None
-
-    def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
-        super().set_task(workflow_manager, task_view)
-        self.main_window.bind_all('<<DesignLaser>>', self._on_design_laser)
-
-    def generate_input(self, *_):
-        self.task_info.param.clear()
-        if not self._on_choose_laser():
-            return
-        # self.task_view.set_laser_design_dict(self.laser_design.l_design)
-        self.task_view.set_laser_design_dict(self.laser_design.list_of_laser_param)
-
-        inp_dict = self.task_view.get_parameters()
-        if not inp_dict:
-            return
-
-        check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
-        if not check:
-            return
-        self.task_info.param.clear()
-        self.task_info.param.update(inp_dict)
-        self.task = self.workflow_manager.get_engine_task()
-        self.task.create_input()
-        txt = self.task.get_engine_input()
-        self.view_panel.insert_text(text=txt, state='normal')
-        self.bind_task_events()
-
-    def _on_design_laser(self, *_):
-        # laser_desgin_inp = self.task_view.get_laser_pulse()
-        laser_desgin_inp = self.task_view.get_laser_details()
-        laser_total_time = laser_desgin_inp.pop(0)
-        # self.laser_design = m.LaserDesignModel(laser_desgin_inp)
-        self.laser_design = m.LaserDesignPlotModel(laser_inputs =laser_desgin_inp,
-        laser_profile_time= laser_total_time)
-        # self.laser_design.create_pulse()
-        # self.laser_design.plot_time_strength()
-        pulse_list = self.laser_design.get_laser_pulse_list()
-        (time_arr, list_strength_arr) = self.laser_design.get_time_strength(pulse_list)
-        # self.laser_design.write('laser',time_arr, list_strength_arr)
-        self.laser_design.plot_laser()
-
-    def _on_choose_laser(self, *_):
-        if not self.laser_design:
-            messagebox.showerror(message="Laser is not set. Please choose the laser")
-            return
-        check = messagebox.askokcancel(message= "Do you want to proceed with this laser set up?")
-        if check is True:
-            self.laser_design.write(self.task_info.path /'laser.dat',self.laser_design.time, self.laser_design.strengths)
-            # self.laser_design.write_laser("laser.dat")
-            return True
-        else:
-            self.laser_design = None 
-
-
 class PostProcessTaskController(TaskController):
 
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
@@ -676,14 +594,4 @@ class PostProcessTaskController(TaskController):
         self._run_local(np=1)
 
 
-def input_param_report(engine, input_param):
-    pass            
-
-def dict2string(inp_dict):
-
-    txt = []
-    for key, value in inp_dict.items():
-        txt.append(f"{key} =  {value}")
-
-    return '\n'.join(txt)
 

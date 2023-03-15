@@ -18,6 +18,11 @@ class ProjectSetupError(Exception):
 
 
 class LSManager:
+    """This is the main interface to the litesoph backend.
+    This class is responsible for creating and managing all the projects in 
+    the litesoph. All the data generated from the project is stored in the 
+    project_info which is serialized into json format and written to the project_data file
+    in the ./litesoph directory, which is in the project directory."""
 
     def __init__(self) -> None:
         self.project_data_file_relative_path = PROJECT_DATA_FILE_RELATIVE_PATH
@@ -34,8 +39,21 @@ class LSManager:
         self.config = config_to_dict(config_file)
 
     def new_project(self, name: str, path: Union[str, Path], description:str='') -> ProjectManager:
-        """" Creates Project directory  and instantiates ProjectInfo and project manager
-         then return project manager. """
+        """Creates Project directory  and instantiates ProjectInfo and project manager
+         then return project manager. 
+         
+        parameters
+        ----------
+        name: 
+            name of the project.
+        path:
+            path of the project directory.
+        description:
+            description of the project.
+            
+        Returns
+        -------
+            ProjectManager object."""
 
         project_path = Path(path)
 
@@ -64,7 +82,18 @@ class LSManager:
 
     
     def open_project(self, path: Union[str, Path]) -> ProjectManager:
+        """Opens a litesoph project.
+        
+        parameters
+        ----------
 
+        path:
+            path of the project directory
+
+        Returns
+        -------
+            ProjectManager object.
+        """
         project_path = Path(path)
         project_data_file = project_path / self.project_data_file_relative_path
         if not project_data_file.exists():
