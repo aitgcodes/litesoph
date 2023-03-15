@@ -1765,7 +1765,9 @@ class TimeDependentPage(View):
         if gui_values.get("ksd") is True:
             prop_list.append("ksd")
         if gui_values.get("mo_population") is True:
-            prop_list.append("mo_population")    
+            prop_list.append("mo_population") 
+        if gui_values.get("induced_density") is True:
+            prop_list.append("induced_density") 
         return prop_list   
 
     def get_parameters(self):
