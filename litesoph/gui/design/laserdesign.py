@@ -31,7 +31,7 @@ laser_design_input = {
         "time_origin": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Time Origin in as",
+                "text": "Time Origin (as)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -42,7 +42,7 @@ laser_design_input = {
         "time_origin:probe": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Time Origin w.r.t. probe 1 in as",
+                "text": "Time Origin w.r.t. probe 1 (as)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -64,7 +64,7 @@ laser_design_input = {
         "laser_strength": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Peak Strength in au",
+                "text": "Peak Strength (au)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -75,7 +75,7 @@ laser_design_input = {
         "fwhm": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Full Width Half Max (FWHM in eV)",
+                "text": "Full Width Half Max (eV)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -86,7 +86,7 @@ laser_design_input = {
         "freq": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Frequency (in eV)",
+                "text": "Frequency (eV)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -107,7 +107,7 @@ laser_design_input = {
         "delta_strength": {
                 "tab":"Laser Design",
                 "group": "laser details",
-                "text": "Delta Kick Strength (in au)",
+                "text": "Delta Kick Strength (au)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -177,7 +177,7 @@ laser_design_input = {
         "mask_sphere:radius": {
                 "tab":"Masking",
                 "group": "Masking Inputs",
-                "text": "Radius (in angstrom)",
+                "text": "Radius (angstrom)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,

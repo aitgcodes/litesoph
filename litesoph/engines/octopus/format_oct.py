@@ -147,7 +147,18 @@ pol_list2dir = [([1,0,0], 1),
 property_dict = {
     "default": ["energy", "multipoles"],
     "ksd": ["td_occup"],
-    "mo_population": ["td_occup"]}
+    "mo_population": ["td_occup"],
+    "induced_density" : ["density"]}
+
+td_output = ["energy", "multipoles","td_occup"]
+output_dict = {
+    "density": {"output_format": "cube",
+                "output_interval": 50,
+                },
+    "potential":{"output_format": "cube",
+                "output_interval": 50,
+                },}
+output = list(output_dict.keys())
 
 def get_oct_kw_dict(inp_dict:dict, task_name:str):
     """ Acts on the input dictionary to return Octopus specifc keyword dictionary
@@ -161,29 +172,68 @@ def get_oct_kw_dict(inp_dict:dict, task_name:str):
         _dict = get_spectrum_dict(inp_dict)
     return _dict
 
-def get_td_dict(inp_dict):    
+def get_td_dict(inp_dict):   
     t_step = inp_dict.pop('time_step')
     property_list = inp_dict.pop('properties')
+    output_freq = inp_dict.pop('output_freq')
     laser = inp_dict.pop('laser', None)
     _dict ={
     'CalculationMode': 'td', 
     'TDPropagator': 'aetrs',
     'TDMaxSteps': inp_dict.pop('number_of_steps'),
     'TDTimeStep':round(t_step*as_to_au, 3),
-    'TDOutputComputeInterval':inp_dict.pop('output_freq')
+    'TDOutputComputeInterval': output_freq 
     }
-                
-    # TD Outputs
-    _list = []
+
+    # TDOutput & Output Block 
+    # from properties to extract
+    _list1 = []
+    _list2 = []
     td_out_list = []
-    for item in property_list:
-        td_key = property_dict.get(item, ["energy", "multipoles"])
-        if td_key:
-            _list.extend(td_key)
-    td_list = list(set(_list))
-    for item in td_list:
-        td_out_list.append([item])
-    _dict.update({'TDOutput': td_out_list})
+    output_list = []
+    for item in property_list:  
+        copy_output_dict = copy.deepcopy(output_dict)      
+        property_keys = property_dict.get(item, ["energy", "multipoles"])
+        for property in property_keys:
+            if property in td_output:
+                _list1.append(property)
+            elif property in output:
+                _list2.append(property)
+                copy_output_dict.update({
+                    property:{
+                        "output_format": "cube",
+                        "output_interval": output_freq,
+                    }
+                })
+
+    td_list = list(set(_list1))
+    out_list = list(set(_list2))
+    
+    td_out_list = [[item] for item in td_list]
+    output_list = [[item, 
+                    "'output_format'", 
+                    copy_output_dict[item].get("output_format"),
+                    "'output_interval'",
+                    output_freq ,
+                    ] 
+                    for item in out_list]
+    if len(td_out_list) > 0:
+        _dict.update({'TDOutput': td_out_list})
+    if len(output_list) > 0:
+        _dict.update({'Output': output_list})
+     
+    # # TD Outputs
+    # _list = []
+    # td_out_list = []
+    # for item in property_list:
+    #     td_key = property_dict.get(item, ["energy", "multipoles"])
+    #     if td_key:
+    #         _list.extend(td_key)
+    # td_list = list(set(_list))
+    # for item in td_list:
+    #     td_out_list.append([item])
+    # _dict.update({'TDOutput': td_out_list})
+    
     # TD External Fields
     if laser:
         # To handle multiple lasers
