@@ -31,7 +31,7 @@ laser_td_input = {
         "delay_list": {
                 "tab":"External Fields",
                 "group": "Choose Options",
-                "text": "Delay time list in fs",
+                "text": "Delay time list (fs)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": str,
@@ -42,7 +42,7 @@ laser_td_input = {
         "time_step": {
                 "tab":"Simulation Parameters",
                 "group": "simulation ",
-                "text": "Time step (in attosecond)",
+                "text": "Time step (as)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -107,7 +107,7 @@ def get_td_laser_w_delay():
                 {"delay_values": {
                         "tab":"External Fields",
                         "group": "Choose Options",
-                        "text": "Delay time (in fs)",
+                        "text": "Delay time (fs)",
                         "help": None,
                         "widget": Combobox,
                         "type": float,
