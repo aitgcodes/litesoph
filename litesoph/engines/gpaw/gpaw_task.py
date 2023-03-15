@@ -595,11 +595,10 @@ class PumpProbePostpro(GpawTask):
         for i in range(len(self.dependent_tasks)):
             axis_index,_=get_polarization_direction(self.dependent_tasks[i])
 
-            print("self.project_dir :",self.project_dir)
+            print("self.project_dir :",       self.project_dir)
             print("self.dependent_tasks[i] :",self.dependent_tasks[i])
-
             print("self.dependent_tasks[i] :",self.dependent_tasks[i].output.get('dm_files'))
- 
+
             sim_total_dm = Path(self.project_dir)/(self.dependent_tasks[i].output.get('dm_files')[0])
             print(sim_total_dm)
 
