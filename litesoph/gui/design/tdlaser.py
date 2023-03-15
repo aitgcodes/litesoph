@@ -90,6 +90,15 @@ laser_td_input = {
                 "widget": Checkbutton,
                 "default": False
                 },
+        "induced_density": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Induced Density",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
+        
         }
 
 def get_td_laser_w_delay():
@@ -232,7 +241,9 @@ class TDPage(View):
         if gui_values.get("ksd") is True:
             prop_list.append("ksd")
         if gui_values.get("mo_population") is True:
-            prop_list.append("mo_population")    
+            prop_list.append("mo_population") 
+        if gui_values.get("induced_density") is True:
+            prop_list.append("induced_density")   
         return prop_list  
 
     def get_delay_list(self, delay_str:str):
