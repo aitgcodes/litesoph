@@ -14,7 +14,6 @@ from litesoph.common.job_submit import execute_cmd_local,execute_cmd_remote
 from litesoph.gui.gui import GUIAPP
 from tkinter import *
 
-
 def create_directory(directory):
         absdir = os.path.abspath(directory)
         if absdir != Path.cwd and not Path.is_dir(directory):
@@ -77,7 +76,7 @@ class CollapsibleFrame(ttk.Frame):
 		# main reason to do this is Button do not support
 		# variable option but checkbutton do
 		self._button = ttk.Checkbutton(self, variable = self._variable,
-							command = self._activate, style ="TButton")
+							command = self._activate)
 		self._button.grid(row = 0, column = 0)
 
 		# This will create a separator
@@ -388,9 +387,28 @@ class CubeFilePlot(CommonGraphParam):
         cf3 = CollapsibleFrame(self.graph_props_frame, '-Params', '+Params')
         cf3.grid(row=0, column=0, sticky="nsew")
         
-        self.render_button = tk.Button(self.graph_props_frame, text="Render", command=self._on_render_cube_movie)
+        # self.render_button = tk.Button(self.graph_props_frame, text="Render", command=self._on_render_cube_movie)
         # self.render_button.pack(side=tk.BOTTOM, pady=10)
-        self.render_button.grid(row=1, column=0, sticky="nsew")
+        # self.render_button.grid(row=1, column=0, sticky="nsew")
+
+
+        self.render_script_button = tk.Button(self.graph_props_frame, text="Render Script", command=self._on_generate_vmd_script)
+        self.render_script_button.grid(row=1, column=0, sticky="nsew")
+
+        self.edit_save_script_button = tk.Button(self.graph_props_frame, text="Save Script", command=self._on_edit_save_render_script)
+        self.edit_save_script_button.grid(row=1, column=1, sticky="nsew")
+
+        engine_types=['default','blender']
+        self.render_engine_type_var = tk.StringVar()
+
+        self.select_render_engine = ttk.Combobox(self.graph_props_frame,state = "readonly", values=engine_types, textvariable=self.render_engine_type_var)
+        self.select_render_engine.grid(row=2, column=0, sticky="nsew")
+        self.select_render_engine.set("select render engine")
+        self.select_render_engine.current(0)
+
+        self.render_button = tk.Button(self.graph_props_frame, text="Render", command=self._on_render_cube_movie)
+        self.render_button.grid(row=2, column=1, sticky="nsew")
+
 
     def load_cube_file(self):
         cube_files = fd.askopenfilename(title="Select File(s)",
@@ -428,6 +446,31 @@ class CubeFilePlot(CommonGraphParam):
             
             tcl_list=python_list_to_tcl_list(self.cube_files)
             self.rewrite_file(self.vmd_script,'[TCL_CUBE_FILES]', tcl_list)
+    
+    def _on_edit_save_render_script(self):
+        
+        text_file = open(self.vmd_script, "w")
+        # text_file.write(self.text_box.get(1.0, END))
+        text_file.close()   
+
+    def _on_view_render_script(self):
+        # self.toggle_textbox_canvas()
+        # self.destroy_frame_elements([self.fig])
+        # self.canvas.get_tk_widget().pack_forget()
+        
+        # self.text_panel= Text(master=self.right_pane, width= 50,background="gray", height= 30,font= ('Sans Serif', 13, 'italic bold'))
+        # self.text_panel.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        # from pathlib import Path
+        # script_contents = Path(self.vmd_script).read_text()        
+        # self.text_panel.insert(INSERT, script_contents)
+
+        text_file = open(self.vmd_script, "r")
+        content = text_file.read()
+        # self.text_box.insert(END, content)
+        text_file.close()
+
+
     
     def _on_render_cube_movie(self):
         self._on_generate_vmd_script()
