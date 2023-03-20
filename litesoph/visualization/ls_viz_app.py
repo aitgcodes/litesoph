@@ -117,7 +117,7 @@ class GuiAppTemplate(tk.Toplevel):
 
     # def __init__(self):
         # self.master =  tk.Tk()
-        self.title("Scientific Plotting Application")
+        self.title("Litesoph Visualization Toolkit")
         
         # create the PanedWindow
         self.pane = tk.PanedWindow(self, orient='horizontal')        
@@ -177,17 +177,34 @@ class GuiAppTemplate(tk.Toplevel):
 
         cf3 = CollapsibleFrame(self.graph_props_frame, '-Font', '+Font')
         cf3.grid(row=0, column=0, sticky="nsew")
+
     
+    def toggle_canvas(self):
+        if self.canvas.get_tk_widget().winfo_ismapped():
+            # if the text box is currently displayed, switch to the canvas
+            self.text_box.pack_forget()
+            self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        else:
+            pass
+                
+    def toggle_textbox(self):
+        if self.canvas.get_tk_widget().winfo_ismapped():
+            self.canvas.get_tk_widget().pack_forget()
+            # self.text_box.pack(side=tk.TOP, pady=5)
+            self.text_box.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        else:
+            pass
+                    
     def toggle_textbox_canvas(self):
         if self.canvas.get_tk_widget().winfo_ismapped():
             # if the canvas is currently displayed, switch to the text box
             self.canvas.get_tk_widget().pack_forget()
-            self.text_box.pack(side=tk.TOP, pady=5)
+            self.text_box.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
             # self.toggle_button.config(text='Canvas')
         else:
             # if the text box is currently displayed, switch to the canvas
             self.text_box.pack_forget()
-            self.canvas.get_tk_widget().pack(side=tk.TOP, pady=5)
+            self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
             # self.toggle_button.config(text='Text Box')
                 
     def adjust_panes(self,event):
@@ -457,15 +474,18 @@ class CubeFilePlot(CommonGraphParam):
             self.rewrite_file(self.vmd_script,'[TCL_CUBE_FILES]', tcl_list)
         
         self._on_view_render_script()
+        self.toggle_textbox_canvas()
     
     def _on_edit_save_render_script(self):
         
         text_file = open(self.vmd_script, "w")
         text_file.write(self.text_box.get(1.0, END))
         text_file.close()   
+        self._on_view_render_script()
 
     def _on_view_render_script(self):
-        self.toggle_textbox_canvas()
+        # self.toggle_textbox_canvas()
+        # self.toggle_textbox()
         
         text_file = open(self.vmd_script, "r")
         content = text_file.read()
@@ -559,6 +579,7 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
             self._on_select_cube_file()
 
     def generate_plot(self):
+        # self.toggle_canvas()
         self.plot_type = self.plot_type_var.get()
         if self.plot_type=="line_plot":
             self._on_generate_line_plot()
