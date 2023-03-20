@@ -130,6 +130,9 @@ class GuiAppTemplate(tk.Toplevel):
         self.pane.config(sashwidth=5, sashrelief=tk.SUNKEN)  # set the sash properties
         self.pane.bind('<Button-1>', self.adjust_panes)
 
+        # create textbox for editing script
+        self.text_box = tk.Text(self.right_pane)
+
         # create canvas for plotting
         self.fig = plt.figure(figsize=(6, 4))
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.right_pane)
@@ -174,6 +177,18 @@ class GuiAppTemplate(tk.Toplevel):
 
         cf3 = CollapsibleFrame(self.graph_props_frame, '-Font', '+Font')
         cf3.grid(row=0, column=0, sticky="nsew")
+    
+    def toggle_textbox_canvas(self):
+        if self.canvas.get_tk_widget().winfo_ismapped():
+            # if the canvas is currently displayed, switch to the text box
+            self.canvas.get_tk_widget().pack_forget()
+            self.text_box.pack(side=tk.TOP, pady=5)
+            # self.toggle_button.config(text='Canvas')
+        else:
+            # if the text box is currently displayed, switch to the canvas
+            self.text_box.pack_forget()
+            self.canvas.get_tk_widget().pack(side=tk.TOP, pady=5)
+            # self.toggle_button.config(text='Text Box')
                 
     def adjust_panes(self,event):
         """function to adjust the size of the panes"""
@@ -387,11 +402,6 @@ class CubeFilePlot(CommonGraphParam):
         cf3 = CollapsibleFrame(self.graph_props_frame, '-Params', '+Params')
         cf3.grid(row=0, column=0, sticky="nsew")
         
-        # self.render_button = tk.Button(self.graph_props_frame, text="Render", command=self._on_render_cube_movie)
-        # self.render_button.pack(side=tk.BOTTOM, pady=10)
-        # self.render_button.grid(row=1, column=0, sticky="nsew")
-
-
         self.render_script_button = tk.Button(self.graph_props_frame, text="Render Script", command=self._on_generate_vmd_script)
         self.render_script_button.grid(row=1, column=0, sticky="nsew")
 
@@ -408,7 +418,6 @@ class CubeFilePlot(CommonGraphParam):
 
         self.render_button = tk.Button(self.graph_props_frame, text="Render", command=self._on_render_cube_movie)
         self.render_button.grid(row=2, column=1, sticky="nsew")
-
 
     def load_cube_file(self):
         cube_files = fd.askopenfilename(title="Select File(s)",
@@ -446,21 +455,22 @@ class CubeFilePlot(CommonGraphParam):
             
             tcl_list=python_list_to_tcl_list(self.cube_files)
             self.rewrite_file(self.vmd_script,'[TCL_CUBE_FILES]', tcl_list)
+        
+        self._on_view_render_script()
     
     def _on_edit_save_render_script(self):
         
         text_file = open(self.vmd_script, "w")
-        # text_file.write(self.text_box.get(1.0, END))
+        text_file.write(self.text_box.get(1.0, END))
         text_file.close()   
 
     def _on_view_render_script(self):
+        self.toggle_textbox_canvas()
         
         text_file = open(self.vmd_script, "r")
         content = text_file.read()
-        # self.text_box.insert(END, content)
+        self.text_box.insert(END, content)
         text_file.close()
-
-
     
     def _on_render_cube_movie(self):
         self._on_generate_vmd_script()
@@ -496,18 +506,7 @@ class CubeFilePlot(CommonGraphParam):
                 bpy.context.scene.frame_end =  len(file_path)
                 bpy.context.scene.render.ffmpeg.format = 'MPEG4'
                 bpy.ops.render.render(animation=True)
-
-        
-        # for i in range(len(list_imgs)):           
-        #     img = mpimg.imread(list_imgs[i])
-        #     im = plt.imshow(img)
-        #     if i == 0:
-        #         plt.imshow(img)  # show an initial one first
-        #     ims.append([im])
-        # ani = animation.ArtistAnimation(self.fig, ims, interval=50, blit=True,repeat_delay=100)
-        # self.canvas.draw()
-
-                    
+                
     def _on_generate_cube_plot_matplotlib(self):
         
         ims=[]
@@ -523,7 +522,7 @@ class CubeFilePlot(CommonGraphParam):
         self.canvas.draw()
     
     def _on_generate_movie(self):
-        # engine_type = self.render_engine_type_var.get()
+        self.toggle_textbox_canvas()
         engine_type=  self.select_render_engine.get()
 
         if engine_type=='default':
@@ -537,10 +536,6 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
 
     def destroy_frame_elements(self,list_of_frames):    
         for frame in list_of_frames:
