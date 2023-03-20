@@ -12,6 +12,8 @@ from pathlib import Path
 from litesoph.common.utils import get_new_directory
 from litesoph.common.job_submit import execute_cmd_local,execute_cmd_remote
 from litesoph.gui.gui import GUIAPP
+from tkinter import *
+
 
 def create_directory(directory):
         absdir = os.path.abspath(directory)
@@ -65,7 +67,7 @@ class CollapsibleFrame(ttk.Frame):
 		# Here weight implies that it can grow it's
 		# size if extra space is available
 		# default weight is 0
-		self.columnconfigure(1, weight = 1)
+		# self.columnconfigure(1, weight = 1)
 
 		# Tkinter variable storing integer value
 		self._variable = tk.IntVar()
@@ -374,6 +376,9 @@ class CubeFilePlot(CommonGraphParam):
 
     # def __init__(self, *args, **kwargs):
     #     super().__init__(*args, **kwargs)
+        self.traj_dir=Path(self.project_dir) / 'ls_traj_anim'
+        print(self.traj_dir)
+
     
     def _on_select_cube_file(self):
 
@@ -410,7 +415,7 @@ class CubeFilePlot(CommonGraphParam):
         vmd_script_template='/home/anandsahu/myproject/aitg/ls/ls-code/litesoph/visualization/vmd_script_template.tcl'        
         # self.vmd_script='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/vmd_test_lsapp.tcl'        
 
-        self.traj_dir=Path(self.project_dir) / 'ls_traj_anim'
+        # self.traj_dir=Path(self.project_dir) / 'ls_traj_anim'
         self.traj_dir=get_new_directory(self.traj_dir)
 
         if not self.traj_dir.exists():
@@ -435,6 +440,40 @@ class CubeFilePlot(CommonGraphParam):
         # result=execute_cmd_local(cmd_create_gif,project_dir)
         # error=result[cmd_create_gif]['error']    
         # message=result[cmd_create_gif]['output']  
+
+    def _on_generate_cube_plot_blender(self):
+        import bpy 
+        
+        ims=[]
+        list_imgs = list(Path(self.traj_dir).glob('*.png'))
+        file_path=list_imgs
+
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+
+                bpy.context.scene.sequence_editor_create()
+
+                movie = bpy.context.scene.sequence_editor.sequences.new_image(
+                            name="photos", filepath=file_path[0],
+                            channel=1, frame_start=1)
+
+                for o in file_path:
+                    movie.elements.append(o)
+                bpy.context.scene.render.fps = 1
+                bpy.context.scene.frame_end =  len(file_path)
+                bpy.context.scene.render.ffmpeg.format = 'MPEG4'
+                bpy.ops.render.render(animation=True)
+
+        
+        # for i in range(len(list_imgs)):           
+        #     img = mpimg.imread(list_imgs[i])
+        #     im = plt.imshow(img)
+        #     if i == 0:
+        #         plt.imshow(img)  # show an initial one first
+        #     ims.append([im])
+        # ani = animation.ArtistAnimation(self.fig, ims, interval=50, blit=True,repeat_delay=100)
+        # self.canvas.draw()
+
                     
     def _on_generate_cube_plot(self):
         
@@ -497,8 +536,8 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
 #     app.run()
 
 # if __name__ == '__main__':
-    # app=RunApp()
-    # app.run()
-    # Run_ls_viz()
+#     app=LSVizApp()
+#     app.run()
+#     Run_ls_viz()
 
 # Run_ls_viz()
