@@ -454,17 +454,7 @@ class CubeFilePlot(CommonGraphParam):
         text_file.close()   
 
     def _on_view_render_script(self):
-        # self.toggle_textbox_canvas()
-        # self.destroy_frame_elements([self.fig])
-        # self.canvas.get_tk_widget().pack_forget()
         
-        # self.text_panel= Text(master=self.right_pane, width= 50,background="gray", height= 30,font= ('Sans Serif', 13, 'italic bold'))
-        # self.text_panel.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        # from pathlib import Path
-        # script_contents = Path(self.vmd_script).read_text()        
-        # self.text_panel.insert(INSERT, script_contents)
-
         text_file = open(self.vmd_script, "r")
         content = text_file.read()
         # self.text_box.insert(END, content)
@@ -518,7 +508,7 @@ class CubeFilePlot(CommonGraphParam):
         # self.canvas.draw()
 
                     
-    def _on_generate_cube_plot(self):
+    def _on_generate_cube_plot_matplotlib(self):
         
         ims=[]
         list_imgs = list(Path(self.traj_dir).glob('*.png'))
@@ -531,6 +521,17 @@ class CubeFilePlot(CommonGraphParam):
             ims.append([im])
         ani = animation.ArtistAnimation(self.fig, ims, interval=50, blit=True,repeat_delay=100)
         self.canvas.draw()
+    
+    def _on_generate_movie(self):
+        # engine_type = self.render_engine_type_var.get()
+        engine_type=  self.select_render_engine.get()
+
+        if engine_type=='default':
+            print(engine_type)
+            self._on_generate_cube_plot_matplotlib()
+        elif engine_type=='blender':
+            print(engine_type)
+            self._on_generate_cube_plot_blender()
 
 class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
 
@@ -571,7 +572,9 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
             self._on_generate_contour_plot()
         
         elif self.plot_type=="cube":
-            self._on_generate_cube_plot()
+            # self._on_generate_cube_plot()
+            self._on_generate_movie()
+
         self.canvas.draw()
 
 # def Run_ls_viz():
