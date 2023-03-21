@@ -129,7 +129,7 @@ class GuiAppTemplate(tk.Toplevel):
         self.pane.bind('<Button-1>', self.adjust_panes)
 
         # create textbox for editing script
-        self.text_box = tk.Text(self.right_pane)
+        self.text_box = tk.Text(self.right_pane,font= ('Sans Serif', 13, 'bold'))
 
         # create canvas for plotting
         self.fig = plt.figure(figsize=(6, 4))
