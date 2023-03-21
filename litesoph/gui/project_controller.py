@@ -171,9 +171,6 @@ class ProjectController:
     def _open_ls_viz(self,*_):
         from litesoph.visualization import ls_viz_app
         ls_viz_app.LSVizApp(self.main_window).run()
-
-        # pass
-
     
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""

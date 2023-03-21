@@ -115,8 +115,6 @@ class GuiAppTemplate(tk.Toplevel):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-    # def __init__(self):
-        # self.master =  tk.Tk()
         self.title("Litesoph Visualization Toolkit")
         
         # create the PanedWindow
@@ -178,22 +176,15 @@ class GuiAppTemplate(tk.Toplevel):
         cf3 = CollapsibleFrame(self.graph_props_frame, '-Font', '+Font')
         cf3.grid(row=0, column=0, sticky="nsew")
 
-    
     def toggle_canvas(self):
-        if self.canvas.get_tk_widget().winfo_ismapped():
-            # if the text box is currently displayed, switch to the canvas
-            self.text_box.pack_forget()
-            self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        else:
-            pass
+        
+        self.text_box.pack_forget()
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
                 
     def toggle_textbox(self):
         if self.canvas.get_tk_widget().winfo_ismapped():
             self.canvas.get_tk_widget().pack_forget()
-            # self.text_box.pack(side=tk.TOP, pady=5)
             self.text_box.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        else:
-            pass
                     
     def toggle_textbox_canvas(self):
         if self.canvas.get_tk_widget().winfo_ismapped():
@@ -276,13 +267,9 @@ class CommonGraphParam(GuiAppTemplate):
         return files
         
 class LinePlot(CommonGraphParam):
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
     
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-
 
     def _on_select_line_plot(self):
     
@@ -355,12 +342,9 @@ class LinePlot(CommonGraphParam):
         self.canvas.draw()
 
 class ContourPlot(CommonGraphParam):
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-
     
     def _on_select_contour_plot(self):
 
@@ -405,12 +389,9 @@ class CubeFilePlot(CommonGraphParam):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
         self.traj_dir=Path(self.project_dir) / 'ls_traj_anim'
         print(self.traj_dir)
 
-    
     def _on_select_cube_file(self):
 
         self.load_cube_data_button = tk.Button(self.load_data_frame, text="Load Cube File(s)", command=self.load_cube_file)
@@ -455,11 +436,9 @@ class CubeFilePlot(CommonGraphParam):
             sys.stdout.write(line.replace(find_text, replace_text)) 
 
     def _on_generate_vmd_script(self):
+        # self.toggle_textbox()
         
         vmd_script_template='/home/anandsahu/myproject/aitg/ls/ls-code/litesoph/visualization/vmd_script_template.tcl'        
-        # self.vmd_script='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/vmd_test_lsapp.tcl'        
-
-        # self.traj_dir=Path(self.project_dir) / 'ls_traj_anim'
         self.traj_dir=get_new_directory(self.traj_dir)
 
         if not self.traj_dir.exists():
@@ -474,10 +453,10 @@ class CubeFilePlot(CommonGraphParam):
             self.rewrite_file(self.vmd_script,'[TCL_CUBE_FILES]', tcl_list)
         
         self._on_view_render_script()
-        self.toggle_textbox_canvas()
     
     def _on_edit_save_render_script(self):
-        
+
+        # self.toggle_textbox()
         text_file = open(self.vmd_script, "w")
         text_file.write(self.text_box.get(1.0, END))
         text_file.close()   
@@ -485,7 +464,7 @@ class CubeFilePlot(CommonGraphParam):
 
     def _on_view_render_script(self):
         # self.toggle_textbox_canvas()
-        # self.toggle_textbox()
+        self.toggle_textbox()
         
         text_file = open(self.vmd_script, "r")
         content = text_file.read()
@@ -542,7 +521,7 @@ class CubeFilePlot(CommonGraphParam):
         self.canvas.draw()
     
     def _on_generate_movie(self):
-        self.toggle_textbox_canvas()
+        self.toggle_canvas()
         engine_type=  self.select_render_engine.get()
 
         if engine_type=='default':
