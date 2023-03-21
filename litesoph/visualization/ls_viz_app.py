@@ -213,7 +213,7 @@ class CommonGraphParam(GuiAppTemplate):
         super().__init__(parent, *args, **kwargs)
 
 
-        self.project_dir='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/'
+        self.project_dir='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/tests'
 
     def common_graph_params(self):    
         self.title_var = tk.StringVar(value="Title")
@@ -428,51 +428,114 @@ class CubeFilePlot(CommonGraphParam):
                                                         ])
         self.cube_files=list(cube_files)
     
-    def rewrite_file(self,file,find_text, replace_text):
-        import sys
-        import fileinput
+    def vmd_template_script(self):
+        script='''
+            
+            #!/usr/bin/tclsh
 
-        for i, line in enumerate(fileinput.input(file, inplace=1)):
-            sys.stdout.write(line.replace(find_text, replace_text)) 
+            menu main off
+            axes location off
+
+            set cube_file_list [TCL_CUBE_FILES]
+            set len_list [llength $cube_file_list] 
+
+            for {set i 0} {$i < $len_list} {incr i} {
+            
+
+            mol new [lindex $cube_file_list  $i]
+            mol representation CPK 0.3 0.0 100.0 100.0
+            mol material HardPlastic
+
+            # do not edit below this
+            render Tachyon ls_cube_$i.dat
+            /usr/local/lib/vmd/tachyon_LINUXAMD64 -aasamples 12 12 ls_cube_$i.dat -format TGA -res 1600 1200 -o ls_cube_$i.tga
+            exec convert ls_cube_$i.tga ls_cube_$i.png
+            mol delete $i
+
+            }
+            exit
+            
+            '''
+        return script
+    
+    def rewrite_script(self,template_script,find_text, replace_text):        
+        rescripted = template_script.replace(find_text, replace_text)
+        return rescripted
+    
+    # def rewrite_file(self,file,find_text, replace_text):
+    #     import sys
+    #     import fileinput
+
+    #     for i, line in enumerate(fileinput.input(file, inplace=1)):
+    #         sys.stdout.write(line.replace(find_text, replace_text)) 
 
     def _on_generate_vmd_script(self):
-        # self.toggle_textbox()
-        
-        vmd_script_template='/home/anandsahu/myproject/aitg/ls/ls-code/litesoph/visualization/vmd_script_template.tcl'        
+        self.toggle_textbox()
+        self.text_box.delete("1.0",END)
+                
+        vmd_script_template=self.vmd_template_script()
         self.traj_dir=get_new_directory(self.traj_dir)
 
         if not self.traj_dir.exists():
             create_directory(self.traj_dir)  
-            self.vmd_script= self.traj_dir/'vmd_test_lsapp.tcl'
-
-            if os.path.isfile(self.vmd_script):
-                os.remove(self.vmd_script)       
-            shutil.copyfile(vmd_script_template,self.vmd_script)
+            # self.vmd_script= self.traj_dir/'vmd_test_lsapp.tcl'  
+            # if os.path.isfile(self.vmd_script):
+            #     os.remove(self.vmd_script) 
             
             tcl_list=python_list_to_tcl_list(self.cube_files)
-            self.rewrite_file(self.vmd_script,'[TCL_CUBE_FILES]', tcl_list)
-        
-        self._on_view_render_script()
+            self.final_vmd_script=self.rewrite_script(vmd_script_template,'[TCL_CUBE_FILES]', tcl_list)
+            
+            self.text_box.insert(END, self.final_vmd_script)
     
     def _on_edit_save_render_script(self):
 
-        # self.toggle_textbox()
+        self.vmd_script= self.traj_dir/'vmd_test_lsapp.tcl'  
         text_file = open(self.vmd_script, "w")
         text_file.write(self.text_box.get(1.0, END))
         text_file.close()   
-        self._on_view_render_script()
+        # self._on_view_render_script()
 
-    def _on_view_render_script(self):
-        # self.toggle_textbox_canvas()
-        self.toggle_textbox()
         
-        text_file = open(self.vmd_script, "r")
-        content = text_file.read()
-        self.text_box.insert(END, content)
-        text_file.close()
+        # self._on_view_render_script()
+    
+
+    # def _on_generate_vmd_script(self):
+                
+    #     vmd_script_template='/home/anandsahu/myproject/aitg/ls/ls-code/litesoph/visualization/vmd_script_template.tcl'        
+    #     self.traj_dir=get_new_directory(self.traj_dir)
+
+    #     if not self.traj_dir.exists():
+    #         create_directory(self.traj_dir)  
+    #         self.vmd_script= self.traj_dir/'vmd_test_lsapp.tcl'
+
+    #         if os.path.isfile(self.vmd_script):
+    #             os.remove(self.vmd_script)       
+    #         shutil.copyfile(vmd_script_template,self.vmd_script)
+            
+    #         tcl_list=python_list_to_tcl_list(self.cube_files)
+    #         self.rewrite_file(self.vmd_script,'[TCL_CUBE_FILES]', tcl_list)
+        
+    #     self._on_view_render_script()
+    
+    # def _on_edit_save_render_script(self):
+
+    #     text_file = open(self.vmd_script, "w")
+    #     text_file.write(self.text_box.get(1.0, END))
+    #     text_file.close()   
+    #     self._on_view_render_script()
+
+    # def _on_view_render_script(self):
+    #     self.toggle_textbox()
+        
+    #     text_file = open(self.vmd_script, "r")
+    #     content = text_file.read()
+    #     self.text_box.insert(END, content)
+    #     text_file.close()
     
     def _on_render_cube_movie(self):
-        self._on_generate_vmd_script()
+        # self._on_generate_vmd_script()
+
+        print("self.vmd_script:",self.vmd_script)
         cmd=f'vmd -dispdev none -e {self.vmd_script}'
         result=execute_cmd_local(cmd,self.traj_dir)
         error=result[cmd]['error']    
@@ -558,7 +621,8 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
             self._on_select_cube_file()
 
     def generate_plot(self):
-        # self.toggle_canvas()
+        self.toggle_canvas()
+
         self.plot_type = self.plot_type_var.get()
         if self.plot_type=="line_plot":
             self._on_generate_line_plot()
@@ -567,7 +631,6 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
             self._on_generate_contour_plot()
         
         elif self.plot_type=="cube":
-            # self._on_generate_cube_plot()
             self._on_generate_movie()
 
         self.canvas.draw()
