@@ -443,13 +443,64 @@ class CubeFilePlot(CommonGraphParam):
             
 
             mol new [lindex $cube_file_list  $i]
-            mol representation CPK 0.3 0.0 100.0 100.0
-            mol material HardPlastic
+
+            if {$i == 0} {
+                display projection orthographic
+                light 0 on
+                light 1 on
+                light 2 on
+                light 3 on
+                color Display {Background} white
+                color Name {H} gray
+                rotate x by 0
+                rotate y by 90
+                rotate z by 90
+                scale by 1.10
+                translate by 0.0 0.0 0.0
+                global viewpoints
+                set viewpoints(0) [molinfo 0 get rotate_matrix]
+                set viewpoints(1) [molinfo 0 get center_matrix]
+                set viewpoints(2) [molinfo 0 get scale_matrix]
+                set viewpoints(3) [molinfo 0 get global_matrix]
+            }
+        molinfo $i set center_matrix $viewpoints(1)
+        molinfo $i set rotate_matrix $viewpoints(0)
+        molinfo $i set scale_matrix $viewpoints(2)
+        molinfo $i set global_matrix $viewpoints(3)
+        mol delrep 0 $i
+        mol representation CPK 0.3 0.0 100.0 100.0
+        mol material HardPlastic
+        mol addrep $i
+        mol representation isosurface 0.03 0.0 0.0 0.0 1 1
+        mol color ColorID 0
+        mol material HardPlastic
+        mol addrep $i
+        mol representation isosurface 0.06 0.0 0.0 0.0 1 1
+        mol color ColorID 7
+        mol material HardPlastic
+        mol addrep $i
+        mol representation isosurface 0.10 0.0 0.0 0.0 1 1
+        mol color ColorID 4
+        mol material HardPlastic
+        mol addrep $i
+        mol representation isosurface 0.20 0.0 0.0 0.0 1 1
+        mol color ColorID 1
+        mol material HardPlastic
+        mol addrep $i
+        mol clipplane normal 0 1 $i {0.0 1.0 0.0}
+        mol clipplane normal 0 2 $i {0.0 1.0 0.0}
+        mol clipplane normal 0 3 $i {0.0 1.0 0.0}
+        mol clipplane normal 0 4 $i {0.0 1.0 0.0}
+        mol clipplane status 0 1 $i {1}
+        mol clipplane status 0 2 $i {1}
+        mol clipplane status 0 3 $i {1}
+        mol clipplane status 0 4 $i {1}
+
 
             # do not edit below this
-            render Tachyon ls_cube_$i.dat
-            /usr/local/lib/vmd/tachyon_LINUXAMD64 -aasamples 12 12 ls_cube_$i.dat -format TGA -res 1600 1200 -o ls_cube_$i.tga
-            exec convert ls_cube_$i.tga ls_cube_$i.png
+            render Tachyon $i.dat
+            /usr/local/lib/vmd/tachyon_LINUXAMD64 -aasamples 12 12 $i.dat -format TGA -res 1600 1200 -o $i.tga
+            exec convert $i.tga $i.png
             mol delete $i
 
             }
@@ -545,29 +596,78 @@ class CubeFilePlot(CommonGraphParam):
         # result=execute_cmd_local(cmd_create_gif,project_dir)
         # error=result[cmd_create_gif]['error']    
         # message=result[cmd_create_gif]['output']  
-
+    
     def _on_generate_cube_plot_blender(self):
-        import bpy 
+        try:
+            import bpy 
+        except:
+            ImportError
         
-        ims=[]
-        list_imgs = list(Path(self.traj_dir).glob('*.png'))
-        file_path=list_imgs
+        # Set the path to the input and output directories
+        input_dir = self.traj_dir
+        output_dir = self.traj_dir
 
-        for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
+        # Set the file format and output file name
+        file_format = "AVI_JPEG"
+        output_file = "output.avi"
 
-                bpy.context.scene.sequence_editor_create()
+        # Set the frame rate and number of frames
+        frame_rate = 24
+        num_frames = len(list(Path(input_dir).glob('*.png')))
+            #     list_imgs = 
 
-                movie = bpy.context.scene.sequence_editor.sequences.new_image(
-                            name="photos", filepath=file_path[0],
-                            channel=1, frame_start=1)
 
-                for o in file_path:
-                    movie.elements.append(o)
-                bpy.context.scene.render.fps = 1
-                bpy.context.scene.frame_end =  len(file_path)
-                bpy.context.scene.render.ffmpeg.format = 'MPEG4'
-                bpy.ops.render.render(animation=True)
+        # Set the render settings
+        bpy.context.scene.render.resolution_x = 1920
+        bpy.context.scene.render.resolution_y = 1080
+        bpy.context.scene.render.resolution_percentage = 100
+        bpy.context.scene.render.fps = frame_rate
+        bpy.context.scene.frame_start = 1
+        bpy.context.scene.frame_end = num_frames
+
+        # Set the input and output directories
+        bpy.context.scene.render.filepath = str(output_dir) + "/" + output_file
+        bpy.context.scene.render.image_settings.file_format = file_format
+
+        # Iterate over the input directory and add the images to the sequence editor
+        for i in range(0, num_frames):
+            image_path = os.path.join(input_dir, f"{i}.png")
+            image = bpy.data.images.load(image_path)
+            bpy.data.scenes["Scene"].sequence_editor_create()
+            bpy.context.scene.sequence_editor.sequences.new_image(
+                name=f"{i}",
+                filepath=image_path,
+                channel=1,
+                frame_start=i
+            )
+            bpy.context.scene.render.fps = 1
+
+        # Render the animation
+        bpy.ops.render.render(animation=True)
+    
+
+    # def _on_generate_cube_plot_blender(self):
+    #     import bpy 
+        
+    #     ims=[]
+    #     list_imgs = list(Path(self.traj_dir).glob('*.png'))
+    #     file_path=list_imgs
+
+    #     for area in bpy.context.screen.areas:
+    #         if area.type == 'VIEW_3D':
+
+    #             bpy.context.scene.sequence_editor_create()
+
+    #             movie = bpy.context.scene.sequence_editor.sequences.new_image(
+    #                         name="photos", filepath=file_path[0],
+    #                         channel=1, frame_start=1)
+
+    #             for o in file_path:
+    #                 movie.elements.append(o)
+    #             bpy.context.scene.render.fps = 1
+    #             bpy.context.scene.frame_end =  len(file_path)
+    #             bpy.context.scene.render.ffmpeg.format = 'MPEG4'
+    #             bpy.ops.render.render(animation=True)
                 
     def _on_generate_cube_plot_matplotlib(self):
         
