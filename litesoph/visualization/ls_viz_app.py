@@ -505,13 +505,6 @@ class CubeFilePlot(CommonGraphParam):
         rescripted = template_script.replace(find_text, replace_text)
         return rescripted
     
-    # def rewrite_file(self,file,find_text, replace_text):
-    #     import sys
-    #     import fileinput
-
-    #     for i, line in enumerate(fileinput.input(file, inplace=1)):
-    #         sys.stdout.write(line.replace(find_text, replace_text)) 
-
     def _on_generate_vmd_script(self):
         self.toggle_textbox()
         self.text_box.delete("1.0",END)
@@ -521,13 +514,9 @@ class CubeFilePlot(CommonGraphParam):
 
         if not self.traj_dir.exists():
             create_directory(self.traj_dir)  
-            # self.vmd_script= self.traj_dir/'vmd_test_lsapp.tcl'  
-            # if os.path.isfile(self.vmd_script):
-            #     os.remove(self.vmd_script) 
             
             tcl_list=python_list_to_tcl_list(self.cube_files)
             self.final_vmd_script=self.rewrite_script(vmd_script_template,'[TCL_CUBE_FILES]', tcl_list)
-            
             self.text_box.insert(END, self.final_vmd_script)
     
     def _on_edit_save_render_script(self):
@@ -536,47 +525,8 @@ class CubeFilePlot(CommonGraphParam):
         text_file = open(self.vmd_script, "w")
         text_file.write(self.text_box.get(1.0, END))
         text_file.close()   
-        # self._on_view_render_script()
-
-        
-        # self._on_view_render_script()
-    
-
-    # def _on_generate_vmd_script(self):
-                
-    #     vmd_script_template='/home/anandsahu/myproject/aitg/ls/ls-code/litesoph/visualization/vmd_script_template.tcl'        
-    #     self.traj_dir=get_new_directory(self.traj_dir)
-
-    #     if not self.traj_dir.exists():
-    #         create_directory(self.traj_dir)  
-    #         self.vmd_script= self.traj_dir/'vmd_test_lsapp.tcl'
-
-    #         if os.path.isfile(self.vmd_script):
-    #             os.remove(self.vmd_script)       
-    #         shutil.copyfile(vmd_script_template,self.vmd_script)
-            
-    #         tcl_list=python_list_to_tcl_list(self.cube_files)
-    #         self.rewrite_file(self.vmd_script,'[TCL_CUBE_FILES]', tcl_list)
-        
-    #     self._on_view_render_script()
-    
-    # def _on_edit_save_render_script(self):
-
-    #     text_file = open(self.vmd_script, "w")
-    #     text_file.write(self.text_box.get(1.0, END))
-    #     text_file.close()   
-    #     self._on_view_render_script()
-
-    # def _on_view_render_script(self):
-    #     self.toggle_textbox()
-        
-    #     text_file = open(self.vmd_script, "r")
-    #     content = text_file.read()
-    #     self.text_box.insert(END, content)
-    #     text_file.close()
     
     def _on_render_cube_movie(self):
-        # self._on_generate_vmd_script()
 
         print("self.vmd_script:",self.vmd_script)
         cmd=f'vmd -dispdev none -e {self.vmd_script}'
@@ -652,55 +602,14 @@ class CubeFilePlot(CommonGraphParam):
             ret, frame = video.read()
 
             if ret:
-                # Convert the frame from BGR to RGB for display
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-                # Display the frame on the Matplotlib canvas
-                # ax.imshow(frame)
                 plt.imshow(frame)
-
-                # Update the canvas with the new frame
                 self.canvas.draw()
-
-                # Schedule the next frame update
                 self.after(10, update_video_frame)
             else:
-                # If we've reached the end of the video, restart it
                 video.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 update_video_frame()
-        
         update_video_frame()
-
-
-
-
-
-
-
-    
-
-    # def _on_generate_cube_plot_blender(self):
-    #     import bpy 
-        
-    #     ims=[]
-    #     list_imgs = list(Path(self.traj_dir).glob('*.png'))
-    #     file_path=list_imgs
-
-    #     for area in bpy.context.screen.areas:
-    #         if area.type == 'VIEW_3D':
-
-    #             bpy.context.scene.sequence_editor_create()
-
-    #             movie = bpy.context.scene.sequence_editor.sequences.new_image(
-    #                         name="photos", filepath=file_path[0],
-    #                         channel=1, frame_start=1)
-
-    #             for o in file_path:
-    #                 movie.elements.append(o)
-    #             bpy.context.scene.render.fps = 1
-    #             bpy.context.scene.frame_end =  len(file_path)
-    #             bpy.context.scene.render.ffmpeg.format = 'MPEG4'
-    #             bpy.ops.render.render(animation=True)
                 
     def _on_generate_cube_plot_matplotlib(self):
         
