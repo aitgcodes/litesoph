@@ -406,6 +406,9 @@ class CubeFilePlot(CommonGraphParam):
         self.edit_save_script_button = tk.Button(self.graph_props_frame, text="Save Script", command=self._on_edit_save_render_script)
         self.edit_save_script_button.grid(row=1, column=1, sticky="nsew")
 
+        self.render_button = tk.Button(self.graph_props_frame, text="Render Frames", command=self._on_render_cube_movie)
+        self.render_button.grid(row=1, column=2, sticky="nsew")
+
         engine_types=['default','blender']
         self.render_engine_type_var = tk.StringVar()
 
@@ -414,8 +417,9 @@ class CubeFilePlot(CommonGraphParam):
         self.select_render_engine.set("select render engine")
         self.select_render_engine.current(0)
 
-        self.render_button = tk.Button(self.graph_props_frame, text="Render", command=self._on_render_cube_movie)
-        self.render_button.grid(row=2, column=1, sticky="nsew")
+        self.generate_movie_button = tk.Button(self.graph_props_frame, text="Generate Movie", command=self._on_generate_movie)
+        self.generate_movie_button.grid(row=2, column=1, sticky="nsew")
+        
 
     def load_cube_file(self):
         cube_files = fd.askopenfilename(title="Select File(s)",
@@ -431,82 +435,70 @@ class CubeFilePlot(CommonGraphParam):
     def vmd_template_script(self):
         script='''
             
-            #!/usr/bin/tclsh
+        #!/usr/bin/tclsh
 
-            menu main off
-            axes location off
+        menu main off
+        axes location off
+        lappend isoval 0.003 -0.003
 
-            set cube_file_list [TCL_CUBE_FILES]
-            set len_list [llength $cube_file_list] 
 
-            for {set i 0} {$i < $len_list} {incr i} {
-            
+        set cube_file_list [TCL_CUBE_FILES]
+        
+        set len_list [llength $cube_file_list] 
 
-            mol new [lindex $cube_file_list  $i]
+        for {set i 0} {$i < $len_list} {incr i} {
+        
 
-            if {$i == 0} {
-                display projection orthographic
-                light 0 on
-                light 1 on
-                light 2 on
-                light 3 on
-                color Display {Background} white
-                color Name {H} gray
-                rotate x by 0
-                rotate y by 90
-                rotate z by 90
-                scale by 1.10
-                translate by 0.0 0.0 0.0
-                global viewpoints
-                set viewpoints(0) [molinfo 0 get rotate_matrix]
-                set viewpoints(1) [molinfo 0 get center_matrix]
-                set viewpoints(2) [molinfo 0 get scale_matrix]
-                set viewpoints(3) [molinfo 0 get global_matrix]
-            }
+        mol new [lindex $cube_file_list  $i]
+
+        if {$i == 0} {
+            display projection orthographic
+            light 0 on
+            light 1 on
+            light 2 on
+            light 3 on
+            color Display {Background} white
+            color Name {H} gray
+            rotate x by 0
+            rotate y by 90
+            rotate z by 90
+            scale by 1.10
+            translate by 0.0 0.0 0.0
+            global viewpoints
+            set viewpoints(0) [molinfo 0 get rotate_matrix]
+            set viewpoints(1) [molinfo 0 get center_matrix]
+            set viewpoints(2) [molinfo 0 get scale_matrix]
+            set viewpoints(3) [molinfo 0 get global_matrix]
+        }
+    
         molinfo $i set center_matrix $viewpoints(1)
         molinfo $i set rotate_matrix $viewpoints(0)
         molinfo $i set scale_matrix $viewpoints(2)
         molinfo $i set global_matrix $viewpoints(3)
         mol delrep 0 $i
-        mol representation CPK 0.3 0.0 100.0 100.0
+        mol representation CPK 1.2 0.0 100.0 100.0
         mol material HardPlastic
         mol addrep $i
-        mol representation isosurface 0.03 0.0 0.0 0.0 1 1
-        mol color ColorID 0
-        mol material HardPlastic
+        set iso 0
+        foreach val $isoval {
+        mol representation isosurface ${val} 0.0 0.0 0.0 1 1
+        mol color ColorID $iso
+        incr iso
+        puts "iso ${iso}"
         mol addrep $i
-        mol representation isosurface 0.06 0.0 0.0 0.0 1 1
-        mol color ColorID 7
-        mol material HardPlastic
-        mol addrep $i
-        mol representation isosurface 0.10 0.0 0.0 0.0 1 1
-        mol color ColorID 4
-        mol material HardPlastic
-        mol addrep $i
-        mol representation isosurface 0.20 0.0 0.0 0.0 1 1
-        mol color ColorID 1
-        mol material HardPlastic
-        mol addrep $i
-        mol clipplane normal 0 1 $i {0.0 1.0 0.0}
-        mol clipplane normal 0 2 $i {0.0 1.0 0.0}
-        mol clipplane normal 0 3 $i {0.0 1.0 0.0}
-        mol clipplane normal 0 4 $i {0.0 1.0 0.0}
-        mol clipplane status 0 1 $i {1}
-        mol clipplane status 0 2 $i {1}
-        mol clipplane status 0 3 $i {1}
-        mol clipplane status 0 4 $i {1}
+        }
 
+        # do not edit below this
+        render Tachyon $i.dat
+        /usr/local/lib/vmd/tachyon_LINUXAMD64 -aasamples 12 12 $i.dat -format TGA -res 1600 1200 -o $i.tga
+        exec convert $i.tga $i.png
+        mol delete $i
 
-            # do not edit below this
-            render Tachyon $i.dat
-            /usr/local/lib/vmd/tachyon_LINUXAMD64 -aasamples 12 12 $i.dat -format TGA -res 1600 1200 -o $i.tga
-            exec convert $i.tga $i.png
-            mol delete $i
-
-            }
-            exit
+        }
+        exit
             
-            '''
+        '''
+        
         return script
     
     def rewrite_script(self,template_script,find_text, replace_text):        
@@ -596,6 +588,8 @@ class CubeFilePlot(CommonGraphParam):
         # result=execute_cmd_local(cmd_create_gif,project_dir)
         # error=result[cmd_create_gif]['error']    
         # message=result[cmd_create_gif]['output']  
+
+        # self._on_generate_movie()
     
     def _on_generate_cube_plot_blender(self):
         try:
@@ -610,6 +604,8 @@ class CubeFilePlot(CommonGraphParam):
         # Set the file format and output file name
         file_format = "AVI_JPEG"
         output_file = "output.avi"
+
+        self.output_file_path=str(output_dir) + "/" + output_file
 
         # Set the frame rate and number of frames
         frame_rate = 24
@@ -626,7 +622,7 @@ class CubeFilePlot(CommonGraphParam):
         bpy.context.scene.frame_end = num_frames
 
         # Set the input and output directories
-        bpy.context.scene.render.filepath = str(output_dir) + "/" + output_file
+        bpy.context.scene.render.filepath =  self.output_file_path
         bpy.context.scene.render.image_settings.file_format = file_format
 
         # Iterate over the input directory and add the images to the sequence editor
@@ -644,6 +640,43 @@ class CubeFilePlot(CommonGraphParam):
 
         # Render the animation
         bpy.ops.render.render(animation=True)
+    
+        self.play_video_canvas()
+    
+    def play_video_canvas(self):
+        import cv2
+
+        video = cv2.VideoCapture(self.output_file_path)
+
+        def update_video_frame():
+            ret, frame = video.read()
+
+            if ret:
+                # Convert the frame from BGR to RGB for display
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+                # Display the frame on the Matplotlib canvas
+                # ax.imshow(frame)
+                plt.imshow(frame)
+
+                # Update the canvas with the new frame
+                self.canvas.draw()
+
+                # Schedule the next frame update
+                self.after(10, update_video_frame)
+            else:
+                # If we've reached the end of the video, restart it
+                video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                update_video_frame()
+        
+        update_video_frame()
+
+
+
+
+
+
+
     
 
     # def _on_generate_cube_plot_blender(self):
