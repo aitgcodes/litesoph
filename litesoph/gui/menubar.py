@@ -147,10 +147,19 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('about'), compound=tk.LEFT
     )
 
+  def start_submit_thread(self,job):      
+        import threading
+          
+        self.submit_thread = threading.Thread(target=job)
+        self.submit_thread.daemon = True        
+        # self.progressbar.start()
+        self.submit_thread.start()
+        # self.after(20, self.check_submit_thread)
+
   def _open_ls_viz(self, menu):
 
         menu.add_command(
-        label='Visualization', command=self._event(actions.OPEN_LS_VIZ),
+        label='Visualization', command=lambda:self.start_submit_thread( self._event(actions.OPEN_LS_VIZ)),
         #image=self.icons.get('file'), compound=tk.LEFT
     )
 
