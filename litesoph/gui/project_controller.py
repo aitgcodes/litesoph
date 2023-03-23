@@ -169,8 +169,9 @@ class ProjectController:
         self.workflow_create_window.create_button.config(command= self.create_new_workflow) 
     
     def _open_ls_viz(self,*_):
+        project_dir= str(self.project_manager.project_info.path)
         from litesoph.visualization import ls_viz_app
-        ls_viz_app.LSVizApp(self.main_window).run()
+        ls_viz_app.LSVizApp(self.main_window,project_dir).run()
     
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""

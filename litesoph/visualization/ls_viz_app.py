@@ -112,10 +112,12 @@ class CollapsibleFrame(ttk.Frame):
             
 class GuiAppTemplate(tk.Toplevel):
 
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, parent,project_dir, *args, **kwargs):
+        super().__init__(parent,*args, **kwargs)
 
         self.title("Litesoph Visualization Toolkit")
+
+        self.project_dir=project_dir
         
         # create the PanedWindow
         self.pane = tk.PanedWindow(self, orient='horizontal')        
@@ -213,7 +215,7 @@ class CommonGraphParam(GuiAppTemplate):
         super().__init__(parent, *args, **kwargs)
 
 
-        self.project_dir='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/tests'
+        # self.project_dir='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/tests'
 
     def common_graph_params(self):    
         self.title_var = tk.StringVar(value="Title")
@@ -257,6 +259,7 @@ class CommonGraphParam(GuiAppTemplate):
     def load_files(self):        
         files = fd.askopenfilename(title="Select File(s)",
                                             multiple=True,
+                                            initialdir=self.project_dir,
                                             filetypes=[('all files', '.*'),
                                                         ('text files', '.txt'),
                                                         ('image files', ('.png', '.jpg')),
@@ -399,9 +402,6 @@ class ContourPlot(CommonGraphParam):
         plt.contourf( self.contour_X_data, self.contour_Y_data, self.contour_Z_data)
         plt.colorbar()
         self.colorBarPresent=True
-
-   
-        
         self.canvas.draw()
 
 class CubeFilePlot(CommonGraphParam):
@@ -409,8 +409,7 @@ class CubeFilePlot(CommonGraphParam):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.traj_dir=Path(self.project_dir) / 'ls_traj_anim'
-        print(self.traj_dir)
+        self.traj_dir=Path(self.project_dir) /'plots'/ 'ls_traj_anim'
 
     def _on_select_cube_file(self):
 
@@ -548,7 +547,6 @@ class CubeFilePlot(CommonGraphParam):
     
     def _on_render_cube_movie(self):
 
-        print("self.vmd_script:",self.vmd_script)
         cmd=f'vmd -dispdev none -e {self.vmd_script}'
         result=execute_cmd_local(cmd,self.traj_dir)
         error=result[cmd]['error']    
@@ -650,16 +648,16 @@ class CubeFilePlot(CommonGraphParam):
         engine_type=  self.select_render_engine.get()
 
         if engine_type=='default':
-            print(engine_type)
             self._on_generate_cube_plot_matplotlib()
         elif engine_type=='blender':
-            print(engine_type)
             self._on_generate_cube_plot_blender()
 
 class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+
+        # self.project_dir='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/tests'
 
     def destroy_frame_elements(self,list_of_frames):    
         for frame in list_of_frames:
