@@ -150,7 +150,7 @@ class GuiAppTemplate(tk.Toplevel):
         self.plot_type_var = tk.StringVar(value="Line Plot")
         select_plot_label = tk.Label(self.plot_type_frame, text= "Select Plot")
         select_plot_label.pack(side=tk.LEFT)
-        plot_types=['line_plot', 'contour_plot','cube']
+        plot_types=['line_plot','scatter_plot','histogram_plot', 'contour_plot','cube']
         self.combobox = ttk.Combobox(self.plot_type_frame, values=plot_types, textvariable=self.plot_type_var)
         self.combobox.pack(side=tk.LEFT)
         self.combobox.set("select a plot")
@@ -173,8 +173,8 @@ class GuiAppTemplate(tk.Toplevel):
         self.graph_props_frame = tk.LabelFrame(self.left_pane, text="Graph Properties")
         self.graph_props_frame.pack(fill=tk.X)
 
-        cf3 = CollapsibleFrame(self.graph_props_frame, '-Font', '+Font')
-        cf3.grid(row=0, column=0, sticky="nsew")
+        # cf3 = CollapsibleFrame(self.graph_props_frame, '-Font', '+Font')
+        # cf3.grid(row=0, column=0, sticky="nsew")
 
     def toggle_canvas(self):
         
@@ -233,7 +233,7 @@ class CommonGraphParam(GuiAppTemplate):
         self.y_axis_name_entry = tk.Entry(self.cf2_graph_params_frame.frame, textvariable=self.y_axis_name_var)
         self.y_axis_name_label.grid(row=6, column=0, sticky=tk.E)
         self.y_axis_name_entry.grid(row=6, column=1, padx=5, pady=5, sticky=tk.W)
-    
+
     def common_graph_props(self):    
         # self.title_var = tk.StringVar(value="Title")
         # self.title_label = tk.Label(self.cf2_graph_params_frame.frame, text="Title:")
@@ -315,7 +315,7 @@ class LinePlot(CommonGraphParam):
                 self.x_dropdown["menu"].add_command(label=column, command=lambda value=column: self.x_var.set(value))
                 self.y_dropdown["menu"].add_command(label=column, command=lambda value=column: self.y_var.set(value))
         
-    def _on_generate_line_plot(self):
+    def _on_generate_line_plot(self,plot_type):
         x_col = self.x_var.get()
         y_col = self.y_var.get()
         title = self.title_entry.get()
@@ -335,16 +335,26 @@ class LinePlot(CommonGraphParam):
 
         # create line plot
         plt.cla()
-        plt.plot(x_data, y_data)
         plt.xlabel(x_axis_name_var)
         plt.ylabel(y_axis_name_var)
         plt.title(title)
+
+        if plot_type=='line':
+            plt.plot(x_data, y_data)
+        elif plot_type=='scatter':
+            plt.scatter(x_data, y_data)
+        elif plot_type=='histogram':
+            plt.hist2d(x_data, y_data)
+
+
         self.canvas.draw()
 
 class ContourPlot(CommonGraphParam):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        
+        self.colorBarPresent=False
     
     def _on_select_contour_plot(self):
 
@@ -375,12 +385,22 @@ class ContourPlot(CommonGraphParam):
         title = self.title_var.get()
         x_axis_name_var = self.x_axis_name_var.get()
         y_axis_name_var = self.y_axis_name_var.get()
+
+        if self.colorBarPresent==True:
+                plt.colorbar().remove()
+        else:
+            pass
+        
         
         plt.cla()
         plt.xlabel(x_axis_name_var)
         plt.ylabel(y_axis_name_var)
         plt.title(title)
         plt.contourf( self.contour_X_data, self.contour_Y_data, self.contour_Z_data)
+        plt.colorbar()
+        self.colorBarPresent=True
+
+   
         
         self.canvas.draw()
 
@@ -654,6 +674,14 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
         if self.plot_type=="line_plot":
             self.common_graph_params()
             self._on_select_line_plot()
+        
+        elif self.plot_type=="scatter_plot":
+            self.common_graph_params()
+            self._on_select_line_plot()
+        
+        elif self.plot_type=="histogram_plot":
+            self.common_graph_params()
+            self._on_select_line_plot()
 
         elif self.plot_type=="contour_plot":
             self.common_graph_params()
@@ -667,7 +695,13 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
 
         self.plot_type = self.plot_type_var.get()
         if self.plot_type=="line_plot":
-            self._on_generate_line_plot()
+            self._on_generate_line_plot('line')
+        
+        elif self.plot_type=="scatter_plot":
+            self._on_generate_line_plot('scatter')
+        
+        elif self.plot_type=="histogram_plot":
+            self._on_generate_line_plot('histogram')
         
         elif self.plot_type=="contour_plot":
             self._on_generate_contour_plot()
