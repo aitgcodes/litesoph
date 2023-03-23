@@ -56,37 +56,15 @@ class CollapsibleFrame(ttk.Frame):
 
 		ttk.Frame.__init__(self, parent)
 
-		# These are the class variable
-		# see a underscore in expanded_text and _collapsed_text
-		# this means these are private to class
 		self.parent = parent
 		self._expanded_text = expanded_text
 		self._collapsed_text = collapsed_text
-
-		# Here weight implies that it can grow it's
-		# size if extra space is available
-		# default weight is 0
-		# self.columnconfigure(1, weight = 1)
-
-		# Tkinter variable storing integer value
 		self._variable = tk.IntVar()
-
-		# Checkbutton is created but will behave as Button
-		# cause in style, Button is passed
-		# main reason to do this is Button do not support
-		# variable option but checkbutton do
-		self._button = ttk.Checkbutton(self, variable = self._variable,
-							command = self._activate)
+		self._button = ttk.Checkbutton(self, variable = self._variable,command = self._activate)
 		self._button.grid(row = 0, column = 0)
-
-		# This will create a separator
-		# A separator is a line, we can also set thickness
 		self._separator = ttk.Separator(self, orient ="horizontal")
 		self._separator.grid(row = 0, column = 1, sticky ="we")
-
 		self.frame = ttk.Frame(self)
-
-		# This will call activate function of class
 		self._activate()
 
 	def _activate(self):
@@ -208,14 +186,9 @@ class GuiAppTemplate(tk.Toplevel):
         self.master.mainloop()
 
 class CommonGraphParam(GuiAppTemplate):
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
     
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-
-
-        # self.project_dir='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/tests'
 
     def common_graph_params(self):    
         self.title_var = tk.StringVar(value="Title")
@@ -243,17 +216,6 @@ class CommonGraphParam(GuiAppTemplate):
         # self.title_label.grid(row=2, column=0, sticky=tk.E)
         # self.title_entry.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
 
-        # self.x_axis_name_var = tk.StringVar(value="X label")
-        # self.x_axis_name_label = tk.Label(self.cf2_graph_params_frame.frame, text="X label:")
-        # self.x_axis_name_entry = tk.Entry(self.cf2_graph_params_frame.frame, textvariable=self.x_axis_name_var)
-        # self.x_axis_name_label.grid(row=5, column=0, sticky=tk.E)
-        # self.x_axis_name_entry.grid(row=5, column=1, padx=5, pady=5, sticky=tk.W)
-
-        # self.y_axis_name_var = tk.StringVar(value="Y label")
-        # self.y_axis_name_label = tk.Label(self.cf2_graph_params_frame.frame, text="Y label:")
-        # self.y_axis_name_entry = tk.Entry(self.cf2_graph_params_frame.frame, textvariable=self.y_axis_name_var)
-        # self.y_axis_name_label.grid(row=6, column=0, sticky=tk.E)
-        # self.y_axis_name_entry.grid(row=6, column=1, padx=5, pady=5, sticky=tk.W)
         pass
     
     def load_files(self):        
@@ -305,7 +267,6 @@ class LinePlot(CommonGraphParam):
         self.y_axis_label.grid(row=1, column=0, sticky=tk.E)
     
     def _on_load_lineplot_data(self):
-        # self.file_path = fd.askopenfilename(title="Select Data File")
         self.file_path = self.load_files()
         self.file_path=self.file_path[0]
 
@@ -348,7 +309,6 @@ class LinePlot(CommonGraphParam):
             plt.scatter(x_data, y_data)
         elif plot_type=='histogram':
             plt.hist2d(x_data, y_data)
-
 
         self.canvas.draw()
 
@@ -393,7 +353,6 @@ class ContourPlot(CommonGraphParam):
                 plt.colorbar().remove()
         else:
             pass
-        
         
         plt.cla()
         plt.xlabel(x_axis_name_var)
@@ -517,7 +476,6 @@ class CubeFilePlot(CommonGraphParam):
         exit
             
         '''
-        
         return script
     
     def rewrite_script(self,template_script,find_text, replace_text):        
@@ -556,8 +514,6 @@ class CubeFilePlot(CommonGraphParam):
         # result=execute_cmd_local(cmd_create_gif,project_dir)
         # error=result[cmd_create_gif]['error']    
         # message=result[cmd_create_gif]['output']  
-
-        # self._on_generate_movie()
     
     def _on_generate_cube_plot_blender(self):
         try:
@@ -578,8 +534,6 @@ class CubeFilePlot(CommonGraphParam):
         # Set the frame rate and number of frames
         frame_rate = 24
         num_frames = len(list(Path(input_dir).glob('*.png')))
-            #     list_imgs = 
-
 
         # Set the render settings
         bpy.context.scene.render.resolution_x = 1920
@@ -608,7 +562,6 @@ class CubeFilePlot(CommonGraphParam):
 
         # Render the animation
         bpy.ops.render.render(animation=True)
-    
         self.play_video_canvas()
     
     def play_video_canvas(self):
@@ -656,8 +609,6 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-
-        # self.project_dir='/home/anandsahu/myproject/aitg/ls/ls-testing-env/Visualization/tests'
 
     def destroy_frame_elements(self,list_of_frames):    
         for frame in list_of_frames:
@@ -709,13 +660,3 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
 
         self.canvas.draw()
 
-# def Run_ls_viz():
-#     app=LSVizApp()
-#     app.run()
-
-# if __name__ == '__main__':
-#     app=LSVizApp()
-#     app.run()
-#     Run_ls_viz()
-
-# Run_ls_viz()
