@@ -409,7 +409,7 @@ class CubeFilePlot(CommonGraphParam):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.traj_dir=Path(self.project_dir) /'plots'/ 'ls_traj_anim'
+        self.traj_dir=Path(self.project_dir) /'plots'/ 'trajectory_animation'
 
     def _on_select_cube_file(self):
 
