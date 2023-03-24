@@ -147,6 +147,22 @@ class GenericMainMenu(tk.Menu):
       #image=self.icons.get('about'), compound=tk.LEFT
     )
 
+  def start_submit_thread(self,job):      
+        import threading
+          
+        self.submit_thread = threading.Thread(target=job)
+        self.submit_thread.daemon = True        
+        # self.progressbar.start()
+        self.submit_thread.start()
+        # self.after(20, self.check_submit_thread)
+
+  def _open_ls_viz(self, menu):
+
+        menu.add_command(
+        label='Visualization', command=lambda:self.start_submit_thread( self._event(actions.OPEN_LS_VIZ)),
+        #image=self.icons.get('file'), compound=tk.LEFT
+    )
+
   def _build_menu(self):
     # The file menu
     self._menus['File'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -158,6 +174,7 @@ class GenericMainMenu(tk.Menu):
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False, **self.styles)
+    self._open_ls_viz(self._menus['Tools'])
 
     # The options menu
     self._menus['Options'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -184,6 +201,17 @@ class GenericMainMenu(tk.Menu):
     self._bind_accelerators()
     self.configure(**self.styles)
 
+  def show_about(self):
+    """Show the about dialog"""
+
+    about_message = ''
+    about_detail = ()
+    
+    messagebox.showinfo(
+      title='About', message=about_message, detail=about_detail
+    )
+  
+  
   def show_about(self):
     """Show the about dialog"""
 
@@ -244,6 +272,7 @@ class LinuxMainMenu(GenericMainMenu):
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False, **self.styles)
+    self._open_ls_viz(self._menus['Tools'])
     
 
     # The View menu
@@ -309,6 +338,8 @@ class MacOsMainMenu(GenericMainMenu):
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False)
+    self._open_ls_viz(self._menus['Tools'])
+
     
 
     # View menu

@@ -38,7 +38,8 @@ class ProjectController:
 
     def _bind_event_callbacks(self):
         event_callbacks = {
-            actions.CREATE_NEW_WORKFLOW : self.create_workflow_window
+            actions.CREATE_NEW_WORKFLOW : self.create_workflow_window,
+            actions.OPEN_LS_VIZ : self._open_ls_viz
         }
         for event, callback in event_callbacks.items():
             self.main_window.bind_all(event, callback)          
@@ -165,7 +166,12 @@ class ProjectController:
 
         self.workflow_create_window._var['workflow_option'].trace_add('write', self.toggle_wf_option)
         self.workflow_create_window._var['source_wf'].trace_add('write', self.update_branch_point_entry)
-        self.workflow_create_window.create_button.config(command= self.create_new_workflow)   
+        self.workflow_create_window.create_button.config(command= self.create_new_workflow) 
+    
+    def _open_ls_viz(self,*_):
+        project_dir= str(self.project_manager.project_info.path)
+        from litesoph.visualization import ls_viz_app
+        ls_viz_app.LSVizApp(self.main_window,project_dir).run()
     
     def _on_get_geometry_file(self, *_):
         """creates dialog to get geometry file and copies the file to project directory as coordinate.xyz"""

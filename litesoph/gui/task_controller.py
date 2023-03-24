@@ -220,21 +220,27 @@ class TaskController:
             messagebox.showinfo(title='Info', message="First Select the File") 
         self.view_panel.insert_text(message, 'disabled')
 
-    def _on_plot_file_local(self):
-        import os        
-        try:
-            if os.path.exists(self.selected_file)==True:
-                cmd=f'xmgrace {self.selected_file}'
-                # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
-                os.system(cmd)
-            else:
-                messagebox.showinfo(title='Info', message="File not found")
-        except ValueError:
-            messagebox.showinfo(title='Info', message="Cannot plot selected File")   
-        except FileNotFoundError:
-            messagebox.showinfo(title='Info', message="File not found")  
-        except AttributeError:
-            messagebox.showinfo(title='Info', message="First Select the File")                    
+    def _on_plot_file_local(self):   
+        from litesoph.visualization import ls_viz_app
+
+        ls_viz_app.LSVizApp(self.main_window).run()
+
+        
+        
+        # import os        
+        # try:
+        #     if os.path.exists(self.selected_file)==True:
+        #         cmd=f'xmgrace {self.selected_file}'
+        #         # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
+        #         os.system(cmd)
+        #     else:
+        #         messagebox.showinfo(title='Info', message="File not found")
+        # except ValueError:
+        #     messagebox.showinfo(title='Info', message="Cannot plot selected File")   
+        # except FileNotFoundError:
+        #     messagebox.showinfo(title='Info', message="File not found")  
+        # except AttributeError:
+        #     messagebox.showinfo(title='Info', message="First Select the File")                    
             
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
