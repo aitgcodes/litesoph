@@ -31,7 +31,7 @@ laser_td_input = {
         "delay_list": {
                 "tab":"External Fields",
                 "group": "Choose Options",
-                "text": "Delay time list in fs",
+                "text": "Delay time list (fs)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": str,
@@ -42,7 +42,7 @@ laser_td_input = {
         "time_step": {
                 "tab":"Simulation Parameters",
                 "group": "simulation ",
-                "text": "Time step (in attosecond)",
+                "text": "Time step (as)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -90,6 +90,15 @@ laser_td_input = {
                 "widget": Checkbutton,
                 "default": False
                 },
+        "induced_density": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Induced Density",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
+        
         }
 
 def get_td_laser_w_delay():
@@ -98,7 +107,7 @@ def get_td_laser_w_delay():
                 {"delay_values": {
                         "tab":"External Fields",
                         "group": "Choose Options",
-                        "text": "Delay time (in fs)",
+                        "text": "Delay time (fs)",
                         "help": None,
                         "widget": Combobox,
                         "type": float,
@@ -232,7 +241,9 @@ class TDPage(View):
         if gui_values.get("ksd") is True:
             prop_list.append("ksd")
         if gui_values.get("mo_population") is True:
-            prop_list.append("mo_population")    
+            prop_list.append("mo_population") 
+        if gui_values.get("induced_density") is True:
+            prop_list.append("induced_density")   
         return prop_list  
 
     def get_delay_list(self, delay_str:str):

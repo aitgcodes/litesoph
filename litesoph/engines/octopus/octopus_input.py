@@ -9,7 +9,7 @@ kw_types={"str": [ "FromScratch" ,"CalculationMode","UnitsOutput",
         "quoted_str": ["WorkDir","XYZCoordinates"],
         "boolean": [],
         "flag": [],
-        "block": ["LSize","TDExternalFields","TDFunctions","TDPolarization", "TDOutput"]
+        "block": ["LSize","TDExternalFields","TDFunctions","TDPolarization", "TDOutput", "Output"]
 }
 
 block_types = {
@@ -22,6 +22,7 @@ block_types = {
             "td_delta":["TDDeltaStrength","TDPolarizationDirection","TDPolarization","TDDeltaKickTime"],
             "td_laser": ["TDExternalFields","TDFunctions"],
             "td_out": ["TDOutput","TDOutputComputeInterval", "ParStates"],
+            "output": ["Output"],
             "spectrum": ["UnitsOutput", "PropagationSpectrumEnergyStep", 
             "PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"]
             }
@@ -29,8 +30,8 @@ block_types = {
 task_types = {
 "ground_state": ["calc","common","scf","states","xc_pseudo"],
 "unocc": ["calc","common","scf","states","xc_pseudo"],
-"rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out"],
-"rt_tddft_laser": ["calc","common", "td", "td_laser","td_delta", "td_out"],
+"rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out", "output"],
+"rt_tddft_laser": ["calc","common", "td", "td_laser","td_delta", "td_out", "output"],
 "spectrum": ["spectrum"]
 }
 

@@ -361,6 +361,14 @@ td_delta_input ={
                 "widget": Checkbutton,
                 "default": False
                 },
+        "induced_density": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Induced Density",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
         }
 button_frame_input = {
         "laser_design": {
