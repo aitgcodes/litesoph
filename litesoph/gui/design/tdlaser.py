@@ -247,16 +247,14 @@ class TDPage(View):
         return prop_list  
 
     def get_delay_list(self, delay_str:str):
+        """Converts delay string value entries and returns list of float values """
+        from litesoph.gui.design.tools import get_input_list
         delay_values = str(delay_str)
-        delay_list = []
         try:
-            delays = delay_values.split()
-        except:
-            delays = delay_values.split(sep=',') 
-
-        for delay in delays:
-            delay_list.append(float(delay))
-        return delay_list
+            delay_list = get_input_list(input_str= delay_values)
+            return delay_list
+        except ValueError as e:
+            raise e
 
     def check_expt_type(self):
         gui_dict = self.inp.get_values()
@@ -273,13 +271,18 @@ class TDPage(View):
         return self.laser_calc_list
     
     def get_td_gui_inp(self):
+        """
+        Updates TD-gui input parameters from the widgets,
+        Updates pump-probe delay list with validation
+        """
         gui_dict = copy.deepcopy(self.inp.get_values())
 
-        # TODO: Check
-        # Updating delay_list key-value as a list of delays
         if gui_dict.get('delay_list') is not None:
-            gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
-        return gui_dict
+            try:
+                gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
+                return gui_dict
+            except ValueError:
+                raise ValueError('Error with input delay values!')
 
     def get_parameters(self):
         gui_dict = copy.deepcopy(self.inp.get_values())
