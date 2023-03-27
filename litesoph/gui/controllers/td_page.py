@@ -156,14 +156,16 @@ class TDPageController(TaskController):
                 messagebox.showinfo(message= "Laser is not set. Please add lasers first.")       
 
     def update_laser_on_td_page(self):
-        """ Checks condition for laser designed and updates TDPage view"""       
+        """ Checks condition for laser designed and updates TDPage view"""  
+        from litesoph.gui.design.tdlaser import get_td_laser_w_delay     
     
         # GUI entries from previous td view
-        td_param_stored = self.task_view_param        
+        if self.task_view_param is not None:
+            td_param_stored = self.task_view_param        
         if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
             pass
         else:
-            widget_dict = copy.deepcopy(inp.get_td_laser_w_delay())
+            widget_dict = copy.deepcopy(get_td_laser_w_delay())
             self.task_view.add_widgets(widget_dict)
             _gui_dict = {
                 "field_type": td_param_stored.get("field_type"),
