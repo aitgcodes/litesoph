@@ -83,9 +83,12 @@ class TDPageController(TaskController):
     def _on_design_edit_laser(self, *_):
         """ On Laser design button, decides on showing LaserDesignPage and binds the widgets"""
         
-        # View specific parameters
-        # TODO: Check this method
-        self.task_view_param = self.task_view.get_td_gui_inp()
+        try:
+            self.task_view_param = self.task_view.get_td_gui_inp()
+        except ValueError as e:
+            self.task_view_param = None
+            messagebox.showerror(message=e)
+            return
         
         # Delays attached as a list of delays before proceeding to laser-design 
         if self.task_view_param.get('delay_list', None) is not None:
