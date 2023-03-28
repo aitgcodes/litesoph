@@ -122,6 +122,8 @@ class OctopusTask(Task):
         """Engine level validation of the input dict for the task
         \n
         """
+
+        self.restart = self.params.get('restart', False)    
         name = self.task_info.name
         if name == tt.RT_TDDFT:
             from litesoph.engines.octopus.format_oct import calc_td_range
@@ -182,7 +184,17 @@ class OctopusTask(Task):
             self.create_directory(Path(dir))
         log_files = list(Path(self.output_dir).iterdir())
         for log in log_files:
-            os.remove(Path(self.output_dir)/log)       
+            os.remove(Path(self.output_dir)/log) 
+
+        # Restart dir
+        restart_dir = self.task_data.get('restart')
+        if self.restart:
+            if restart_dir is not None:
+                restart_path = Path(self.engine_dir) / str(restart_dir)
+                if not Path.is_dir(restart_path):
+                    raise InputError(f'Can not restart! Restart folder: {str(restart_path)} not found.')
+            else:
+                raise InputError(f'No restart folder assigned!')
         
     def pre_run(self):
         """
@@ -221,7 +233,11 @@ class OctopusTask(Task):
         self.task_info.input['engine_input']={}
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
-        self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        if self.restart is True:
+            out_log = self.get_restart_log(folder=self.task_dir,fname=self.task_data.get('out_log'))
+            self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / out_log)
+        else:
+            self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
 
         # Adding local copy files/folders
         geom_path = str(Path(self.geom_fpath).relative_to(self.wf_dir))
@@ -245,15 +261,18 @@ class OctopusTask(Task):
                 self.task_info.output['spectra_file'].append(spectra_fpath)
         
     def update_task_param(self):
-        """ Updates input task parameters to engine-specific parameters
+        """ 
+        Updates input task parameters to engine-specific parameters
         """
-
         task = self.task_name
         copy_input = copy.deepcopy(self.user_input)
         param = {
             'XYZCoordinates' : self.geom_file,
             'FromScratch' : 'yes'
         }
+        if self.restart is True:
+            param.update({'FromScratch': 'no'})
+        
         param_copy = copy.deepcopy(param)
         copy_input.update(param)
 
@@ -276,7 +295,32 @@ class OctopusTask(Task):
             param.update(get_oct_kw_dict(copy_input, task))
             self.user_input = param  
             return      
-            
+
+    def get_restart_log(self, folder:str=Path, fname:str= None):
+        """
+        Method to get updated name of restart file for multiple run.
+        Checks if the {fname}_restart_{i} exists in the folder. 
+        If so,appends suffix index and returns
+        """
+        import re
+        if folder is None:
+            folder = self.task_dir
+        if fname is None:
+            fname = str(self.task_data.get('out_log'))
+
+        r_prefix = fname + '_restart_'
+        r_fname = r_prefix + str(1)
+        fpath = Path(folder)/r_fname
+        
+        if Path.exists(Path(fpath)):
+            _name = Path(fpath).name
+            suff_int = int(re.match('.*?([0-9]+)$', _name).group(1))+1
+            new_r_fname = r_prefix + str(suff_int)
+            new_r_fpath = Path(folder)/new_r_fname
+            return new_r_fpath
+        else:
+            return fpath
+
     #--------------------------------------------------------------------------------------------
 
     def check_run_status(self):
@@ -351,10 +395,9 @@ class OctopusTask(Task):
 
     def create_job_script(self, np=1, remote_path=None):
         
-        job_script = super().create_job_script()      
-        # ofilename = 'log/'+ str(self.task_data['out_log'])
-        task_dir_name = self.task_dir.name
-        ofilename = str(task_dir_name)+ '/'+ str(self.task_data['out_log'])
+        job_script = super().create_job_script()    
+        # task_dir_name = self.task_dir.name
+        ofilename = Path(self.task_info.output['txt_out']).relative_to('octopus')
        
         engine_path = copy.deepcopy(self.engine_path)
         mpi_path = copy.deepcopy(self.mpi_path)
@@ -364,9 +407,12 @@ class OctopusTask(Task):
 
         # Unoccupied state calculation
         if self.task_name == tt.GROUND_STATE and self.user_input['ExtraStates'] != 0:
-                unocc_ofilename = Path(octopus_data['unoccupied_task']['out_log']).relative_to('octopus')
-                extra_cmd = "perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp\n"
-                extra_cmd = extra_cmd + f"{mpi_path} -np {np:d} {str(engine_path)} &> {str(unocc_ofilename)}"
+            unocc_ofilename = (Path(self.task_dir) / 'unocc.log').relative_to(self.engine_dir)
+            if self.restart:
+                unocc_log = self.get_restart_log(folder= str(self.task_dir), fname='unocc.log')
+                unocc_ofilename = Path(self.task_dir/unocc_log).relative_to(self.engine_dir)
+            extra_cmd = "perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp\n"
+            extra_cmd = extra_cmd + f"{mpi_path} -np {np:d} {str(engine_path)} &> {str(unocc_ofilename)}"
                 
         # Absorption Spectrum utility
         if self.task_name == tt.COMPUTE_SPECTRUM:
@@ -407,8 +453,10 @@ class OctopusTask(Task):
 
     def get_engine_log(self):
         """Gets engine log filepath and content, if check_output() returns True"""
-        # out_log = Path(self.output_dir) / self.task_data.get('out_log')
-        out_log = Path(self.task_dir) / self.task_data.get('out_log')
+        
+        # out_log = Path(self.task_dir) / self.task_data.get('out_log')
+        out_rel_path = self.task_info.output['txt_out']
+        out_log = Path(self.wf_dir) / str(out_rel_path)
         if self.check_output():
             return self.read_log(out_log)
 
