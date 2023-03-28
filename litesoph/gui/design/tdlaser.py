@@ -8,6 +8,14 @@ from litesoph.gui.design.tools import show_message
 from litesoph.gui.defaults_handler import update_td_laser_defaults
 
 laser_td_input = {
+        "restart": {
+                "tab":"External Fields",
+                "text": "Restart Option",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+        },
+        
         "field_type":{
                 "tab":"External Fields",
                 "group": "Choose Options",
@@ -66,6 +74,14 @@ laser_td_input = {
                 "type": int,
                 "default": 10
                 },
+        "restart_steps": {
+                "tab":"Simulation Parameters",
+                "group": "Execution Details",
+                "text": "Restart Write Interval",
+                "help": None,
+                "widget": tk.Entry,
+                "default": 1,
+        },
         "spectrum": {
                 "tab":"Properties",
                 "group": "Observables to extract",
