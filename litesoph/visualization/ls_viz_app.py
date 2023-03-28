@@ -284,11 +284,7 @@ class LinePlot(CommonGraphParam):
         y_col = self.y_var.get()
         title = self.title_entry.get()
 
-        # Generate new plot
-        data = np.loadtxt(self.file_path, comments="#")
-        x_data = data[:,  self.columns.index(x_col)]
-        y_data = data[:,  self.columns.index(y_col)]
-
+        
         # get plot parameters
         title = self.title_var.get()
         x_axis_name_var = self.x_axis_name_var.get()
@@ -303,14 +299,24 @@ class LinePlot(CommonGraphParam):
         plt.ylabel(y_axis_name_var)
         plt.title(title)
 
-        if plot_type=='line':
-            plt.plot(x_data, y_data)
-        elif plot_type=='scatter':
-            plt.scatter(x_data, y_data)
-        elif plot_type=='histogram':
-            plt.hist2d(x_data, y_data)
+        
+        # Generate new plot
+        data = np.loadtxt(self.file_path, comments="#")
+        try:
+            x_data = data[:,  self.columns.index(x_col)]
+            y_data = data[:,  self.columns.index(y_col)]
+        
+            if plot_type=='line':
+                plt.plot(x_data, y_data)
+            elif plot_type=='scatter':
+                plt.scatter(x_data, y_data)
+            elif plot_type=='histogram':
+                plt.hist2d(x_data, y_data)
 
-        self.canvas.draw()
+            self.canvas.draw()
+
+        except ValueError:
+            messagebox.showinfo(title='Info', message="First Select the Axes") 
 
 class ContourPlot(CommonGraphParam):
 
@@ -397,7 +403,18 @@ class CubeFilePlot(CommonGraphParam):
 
         self.generate_movie_button = tk.Button(self.graph_props_frame, text="Generate Movie", command=self._on_generate_movie)
         self.generate_movie_button.grid(row=2, column=1, sticky="nsew")
-        
+
+        # self.render_progress = ttk.Progressbar(self.graph_props_frame, orient = HORIZONTAL,length = 100, mode = 'indeterminate')
+        # self.render_progress.grid(row=3, column=1, sticky="nsew")
+
+    def start(self,*args):
+        self.render_progress.start(30)
+        self.render_progress.start(30)
+
+    def stop(self,*args):
+        value= self.render_progress['value']
+        self.render_progress.stop()
+        self.render_progress['value']=value   
 
     def load_cube_file(self):
         cube_files = fd.askopenfilename(title="Select File(s)",
@@ -503,12 +520,28 @@ class CubeFilePlot(CommonGraphParam):
         text_file.write(self.text_box.get(1.0, END))
         text_file.close()   
     
+    def start_submit_thread(self,job): 
+        import threading               
+        self.submit_thread = threading.Thread(target=job)
+        self.submit_thread.daemon = True        
+        # self.progressbar.start()
+        self.submit_thread.start()
+    
     def _on_render_cube_movie(self):
+
+        render_progress = ttk.Progressbar(self.graph_props_frame, length=200, mode="indeterminate",
+                    orient=tk.HORIZONTAL)
+        render_progress.grid(row=2, column=2, sticky="nsew")
+
+        render_progress.start()  
 
         cmd=f'vmd -dispdev none -e {self.vmd_script}'
         result=execute_cmd_local(cmd,self.traj_dir)
+
         error=result[cmd]['error']    
         message=result[cmd]['output']   
+
+        render_progress.stop()     
 
         # cmd_create_gif='convert *.png output.gif'
         # result=execute_cmd_local(cmd_create_gif,project_dir)
@@ -642,21 +675,26 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
     def generate_plot(self):
         self.toggle_canvas()
 
-        self.plot_type = self.plot_type_var.get()
-        if self.plot_type=="line_plot":
-            self._on_generate_line_plot('line')
-        
-        elif self.plot_type=="scatter_plot":
-            self._on_generate_line_plot('scatter')
-        
-        elif self.plot_type=="histogram_plot":
-            self._on_generate_line_plot('histogram')
-        
-        elif self.plot_type=="contour_plot":
-            self._on_generate_contour_plot()
-        
-        elif self.plot_type=="cube":
-            self._on_generate_movie()
+        try:
+
+            self.plot_type = self.plot_type_var.get()
+            if self.plot_type=="line_plot":
+                self._on_generate_line_plot('line')
+            
+            elif self.plot_type=="scatter_plot":
+                self._on_generate_line_plot('scatter')
+            
+            elif self.plot_type=="histogram_plot":
+                self._on_generate_line_plot('histogram')
+            
+            elif self.plot_type=="contour_plot":
+                self._on_generate_contour_plot()
+            
+            elif self.plot_type=="cube":
+                self._on_generate_movie()
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First load the Data") 
+
 
         self.canvas.draw()
 
