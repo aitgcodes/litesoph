@@ -308,6 +308,8 @@ class TDPage(View):
             'number_of_steps' : gui_dict.get("number_of_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
+            'restart': gui_dict.get("restart"),
+            'restart_steps': gui_dict.get("restart_steps")
         }
         return td_input
 
