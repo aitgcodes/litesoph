@@ -31,7 +31,7 @@ laser_td_input = {
         "delay_list": {
                 "tab":"External Fields",
                 "group": "Choose Options",
-                "text": "Delay time list in fs",
+                "text": "Delay time list (fs)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": str,
@@ -42,7 +42,7 @@ laser_td_input = {
         "time_step": {
                 "tab":"Simulation Parameters",
                 "group": "simulation ",
-                "text": "Time step (in attosecond)",
+                "text": "Time step (as)",
                 "help": None,
                 "widget": tk.Entry,
                 "type": float,
@@ -90,6 +90,15 @@ laser_td_input = {
                 "widget": Checkbutton,
                 "default": False
                 },
+        "induced_density": {
+                "tab":"Properties",
+                "group": "Observables to extract",
+                "text": "Induced Density",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+                },
+        
         }
 
 def get_td_laser_w_delay():
@@ -98,7 +107,7 @@ def get_td_laser_w_delay():
                 {"delay_values": {
                         "tab":"External Fields",
                         "group": "Choose Options",
-                        "text": "Delay time (in fs)",
+                        "text": "Delay time (fs)",
                         "help": None,
                         "widget": Combobox,
                         "type": float,
@@ -232,20 +241,20 @@ class TDPage(View):
         if gui_values.get("ksd") is True:
             prop_list.append("ksd")
         if gui_values.get("mo_population") is True:
-            prop_list.append("mo_population")    
+            prop_list.append("mo_population") 
+        if gui_values.get("induced_density") is True:
+            prop_list.append("induced_density")   
         return prop_list  
 
     def get_delay_list(self, delay_str:str):
+        """Converts delay string value entries and returns list of float values """
+        from litesoph.gui.design.tools import get_input_list
         delay_values = str(delay_str)
-        delay_list = []
         try:
-            delays = delay_values.split()
-        except:
-            delays = delay_values.split(sep=',') 
-
-        for delay in delays:
-            delay_list.append(float(delay))
-        return delay_list
+            delay_list = get_input_list(input_str= delay_values)
+            return delay_list
+        except ValueError as e:
+            raise e
 
     def check_expt_type(self):
         gui_dict = self.inp.get_values()
@@ -262,13 +271,18 @@ class TDPage(View):
         return self.laser_calc_list
     
     def get_td_gui_inp(self):
+        """
+        Updates TD-gui input parameters from the widgets,
+        Updates pump-probe delay list with validation
+        """
         gui_dict = copy.deepcopy(self.inp.get_values())
 
-        # TODO: Check
-        # Updating delay_list key-value as a list of delays
         if gui_dict.get('delay_list') is not None:
-            gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
-        return gui_dict
+            try:
+                gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
+                return gui_dict
+            except ValueError:
+                raise ValueError('Error with input delay values!')
 
     def get_parameters(self):
         gui_dict = copy.deepcopy(self.inp.get_values())
