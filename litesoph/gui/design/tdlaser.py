@@ -299,6 +299,8 @@ class TDPage(View):
                 return gui_dict
             except ValueError:
                 raise ValueError('Error with input delay values!')
+        else:
+            return gui_dict
 
     def get_parameters(self):
         gui_dict = copy.deepcopy(self.inp.get_values())
