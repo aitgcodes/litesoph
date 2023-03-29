@@ -17,26 +17,18 @@ class ComputeSpectrum(GpawTask):
 
     def setup_task(self, param):
         infile_ext = '.py'
-        task_dir = self.project_dir / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
         input_filename = self.task_data.get('file_name', 'spec')
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.input_filename = input_filename + infile_ext
         
         self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.project_dir) / self.input_filename)
-        # self.task_info.input['engine_input']['path'] = str(self.task_dir / self.input_filename)
-
-        # param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_file')
         param['dm_file'] = self.project_dir / self.dependent_tasks[0].output.get('dm_files')[0]
-        # param['dm_file'] = self.dependent_tasks[0].output.get('dm_file')
         self.pol = get_polarization_direction(self.dependent_tasks[0])
         param['polarization'] = list(self.pol)
         param['spectrum_file'] = spec_file = f'spec_{self.pol[1]}.dat'
 
         self.task_info.output['spectrum_file'] = str(self.task_dir.relative_to(self.project_dir) / param['spectrum_file'])
-        # self.task_info.output['spectrum_file'] = str(self.task_dir / param['spectrum_file'])
         update_spectrum_input(param)
         self.spec_file = self.task_dir / spec_file
         return
@@ -56,17 +48,12 @@ class ComputeAveragedSpectrum(GpawTask):
 
 
     def setup_task(self, param):
-        task_dir = self.project_dir / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
-        # self.task_info.output['spectrum_file'] = str(self.averaged_spec_file)
         self.task_info.output['spectrum_file'] = self.task_dir.relative_to(self.project_dir) /Path(self.averaged_spec_file).name
         self.spectrum_files = []
         for task in self.dependent_tasks:
             spectra_file_path = self.project_dir / str(task.output['spectrum_file'])
             self.spectrum_files.append(spectra_file_path)
-            # self.spectrum_files.append(str(task.output['spectrum_file']))
 
     def prepare_input(self):
         if not self.task_dir.exists():
