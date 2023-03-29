@@ -144,7 +144,9 @@ class ProjectManager:
             raise WorkflowSetupError('Create workflow')
 
         workflow_manager = self._get_workflow_manager(workflow_type)
-        self.current_workflow_info.name = workflow_type        
+        self.current_workflow_info.name = workflow_type 
+        if workflow_type == 'task_mode':
+            self.current_workflow_info.task_mode = True       
         self.current_workflow_info.param.update(param)
         workflow_manager = workflow_manager(self, self.current_workflow_info, config=self.config)
         return workflow_manager
