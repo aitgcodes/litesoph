@@ -120,15 +120,13 @@ class ComputeAvgSpectrum(BaseNwchemTask):
         try:
             self.copmute_average()
         except Exception as e:
-            self.task_info.local.update({'returncode': 1,
-                                        'output' : '',
-                                        'error':str(e)})
-
+            self.task_info.job_info.job_returncode = 1
+            self.task_info.job_info.output = ''
+            self.task_info.job_info.error = str(e)
         else:
-            self.task_info.local.update({'returncode': 0,
-                                        'output' : '',
-                                        'error':''})
-
+            self.task_info.job_info.job_returncode = 0
+            self.task_info.job_info.output = ''
+            self.task_info.job_info.error = ''
 
     def prepare_input(self):
         if not self.task_dir.exists():

@@ -327,10 +327,10 @@ class OctopusTask(Task):
         """Returns run_status bool and returncode value"""
 
         run_status = False
-        if hasattr(self, 'submit_network'):
-            check = self.task_info.network.get('sub_returncode', None)
+        if self.task_info.job_info.submit_mode == 'remote':
+            check = self.task_info.job_info.submit_returncode
         else:
-            check = self.task_info.local.get('returncode', None)
+            check = self.task_info.job_info.job_returncode
         if check is None:
             raise TaskFailed("Job not completed.")
         else:
@@ -554,10 +554,10 @@ class OctopusTask(Task):
                 [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
                 
                 calc_population_diff(homo_index=below_homo,infile=population_file, outfile=population_diff_file)
-            self.task_info.local['returncode'] = 0
+            self.task_info.job_info.job_returncode = 0
             # self.local_cmd_out = [0]
         except Exception:
-            self.task_info.local['returncode'] = 1
+            self.task_info.job_info.job_returncode = 1
             # self.local_cmd_out = [1]
 
 
