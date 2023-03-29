@@ -78,6 +78,14 @@ class BaseNwchemTask(Task):
             self.user_input = format_gs_param(param)
         else:
             self.user_input = param
+
+        if self.task_info.job_info.directory is None:
+            task_dir = self.directory / 'gpaw' / self.task_name
+            task_dir = get_new_directory(task_dir)
+            self.task_info.job_info.directory = task_dir.relative_to(self.directory)
+
+        self.task_dir = self.directory / self.task_info.job_info.directory
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.create_engine(self.user_input)
     
     @abstractmethod
@@ -146,11 +154,9 @@ class NwchemTask(BaseNwchemTask):
     def create_engine(self, param):
         infile_ext = '.nwi'
         outfile_ext = '.nwo'
-        task_dir = self.directory / 'nwchem' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
+
         label = str(self.directory.parent.name)
         file_name = self.task_data.get('file_name')
-        self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
 
@@ -167,7 +173,6 @@ class NwchemTask(BaseNwchemTask):
         param['geometry'] = '../../coordinate.xyz'
         
         self.task_info.local_copy_files.extend(['coordinate.xyz',
-                                                str(self.task_dir.relative_to(self.directory)),
                                                 str(self.task_dir.relative_to(self.directory).parent / 'restart')])
         if self.task_name == tt.RT_TDDFT:
             param['restart_kw'] = 'restart'
