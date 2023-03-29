@@ -1,8 +1,15 @@
 import tkinter as tk
 from tkinter import Tk
-from tkinter.ttk import Spinbox, Checkbutton, Combobox, Button
+from tkinter.ttk import Entry, Spinbox, Checkbutton, Combobox, Button
 
 gs_input ={
+        "restart": {
+                "tab":"Basic",
+                "text": "Restart Option",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+        },
         "xc": {
                 "tab":"Basic",
                 "group": "theory level",
@@ -186,8 +193,15 @@ gs_input ={
                 "widget": tk.Entry,
                 "type":int
         },
-
-        }
+        "restart_steps": {
+                "tab":"Advanced",
+                "group": "Execution Details",
+                "text": "Restart Write Interval",
+                "help": None,
+                "widget": Entry,
+                "default": 50,
+        },
+                }
 
 
 box_dict = {
@@ -284,9 +298,18 @@ gs_visible_default = {
         "smearing": True,
         "mixing": True,
         "bands": True,
+        "restart": True,
+        "restart_steps": True
 }
 
 td_delta_input ={
+        "restart": {
+                "tab":"Delta Kick Input",
+                "text": "Restart Option",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+        },
         "laser_strength": {
                 "tab":"Delta Kick Input",
                 # "group": "laser details",
@@ -368,6 +391,14 @@ td_delta_input ={
                 "widget": Checkbutton,
                 "default": False
                 },
+        "restart_steps": {
+                "tab":"Properties",
+                "group": "Execution Details",
+                "text": "Restart Write Interval",
+                "help": None,
+                "widget": Entry,
+                "default": 50,
+        },
         }
 
 td_laser_input ={

@@ -4,14 +4,11 @@ from tkinter import messagebox, ttk
 import numpy as np
 from matplotlib import pyplot as plt, animation
 import matplotlib.image as mpimg
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.backend_bases import key_press_handler
-import os,subprocess,shutil
+import os
 from pathlib import Path 
 from litesoph.common.utils import get_new_directory
-from litesoph.common.job_submit import execute_cmd_local,execute_cmd_remote
-from litesoph.gui.gui import GUIAPP
+from litesoph.common.job_submit import execute_cmd_local
 from tkinter import *
 
 def create_directory(directory):
@@ -283,12 +280,7 @@ class LinePlot(CommonGraphParam):
         x_col = self.x_var.get()
         y_col = self.y_var.get()
         title = self.title_entry.get()
-
-        # Generate new plot
-        data = np.loadtxt(self.file_path, comments="#")
-        x_data = data[:,  self.columns.index(x_col)]
-        y_data = data[:,  self.columns.index(y_col)]
-
+        
         # get plot parameters
         title = self.title_var.get()
         x_axis_name_var = self.x_axis_name_var.get()
@@ -296,21 +288,30 @@ class LinePlot(CommonGraphParam):
 
         x_label = self.x_axis_entry.get()
         y_label = self.y_axis_entry.get()
+        
+        # Generate new plot
+        data = np.loadtxt(self.file_path, comments="#")
+        try:
+            x_data = data[:,  self.columns.index(x_col)]
+            y_data = data[:,  self.columns.index(y_col)]
 
-        # create line plot
-        plt.cla()
-        plt.xlabel(x_axis_name_var)
-        plt.ylabel(y_axis_name_var)
-        plt.title(title)
+            # create line plot
+            plt.cla()
+            plt.xlabel(x_axis_name_var)
+            plt.ylabel(y_axis_name_var)
+            plt.title(title)
+        
+            if plot_type=='line':
+                plt.plot(x_data, y_data)
+            elif plot_type=='scatter':
+                plt.scatter(x_data, y_data)
+            elif plot_type=='histogram':
+                plt.hist2d(x_data, y_data)
 
-        if plot_type=='line':
-            plt.plot(x_data, y_data)
-        elif plot_type=='scatter':
-            plt.scatter(x_data, y_data)
-        elif plot_type=='histogram':
-            plt.hist2d(x_data, y_data)
+            self.canvas.draw()
 
-        self.canvas.draw()
+        except ValueError:
+            messagebox.showinfo(title='Info', message="First Select the Axes") 
 
 class ContourPlot(CommonGraphParam):
 
@@ -384,7 +385,7 @@ class CubeFilePlot(CommonGraphParam):
         self.edit_save_script_button = tk.Button(self.graph_props_frame, text="Save Script", command=self._on_edit_save_render_script)
         self.edit_save_script_button.grid(row=1, column=1, sticky="nsew")
 
-        self.render_button = tk.Button(self.graph_props_frame, text="Render Frames", command=self._on_render_cube_movie)
+        self.render_button = tk.Button(self.graph_props_frame, text="Render Frames", command=self._on_render_cube_frames)
         self.render_button.grid(row=1, column=2, sticky="nsew")
 
         engine_types=['default','blender']
@@ -397,7 +398,10 @@ class CubeFilePlot(CommonGraphParam):
 
         self.generate_movie_button = tk.Button(self.graph_props_frame, text="Generate Movie", command=self._on_generate_movie)
         self.generate_movie_button.grid(row=2, column=1, sticky="nsew")
-        
+
+        self.render_progress = tk.Label(self.graph_props_frame, bg='gray', fg='black')
+        self.render_progress.grid(row=1, column=3, sticky="nsew")
+
 
     def load_cube_file(self):
         cube_files = fd.askopenfilename(title="Select File(s)",
@@ -503,85 +507,87 @@ class CubeFilePlot(CommonGraphParam):
         text_file.write(self.text_box.get(1.0, END))
         text_file.close()   
     
-    def _on_render_cube_movie(self):
+    def _on_render_cube_frames(self):
 
+        self.render_progress.configure(text= "Frame Rendering") 
+        
         cmd=f'vmd -dispdev none -e {self.vmd_script}'
         result=execute_cmd_local(cmd,self.traj_dir)
         error=result[cmd]['error']    
         message=result[cmd]['output']   
 
-        # cmd_create_gif='convert *.png output.gif'
-        # result=execute_cmd_local(cmd_create_gif,project_dir)
-        # error=result[cmd_create_gif]['error']    
-        # message=result[cmd_create_gif]['output']  
-    
+        self.render_progress.configure(text= "Frame Rendered") 
+ 
     def _on_generate_cube_plot_blender(self):
         try:
             import bpy 
-        except:
-            ImportError
         
-        # Set the path to the input and output directories
-        input_dir = self.traj_dir
-        output_dir = self.traj_dir
+            # Set the path to the input and output directories
+            input_dir = self.traj_dir
+            output_dir = self.traj_dir
 
-        # Set the file format and output file name
-        file_format = "AVI_JPEG"
-        output_file = "output.avi"
+            # Set the file format and output file name
+            file_format = "AVI_JPEG"
+            output_file = "output.avi"
 
-        self.output_file_path=str(output_dir) + "/" + output_file
+            self.output_file_path=str(output_dir) + "/" + output_file
 
-        # Set the frame rate and number of frames
-        frame_rate = 24
-        num_frames = len(list(Path(input_dir).glob('*.png')))
+            # Set the frame rate and number of frames
+            frame_rate = 24
+            num_frames = len(list(Path(input_dir).glob('*.png')))
 
-        # Set the render settings
-        bpy.context.scene.render.resolution_x = 1920
-        bpy.context.scene.render.resolution_y = 1080
-        bpy.context.scene.render.resolution_percentage = 100
-        bpy.context.scene.render.fps = frame_rate
-        bpy.context.scene.frame_start = 1
-        bpy.context.scene.frame_end = num_frames
+            # Set the render settings
+            bpy.context.scene.render.resolution_x = 1920
+            bpy.context.scene.render.resolution_y = 1080
+            bpy.context.scene.render.resolution_percentage = 100
+            bpy.context.scene.render.fps = frame_rate
+            bpy.context.scene.frame_start = 1
+            bpy.context.scene.frame_end = num_frames
 
-        # Set the input and output directories
-        bpy.context.scene.render.filepath =  self.output_file_path
-        bpy.context.scene.render.image_settings.file_format = file_format
+            # Set the input and output directories
+            bpy.context.scene.render.filepath =  self.output_file_path
+            bpy.context.scene.render.image_settings.file_format = file_format
 
-        # Iterate over the input directory and add the images to the sequence editor
-        for i in range(0, num_frames):
-            image_path = os.path.join(input_dir, f"{i}.png")
-            image = bpy.data.images.load(image_path)
-            bpy.data.scenes["Scene"].sequence_editor_create()
-            bpy.context.scene.sequence_editor.sequences.new_image(
-                name=f"{i}",
-                filepath=image_path,
-                channel=1,
-                frame_start=i
-            )
-            bpy.context.scene.render.fps = 1
+            # Iterate over the input directory and add the images to the sequence editor
+            for i in range(0, num_frames):
+                image_path = os.path.join(input_dir, f"{i}.png")
+                image = bpy.data.images.load(image_path)
+                bpy.data.scenes["Scene"].sequence_editor_create()
+                bpy.context.scene.sequence_editor.sequences.new_image(
+                    name=f"{i}",
+                    filepath=image_path,
+                    channel=1,
+                    frame_start=i
+                )
+                bpy.context.scene.render.fps = 1
 
-        # Render the animation
-        bpy.ops.render.render(animation=True)
-        self.play_video_canvas()
+            # Render the animation
+            bpy.ops.render.render(animation=True)
+            self.play_video_canvas()
+        except ImportError:
+            messagebox.showinfo(title= "Warning", message="Blender not found !! Install Blender in your Environment or select default")
     
     def play_video_canvas(self):
-        import cv2
+        try:
+            import cv2
 
-        video = cv2.VideoCapture(self.output_file_path)
+            video = cv2.VideoCapture(self.output_file_path)
+            def update_video_frame():
+                ret, frame = video.read()
 
-        def update_video_frame():
-            ret, frame = video.read()
-
-            if ret:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                plt.imshow(frame)
-                self.canvas.draw()
-                self.after(10, update_video_frame)
-            else:
-                video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                update_video_frame()
-        update_video_frame()
-                
+                if ret:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    plt.axis('off')
+                    plt.imshow(frame)
+                    self.canvas.draw()
+                    self.after(10, update_video_frame)
+                else:
+                    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    update_video_frame()
+            update_video_frame()
+        except ImportError:
+            messagebox.showinfo(title= "Warning", message="cv2 package not found !! Video generated through blender cannot be played on canvas. Install cv2 to play")
+                    
     def _on_generate_cube_plot_matplotlib(self):
         
         ims=[]
@@ -589,6 +595,7 @@ class CubeFilePlot(CommonGraphParam):
         
         for i in range(len(list_imgs)):           
             img = mpimg.imread(list_imgs[i])
+            plt.axis('off')
             im = plt.imshow(img)
             if i == 0:
                 plt.imshow(img)  # show an initial one first
@@ -642,21 +649,25 @@ class LSVizApp(LinePlot,ContourPlot,CubeFilePlot):
     def generate_plot(self):
         self.toggle_canvas()
 
-        self.plot_type = self.plot_type_var.get()
-        if self.plot_type=="line_plot":
-            self._on_generate_line_plot('line')
-        
-        elif self.plot_type=="scatter_plot":
-            self._on_generate_line_plot('scatter')
-        
-        elif self.plot_type=="histogram_plot":
-            self._on_generate_line_plot('histogram')
-        
-        elif self.plot_type=="contour_plot":
-            self._on_generate_contour_plot()
-        
-        elif self.plot_type=="cube":
-            self._on_generate_movie()
+        try:
+            self.plot_type = self.plot_type_var.get()
+            if self.plot_type=="line_plot":
+                self._on_generate_line_plot('line')
+            
+            elif self.plot_type=="scatter_plot":
+                self._on_generate_line_plot('scatter')
+            
+            elif self.plot_type=="histogram_plot":
+                self._on_generate_line_plot('histogram')
+            
+            elif self.plot_type=="contour_plot":
+                self._on_generate_contour_plot()
+            
+            elif self.plot_type=="cube":
+                self._on_generate_movie()            
+            
+            self.canvas.draw()
 
-        self.canvas.draw()
+        except AttributeError:
+            messagebox.showinfo(title='Info', message="First load the Data") 
 
