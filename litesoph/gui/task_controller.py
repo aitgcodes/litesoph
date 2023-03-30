@@ -275,52 +275,6 @@ class TaskController:
         title="New Selection",
         message=f"Selected option: {self.selected_file}")
         
-    # def encode_decode_combobox_items(self,list_of_files):
-    #     import pathlib
-    #     from litesoph.common.lfm_database import coordinate_files,dipole_files,spectrum_files,script_output_files
-
-    #     mapped_dict={}
-
-    #     i = 0
-    #     coordinate_count=0
-    #     dipole_count=0
-    #     spectrum_file_count=0
-    #     script_output_count=0
-
-    #     while i < len(list_of_files):
-            
-    #         file_path=pathlib.Path(list_of_files[i]).parent
-    #         last_folder_name=pathlib.Path(list_of_files[i]).parent.name
-    #         file_name=pathlib.Path(list_of_files[i]).name
-    #         file_ext=pathlib.Path(list_of_files[i]).suffix
-            
-    #         if  file_ext in coordinate_files:                
-    #             coordinate_file=f'coordinate_file_{coordinate_count+1}'
-    #             mapped_dict[coordinate_file] = list_of_files[i]
-    #             list_of_files[i] = coordinate_file            
-    #             coordinate_count+=1    
-        
-    #         if  file_name in dipole_files:
-    #             dipole_file=f'dipole-file-{dipole_count+1}'
-    #             mapped_dict[dipole_file] = list_of_files[i]
-    #             list_of_files[i] = dipole_files            
-    #             dipole_count+=1    
-            
-    #         if  file_name in spectrum_files:
-    #             spectrum_file=f'spectrum-file-{spectrum_file_count+1}'
-    #             mapped_dict[spectrum_file] = list_of_files[i]
-    #             list_of_files[i] = spectrum_files            
-    #             spectrum_file_count+=1    
-            
-    #         if  file_name in script_output_files:
-    #             file=f'script-output-{script_output_count+1}'
-    #             mapped_dict[file] = list_of_files[i]
-    #             list_of_files[i] = script_output_files            
-    #             script_output_count+=1    
-                                    
-    #         i += 1
-    #     return mapped_dict
-
     def rename_duplicates(self,lst): 
         seen = set() 
         new_lst = [] 
