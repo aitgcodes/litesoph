@@ -147,13 +147,9 @@ class SubmitLocal:
         """
         if scheduler=='bash':
             cmd_kill=f"ps aux | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; pkill -ecf {job_id}; then echo Job killed; else echo No Job found; fi"
-            # cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_kill}'    
         else:
             cmd_kill=f"{scheduler_stat_cmd} | grep -w {job_id}|grep -v grep; if [ $? -eq 0 ]; {scheduler_kill_cmd} {job_id}; then echo Job killed {job_id}; else echo No Job found; fi"        
-            # cmd=f'ssh -p {self.port} {self.username}@{self.hostname} {cmd_kill}'            
         
-        # (error, message)=execute_cmd_remote(cmd,self.password)   
-
         result=execute_cmd_local(cmd_kill,self.project_dir)
         error=result[cmd_kill]['error']    
         message=result[cmd_kill]['output']            

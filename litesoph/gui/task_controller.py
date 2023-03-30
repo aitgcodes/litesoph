@@ -175,7 +175,7 @@ class TaskController:
         if not self._check_task_run_condition(self.task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
-       
+
         self.job_sub_page.back2main.config(command= self.workflow_controller.show_workmanager_page)
         self.job_sub_page.view_output_button.config(command= self._on_out_local_view_button)        
         self.job_sub_page.show_run_local(self._on_create_local_job_script,
@@ -242,25 +242,7 @@ class TaskController:
 
     def _on_plot_file_local(self):   
         from litesoph.visualization import ls_viz_app
-
         ls_viz_app.LSVizApp(self.main_window).run()
-
-        
-        
-        # import os        
-        # try:
-        #     if os.path.exists(self.selected_file)==True:
-        #         cmd=f'xmgrace {self.selected_file}'
-        #         # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
-        #         os.system(cmd)
-        #     else:
-        #         messagebox.showinfo(title='Info', message="File not found")
-        # except ValueError:
-        #     messagebox.showinfo(title='Info', message="Cannot plot selected File")   
-        # except FileNotFoundError:
-        #     messagebox.showinfo(title='Info', message="File not found")  
-        # except AttributeError:
-        #     messagebox.showinfo(title='Info', message="First Select the File")                    
             
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
