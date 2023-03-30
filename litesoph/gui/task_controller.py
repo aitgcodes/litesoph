@@ -183,9 +183,10 @@ class TaskController:
                                         self._run_local)
         
         self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
-                                        self._on_check_file_status_local,
-                                        self._on_view_specific_file_local,
-                                        self._on_plot_file_local)
+                                            self._on_kill_job_local,
+                                            self._on_check_file_status_local,
+                                            self._on_view_specific_file_local,
+                                            self._on_plot_file_local)
 
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
@@ -207,7 +208,7 @@ class TaskController:
         choose_file['values'] = list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)        
-        self.job_sub_page.plot_file_button.config(state='active')
+        # self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
     
     def _on_view_specific_file_local(self):        
@@ -219,6 +220,25 @@ class TaskController:
         except AttributeError:
             messagebox.showinfo(title='Info', message="First Select the File") 
         self.view_panel.insert_text(message, 'disabled')
+
+    def _on_kill_job_local(self):
+    
+        job_id=self.job_sub_page.job_id.get()            
+        scheduler=self.job_sub_page.sub_command.get()
+        scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
+        scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
+
+        if job_id == None:
+            messagebox.showinfo(title='Info', message="Enter Job ID first")                  
+        else:
+            try:
+                error, message=self.task.submit_local.kill_job_local(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
+            except TaskFailed:
+                messagebox.showinfo(title='Info', message=error)                    
+            messagebox.showinfo(title='Info', message=message)   
+            self.job_sub_page.progressbar.stop()
+            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+            label_progressbar.grid(row=4, column=0,sticky='nsew')
 
     def _on_plot_file_local(self):   
         from litesoph.visualization import ls_viz_app
@@ -365,7 +385,7 @@ class TaskController:
         
         self.job_sub_page.download_specific_file_button.config(state='active')
         self.job_sub_page.view_file_button.config(state='active')
-        self.job_sub_page.plot_file_button.config(state='active')
+        # self.job_sub_page.plot_file_button.config(state='active')
         messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
 
     def _on_check_job_status_remote(self):
@@ -493,6 +513,8 @@ class TaskController:
                     self.job_sub_page.check_jobdone_progressbar()
                 except:
                     AttributeError
+                output=self.task.task_info.local['output']
+                self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
     def _on_out_local_view_button(self, *_):
