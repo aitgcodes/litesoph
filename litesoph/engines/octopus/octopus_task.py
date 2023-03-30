@@ -237,11 +237,19 @@ class OctopusTask(Task):
         self.task_info.input['engine_input']={}
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
+        
         if self.restart is True:
+            n_restart = self.task_info.task_data.get('nrestart', 0)
             out_log = self.get_restart_log(folder=self.task_dir,fname=self.task_data.get('out_log'))
-            self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / out_log)
+            self.task_info.output['txt_out'] = str(out_log.relative_to(self.wf_dir))
         else:
             self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        
+        if self.task_info.output.get('txt_out_files', None) is None:
+            self.task_info.output['txt_out_files'] = []
+            self.task_info.output['txt_out_files'].append(self.task_info.output['txt_out'])
+        elif isinstance(self.task_info.output['txt_out_files'], list):
+            self.task_info.output['txt_out_files'].append(self.task_info.output['txt_out'])
 
         # Adding local copy files/folders
         geom_path = str(Path(self.geom_fpath).relative_to(self.wf_dir))
