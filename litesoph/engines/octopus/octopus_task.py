@@ -363,11 +363,11 @@ class OctopusTask(Task):
         if task == tt.GROUND_STATE:
             folders = ['exec', 'static']
             for item in folders:
-                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item)
+                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item, dirs_exist_ok=True)
         elif task == tt.RT_TDDFT:
             folders = ['td.general']
             for item in folders:
-                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item)
+                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item, dirs_exist_ok=True)
         elif task == tt.COMPUTE_SPECTRUM:              
             folders = ['cross_section_vector']
             for item in folders:
