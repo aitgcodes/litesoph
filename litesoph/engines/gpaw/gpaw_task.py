@@ -94,19 +94,24 @@ class GpawTask(Task):
         else:
             self.user_input.update(self.params)
 
+        if self.task_info.job_info.directory is None:
+            task_dir = self.directory / 'gpaw' / self.task_name
+            task_dir = get_new_directory(task_dir)
+            self.task_info.job_info.directory = task_dir.relative_to(self.directory)
+
+        self.task_dir = self.directory / self.task_info.job_info.directory
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.setup_task(self.user_input)
         
         
 
     def setup_task(self, param):
         infile_ext = '.py'
-        task_dir = self.directory / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
         input_filename = self.task_data.get('file_name', None)
-        self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
+        
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+        
         
         if input_filename:
             self.input_filename = input_filename + infile_ext
@@ -465,13 +470,9 @@ class GpawPostProMasking(GpawTask):
         self.task_info.local_copy_files.extend(masked_dm_fpaths)
 
     def setup_task(self, param):
-        task_dir = self.project_dir / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)  
         self.get_dm_files()
         self.state_mask_dm = False
         self.extract_masked_dm()  
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
-
 
     def get_energy_coupling_constant(self, **kwargs):        
         if not self.state_mask_dm:
