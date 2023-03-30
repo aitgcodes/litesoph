@@ -74,13 +74,11 @@ class BaseNwchemTask(Task):
         
         self.task_data = nwchem_data.get(self.task_name)
         param = copy.deepcopy(self.task_info.param)
-        if self.task_name == tt.GROUND_STATE:
-            self.user_input = format_gs_param(param)
-        else:
-            self.user_input = param
+        
+        self.user_input = param
 
         if self.task_info.job_info.directory is None:
-            task_dir = self.directory / 'gpaw' / self.task_name
+            task_dir = self.directory / 'nwchem' / self.task_name
             task_dir = get_new_directory(task_dir)
             self.task_info.job_info.directory = task_dir.relative_to(self.directory)
 
@@ -152,13 +150,9 @@ class BaseNwchemTask(Task):
 class NwchemTask(BaseNwchemTask):
 
     def create_engine(self, param):
-        infile_ext = '.nwi'
-        outfile_ext = '.nwo'
-
-        label = str(self.directory.parent.name)
-        file_name = self.task_data.get('file_name')
+        
         self.network_done_file = self.task_dir / 'Done'
-        self.task_info.input['engine_input']={}
+        label = str(self.directory.parent.name)
 
         if self.task_name in self.post_processing_tasks:
             outfile = str(self.directory / self.dependent_tasks[0].output.get('txt_out'))
@@ -168,7 +162,30 @@ class NwchemTask(BaseNwchemTask):
             self.nwchem = NWChem(outfile=outfile, 
                             label=label, directory=self.task_dir)
             return
+    
+        
+        infile_ext = '.nwi'
+        outfile_ext = '.nwo'
+        restart = param.get('restart', False)
+        if restart:
+            nrestart = self.task_info.task_data.get('nrestart', 0)
+            nrestart += 1
+            outfile_ext  = outfile_ext + str(nrestart)
 
+        file_name = self.task_data.get('file_name')
+        self.infile = file_name + infile_ext
+        self.outfile = file_name + outfile_ext
+        self.task_info.input['engine_input']={}
+
+        if restart:
+            self.task_info.output[f'txt_out{nrestart}'] = str(self.task_dir.relative_to(self.directory) / self.outfile)
+        else:
+            self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / self.outfile)
+        
+        
+        if self.task_name == tt.GROUND_STATE:
+            param = self.user_input = format_gs_param(param)
+        
         param['perm'] = '../restart'
         param['geometry'] = '../../coordinate.xyz'
         
@@ -179,11 +196,9 @@ class NwchemTask(BaseNwchemTask):
             param['basis'] =self.dependent_tasks[0].engine_param.get('basis')
             update_td_param(param)
 
-        file_name = self.task_data.get('file_name')
-        self.infile = file_name + infile_ext
-        self.outfile = file_name + outfile_ext
+        
         self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.directory) / self.infile)
-        self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / self.outfile)
+        
         self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
                             label=label, directory=self.task_dir, **param)
             
@@ -313,7 +328,13 @@ class NwchemTask(BaseNwchemTask):
 
 def format_gs_param(gen_dict:dict) -> dict:
     param_data = nwchem_gs_param_data
+    restart = gen_dict.get('restart', False)
+    
+
     gs_input = {'dft': {}}
+    
+    if restart:
+        gs_input['restart_kw'] = 'restart'
 
     basis_type = gen_dict.get('basis_type')
     if basis_type != 'gaussian':
@@ -341,6 +362,7 @@ def format_gs_param(gen_dict:dict) -> dict:
     return gs_input
 
 def update_td_param(param):
+    restart = param.pop('restart', False)
     strength = param.pop('strength', None)
     pol = param.pop('polarization', None)
     time_step = param.pop('time_step')
@@ -353,6 +375,9 @@ def update_td_param(param):
     param['rt_tddft'] = {'tmax': round(num_step * time_step * as_to_au,2),
                         'dt': round(time_step * as_to_au, 2),
                         'print':out_print(properties)}
+
+    if restart:
+        param['rt_tddft']['load'] = 'restart'
 
     if lasers:
         
