@@ -165,11 +165,15 @@ class OctopusTask(Task):
         Sets task_dir for current task, creates engine dir and output dir if not exists.
         """
 
-        # Task dir
+        # Engine & Task dir
         self.engine_dir = str(self.wf_dir / 'octopus')
-        task_dir = (Path(self.engine_dir) / self.task_name)
-        self.task_dir = get_new_directory(task_dir)
-        
+        if self.task_info.job_info.directory is None:
+            task_dir = Path(self.engine_dir) / self.task_name
+            self.task_dir = get_new_directory(task_dir)
+            self.task_info.job_info.directory = self.task_dir.relative_to(self.wf_dir)
+        else:
+            self.task_dir = self.wf_dir / self.task_info.job_info.directory
+
         # TODO: Only needed for Octopus simulation
         # Specific to Octopus interfaced tasks
         self.input_filename = 'inp'
@@ -228,7 +232,7 @@ class OctopusTask(Task):
         if self.task_name in self.added_post_processing_tasks:
             return  
 
-        self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
+        # self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
         # Specific to Octopus interfaced tasks 
         self.task_info.input['engine_input']={}
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
