@@ -94,3 +94,27 @@ def get_pol_var(pol_list:list):
         pol_var = "Z"                
     return pol_var
 
+def get_input_list(input_str:str):
+    """Converts the input string values(separated by whitespace or ',') 
+    to list of float values"""
+
+    inp_values = str(input_str)
+    try:
+        _values = inp_values.split(sep=',')
+        _list = get_float_list(_values)
+    except ValueError:      
+        _values = inp_values.split() 
+        _list = get_float_list(_values)
+    return _list
+
+def get_float_list(inp_str:list):
+    """Converts list of strings to list of floats and returns, 
+    else raises ValueError"""
+
+    inp_list = []
+    try:
+        for inp in inp_str:
+            inp_list.append(float(inp))
+        return inp_list
+    except ValueError as e:
+        raise e

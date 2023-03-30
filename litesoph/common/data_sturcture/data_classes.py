@@ -65,10 +65,18 @@ class JobInfo:
         The directory in which the job is running
     state: 
         State of the job
+    job_script:
+        bash script to run the job
     submit_mode: 
         whether the job was submitted locally or to a remote machine.
-    returncode: 
+    job_returncode: 
         return code of the job
+    submit_returncode:
+        retrun code of job submitting to remote machine.
+    submit_output:
+        output of job submission to remote machine
+    submit_errors:
+        errors of job submission to remote machine
     output: 
         Output of the job.
     error: 
@@ -77,8 +85,12 @@ class JobInfo:
     id: Union[str, None] = field(default= None)
     directory: Union[Path, None] = field(default=None)
     state: Union[str, None] = field(default= None)
-    submit_mode: Union[str, None] = field(default= None)
-    returncode: Union[int, None] = field(default= None)
+    job_script: Union[str, None] = field(default=None)
+    submit_mode: Union[str, None] = field(default= 'local')
+    job_returncode: Union[int, None] = field(default= None)
+    submit_returncode: Union[int, None] = field(default= None)
+    submit_output: Union[str, None] = field(default= None)
+    submit_error: Union[str, None] = field(default=None)
     output: Union[str, None] = field(default= None)
     error: Union[str, None] = field(default= None)
 
