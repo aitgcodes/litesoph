@@ -208,7 +208,7 @@ class TaskController:
         choose_file['values'] = list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)        
-        # self.job_sub_page.plot_file_button.config(state='active')
+        self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
     
     def _on_view_specific_file_local(self):        
