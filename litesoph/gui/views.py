@@ -1044,9 +1044,12 @@ class JobSubPage(ttk.Frame):
         self.monitor_job_frame.grid(row=1, column=0, sticky='nsew')
         self.monitor_file_frame = ttk.Frame(self.Frame3)
         self.monitor_file_frame.grid(row=1, column=0, sticky='nsew') 
-         
+
         self.progressbar = ttk.Progressbar(self.Frame1, mode='indeterminate')
         self.progressbar.grid(row=4, column=0, sticky='nsew')
+
+        self.label_progressbar = tk.Label(self.Frame1,font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
+        self.label_progressbar.grid(row=4, column=0,sticky='nsew')
         
         self.Frame_label1 = tk.Label(self.Frame1, text="LITESOPH Job Submission", fg='blue')
         self.Frame_label1['font'] = myfont1()
@@ -1087,8 +1090,6 @@ class JobSubPage(ttk.Frame):
             self.download_specific_file_button.config(state='disable')
             self.after(20, self.check_submit_thread)
         else:
-            self.label_progressbar = tk.Label(self.Frame1, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-            self.label_progressbar.grid(row=4, column=0,sticky='nsew')
             self.progressbar.stop()
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
             # self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
@@ -1379,11 +1380,13 @@ class JobSubPage(ttk.Frame):
         self.run_button['font'] = myfont()
         self.run_button.grid(row=13,column=0,sticky='nsew', padx=2, pady=4)  
 
-    def check_jobdone_progressbar(self):
-
-        pb=self.Frame1
-        self.label_progressbar = tk.Label(pb, text="Job Done",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-        self.label_progressbar.pack()
+    def forget_progressbar_status(self):
+        if self.label_progressbar.winfo_exists():
+            self.label_progressbar.grid_forget()
+    
+    def change_progressbar_status(self,text_status):
+        self.label_progressbar.grid(row=4, column=0,sticky='nsew')
+        self.label_progressbar.configure(text=text_status)
     
     def _sub_command_option(self, *_):
         if self.sub_job_type.get() == 0:

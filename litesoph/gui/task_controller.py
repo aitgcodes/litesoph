@@ -237,9 +237,8 @@ class TaskController:
                 messagebox.showinfo(title='Info', message=error)                    
             messagebox.showinfo(title='Info', message=message)   
             self.job_sub_page.progressbar.stop()
-            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-            label_progressbar.grid(row=4, column=0,sticky='nsew')
-
+            self.job_sub_page.change_progressbar_status('Job Killed')
+            
     def _on_plot_file_local(self):   
         from litesoph.visualization import ls_viz_app
         ls_viz_app.LSVizApp(self.main_window).run()
@@ -347,8 +346,7 @@ class TaskController:
                 messagebox.showinfo(title='Info', message=error)                    
             messagebox.showinfo(title='Info', message=message)   
             self.job_sub_page.progressbar.stop()
-            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-            label_progressbar.grid(row=4, column=0,sticky='nsew')
+            self.job_sub_page.change_progressbar_status('Job Killed')
 
     def _on_download_all_files(self):
         try:
@@ -410,7 +408,8 @@ class TaskController:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
     def _run_local(self, np=None):
-
+        self.job_sub_page.forget_progressbar_status()
+        
         if np:
             sub_job_type = 0
             cmd = 'bash'
@@ -446,10 +445,10 @@ class TaskController:
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.job_info.error}")
             else:
                 try:
-                    self.job_sub_page.check_jobdone_progressbar()
+                    self.job_sub_page.change_progressbar_status('Job Done')
                 except:
                     AttributeError
-                output=self.task.task_info.job_info['output']
+                output=self.task.task_info.job_info.output
                 self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
@@ -464,6 +463,7 @@ class TaskController:
         self.view_panel.insert_text(log_txt, 'disabled')
 
     def _run_network(self):
+        self.job_sub_page.forget_progressbar_status()
 
         try:
             self.task.check_prerequisite()
@@ -513,7 +513,7 @@ class TaskController:
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.job_info.submit_error}")
             else:
                 try:
-                    self.job_sub_page.check_jobdone_progressbar()
+                    self.job_sub_page.change_progressbar_status('Job Done')
                 except:
                     AttributeError
                 output=self.task.task_info.job_info.submit_output
@@ -537,7 +537,7 @@ class TaskController:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
         self.view_panel.insert_text(b_file, 'normal')
-       
+
     def _on_save_job_script(self, *_):
         self.job_sub_page.set_run_button_state('active')
         txt = self.view_panel.get_text()
