@@ -14,6 +14,7 @@ compression_algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz',
 
 
 # list of Tags
+####################
 
 # file_relevance
 very_impt=['.out','.log','.xyz','.sh','.py', '.nwi']
@@ -27,21 +28,22 @@ script_generated_outfile=['.nwo','.gpw','.out']
 checkpoint_file=['.db','.movecs','gridpts.0']
 
 ##############################################
-input_script_file=['.sh']
+input_script_file=['.nwi']
 property_file=['.dat']
-coordinate_file=['coordinate.xyz']
-dipole_file=['dm.dat','multipoles']
-spectrum_file=['spec.dat']
-script_output_file=['gs.out','gs.nwo','td.nwo']
+coordinate_file=['coordinate.xyz','*.xyz']
+dipole_file=['dm*.dat','multipoles*','dm_masked*']
+energy_coupling=['energy_coupling*.dat']
+spectrum_file=['spec*.dat']
+script_output_file=['g*.out','g.nwo','*.txt']
 
-file_type_combobox={'property_file':property_file,'coordinate_file':coordinate_file,'dipole_file':dipole_file,'spectrum_file':spectrum_file,'script_output_file':script_output_file,'input_script_file':input_script_file}
+# add the filetype to the dictionary 
+file_type_combobox={'coordinate_file':coordinate_file,'dipole_file':dipole_file,'energy_coupling':energy_coupling,'spectrum_file':spectrum_file,'script_output_file':script_output_file,'input_script_file':input_script_file}
 ##############################################
 
 #transfer_method
 direct_transfer=['.out','.log','.xyz','.sh','.py', '.nwi']
 compress_transfer={'.dat':{'compress_method':None},'.cube':{'compress_method':None} }
 split_transfer={'.test':{'split_size':None}}
-
 
 list_of_files=[very_impt,impt,least_impt,input_file,redirected_outfile,script_generated_outfile,property_file,
 checkpoint_file,direct_transfer,compress_transfer,split_transfer]
@@ -81,7 +83,7 @@ def lfm_file_info_dict():
             add_element(lfm_file_info[file], 'file_relevance', 'least_impt')
         else:
             add_element(lfm_file_info[file], 'file_relevance',None)
-      
+
         if (file in input_file):
             add_element(lfm_file_info[file], 'file_type', 'input_file')
             add_element(lfm_file_info[file], 'subfiletype', input_file[file]['subfiletype'])
