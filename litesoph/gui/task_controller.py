@@ -64,6 +64,7 @@ class TaskController:
 
     def show_task_view(self):
         self.task_view.tkraise()
+        self.task_view.unset_label_msg() 
 
     def generate_input(self, *_):
         
@@ -100,17 +101,6 @@ class TaskController:
         self.view_panel.insert_text(text=txt, state='normal')
         self.bind_task_events()
 
-        # check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
-        # if not check:
-        #     return
-        
-        # self.task_info.param.update(inp_dict)
-        # self.task = self.workflow_manager.get_engine_task()
-        # self.task.create_input()
-        # txt = self.task.get_engine_input()
-        # self.view_panel.insert_text(text=txt, state='normal')
-        # self.bind_task_events()
-    
 
     @staticmethod
     def _check_task_run_condition(task, network=False) -> bool:
