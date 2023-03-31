@@ -74,14 +74,14 @@ laser_td_input = {
                 "type": int,
                 "default": 10
                 },
-        "restart_steps": {
-                "tab":"Simulation Parameters",
-                "group": "Execution Details",
-                "text": "Restart Write Interval",
-                "help": None,
-                "widget": tk.Entry,
-                "default": 1,
-        },
+        # "restart_steps": {
+        #         "tab":"Simulation Parameters",
+        #         "group": "Execution Details",
+        #         "text": "Restart Write Interval",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "default": 1,
+        # },
         "spectrum": {
                 "tab":"Properties",
                 "group": "Observables to extract",
@@ -313,7 +313,7 @@ class TDPage(View):
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
             'restart': gui_dict.get("restart"),
-            'restart_steps': gui_dict.get("restart_steps")
+            # 'restart_steps': gui_dict.get("restart_steps")
         }
         return td_input
 
