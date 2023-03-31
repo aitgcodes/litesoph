@@ -351,6 +351,9 @@ class WorkflowManager:
             self.current_task_info.param.update(param)
         self.current_task_info.path = self.directory
 
+    def change_current_task(self, task_uuid):
+        self.current_task_info = self.tasks.get(task_uuid)
+        
     def check(self):
         pass
 

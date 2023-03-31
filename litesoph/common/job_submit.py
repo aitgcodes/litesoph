@@ -81,22 +81,21 @@ def execute_cmd_remote(command,passwd, timeout=None):
     
 class SubmitLocal:
 
-    def __init__(self, task, nprocessors:int) -> None:
+    def __init__(self, task) -> None:
         self.task = task
         self.task_info = task.task_info
         self.project_dir = self.task.project_dir
-        self.np = nprocessors
         self.command = None     
         self.job_id=None              
 
     def run_job(self, cmd): 
-        self.task_info.state.local = True   
+        self.task_info.job_info.submit_mode = 'local' 
         result = execute_cmd_local(cmd, self.project_dir)
-        self.task_info.local.update({'returncode': result[cmd]['returncode'],
-                                        'output' : result[cmd]['output'],
-                                        'error':result[cmd]['error'],
-                                        'pid':result[cmd]['pid']})
-            
+        self.task_info.job_info.id = result[cmd]['pid']
+        self.task_info.job_info.job_returncode = result[cmd]['returncode']
+        self.task_info.job_info.output = result[cmd]['output']
+        self.task_info.job_info.error = result[cmd]['error']
+
     def get_job_status_local(self,job_id):   
         """
         get the running status of submitted job at remote
@@ -191,7 +190,8 @@ class SubmitNetwork:
             self.upload_files()        
         else:
             raise FileNotFoundError(f"Remote path: {self.remote_path} not found.")
-        
+        self.task_info.job_info.submit_mode = 'remote'
+
     def upload_files(self):
         """uploads entire project directory to remote path"""
 
@@ -245,18 +245,10 @@ class SubmitNetwork:
             for line in ssh_output.decode(encoding='utf-8').split('\n'):
                 print(line)
         
-        self.task_info.network.update({'sub_returncode': exit_status,
-                                            'output':ssh_output.decode(encoding='utf-8'),
-                                            'error':ssh_error.decode(encoding='utf-8')})
-        
-    def run_job_remote(self, cmd): 
-        self.task_info.state.local = True   
-        result = execute_cmd_local(cmd, self.project_dir)    
-        self.task_info.local.update({'returncode': result[cmd]['returncode'],
-                                        'output' : result[cmd]['output'],
-                                        'error':result[cmd]['error'],
-                                        'pid':result[cmd]['pid']})
-        
+        self.task_info.job_info.submit_returncode = exit_status
+        self.task_info.job_info.submit_output= ssh_output.decode(encoding='utf-8')
+        self.task_info.job_info.submit_error = ssh_error.decode(encoding='utf-8')
+
     def check_job_status(self) -> bool:
         """returns true if the job is completed in remote machine"""
         # rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)

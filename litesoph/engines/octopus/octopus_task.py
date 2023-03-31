@@ -122,6 +122,8 @@ class OctopusTask(Task):
         """Engine level validation of the input dict for the task
         \n
         """
+
+        self.restart = self.params.get('restart', False)    
         name = self.task_info.name
         if name == tt.RT_TDDFT:
             from litesoph.engines.octopus.format_oct import calc_td_range
@@ -163,11 +165,15 @@ class OctopusTask(Task):
         Sets task_dir for current task, creates engine dir and output dir if not exists.
         """
 
-        # Task dir
+        # Engine & Task dir
         self.engine_dir = str(self.wf_dir / 'octopus')
-        task_dir = (Path(self.engine_dir) / self.task_name)
-        self.task_dir = get_new_directory(task_dir)
-        
+        if self.task_info.job_info.directory is None:
+            task_dir = Path(self.engine_dir) / self.task_name
+            self.task_dir = get_new_directory(task_dir)
+            self.task_info.job_info.directory = self.task_dir.relative_to(self.wf_dir)
+        else:
+            self.task_dir = self.wf_dir / self.task_info.job_info.directory
+
         # TODO: Only needed for Octopus simulation
         # Specific to Octopus interfaced tasks
         self.input_filename = 'inp'
@@ -182,7 +188,17 @@ class OctopusTask(Task):
             self.create_directory(Path(dir))
         log_files = list(Path(self.output_dir).iterdir())
         for log in log_files:
-            os.remove(Path(self.output_dir)/log)       
+            os.remove(Path(self.output_dir)/log) 
+
+        # Restart dir
+        restart_dir = self.task_data.get('restart')
+        if self.restart:
+            if restart_dir is not None:
+                restart_path = Path(self.engine_dir) / str(restart_dir)
+                if not Path.is_dir(restart_path):
+                    raise InputError(f'Can not restart! Restart folder: {str(restart_path)} not found.')
+            else:
+                raise InputError(f'No restart folder assigned!')
         
     def pre_run(self):
         """
@@ -216,12 +232,24 @@ class OctopusTask(Task):
         if self.task_name in self.added_post_processing_tasks:
             return  
 
-        self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
+        # self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
         # Specific to Octopus interfaced tasks 
         self.task_info.input['engine_input']={}
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
-        self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        
+        if self.restart is True:
+            n_restart = self.task_info.task_data.get('nrestart', 0)
+            out_log = self.get_restart_log(folder=self.task_dir,fname=self.task_data.get('out_log'))
+            self.task_info.output['txt_out'] = str(out_log.relative_to(self.wf_dir))
+        else:
+            self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        
+        if self.task_info.output.get('txt_out_files', None) is None:
+            self.task_info.output['txt_out_files'] = []
+            self.task_info.output['txt_out_files'].append(self.task_info.output['txt_out'])
+        elif isinstance(self.task_info.output['txt_out_files'], list):
+            self.task_info.output['txt_out_files'].append(self.task_info.output['txt_out'])
 
         # Adding local copy files/folders
         geom_path = str(Path(self.geom_fpath).relative_to(self.wf_dir))
@@ -245,15 +273,18 @@ class OctopusTask(Task):
                 self.task_info.output['spectra_file'].append(spectra_fpath)
         
     def update_task_param(self):
-        """ Updates input task parameters to engine-specific parameters
+        """ 
+        Updates input task parameters to engine-specific parameters
         """
-
         task = self.task_name
         copy_input = copy.deepcopy(self.user_input)
         param = {
             'XYZCoordinates' : self.geom_file,
             'FromScratch' : 'yes'
         }
+        if self.restart is True:
+            param.update({'FromScratch': 'no'})
+        
         param_copy = copy.deepcopy(param)
         copy_input.update(param)
 
@@ -276,17 +307,42 @@ class OctopusTask(Task):
             param.update(get_oct_kw_dict(copy_input, task))
             self.user_input = param  
             return      
-            
+
+    def get_restart_log(self, folder:str=Path, fname:str= None):
+        """
+        Method to get updated name of restart file for multiple run.
+        Checks if the {fname}_restart_{i} exists in the folder. 
+        If so,appends suffix index and returns
+        """
+        import re
+        if folder is None:
+            folder = self.task_dir
+        if fname is None:
+            fname = str(self.task_data.get('out_log'))
+
+        r_prefix = fname + '_restart_'
+        r_fname = r_prefix + str(1)
+        fpath = Path(folder)/r_fname
+        
+        if Path.exists(Path(fpath)):
+            _name = Path(fpath).name
+            suff_int = int(re.match('.*?([0-9]+)$', _name).group(1))+1
+            new_r_fname = r_prefix + str(suff_int)
+            new_r_fpath = Path(folder)/new_r_fname
+            return new_r_fpath
+        else:
+            return fpath
+
     #--------------------------------------------------------------------------------------------
 
     def check_run_status(self):
         """Returns run_status bool and returncode value"""
 
         run_status = False
-        if hasattr(self, 'submit_network'):
-            check = self.task_info.network.get('sub_returncode', None)
+        if self.task_info.job_info.submit_mode == 'remote':
+            check = self.task_info.job_info.submit_returncode
         else:
-            check = self.task_info.local.get('returncode', None)
+            check = self.task_info.job_info.job_returncode
         if check is None:
             raise TaskFailed("Job not completed.")
         else:
@@ -307,11 +363,11 @@ class OctopusTask(Task):
         if task == tt.GROUND_STATE:
             folders = ['exec', 'static']
             for item in folders:
-                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item)
+                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item, dirs_exist_ok=True)
         elif task == tt.RT_TDDFT:
             folders = ['td.general']
             for item in folders:
-                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item)
+                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item, dirs_exist_ok=True)
         elif task == tt.COMPUTE_SPECTRUM:              
             folders = ['cross_section_vector']
             for item in folders:
@@ -351,10 +407,9 @@ class OctopusTask(Task):
 
     def create_job_script(self, np=1, remote_path=None):
         
-        job_script = super().create_job_script()      
-        # ofilename = 'log/'+ str(self.task_data['out_log'])
-        task_dir_name = self.task_dir.name
-        ofilename = str(task_dir_name)+ '/'+ str(self.task_data['out_log'])
+        job_script = super().create_job_script()    
+        # task_dir_name = self.task_dir.name
+        ofilename = Path(self.task_info.output['txt_out']).relative_to('octopus')
        
         engine_path = copy.deepcopy(self.engine_path)
         mpi_path = copy.deepcopy(self.mpi_path)
@@ -364,9 +419,12 @@ class OctopusTask(Task):
 
         # Unoccupied state calculation
         if self.task_name == tt.GROUND_STATE and self.user_input['ExtraStates'] != 0:
-                unocc_ofilename = Path(octopus_data['unoccupied_task']['out_log']).relative_to('octopus')
-                extra_cmd = "perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp\n"
-                extra_cmd = extra_cmd + f"{mpi_path} -np {np:d} {str(engine_path)} &> {str(unocc_ofilename)}"
+            unocc_ofilename = (Path(self.task_dir) / 'unocc.log').relative_to(self.engine_dir)
+            if self.restart:
+                unocc_log = self.get_restart_log(folder= str(self.task_dir), fname='unocc.log')
+                unocc_ofilename = Path(self.task_dir/unocc_log).relative_to(self.engine_dir)
+            extra_cmd = "perl -i -p0e 's/CalculationMode = gs/CalculationMode = unocc/s' inp\n"
+            extra_cmd = extra_cmd + f"{mpi_path} -np {np:d} {str(engine_path)} &> {str(unocc_ofilename)}"
                 
         # Absorption Spectrum utility
         if self.task_name == tt.COMPUTE_SPECTRUM:
@@ -407,8 +465,10 @@ class OctopusTask(Task):
 
     def get_engine_log(self):
         """Gets engine log filepath and content, if check_output() returns True"""
-        # out_log = Path(self.output_dir) / self.task_data.get('out_log')
-        out_log = Path(self.task_dir) / self.task_data.get('out_log')
+        
+        # out_log = Path(self.task_dir) / self.task_data.get('out_log')
+        out_rel_path = self.task_info.output['txt_out']
+        out_log = Path(self.wf_dir) / str(out_rel_path)
         if self.check_output():
             return self.read_log(out_log)
 
@@ -506,10 +566,10 @@ class OctopusTask(Task):
                 [proj_obj, population_array] = self.octopus.compute_populations(out_file = population_file, proj=proj_read)
                 
                 calc_population_diff(homo_index=below_homo,infile=population_file, outfile=population_diff_file)
-            self.task_info.local['returncode'] = 0
+            self.task_info.job_info.job_returncode = 0
             # self.local_cmd_out = [0]
         except Exception:
-            self.task_info.local['returncode'] = 1
+            self.task_info.job_info.job_returncode = 1
             # self.local_cmd_out = [1]
 
 
