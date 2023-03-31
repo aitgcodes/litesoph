@@ -165,11 +165,15 @@ class OctopusTask(Task):
         Sets task_dir for current task, creates engine dir and output dir if not exists.
         """
 
-        # Task dir
+        # Engine & Task dir
         self.engine_dir = str(self.wf_dir / 'octopus')
-        task_dir = (Path(self.engine_dir) / self.task_name)
-        self.task_dir = get_new_directory(task_dir)
-        
+        if self.task_info.job_info.directory is None:
+            task_dir = Path(self.engine_dir) / self.task_name
+            self.task_dir = get_new_directory(task_dir)
+            self.task_info.job_info.directory = self.task_dir.relative_to(self.wf_dir)
+        else:
+            self.task_dir = self.wf_dir / self.task_info.job_info.directory
+
         # TODO: Only needed for Octopus simulation
         # Specific to Octopus interfaced tasks
         self.input_filename = 'inp'
@@ -228,16 +232,24 @@ class OctopusTask(Task):
         if self.task_name in self.added_post_processing_tasks:
             return  
 
-        self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
+        # self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
         # Specific to Octopus interfaced tasks 
         self.task_info.input['engine_input']={}
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
         self.task_info.input['engine_input']['path'] = str(self.NAME) +'/'+ self.input_filename
+        
         if self.restart is True:
+            n_restart = self.task_info.task_data.get('nrestart', 0)
             out_log = self.get_restart_log(folder=self.task_dir,fname=self.task_data.get('out_log'))
-            self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / out_log)
+            self.task_info.output['txt_out'] = str(out_log.relative_to(self.wf_dir))
         else:
             self.task_info.output['txt_out'] = str(Path(self.task_dir).relative_to(self.wf_dir) / self.task_data.get('out_log'))
+        
+        if self.task_info.output.get('txt_out_files', None) is None:
+            self.task_info.output['txt_out_files'] = []
+            self.task_info.output['txt_out_files'].append(self.task_info.output['txt_out'])
+        elif isinstance(self.task_info.output['txt_out_files'], list):
+            self.task_info.output['txt_out_files'].append(self.task_info.output['txt_out'])
 
         # Adding local copy files/folders
         geom_path = str(Path(self.geom_fpath).relative_to(self.wf_dir))
@@ -351,11 +363,11 @@ class OctopusTask(Task):
         if task == tt.GROUND_STATE:
             folders = ['exec', 'static']
             for item in folders:
-                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item)
+                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item, dirs_exist_ok=True)
         elif task == tt.RT_TDDFT:
             folders = ['td.general']
             for item in folders:
-                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item)
+                shutil.copytree(Path(self.engine_dir) / item, Path(self.task_dir)/ item, dirs_exist_ok=True)
         elif task == tt.COMPUTE_SPECTRUM:              
             folders = ['cross_section_vector']
             for item in folders:
