@@ -119,7 +119,8 @@ class WorkManagerPage(ttk.Frame):
 
         self.label_message_upload = tk.Label(system_frame, text='', foreground='red')
         self.label_message_upload['font'] = myfont()
-        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)       
+        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)   
+        self.label_message_upload.grid_remove()   
         
         self.button_view = tk.Button(system_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
         self.button_view['font'] = myfont()
@@ -1460,10 +1461,14 @@ class GroundStatePage(View):
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid_remove()
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
-        
+
+    def unset_label_msg(self):
+        hide_message(self.label_msg)
+
     def back_button(self):
         return
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
@@ -1616,6 +1621,7 @@ class TimeDependentPage(View):
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid_remove()
 
     def trace_variables(self,*_):
         for name, var in self.inp.variable.items():
@@ -1623,6 +1629,9 @@ class TimeDependentPage(View):
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
+
+    def unset_label_msg(self):
+        hide_message(self.label_msg)
 
     def get_pol_list(self, pol_var:str):
         assert pol_var in ["X", "Y", "Z"] 
