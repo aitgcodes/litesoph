@@ -293,7 +293,7 @@ class WorkManagerPage(ttk.Frame):
         self.dynamics_type.grid(column=1, row= 0,  pady=10, padx=4)       
         self.dynamics_type['state'] = 'readonly'  
 
-        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Gaussian Pulse', 'Customised Pulse'])
+        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Multiple Pulse', 'Customised Pulse'])
         self.laser_type['font'] = myfont()
         self.laser_type.set('-- laser type--')
         self.laser_type.grid(column=2, row= 0, sticky='nsew',  pady=10, padx=10)       
