@@ -449,7 +449,7 @@ class TaskController:
                     self.job_sub_page.check_jobdone_progressbar()
                 except:
                     AttributeError
-                output=self.task.task_info.local['output']
+                output=self.task.task_info.job_info['output']
                 self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
@@ -516,7 +516,7 @@ class TaskController:
                     self.job_sub_page.check_jobdone_progressbar()
                 except:
                     AttributeError
-                output=self.task.task_info.network['output']
+                output=self.task.task_info.job_info['output']
                 self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
             
