@@ -609,6 +609,7 @@ class PumpProbePostpro(OctopusTask):
     def extract_dm(self, dm_file, index):
         data = np.loadtxt(str(dm_file),comments="#",usecols=(1,3,4,5))      
         dm_axis_data=data[:,[0,index]]  
+        dm_axis_data[:,0]*= 27.12 # time unit conversion to au
         return dm_axis_data
     
     def generate_spectrums(self,damping=None,padding=None):
