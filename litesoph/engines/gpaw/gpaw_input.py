@@ -53,7 +53,8 @@ atoms = read('{geometry}')
 atoms.center(vacuum={vacuum})
 
 #Ground-state calculation
-calc = GPAW(mode='{mode}',
+calc = GPAW(
+    mode='{mode}',
     xc='{xc}',
     occupations = {occupations},
     h={h},  # Angstrom
@@ -75,6 +76,21 @@ atoms.calc = calc
 energy = atoms.get_potential_energy()
 calc.write('{gpw_out}', mode='all')
 """
+
+def formate_gs(kwargs):
+    
+    gs_dict = copy.deepcopy(default_param)
+    gs_dict.update(kwargs)
+    template = copy.deepcopy(gs_template)
+    restart = kwargs.get('restart', False)
+    
+    if restart:
+        tlines = template.splitlines()
+        tlines.insert(11, "restart ='{gpw_out}',")
+        template = """\n""".join(tlines)
+
+    template = template.format(**kwargs)
+    return template
 
 delta_kick_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
@@ -106,6 +122,7 @@ td_calc.write('{gpw_out}', mode='all')
 mask_external_field_template = """
 import numpy as np
 from ase.units import Hartree, Bohr
+from gpaw.lcaotddft.restartfilewriter import RestartFileWriter
 from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField
 from gpaw.lcaotddft import LCAOTDDFT
 from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter
@@ -309,20 +326,30 @@ def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)
     len_masks = 0    
+    restart = kwargs.get('restart', False)
 
     if laser is not None:        
         # mask as a key in laser dictionary
         template = external_field_template.format(**kwargs) 
         lines = template.splitlines()
-        lines[4:4] = generate_laser_text(laser)[0]
-        len_masks = generate_laser_text(laser)[1]
+        if restart:
+            lines.pop(6)
+        else:
+            lines[4:4] = generate_laser_text(laser)[0]
+            len_masks = generate_laser_text(laser)[1]
         template = '\n'.join(lines)
  
     else:   
         template = delta_kick_template.format(**kwargs)
+        lines = template.splitlines()
+        lines[6] = ''
+        template = '\n'.join(lines)
 
     tlines = template.splitlines()
     
+    tlines.insert(0, "from gpaw.lcaotddft.restartfilewriter import RestartFileWriter")
+    tlines.insert(-5, f"RestartFileWriter(td_calc, '{kwargs.get('gpw_out')}')")
+
     if 'dipole' in tools:
         dm_files = kwargs.get('dm_files')
         num_dm_files = len(dm_files)
@@ -360,9 +387,8 @@ def gpaw_create_input(**kwargs):
         return assemable_rt(**kwargs) 
 
     if tt.GROUND_STATE == task_name:
-        gs_dict = copy.deepcopy(default_param)
-        gs_dict.update(kwargs)
-        kwargs = gs_dict
+        return formate_gs(kwargs)
+    
     template = task_map.get(task_name)
     template = template.format(**kwargs)
     return template

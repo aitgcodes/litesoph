@@ -430,7 +430,7 @@ class TaskController:
                 self.job_sub_page.set_run_button_state('active')
                 return
 
-        self.task.set_submit_local(np)
+        self.task.set_submit_local()
         
         try:
             self.task.run_job_local(cmd)
@@ -441,8 +441,8 @@ class TaskController:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             return
         else:
-            if self.task.task_info.local['returncode'] != 0:
-                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.local['error']}")
+            if self.task.task_info.job_info.job_returncode != 0:
+                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.job_info.error}")
             else:
                 try:
                     self.job_sub_page.check_jobdone_progressbar()
@@ -506,16 +506,16 @@ class TaskController:
             self.job_sub_page.set_run_button_state('active')
             return
         else:
-            if self.task.task_info.network['sub_returncode'] != 0:
-                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.network['error']}")
+            if self.task.task_info.job_info.submit_returncode != 0:
+                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.job_info.submit_error}")
             else:
                 try:
                     self.job_sub_page.check_jobdone_progressbar()
                 except:
                     AttributeError
-                output=self.task.task_info.network['output']
+                output=self.task.task_info.job_info.submit_output
                 self.view_panel.insert_text(output, 'disabled')
-                messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.network['output']}")
+                messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.job_info.submit_output}")
             
     def _get_remote_output(self):
         self.task.submit_network.download_output_files()
@@ -543,13 +543,14 @@ class TaskController:
 
     def _on_out_remote_view_button(self, *_):
         
-        check =  self.task.task_info.network.get('sub_returncode', None)
+        check =  self.task.task_info.job_info.submit_returncode
         if check is None:
             messagebox.showinfo(title= "Warning", message="The job is not submitted yet.")
             return
 
         if check != 0:
-            messagebox.showinfo(title= "Warning", message="Error occured during job submission.", detail = f"output:{self.task.task_info.network['output']}")
+            messagebox.showinfo(title= "Warning", message="Error occured during job submission.", 
+                                detail = f"output:{self.task.task_info.job_info.submit_output}")
             return
 
         print("Checking for job completion..")

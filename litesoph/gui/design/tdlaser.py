@@ -8,6 +8,14 @@ from litesoph.gui.design.tools import show_message
 from litesoph.gui.defaults_handler import update_td_laser_defaults
 
 laser_td_input = {
+        "restart": {
+                "tab":"External Fields",
+                "text": "Restart Option",
+                "help": None,
+                "widget": Checkbutton,
+                "default": False
+        },
+        
         "field_type":{
                 "tab":"External Fields",
                 "group": "Choose Options",
@@ -66,6 +74,14 @@ laser_td_input = {
                 "type": int,
                 "default": 10
                 },
+        "restart_steps": {
+                "tab":"Simulation Parameters",
+                "group": "Execution Details",
+                "text": "Restart Write Interval",
+                "help": None,
+                "widget": tk.Entry,
+                "default": 1,
+        },
         "spectrum": {
                 "tab":"Properties",
                 "group": "Observables to extract",
@@ -247,16 +263,14 @@ class TDPage(View):
         return prop_list  
 
     def get_delay_list(self, delay_str:str):
+        """Converts delay string value entries and returns list of float values """
+        from litesoph.gui.design.tools import get_input_list
         delay_values = str(delay_str)
-        delay_list = []
         try:
-            delays = delay_values.split()
-        except:
-            delays = delay_values.split(sep=',') 
-
-        for delay in delays:
-            delay_list.append(float(delay))
-        return delay_list
+            delay_list = get_input_list(input_str= delay_values)
+            return delay_list
+        except ValueError as e:
+            raise e
 
     def check_expt_type(self):
         gui_dict = self.inp.get_values()
@@ -273,13 +287,20 @@ class TDPage(View):
         return self.laser_calc_list
     
     def get_td_gui_inp(self):
+        """
+        Updates TD-gui input parameters from the widgets,
+        Updates pump-probe delay list with validation
+        """
         gui_dict = copy.deepcopy(self.inp.get_values())
 
-        # TODO: Check
-        # Updating delay_list key-value as a list of delays
         if gui_dict.get('delay_list') is not None:
-            gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
-        return gui_dict
+            try:
+                gui_dict.update({'delay_list': self.get_delay_list(gui_dict.get('delay_list'))})
+                return gui_dict
+            except ValueError:
+                raise ValueError('Error with input delay values!')
+        else:
+            return gui_dict
 
     def get_parameters(self):
         gui_dict = copy.deepcopy(self.inp.get_values())
@@ -289,6 +310,8 @@ class TDPage(View):
             'number_of_steps' : gui_dict.get("number_of_steps"),
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
+            'restart': gui_dict.get("restart"),
+            'restart_steps': gui_dict.get("restart_steps")
         }
         return td_input
 

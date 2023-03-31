@@ -5,7 +5,8 @@ kw_types={"str": [ "FromScratch" ,"CalculationMode","UnitsOutput",
             "MaximumIter","Eigensolver","Smearing","SmearingFunction",
             "ConvRelDens","ConvEnergy","ConvAbsEv","ConvRelEv","ConvAbsDens","TDPropagator","TDMaxSteps","TDTimeStep",
             "TDDeltaStrength","TDDeltaKickTime","TDPolarizationDirection","TDOutputComputeInterval", "ParStates",
-            "PropagationSpectrumEnergyStep","PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"],
+            "PropagationSpectrumEnergyStep","PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy",
+            "RestartWriteInterval"],
         "quoted_str": ["WorkDir","XYZCoordinates"],
         "boolean": [],
         "flag": [],
@@ -24,14 +25,15 @@ block_types = {
             "td_out": ["TDOutput","TDOutputComputeInterval", "ParStates"],
             "output": ["Output"],
             "spectrum": ["UnitsOutput", "PropagationSpectrumEnergyStep", 
-            "PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"]
+            "PropagationSpectrumMaxEnergy", "PropagationSpectrumMinEnergy"],
+            "restart": ["RestartWriteInterval"]
             }
 
 task_types = {
-"ground_state": ["calc","common","scf","states","xc_pseudo"],
-"unocc": ["calc","common","scf","states","xc_pseudo"],
-"rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out", "output"],
-"rt_tddft_laser": ["calc","common", "td", "td_laser","td_delta", "td_out", "output"],
+"ground_state": ["calc","common","scf","states","xc_pseudo", "restart"],
+"unocc": ["calc","common","scf","states","xc_pseudo", "restart"],
+"rt_tddft_delta": ["calc","common","states", "xc_pseudo", "td", "td_delta", "td_out", "output","restart"],
+"rt_tddft_laser": ["calc","common", "td", "td_laser","td_delta", "td_out", "output", "restart"],
 "spectrum": ["spectrum"]
 }
 

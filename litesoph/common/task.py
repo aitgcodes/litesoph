@@ -193,10 +193,10 @@ class Task:
         
     def check_output(self):
         
-        if hasattr(self, 'submit_network'):
-            check = self.task_info.network.get('sub_returncode', None)
+        if self.task_info.job_info.submit_mode == 'remote':
+            check = self.task_info.job_info.submit_returncode
         else:
-            check = self.task_info.local.get('returncode', None)
+            check = self.task_info.job_info.job_returncode
         if check is None:
             raise TaskFailed("Job not completed.")
         return True

@@ -16,13 +16,10 @@ class ComputeSpectrum(BaseNwchemTask):
 
 
     def create_engine(self, param):
-        task_dir = self.project_dir / 'nwchem' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
         label = str(self.project_dir.name)
         self.network_done_file = self.task_dir / 'Done'
 
         outfile = self.directory / self.dependent_tasks[0].output.get('txt_out')
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         
         self.nwchem = NWChem(outfile=outfile, 
                         label=label, directory=self.task_dir)
@@ -88,11 +85,7 @@ class ComputeSpectrum(BaseNwchemTask):
 class ComputeAvgSpectrum(BaseNwchemTask):
 
     def create_engine(self, param):
-        task_dir = self.project_dir / 'nwchem' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
-        self.network_done_file = self.task_dir / 'Done'
-        
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+        self.network_done_file = self.task_dir / 'Done'        
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
         self.task_info.output['spectrum_file'] = str(self.averaged_spec_file.relative_to(self.directory))
         self.spectrum_files = []
@@ -120,15 +113,13 @@ class ComputeAvgSpectrum(BaseNwchemTask):
         try:
             self.copmute_average()
         except Exception as e:
-            self.task_info.local.update({'returncode': 1,
-                                        'output' : '',
-                                        'error':str(e)})
-
+            self.task_info.job_info.job_returncode = 1
+            self.task_info.job_info.output = ''
+            self.task_info.job_info.error = str(e)
         else:
-            self.task_info.local.update({'returncode': 0,
-                                        'output' : '',
-                                        'error':''})
-
+            self.task_info.job_info.job_returncode = 0
+            self.task_info.job_info.output = ''
+            self.task_info.job_info.error = ''
 
     def prepare_input(self):
         if not self.task_dir.exists():

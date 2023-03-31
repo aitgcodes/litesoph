@@ -94,19 +94,24 @@ class GpawTask(Task):
         else:
             self.user_input.update(self.params)
 
+        if self.task_info.job_info.directory is None:
+            task_dir = self.directory / 'gpaw' / self.task_name
+            task_dir = get_new_directory(task_dir)
+            self.task_info.job_info.directory = task_dir.relative_to(self.directory)
+
+        self.task_dir = self.directory / self.task_info.job_info.directory
+        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
         self.setup_task(self.user_input)
         
         
 
     def setup_task(self, param):
         infile_ext = '.py'
-        task_dir = self.directory / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)
         input_filename = self.task_data.get('file_name', None)
-        self.task_info.job_info.directory = self.task_dir.relative_to(self.directory)
+        
         self.network_done_file = self.task_dir / 'Done'
         self.task_info.input['engine_input']={}
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
+        
         
         if input_filename:
             self.input_filename = input_filename + infile_ext
@@ -118,6 +123,12 @@ class GpawTask(Task):
             self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / param['txt_out'])
             self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.directory) / param['gpw_out'])
 
+        if param.get('restart', False) and self.task_name in (tt.GROUND_STATE, tt.RT_TDDFT):
+            nrestart = self.task_info.task_data.get('nrestart', 0)
+            nrestart += 1
+            param['txt_out'] = input_filename + '.out' + str(nrestart)
+            self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / param['txt_out'])
+
         if tt.GROUND_STATE in self.task_name:
             geom_path = '../../coordinate.xyz'
             self.task_info.local_copy_files.append('coordinate.xyz')
@@ -125,8 +136,16 @@ class GpawTask(Task):
             return
         
         if  tt.RT_TDDFT in self.task_name:
-            param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
             
+            if param.get('restart', False):
+                param['gfilename'] = param['gpw_out']
+                previous_steps = self.task_info.task_data.get('td_number_of_steps', 0)
+                param['number_of_steps'] = param['number_of_steps'] - previous_steps 
+
+            else:
+                param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
+            
+            self.task_info.task_data['td_number_of_steps'] = param.get('number_of_steps')
             # TODO: add dm files
             dm_list = ['dm.dat']
             num_masks = 0
@@ -291,6 +310,8 @@ def format_gs_input(gen_dict: dict) -> dict:
 
     param_data = gpaw_gs_param_data
     gs_dict = copy.deepcopy(default_param)
+
+    gs_dict['restart'] = gen_dict.get('restart', False)
 
     mode = gen_dict.get('basis_type')
     if mode not in param_data['basis_type']['values']:
@@ -460,13 +481,9 @@ class GpawPostProMasking(GpawTask):
         self.task_info.local_copy_files.extend(masked_dm_fpaths)
 
     def setup_task(self, param):
-        task_dir = self.project_dir / 'gpaw' / self.task_name
-        self.task_dir = get_new_directory(task_dir)  
         self.get_dm_files()
         self.state_mask_dm = False
         self.extract_masked_dm()  
-        self.task_info.local_copy_files.append(str(self.task_dir.relative_to(self.directory)))
-
 
     def get_energy_coupling_constant(self, **kwargs):        
         if not self.state_mask_dm:
