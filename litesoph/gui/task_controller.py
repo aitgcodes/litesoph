@@ -293,9 +293,10 @@ class TaskController:
 
             for count, filetype in enumerate(file_type_combobox.keys()):
 
-                # if  file_name in file_type_combobox[filetype]:
-                match = bool(list(filter(lambda x: fnmatch.fnmatch((file_name), x), file_type_combobox[filetype])))
-                if match == True:
+                filename_match = bool(list(filter(lambda x: fnmatch.fnmatch((file_name), x), file_type_combobox[filetype])))
+                file_ext_match = bool(list(filter(lambda x: fnmatch.fnmatch((file_ext), x), file_type_combobox[filetype])))
+
+                if filename_match == True or file_ext_match==True:
                     list_filetype_keys.append(filetype)
                     list_file_values.append(list_of_files[i])
 

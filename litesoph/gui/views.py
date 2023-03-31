@@ -1134,7 +1134,6 @@ class JobSubPage(ttk.Frame):
         self.job_kill_button['font'] = myfont()
         self.job_kill_button.grid(row=2, column=1,sticky='nsew', padx=2, pady=4)
 
-        
         self.job_track_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
         self.job_track_button['font'] = myfont()
         self.job_track_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)

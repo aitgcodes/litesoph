@@ -12,7 +12,9 @@ transfer_method: <method :'direct_transfer','compress_transfer','split_transfer'
 compression_algo_dict={'lz4':'.lz4', 'zstd':'.zst', 'lzop':'.lzo', 'gzip':'.gz', 'bzip2':'.bz2','p7zip':'.7z',
             'xz':'.xz','pigz':'.gz','plzip':'.lz','pbzip2':'.bz2','lbzip2':'.bz2'}
 
+
 # list of Tags
+####################
 
 # file_relevance
 very_impt=['.out','.log','.xyz','.sh','.py', '.nwi']
@@ -26,16 +28,16 @@ script_generated_outfile=['.nwo','.gpw','.out']
 checkpoint_file=['.db','.movecs','gridpts.0']
 
 ##############################################
-input_script_file=['.sh']
+input_script_file=['.nwi']
 property_file=['.dat']
 coordinate_file=['coordinate.xyz','*.xyz']
 dipole_file=['dm*.dat','multipoles*','dm_masked*']
-energy_coupling=['energy_coupling.dat']
+energy_coupling=['energy_coupling*.dat']
 spectrum_file=['spec*.dat']
-script_output_file=['*.out','*.nwo']
+script_output_file=['g*.out','g.nwo','*.txt']
 
 # add the filetype to the dictionary 
-file_type_combobox={'property_file':property_file,'coordinate_file':coordinate_file,'dipole_file':dipole_file,'energy_coupling':energy_coupling,'spectrum_file':spectrum_file,'script_output_file':script_output_file,'input_script_file':input_script_file}
+file_type_combobox={'coordinate_file':coordinate_file,'dipole_file':dipole_file,'energy_coupling':energy_coupling,'spectrum_file':spectrum_file,'script_output_file':script_output_file,'input_script_file':input_script_file}
 ##############################################
 
 #transfer_method
