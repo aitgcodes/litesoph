@@ -26,12 +26,16 @@ redirected_outfile=['.log']
 script_generated_outfile=['.nwo','.gpw','.out']
 checkpoint_file=['.db','.movecs','gridpts.0']
 
+##############################################
+input_script_file=['.sh']
 property_file=['.dat']
-coordinate_files=['.xyz']
-dipole_files=['dm.dat','multipoles']
-spectrum_files=['spec.dat']
-script_output_files=['gs.out','gs.nwo','td.nwo']
+coordinate_file=['coordinate.xyz']
+dipole_file=['dm.dat','multipoles']
+spectrum_file=['spec.dat']
+script_output_file=['gs.out','gs.nwo','td.nwo']
 
+file_type_combobox={'property_file':property_file,'coordinate_file':coordinate_file,'dipole_file':dipole_file,'spectrum_file':spectrum_file,'script_output_file':script_output_file,'input_script_file':input_script_file}
+##############################################
 
 #transfer_method
 direct_transfer=['.out','.log','.xyz','.sh','.py', '.nwi']
