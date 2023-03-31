@@ -1563,7 +1563,7 @@ class GroundStatePage(View):
         
         gs_input = {
             "restart": gui_dict.get("restart"),
-            "restart_steps": gui_dict.get("restart_steps"),
+            # "restart_steps": gui_dict.get("restart_steps"),
             "xc":gui_dict.get('xc'),  
             "basis_type": basis_type,                                   
             "basis": basis,               
@@ -1665,7 +1665,7 @@ class TimeDependentPage(View):
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
             'restart': gui_dict.get("restart"),
-            'restart_steps': gui_dict.get("restart_steps")
+            # 'restart_steps': gui_dict.get("restart_steps")
         }
         return td_input
     

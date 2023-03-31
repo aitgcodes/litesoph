@@ -35,7 +35,7 @@ def get_gs_dict(gui_inp:dict, geom_file=None):
         "mixing":"Mixing",
         "bands" : "ExtraStates",
         "spin": "SpinComponents",
-        "restart_steps": "RestartWriteInterval"
+        # "restart_steps": "RestartWriteInterval"
         }
 
     _dict = {
@@ -199,7 +199,7 @@ def get_td_dict(inp_dict):
     'TDMaxSteps': inp_dict.pop('number_of_steps'),
     'TDTimeStep':round(t_step*as_to_au, 3),
     'TDOutputComputeInterval': output_freq,
-    "RestartWriteInterval": inp_dict.get("restart_steps"),
+    # "RestartWriteInterval": inp_dict.get("restart_steps"),
     }
 
     # TDOutput & Output Block 
