@@ -131,7 +131,7 @@ class WorkflowController:
 
         simulation_type = [('electrons', 'None', '<<event>>'),
                         ('electrons', 'Delta Pulse',v.TimeDependentPage),
-                        ('electrons', 'Gaussian Pulse', design.TDPage),
+                        ('electrons', 'Multiple Pulse', design.TDPage),
                         ('electrons', 'Customised Pulse', '<<event>>'),
                         ('electron+ion', 'None', '<<event>>'),
                         ('electron+ion', 'Delta Pulse', '<<event>>'),
