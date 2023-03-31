@@ -123,6 +123,12 @@ class GpawTask(Task):
             self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / param['txt_out'])
             self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.directory) / param['gpw_out'])
 
+        if param.get('restart', False) and self.task_name in (tt.GROUND_STATE, tt.RT_TDDFT):
+            nrestart = self.task_info.task_data.get('nrestart', 0)
+            nrestart += 1
+            param['txt_out'] = input_filename + '.out' + str(nrestart)
+            self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / param['txt_out'])
+
         if tt.GROUND_STATE in self.task_name:
             geom_path = '../../coordinate.xyz'
             self.task_info.local_copy_files.append('coordinate.xyz')
@@ -130,8 +136,16 @@ class GpawTask(Task):
             return
         
         if  tt.RT_TDDFT in self.task_name:
-            param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
             
+            if param.get('restart', False):
+                param['gfilename'] = param['gpw_out']
+                previous_steps = self.task_info.task_data.get('td_number_of_steps', 0)
+                param['number_of_steps'] = param['number_of_steps'] - previous_steps 
+
+            else:
+                param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
+            
+            self.task_info.task_data['td_number_of_steps'] = param.get('number_of_steps')
             # TODO: add dm files
             dm_list = ['dm.dat']
             num_masks = 0
@@ -301,6 +315,8 @@ def format_gs_input(gen_dict: dict) -> dict:
 
     param_data = gpaw_gs_param_data
     gs_dict = copy.deepcopy(default_param)
+
+    gs_dict['restart'] = gen_dict.get('restart', False)
 
     mode = gen_dict.get('basis_type')
     if mode not in param_data['basis_type']['values']:

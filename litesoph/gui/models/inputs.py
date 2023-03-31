@@ -194,14 +194,14 @@ gs_input ={
                 "widget": tk.Entry,
                 "type":int
         },
-        "restart_steps": {
-                "tab":"Advanced",
-                "group": "Execution Details",
-                "text": "Restart Write Interval",
-                "help": None,
-                "widget": Entry,
-                "default": 50,
-        },
+        # "restart_steps": {
+        #         "tab":"Advanced",
+        #         "group": "Execution Details",
+        #         "text": "Restart Write Interval",
+        #         "help": None,
+        #         "widget": Entry,
+        #         "default": 50,
+        # },
                 }
 
 
@@ -300,7 +300,7 @@ gs_visible_default = {
         "mixing": True,
         "bands": True,
         "restart": True,
-        "restart_steps": True
+        # "restart_steps": True
 }
 
 td_delta_input ={
@@ -392,14 +392,14 @@ td_delta_input ={
                 "widget": Checkbutton,
                 "default": False
                 },
-        "restart_steps": {
-                "tab":"Properties",
-                "group": "Execution Details",
-                "text": "Restart Write Interval",
-                "help": None,
-                "widget": Entry,
-                "default": 50,
-        },
+        # "restart_steps": {
+        #         "tab":"Properties",
+        #         "group": "Execution Details",
+        #         "text": "Restart Write Interval",
+        #         "help": None,
+        #         "widget": Entry,
+        #         "default": 50,
+        # },
         }
 button_frame_input = {
         "laser_design": {

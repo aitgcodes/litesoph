@@ -256,7 +256,7 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
                 mpi_path = 'mpirun'
             job_script.append(f'{mpi_path} -np {np:d} {engine_cmd}')
         else:
-            job_script.append(f"bash -c 'echo $$;  {engine_cmd}'")
+            job_script.append(f"{engine_cmd}")
             # job_script.append(engine_cmd)
 
     if extra_block:

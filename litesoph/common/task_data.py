@@ -19,7 +19,8 @@ class TaskParamDB:
         pass
 
 
-template_ground_state_parameters = { 
+template_ground_state_parameters = {
+        'restart' : True, 
         "xc":None,               
         "basis_type": None,  
         "basis": None,  
@@ -39,6 +40,7 @@ template_ground_state_parameters = {
 }
 
 template_rt_tddft_parameters = {
+    'restart' : True,
     'strength': 1e-5,
     'polarization': None,
     'time_step': None,

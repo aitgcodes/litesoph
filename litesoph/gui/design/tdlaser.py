@@ -4,7 +4,7 @@ from tkinter import font
 from tkinter.ttk import Spinbox, Checkbutton, Combobox, Button
 
 from litesoph.gui.design.template import View, InputFrame, add_job_frame
-from litesoph.gui.design.tools import show_message
+from litesoph.gui.design.tools import hide_message, show_message
 from litesoph.gui.defaults_handler import update_td_laser_defaults
 
 laser_td_input = {
@@ -74,14 +74,14 @@ laser_td_input = {
                 "type": int,
                 "default": 10
                 },
-        "restart_steps": {
-                "tab":"Simulation Parameters",
-                "group": "Execution Details",
-                "text": "Restart Write Interval",
-                "help": None,
-                "widget": tk.Entry,
-                "default": 1,
-        },
+        # "restart_steps": {
+        #         "tab":"Simulation Parameters",
+        #         "group": "Execution Details",
+        #         "text": "Restart Write Interval",
+        #         "help": None,
+        #         "widget": tk.Entry,
+        #         "default": 1,
+        # },
         "spectrum": {
                 "tab":"Properties",
                 "group": "Observables to extract",
@@ -249,8 +249,10 @@ class TDPage(View):
         self.event_generate('<<Design&EditLaser>>')
 
     def set_label_msg(self,msg):
-        self.label_msg.grid()
         show_message(self.label_msg, msg)
+
+    def unset_label_msg(self):
+        hide_message(self.label_msg)
     
     def get_property_list(self, gui_values:dict):
         prop_list = ['spectrum']
@@ -311,7 +313,7 @@ class TDPage(View):
             'output_freq': gui_dict.get("output_freq"),
             'properties' : self.get_property_list(gui_dict),
             'restart': gui_dict.get("restart"),
-            'restart_steps': gui_dict.get("restart_steps")
+            # 'restart_steps': gui_dict.get("restart_steps")
         }
         return td_input
 

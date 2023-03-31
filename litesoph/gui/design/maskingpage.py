@@ -2,7 +2,7 @@ import imp
 import tkinter as tk
 from tkinter import ttk
 from tkinter import font
-from litesoph.gui.views import View
+from litesoph.gui.design.template import View
 from litesoph.gui.design.tree_design import TreeView, add_columns, update_tree_data
 from litesoph.gui.visual_parameter import myfont, myfont2
 from litesoph.gui import actions
