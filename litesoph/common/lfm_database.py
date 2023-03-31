@@ -29,12 +29,16 @@ checkpoint_file=['.db','.movecs','gridpts.0']
 ##############################################
 input_script_file=['.sh']
 property_file=['.dat']
-coordinate_file=['coordinate.xyz']
-dipole_file=['dm.dat','multipoles']
+coordinate_file=['coordinate.xyz','*.xyz']
+dipole_file=['dm*.dat','multipoles*','dm_masked*']
+energy_coupling=['energy_coupling.dat']
+
+
+
 spectrum_file=['spec.dat']
 script_output_file=['gs.out','gs.nwo','td.nwo']
 
-file_type_combobox={'property_file':property_file,'coordinate_file':coordinate_file,'dipole_file':dipole_file,'spectrum_file':spectrum_file,'script_output_file':script_output_file,'input_script_file':input_script_file}
+file_type_combobox={'property_file':property_file,'coordinate_file':coordinate_file,'dipole_file':dipole_file,'energy_coupling':energy_coupling,'spectrum_file':spectrum_file,'script_output_file':script_output_file,'input_script_file':input_script_file}
 ##############################################
 
 #transfer_method
@@ -81,7 +85,7 @@ def lfm_file_info_dict():
             add_element(lfm_file_info[file], 'file_relevance', 'least_impt')
         else:
             add_element(lfm_file_info[file], 'file_relevance',None)
-      
+
         if (file in input_file):
             add_element(lfm_file_info[file], 'file_type', 'input_file')
             add_element(lfm_file_info[file], 'subfiletype', input_file[file]['subfiletype'])

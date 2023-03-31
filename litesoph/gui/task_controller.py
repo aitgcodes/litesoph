@@ -208,7 +208,7 @@ class TaskController:
         choose_file['values'] = list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)        
-        self.job_sub_page.plot_file_button.config(state='active')
+        # self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
     
     def _on_view_specific_file_local(self):        
@@ -278,6 +278,7 @@ class TaskController:
             
     def encode_decode_combobox_items(self,list_of_files):
         import pathlib
+        import fnmatch
         from litesoph.common.lfm_database import file_type_combobox
 
         list_filetype_keys=[]
@@ -292,7 +293,9 @@ class TaskController:
 
             for count, filetype in enumerate(file_type_combobox.keys()):
 
-                if  file_name in file_type_combobox[filetype]:
+                # if  file_name in file_type_combobox[filetype]:
+                match = bool(list(filter(lambda x: fnmatch.fnmatch((file_name), x), file_type_combobox[filetype])))
+                if match == True:
                     list_filetype_keys.append(filetype)
                     list_file_values.append(list_of_files[i])
 
