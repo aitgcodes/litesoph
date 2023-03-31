@@ -123,6 +123,12 @@ class GpawTask(Task):
             self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / param['txt_out'])
             self.task_info.output['gpw_out'] = str(self.task_dir.relative_to(self.directory) / param['gpw_out'])
 
+        if param.get('restart', False) and self.task_name in (tt.GROUND_STATE, tt.RT_TDDFT):
+            nrestart = self.task_info.task_data.get('nrestart', 0)
+            nrestart += 1
+            param['txt_out'] = input_filename + '.out' + str(nrestart)
+            self.task_info.output['txt_out'] = str(self.task_dir.relative_to(self.directory) / param['txt_out'])
+
         if tt.GROUND_STATE in self.task_name:
             geom_path = '../../coordinate.xyz'
             self.task_info.local_copy_files.append('coordinate.xyz')
@@ -296,6 +302,8 @@ def format_gs_input(gen_dict: dict) -> dict:
 
     param_data = gpaw_gs_param_data
     gs_dict = copy.deepcopy(default_param)
+
+    gs_dict['restart'] = gen_dict.get('restart', False)
 
     mode = gen_dict.get('basis_type')
     if mode not in param_data['basis_type']['values']:

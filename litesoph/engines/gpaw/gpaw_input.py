@@ -53,7 +53,8 @@ atoms = read('{geometry}')
 atoms.center(vacuum={vacuum})
 
 #Ground-state calculation
-calc = GPAW(mode='{mode}',
+calc = GPAW(
+    mode='{mode}',
     xc='{xc}',
     occupations = {occupations},
     h={h},  # Angstrom
@@ -75,6 +76,21 @@ atoms.calc = calc
 energy = atoms.get_potential_energy()
 calc.write('{gpw_out}', mode='all')
 """
+
+def formate_gs(kwargs):
+    
+    gs_dict = copy.deepcopy(default_param)
+    gs_dict.update(kwargs)
+    template = copy.deepcopy(gs_template)
+    restart = kwargs.get('restart', False)
+    
+    if restart:
+        tlines = template.splitlines()
+        tlines.insert(11, "restart ='{gpw_out}',")
+        template = """\n""".join(tlines)
+
+    template = template.format(**kwargs)
+    return template
 
 delta_kick_template = """ 
 from gpaw.lcaotddft import LCAOTDDFT
@@ -360,9 +376,8 @@ def gpaw_create_input(**kwargs):
         return assemable_rt(**kwargs) 
 
     if tt.GROUND_STATE == task_name:
-        gs_dict = copy.deepcopy(default_param)
-        gs_dict.update(kwargs)
-        kwargs = gs_dict
+        return formate_gs(kwargs)
+    
     template = task_map.get(task_name)
     template = template.format(**kwargs)
     return template
