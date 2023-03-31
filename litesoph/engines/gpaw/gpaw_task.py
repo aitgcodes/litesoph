@@ -136,8 +136,16 @@ class GpawTask(Task):
             return
         
         if  tt.RT_TDDFT in self.task_name:
-            param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
             
+            if param.get('restart', False):
+                param['gfilename'] = param['gpw_out']
+                previous_steps = self.task_info.task_data.get('td_number_of_steps', 0)
+                param['number_of_steps'] = param['number_of_steps'] - previous_steps 
+
+            else:
+                param['gfilename'] = str(Path.joinpath(self.relative_path, self.dependent_tasks[0].output.get('gpw_out')))
+            
+            self.task_info.task_data['td_number_of_steps'] = param.get('number_of_steps')
             # TODO: add dm files
             dm_list = ['dm.dat']
             num_masks = 0
