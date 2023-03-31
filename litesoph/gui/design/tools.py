@@ -6,8 +6,13 @@ from litesoph.common.data_sturcture.data_types import DataTypes as DT
 def show_message(label_name, message):
     """ Shows a update """
 
+    label_name.grid()
     label_name['text'] = message
     label_name['foreground'] = 'black'
+
+def hide_message(label_name):
+    """ Hides a tkinter widget"""
+    label_name.grid_remove()
 
 def var_define(var_dict:dict):
     var_def_dict ={}

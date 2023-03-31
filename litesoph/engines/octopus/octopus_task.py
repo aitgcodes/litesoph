@@ -53,7 +53,6 @@ octopus_data = {
                 'output': ['avg_spectrum.dat'],
                 'spectra_file': ['cross_section_tensor','cross_section_vector.1', 
                         'cross_section_vector.2', 'cross_section_vector.3']
-                # 'copy_list': ['cross_section_vector']
                 },
                 
     tt.TCM: {'inp': None,
@@ -61,34 +60,7 @@ octopus_data = {
 
     tt.MO_POPULATION:{'inp': None,
         'dir': 'population',
-        'population_file': 'population.dat'},
-    
-    # "rt_tddft_delta": {'inp':general_input_file,
-    #                 'task_inp': 'td_delta.inp',
-    #                 'out_log': 'delta.log',
-    #                 'req' : ['coordinate.xyz'],
-    #                 'check_list':['Finished writing information', 'Calculation ended']},   
-
-    # "rt_tddft_laser": {'inp':general_input_file,
-    #                 'task_inp': 'td_laser.inp',
-    #                 'out_log': f'{engine_log_dir}/laser.log',
-    #                 'req' : ['coordinate.xyz']},
-            
-    # "tcm": {'inp': None,
-    #         'req':[f'{engine_dir}/static/info',
-    #         f'{engine_dir}/td.general/projections'],
-    #         'dir': 'ksd',
-    #         'ksd_file': f'{engine_dir}/ksd/transwt.dat'},
-
-    # "ksd": {'inp': f'{engine_dir}/ksd/oct.inp',
-    #     'req':[f'{engine_dir}/static/info',
-    #     f'{engine_dir}/td.general/projections'],
-    #     'ksd_file': f'{engine_dir}/ksd/transwt.dat'}
-    # tt.MO_POPULATION:{'inp': None,
-        # 'req':[f'{engine_dir}/static/info',
-        # f'{engine_dir}/td.general/projections'],
-        # 'dir': 'population',
-        # 'population_file': 'population.dat'},          
+        'population_file': 'population.dat'},      
 }
 
 class OctopusTask(Task):
@@ -174,7 +146,7 @@ class OctopusTask(Task):
         else:
             self.task_dir = self.wf_dir / self.task_info.job_info.directory
 
-        # TODO: Only needed for Octopus simulation
+        # Only needed for Octopus simulation
         # Specific to Octopus interfaced tasks
         self.input_filename = 'inp'
         self.task_input_filename = self.task_data.get('task_inp', 'inp')       
@@ -232,7 +204,6 @@ class OctopusTask(Task):
         if self.task_name in self.added_post_processing_tasks:
             return  
 
-        # self.task_info.job_info.directory = Path(self.engine_dir).relative_to(self.wf_dir)
         # Specific to Octopus interfaced tasks 
         self.task_info.input['engine_input']={}
         self.task_info.input['geom_file'] = Path(self.geom_fpath).relative_to(self.wf_dir)
@@ -355,7 +326,7 @@ class OctopusTask(Task):
     def post_run(self):
         """Handles copying output folders to task directory from octopus specific folder structure
         for local run"""
-        # TODO: log folder to be removed
+        
         log_files = list(Path(self.output_dir).iterdir())
         for log in log_files:
             shutil.copy(Path(self.output_dir)/log, Path(self.task_dir))
@@ -407,8 +378,7 @@ class OctopusTask(Task):
 
     def create_job_script(self, np=1, remote_path=None):
         
-        job_script = super().create_job_script()    
-        # task_dir_name = self.task_dir.name
+        job_script = super().create_job_script()  
         ofilename = Path(self.task_info.output['txt_out']).relative_to('octopus')
        
         engine_path = copy.deepcopy(self.engine_path)
@@ -466,7 +436,6 @@ class OctopusTask(Task):
     def get_engine_log(self):
         """Gets engine log filepath and content, if check_output() returns True"""
         
-        # out_log = Path(self.task_dir) / self.task_data.get('out_log')
         out_rel_path = self.task_info.output['txt_out']
         out_log = Path(self.wf_dir) / str(out_rel_path)
         if self.check_output():
@@ -513,7 +482,6 @@ class OctopusTask(Task):
             above_lumo_plot = kwargs.get('num_unoccupied_mo_plot',1)
             population_diff_file = self.task_dir/'population_diff.dat'
             homo_index = self.user_input['num_occupied_mo']
-            # self.occ = self.octopus.read_info()[0] 
 
             column_range = (homo_index-below_homo_plot+1, homo_index+above_lumo_plot)
             legend_dict = create_states_index(num_below_homo=below_homo_plot, 
@@ -567,11 +535,8 @@ class OctopusTask(Task):
                 
                 calc_population_diff(homo_index=below_homo,infile=population_file, outfile=population_diff_file)
             self.task_info.job_info.job_returncode = 0
-            # self.local_cmd_out = [0]
         except Exception:
             self.task_info.job_info.job_returncode = 1
-            # self.local_cmd_out = [1]
-
 
 class OctAveragedSpectrum(OctopusTask):
     """Added Post-Processing Class to compute Averaged Spectrum"""
