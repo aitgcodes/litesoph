@@ -5,8 +5,24 @@
 
 import copy
 import numpy as np
-
+from litesoph.common.task import InputError
 from litesoph.utilities.units import as_to_au
+
+# xc_pseudo maps for Octopus
+xc_pseudo ={
+        "lda":["lda_x + lda_c_pz_mod", "standard"],
+        "pbe":["gga_x_pbe + gga_c_pbe", "pseudodojo_pbe"],
+        "pbe0":["hyb_gga_xc_pbeh", "pseudodojo_pbe"],
+        "pbesol":["hyb_gga_xc_pbe_sol0", "pseudodojo_pbe"],
+        # "blyp":["gga_xc_oblyp_d", None],
+        # "b3lyp":["hyb_gga_xc_b3lyp", None],
+        # "camy-blyp":["hyb_gga_xc_camy_blyp", None],
+        
+    }
+# ExptFeatures check
+pseudo_expt = {'yes' :["pseudodojo_lda","hscv_lda","pseudodojo_lda_stringent",
+                            "pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_pbe"],
+                'no':["standard", "hgh_lda_sc","hgh_lda"]}
 
 def get_gs_dict(gui_inp:dict, geom_file=None):
     key2key = {
@@ -50,8 +66,12 @@ def get_gs_dict(gui_inp:dict, geom_file=None):
                                 **copy_inp)
                     _dict.update(sim_box)               
                 if key == "xc":
-                    _dict.update(get_xc_pseudo(xc_str=xc)) 
-    
+                    try:
+                        xc_pseudo_dict = get_xc_pseudo(xc_str=xc)
+                        _dict.update(xc_pseudo_dict) 
+                    except InputError as e:
+                        raise e
+                        
     spacing_value = _dict.get("Spacing")
     _dict.update({"Spacing": str(spacing_value)+'*angstrom'})
     return _dict
@@ -118,14 +138,6 @@ def get_box_dim(geom_file,_boxshape:str,_from_vacuum=False, **kwargs):
 
 def get_xc_pseudo(xc_str:str):
     _xc = xc_str.lower()
-    xc_pseudo ={
-        "lda":["lda_x + lda_c_pz_mod", "standard"],
-        "pbe":["gga_x_pbe + gga_c_pbe", "pseudodojo_pbe"]
-    }
-    pseudo_expt = {'yes' :["pseudodojo_lda","hscv_lda","pseudodojo_lda_stringent",
-                                "pseudodojo_pbe","pseudodojo_pbe_stringent","pseudodojo_pbesol","pseudodojo_pbesol_stringent","sg15", "hscv_pbe"],
-                    'no':["standard", "hgh_lda_sc","hgh_lda"]
-                    }
     if _xc in xc_pseudo.keys():
         xc = xc_pseudo.get(_xc)[0]
         pseudo = xc_pseudo.get(_xc)[1]
@@ -138,7 +150,10 @@ def get_xc_pseudo(xc_str:str):
         "XCFunctional": xc,
         "PseudopotentialSet" : pseudo,    
         }
-    return xc_dict
+        return xc_dict
+    else:
+        raise InputError(f'XC not assigned for:{xc_str}')
+    
     
 #---------------------------------------------------------------------------------------------------------------
 pol_list2dir = [([1,0,0], 1),

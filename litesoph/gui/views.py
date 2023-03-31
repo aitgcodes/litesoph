@@ -12,80 +12,9 @@ from litesoph.gui.input_validation import EntryPattern, Onlydigits, Decimalentry
 from litesoph.gui.visual_parameter import myfont, myfont1, myfont2, label_design, myfont15
 from litesoph.common.models import AutoModeModel
 from litesoph.gui.models import inputs as inp
+from litesoph.gui.design.template import View, add_job_frame
+from litesoph.gui.design.tools import show_message, hide_message, var_define, set_state
 import threading
-
-
-def show_message(label_name, message):
-    """ Shows a update """
-
-    label_name['text'] = message
-    label_name['foreground'] = 'black'
-
-def var_define(var_dict:dict):
-    var_def_dict ={}
-    for key, type_value in var_dict.items():
-        type = type_value[0]
-        try:
-            value = type_value[1]
-            if type == 'str':
-                var ={ key : tk.StringVar(value=value)}
-            elif type == 'int':
-                var ={ key : tk.IntVar(value=value)}
-            elif type == 'float':
-                var ={ key : tk.DoubleVar(value=value)}
-        except IndexError:
-            if type == 'str':
-                var ={ key : tk.StringVar()}
-            elif type == 'int':
-                var ={ key : tk.IntVar()}
-            elif type == 'float':
-                var ={ key : tk.DoubleVar()}   
-         
-        var_def_dict.update(var)
-    return var_def_dict
-
-def define_tk_var(var_dict:dict):
-
-    var_def_dict ={}
-    var_type = {
-        DT.boolean : tk.BooleanVar,
-        DT.integer : tk.IntVar,
-        DT.string : tk.StringVar,
-        DT.decimal : tk.DoubleVar
-    }
-    for key, value in var_dict.items():
-        #type = value['type']
-        
-        vtype = var_type.get(value['type'], tk.StringVar)
-        try:
-            v = value['default_value']
-        except KeyError:
-            v = ''
-        var_def_dict[key] = vtype(value=v) 
-    return var_def_dict
-
-def add_tabs(parent, *args, **kwargs):
-    style = ttk.Style()
-    notebook = ttk.Notebook(parent)
-    notebook.pack(fill=tk.BOTH, expand=True)
-    # notebook.grid(row=0,column=0, sticky='nsew')
-    style.configure("TNotebook.Tab",font=('Helvetica','10'))
-   
-    tabs_dict = kwargs.get('Tabs')        
-    if isinstance(tabs_dict, dict):
-        for key,value in tabs_dict.items():
-            setattr(parent, key, ttk.Frame(notebook))
-            notebook.add(getattr(parent,key), text = value) 
-
-def set_state(widget, state):
-    if widget.winfo_children():
-        for child in widget.winfo_children():        
-            if isinstance(child, ttk.Frame):
-                set_state(child, state)
-            else:
-                child.configure(state = state)      
-    else:
-        widget.configure(state = state)   
 
 class StartPage(ttk.Frame):
 
@@ -190,7 +119,8 @@ class WorkManagerPage(ttk.Frame):
 
         self.label_message_upload = tk.Label(system_frame, text='', foreground='red')
         self.label_message_upload['font'] = myfont()
-        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)       
+        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)   
+        self.label_message_upload.grid_remove()   
         
         self.button_view = tk.Button(system_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
         self.button_view['font'] = myfont()
@@ -363,7 +293,7 @@ class WorkManagerPage(ttk.Frame):
         self.dynamics_type.grid(column=1, row= 0,  pady=10, padx=4)       
         self.dynamics_type['state'] = 'readonly'  
 
-        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Gaussian Pulse', 'Customised Pulse'])
+        self.laser_type = ttk.Combobox(sim_sub_task_frame, width= 13, textvariable=self._var['laser'], value = ['None', 'Delta Pulse', 'Multiple Pulse', 'Customised Pulse'])
         self.laser_type['font'] = myfont()
         self.laser_type.set('-- laser type--')
         self.laser_type.grid(column=2, row= 0, sticky='nsew',  pady=10, padx=10)       
@@ -489,87 +419,7 @@ class SystemInfoPage(ttk.Frame):
 
     def set_parameters(self):
         pass
-    
-class View(ttk.Frame):
-
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-
-        self.parent = parent
-        self.job = None
-
-        self.myFont = font.Font(family='Helvetica', size=10, weight='bold')
-
-        self.input_param_frame= ttk.Frame(self, borderwidth=2, relief='groove')
-        self.property_frame = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.submit_button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
-        self.save_button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
-
-        self.input_param_frame.pack(fill=tk.BOTH, anchor='n', expand=True)
-        self.property_frame.pack(fill=tk.BOTH, anchor='n', expand=True)
-        self.save_button_frame.pack( fill=tk.BOTH, anchor='n')
-        self.submit_button_frame.pack(side=tk.BOTTOM, anchor='e')
-
-    def clear_widgets(self):
-        f_list = [self.input_param_frame.winfo_children, 
-                self.property_frame.winfo_children,
-                self.submit_button_frame.winfo_children,
-                self.save_button_frame.winfo_children]
-
-        for frame in f_list:
-            for widget in frame():
-                widget.destroy()
-
-    def set_sub_button_state(self,state):
-        self.sublocal_Button.config(state=state)
-        self.subnet_Button.config(state=state)
-
-def add_job_frame(obj, parent, task_name, row:int=0, column:int=0):  
-    """  Adds submit job buttons """
-
-    submit_frame = ttk.Frame(parent,borderwidth=2, relief='groove')
-    submit_frame.grid(row=row, column=column, sticky='nswe')
-
-    obj.sublocal_Button = tk.Button(submit_frame, text="Submit Local", activebackground="#78d6ff", command=lambda: obj.event_generate('<<SubLocal'+task_name+'>>'))
-    obj.sublocal_Button['font'] = myfont()
-    obj.sublocal_Button.grid(row=1, column=2,padx=3, pady=6, sticky='nsew')
-    
-    obj.subnet_Button = tk.Button(submit_frame, text="Submit Network", activebackground="#78d6ff", command=lambda: obj.event_generate('<<SubNetwork'+task_name+'>>'))
-    obj.subnet_Button['font'] = myfont()
-    obj.subnet_Button.grid(row=2, column=2, padx=3, pady=6, sticky='nsew')
-
-def property_frame(obj, parent, myFont, spectra_var, ksd_var, pop_var, output_freq_var, row=0, column=0):
-
-    frame_property = ttk.Frame(parent)
-    frame_property.grid(row=0, column=0)
-
-    obj.property_note = tk.Label(frame_property, text="Note: Please choose properties to be extracted in post-processing", fg="black")
-    obj.property_note['font'] = myFont
-    obj.property_note.grid(row=0, column=0)
-
-    obj.checkbox_spectra = tk.Checkbutton(frame_property, text="Absorption Spectrum", variable= spectra_var, font=myFont, onvalue=1)
-    obj.checkbox_spectra.grid(row=1, column=0, ipady=5, sticky='w')
-    
-    frame_spec_option = ttk.Frame(frame_property)
-    frame_spec_option.grid(row=2, column=0, sticky='w')
-
-    obj.checkbox_ksd = tk.Checkbutton(frame_property, text="Kohn Sham Decomposition", variable=ksd_var, font=myFont, onvalue=1, offvalue=0)
-    obj.checkbox_ksd.grid(row=3, column=0, ipady=5, sticky='w')
-    
-    obj.checkbox_pc = tk.Checkbutton(frame_property, text="Population Correlation", variable=pop_var, font=myFont, onvalue=1, offvalue=0)
-    obj.checkbox_pc.grid(row=4, column=0, ipady=5, sticky='w')
-
-    frame_output_freq = ttk.Frame(frame_property)
-    frame_output_freq.grid(row=5, column=0, sticky='w')
-
-    obj.Frame2_lab = tk.Label(frame_output_freq, text="Frequency of data collection", fg="black")
-    obj.Frame2_lab['font'] = myFont
-    obj.Frame2_lab.grid(row=0, column=0,sticky='w')
-
-    obj.entry_out_frq = Onlydigits(frame_output_freq, textvariable=output_freq_var, width=5)
-    obj.entry_out_frq['font'] = myFont
-    obj.entry_out_frq.grid(row=0, column=1,sticky='w')
-
+ 
 class PlotSpectraPage(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
@@ -1611,10 +1461,14 @@ class GroundStatePage(View):
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid_remove()
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
-        
+
+    def unset_label_msg(self):
+        hide_message(self.label_msg)
+
     def back_button(self):
         return
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
@@ -1767,6 +1621,7 @@ class TimeDependentPage(View):
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
         self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid_remove()
 
     def trace_variables(self,*_):
         for name, var in self.inp.variable.items():
@@ -1774,6 +1629,9 @@ class TimeDependentPage(View):
 
     def set_label_msg(self,msg):
         show_message(self.label_msg, msg)
+
+    def unset_label_msg(self):
+        hide_message(self.label_msg)
 
     def get_pol_list(self, pol_var:str):
         assert pol_var in ["X", "Y", "Z"] 

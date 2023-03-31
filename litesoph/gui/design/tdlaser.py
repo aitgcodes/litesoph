@@ -4,7 +4,7 @@ from tkinter import font
 from tkinter.ttk import Spinbox, Checkbutton, Combobox, Button
 
 from litesoph.gui.design.template import View, InputFrame, add_job_frame
-from litesoph.gui.design.tools import show_message
+from litesoph.gui.design.tools import hide_message, show_message
 from litesoph.gui.defaults_handler import update_td_laser_defaults
 
 laser_td_input = {
@@ -249,8 +249,10 @@ class TDPage(View):
         self.event_generate('<<Design&EditLaser>>')
 
     def set_label_msg(self,msg):
-        self.label_msg.grid()
         show_message(self.label_msg, msg)
+
+    def unset_label_msg(self):
+        hide_message(self.label_msg)
     
     def get_property_list(self, gui_values:dict):
         prop_list = ['spectrum']
