@@ -65,6 +65,7 @@ class TaskController:
 
     def show_task_view(self):
         self.task_view.tkraise()
+        self.task_view.unset_label_msg() 
 
     def generate_input(self, *_):
         
@@ -101,17 +102,6 @@ class TaskController:
         self.view_panel.insert_text(text=txt, state='normal')
         self.bind_task_events()
 
-        # check = messagebox.askokcancel(title='Input parameters selected', message= dict2string(inp_dict))
-        # if not check:
-        #     return
-        
-        # self.task_info.param.update(inp_dict)
-        # self.task = self.workflow_manager.get_engine_task()
-        # self.task.create_input()
-        # txt = self.task.get_engine_input()
-        # self.view_panel.insert_text(text=txt, state='normal')
-        # self.bind_task_events()
-    
 
     @staticmethod
     def _check_task_run_condition(task, network=False) -> bool:
@@ -176,7 +166,7 @@ class TaskController:
         if not self._check_task_run_condition(self.task):
             messagebox.showerror(message="Input not saved. Please save the input before job submission")
             return
-       
+
         self.job_sub_page.back2main.config(command= self.workflow_controller.show_workmanager_page)
         self.job_sub_page.view_output_button.config(command= self._on_out_local_view_button)        
         self.job_sub_page.show_run_local(self._on_create_local_job_script,
@@ -184,9 +174,10 @@ class TaskController:
                                         self._run_local)
         
         self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
-                                        self._on_check_file_status_local,
-                                        self._on_view_specific_file_local,
-                                        self._on_plot_file_local)
+                                            self._on_kill_job_local,
+                                            self._on_check_file_status_local,
+                                            self._on_view_specific_file_local,
+                                            self._on_plot_file_local)
 
         self.job_sub_page.set_run_button_state('disable')        
         self.job_sub_page.tkraise()
@@ -208,7 +199,7 @@ class TaskController:
         choose_file['values'] = list_of_files
         choose_file.current()
         self.combobox_selected_file=choose_file.bind("<<ComboboxSelected>>",self.selection_changed)        
-        self.job_sub_page.plot_file_button.config(state='active')
+        # self.job_sub_page.plot_file_button.config(state='active')
         self.job_sub_page.download_specific_file_button.config(state='active')
     
     def _on_view_specific_file_local(self):        
@@ -221,27 +212,27 @@ class TaskController:
             messagebox.showinfo(title='Info', message="First Select the File") 
         self.view_panel.insert_text(message, 'disabled')
 
+    def _on_kill_job_local(self):
+    
+        job_id=self.job_sub_page.job_id.get()            
+        scheduler=self.job_sub_page.sub_command.get()
+        scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
+        scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
+
+        if job_id == None:
+            messagebox.showinfo(title='Info', message="Enter Job ID first")                  
+        else:
+            try:
+                error, message=self.task.submit_local.kill_job_local(job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd)                
+            except TaskFailed:
+                messagebox.showinfo(title='Info', message=error)                    
+            messagebox.showinfo(title='Info', message=message)   
+            self.job_sub_page.progressbar.stop()
+            self.job_sub_page.change_progressbar_status('Job Killed')
+            
     def _on_plot_file_local(self):   
         from litesoph.visualization import ls_viz_app
-
         ls_viz_app.LSVizApp(self.main_window).run()
-
-        
-        
-        # import os        
-        # try:
-        #     if os.path.exists(self.selected_file)==True:
-        #         cmd=f'xmgrace {self.selected_file}'
-        #         # cmd=f'"/home/anandsahu/softwares/visit_visualization/bin/visit" {file}'
-        #         os.system(cmd)
-        #     else:
-        #         messagebox.showinfo(title='Info', message="File not found")
-        # except ValueError:
-        #     messagebox.showinfo(title='Info', message="Cannot plot selected File")   
-        # except FileNotFoundError:
-        #     messagebox.showinfo(title='Info', message="File not found")  
-        # except AttributeError:
-        #     messagebox.showinfo(title='Info', message="First Select the File")                    
             
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive(): 
@@ -256,52 +247,55 @@ class TaskController:
         title="New Selection",
         message=f"Selected option: {self.selected_file}")
         
+    def rename_duplicates(self,lst): 
+        seen = set() 
+        new_lst = [] 
+    
+        for item in lst: 
+            if item not in seen: 
+                seen.add(item) 
+                new_lst.append(item) 
+            else: 
+                new_item = item + '_1'   # append a suffix to make it unique  
+    
+                while new_item in seen:   # increment the suffix until it's unique  
+                    suffix = int(new_item.split('_')[-1]) + 1   # get the last number and add one to it  
+                    new_item = '{}_{}'.format('_'.join(new_item.split('_')[:-1]), suffix)
+    
+                seen.add(new_item)     # add the newly created item to the set of seen items  
+                new_lst.append(new_item)     # append the newly created item to the list
+    
+        return new_lst
+            
     def encode_decode_combobox_items(self,list_of_files):
         import pathlib
-        from litesoph.common.lfm_database import coordinate_files,dipole_files,spectrum_files,script_output_files
+        import fnmatch
+        from litesoph.common.lfm_database import file_type_combobox
 
-        mapped_dict={}
+        list_filetype_keys=[]
+        list_file_values=[]
 
-        i = 0
-        coordinate_count=0
-        dipole_count=0
-        spectrum_file_count=0
-        script_output_count=0
-
-        while i < len(list_of_files):
-            
+        for i in range(len(list_of_files)):   
+        
             file_path=pathlib.Path(list_of_files[i]).parent
             last_folder_name=pathlib.Path(list_of_files[i]).parent.name
             file_name=pathlib.Path(list_of_files[i]).name
             file_ext=pathlib.Path(list_of_files[i]).suffix
-            
-            if  file_ext in coordinate_files:                
-                coordinate_file=f'coordinate_file_{coordinate_count+1}'
-                mapped_dict[coordinate_file] = list_of_files[i]
-                list_of_files[i] = coordinate_file            
-                coordinate_count+=1    
-        
-            if  file_name in dipole_files:
-                dipole_file=f'dipole-file-{dipole_count+1}'
-                mapped_dict[dipole_file] = list_of_files[i]
-                list_of_files[i] = dipole_files            
-                dipole_count+=1    
-            
-            if  file_name in spectrum_files:
-                spectrum_file=f'spectrum-file-{spectrum_file_count+1}'
-                mapped_dict[spectrum_file] = list_of_files[i]
-                list_of_files[i] = spectrum_files            
-                spectrum_file_count+=1    
-            
-            if  file_name in script_output_files:
-                file=f'script-output-{script_output_count+1}'
-                mapped_dict[file] = list_of_files[i]
-                list_of_files[i] = script_output_files            
-                script_output_count+=1    
-                                    
-            i += 1
+
+            for count, filetype in enumerate(file_type_combobox.keys()):
+
+                filename_match = bool(list(filter(lambda x: fnmatch.fnmatch((file_name), x), file_type_combobox[filetype])))
+                file_ext_match = bool(list(filter(lambda x: fnmatch.fnmatch((file_ext), x), file_type_combobox[filetype])))
+
+                if filename_match == True or file_ext_match==True:
+                    list_filetype_keys.append(filetype)
+                    list_file_values.append(list_of_files[i])
+
+        list_filetype_keys=self.rename_duplicates(list_filetype_keys)
+        mapped_dict = dict(zip(list_filetype_keys, list_file_values))
+
         return mapped_dict
-            
+    
     def _on_check_file_status_remote(self):    
 
         try:
@@ -321,7 +315,7 @@ class TaskController:
         
         self.job_sub_page.download_specific_file_button.config(state='active')
         self.job_sub_page.view_file_button.config(state='active')
-        self.job_sub_page.plot_file_button.config(state='active')
+        # self.job_sub_page.plot_file_button.config(state='active')
         messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
 
     def _on_check_job_status_remote(self):
@@ -347,8 +341,7 @@ class TaskController:
                 messagebox.showinfo(title='Info', message=error)                    
             messagebox.showinfo(title='Info', message=message)   
             self.job_sub_page.progressbar.stop()
-            label_progressbar = tk.Label(self.job_sub_page.Frame1, text="Job Killed ",font=('Helvetica', 14, 'bold'), bg='gray', fg='black')
-            label_progressbar.grid(row=4, column=0,sticky='nsew')
+            self.job_sub_page.change_progressbar_status('Job Killed')
 
     def _on_download_all_files(self):
         try:
@@ -410,7 +403,8 @@ class TaskController:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
     def _run_local(self, np=None):
-
+        self.job_sub_page.forget_progressbar_status()
+        
         if np:
             sub_job_type = 0
             cmd = 'bash'
@@ -446,9 +440,11 @@ class TaskController:
                 messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.job_info.error}")
             else:
                 try:
-                    self.job_sub_page.check_jobdone_progressbar()
+                    self.job_sub_page.change_progressbar_status('Job Done')
                 except:
                     AttributeError
+                output=self.task.task_info.job_info.output
+                self.view_panel.insert_text(output, 'disabled')
                 messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
                 
     def _on_out_local_view_button(self, *_):
@@ -462,6 +458,7 @@ class TaskController:
         self.view_panel.insert_text(log_txt, 'disabled')
 
     def _run_network(self):
+        self.job_sub_page.forget_progressbar_status()
 
         try:
             self.task.check_prerequisite()
@@ -511,7 +508,7 @@ class TaskController:
                 messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.job_info.submit_error}")
             else:
                 try:
-                    self.job_sub_page.check_jobdone_progressbar()
+                    self.job_sub_page.change_progressbar_status('Job Done')
                 except:
                     AttributeError
                 output=self.task.task_info.job_info.submit_output
@@ -535,7 +532,7 @@ class TaskController:
             messagebox.showerror(title="Error", message="Please enter remote path")
             return
         self.view_panel.insert_text(b_file, 'normal')
-       
+
     def _on_save_job_script(self, *_):
         self.job_sub_page.set_run_button_state('active')
         txt = self.view_panel.get_text()
