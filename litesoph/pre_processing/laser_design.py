@@ -71,6 +71,7 @@ class GaussianPulse:
                          frequency=frequency,
                          sigma=sigma,
                          sincos=sincos)
+        self.name = "gaussian"
         self.s0 = strength
         self.t0 = time0 * as_to_au
         self.omega0 = frequency * eV_to_au
@@ -167,4 +168,28 @@ class GaussianPulse:
         np.savetxt(fname, np.stack((time_t, strength_t, derivative_t)).T,
                    fmt=fmt, header=header)
 
-    
+class DeltaPulse:
+    """ strength :au, time0: as, total_time:fs
+        """
+    def __init__(self, strength, time0,total_time:float,stoptime=np.inf):
+        self.dict = dict(name='DeltaLaser',
+                         strength=strength,
+                         time0=time0)
+        
+        self.name = "delta"
+        self.s0 = strength
+        self.t0 = time0 
+        self.stoptime = stoptime * as_to_au
+        self.total_time = total_time
+
+    def strength(self):
+        time_array = np.arange(self.total_time*1e3)        
+        strength_array = np.full_like(time_array, 0.0)
+
+        for i in range(len(time_array)):
+            time_array[i]
+            delta = time_array[i]- self.t0
+            if abs(delta) == 0:
+                strength_array[i] = self.s0
+                break
+        return strength_array
