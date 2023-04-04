@@ -402,7 +402,10 @@ class TaskController:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
     def _run_local(self, np=None):
-        self.job_sub_page.forget_progressbar_status()
+        try:
+            self.job_sub_page.forget_progressbar_status()
+        except: 
+            AttributeError
         
         if np:
             sub_job_type = 0
@@ -457,7 +460,10 @@ class TaskController:
         self.view_panel.insert_text(log_txt, 'disabled')
 
     def _run_network(self):
-        self.job_sub_page.forget_progressbar_status()
+        try:
+            self.job_sub_page.forget_progressbar_status()
+        except: 
+            AttributeError
 
         try:
             self.task.check_prerequisite()
