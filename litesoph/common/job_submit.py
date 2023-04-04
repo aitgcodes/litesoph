@@ -129,8 +129,8 @@ class SubmitLocal:
         from litesoph.common.lfm_database import lfm_file_info_dict
         lfm_file_info=lfm_file_info_dict()
         file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
-        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file']})        
-        files_list=list(files_dict.keys())
+        # files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file']})        
+        files_list=list(file_info_dict.keys())
         return files_list        
 
     def view_specific_file_local(self,file):
@@ -328,8 +328,8 @@ class SubmitNetwork:
         from litesoph.common.lfm_database import lfm_file_info_dict
         lfm_file_info=lfm_file_info_dict()
         file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
-        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file','script_generated_outfile']})        
-        files_list=list(files_dict.keys())
+        # files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file','script_generated_outfile']})        
+        files_list=list(file_info_dict.keys())
         return files_list        
 
     def download_specific_file_remote(self,file_path,priority1_files_dict):

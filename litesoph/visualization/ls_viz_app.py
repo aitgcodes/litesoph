@@ -219,7 +219,7 @@ class CommonGraphParam(GuiAppTemplate):
         files = fd.askopenfilename(title="Select File(s)",
                                             multiple=True,
                                             initialdir=self.project_dir,
-                                            filetypes=[('all files', '.*'),
+                                            filetypes=[('all files', '*'),
                                                         ('text files', '.txt'),
                                                         ('image files', ('.png', '.jpg')),
                                                         ('cube files', '.cube'),
