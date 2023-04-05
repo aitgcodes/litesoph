@@ -172,7 +172,7 @@ class TaskController:
                                         self._on_save_job_script,
                                         self._run_local)
         
-        self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
+        self.job_sub_page.runtime_query_local(self._track_job_progress,
                                             self._on_kill_job_local,
                                             self._on_check_file_status_local,
                                             self._on_view_specific_file_local,
@@ -234,10 +234,27 @@ class TaskController:
         ls_viz_app.LSVizApp(self.main_window).run()
             
     def _on_check_job_status_local(self):        
-        if self.job_sub_page.submit_thread.is_alive(): 
+        if self.job_sub_page.submit_thread.is_alive():     
             messagebox.showinfo(title='Info', message="Job is Running")
         else:
             messagebox.showinfo(title='Info', message="No Job Found")
+        
+    def _track_job_progress(self):
+                
+        """ update the label every x minutes """
+        if self.job_sub_page.submit_thread.is_alive(): 
+
+            list_of_functions=[self._on_check_file_status_local,self._on_check_job_status_local,]
+            
+            duration_in_mi=''
+            frequency_in_min=1
+            frequency=frequency_in_min*60000
+            frequency=1000
+            for functions in list_of_functions:
+                self.main_window.after(frequency,functions)
+        else:
+            messagebox.showinfo(title='Info', message="No Job Found")
+
 
     def selection_changed(self,event):
         selected_file = self.job_sub_page.combobox.get()
