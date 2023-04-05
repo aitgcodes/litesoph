@@ -872,11 +872,11 @@ class JobSubPage(ttk.Frame):
         self.password_option = tk.IntVar()
         self.job_id = tk.StringVar()
         self.job_id.set(None) 
-        self.scratch_space= tk.IntVar()
+        self.scratch_space= tk.StringVar()
         self.scratch_space.set(None)  
-        self.track_time= tk.IntVar()
+        self.track_time= tk.StringVar()
         self.track_time.set(None)  
-        self.track_freq= tk.IntVar()
+        self.track_freq= tk.StringVar()
         self.track_freq.set(None)  
         
         self.sub_job_type.trace_add(['write'], self._sub_command_option)
@@ -987,7 +987,7 @@ class JobSubPage(ttk.Frame):
         scratch_space_label['font'] = myfont()
         scratch_space_label.grid(row=0,column=0,sticky='nsew', padx=2, pady=4)
 
-        scratch_space_entry = tk.Entry(self.monitor_job_frame,textvariable= self.scratch_space, width=20)
+        scratch_space_entry = tk.Entry(self.monitor_job_frame,textvariable=self.scratch_space, width=20)
         scratch_space_entry['font'] = myfont()
         scratch_space_entry.grid(row=0,column=1,sticky='nsew', padx=2, pady=4)
 

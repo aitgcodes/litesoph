@@ -172,7 +172,7 @@ class TaskController:
                                         self._on_save_job_script,
                                         self._run_local)
         
-        self.job_sub_page.runtime_query_local(self._track_job_progress,
+        self.job_sub_page.runtime_query_local(self._on_check_job_status_local,
                                             self._on_kill_job_local,
                                             self._on_check_file_status_local,
                                             self._on_view_specific_file_local,
@@ -236,27 +236,35 @@ class TaskController:
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive():     
             messagebox.showinfo(title='Info', message="Job is Running")
-            # if self.job_sub_page.scratch_space < self
+            # if self.job_sub_page.scratch_space < self.
         else:
             messagebox.showinfo(title='Info', message="No Job Found")
+        frequency=self.job_sub_page.track_freq.get()
+        self.main_window.after(int(frequency),self._on_check_job_status_local)
+
         
     def _track_job_progress(self):
                 
         """ update the label every x minutes """
-        if self.job_sub_page.submit_thread.is_alive(): 
+        print('_track_job_progress')
+        list_of_functions=[self._on_check_job_status_local,self._on_check_file_status_local]
 
-            list_of_functions=[self._on_check_file_status_local,self._on_check_job_status_local,]
-            
-            duration_in_mi=''
-            frequency_in_min=1
-            frequency=frequency_in_min*60000
-            frequency=1000
-            for functions in list_of_functions:
-                self.main_window.after(frequency,functions)
+        duration_in_mi=self.job_sub_page.track_time.get()
+        frequency=self.job_sub_page.track_freq.get()
+
+        print('duration_in_mi,frequency:',duration_in_mi,frequency)
+
+        if (duration_in_mi == 'None' or frequency == 'None'):
+            print('condition 1')
+            messagebox.showinfo(title='Info', message="time no given")
         else:
-            messagebox.showinfo(title='Info', message="No Job Found")
+            print('condition 2')
+            # for functions in list_of_functions:
+                # frequency=1000
+                # self.main_window.after(int(frequency),functions)
+            self.main_window.after(int(frequency),self._on_check_job_status_local)
 
-
+        
     def selection_changed(self,event):
         selected_file = self.job_sub_page.combobox.get()
         self.selected_file=self.dict_of_files_combobox[selected_file]
