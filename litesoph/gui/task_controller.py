@@ -236,6 +236,7 @@ class TaskController:
     def _on_check_job_status_local(self):        
         if self.job_sub_page.submit_thread.is_alive():     
             messagebox.showinfo(title='Info', message="Job is Running")
+            # if self.job_sub_page.scratch_space < self
         else:
             messagebox.showinfo(title='Info', message="No Job Found")
         
