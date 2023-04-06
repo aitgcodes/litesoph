@@ -266,6 +266,7 @@ class TaskController:
             self.main_window.after(int(frequency),self._on_check_job_status_local)
                 
     def _stop_job_tracking_local(self):
+        self.main_window.after_cancel(self.main_window)
         ...
 
     def selection_changed(self,event):
