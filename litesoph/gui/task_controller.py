@@ -253,8 +253,7 @@ class TaskController:
     def _track_job_progress_local(self):
                 
         """ update the label every x minutes """
-        print('_track_job_progress')
-        
+                
         duration_in_mi=self.job_sub_page.track_time.get()
         frequency=self.job_sub_page.track_freq.get()
         
