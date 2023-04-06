@@ -218,7 +218,7 @@ class TaskController:
         scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
         scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
 
-        if job_id == None:
+        if job_id == 'None':
             messagebox.showinfo(title='Info', message="Enter Job ID first")                  
         else:
             try:
@@ -233,38 +233,42 @@ class TaskController:
         from litesoph.visualization import ls_viz_app
         ls_viz_app.LSVizApp(self.main_window).run()
             
-    def _on_check_job_status_local(self):        
-        if self.job_sub_page.submit_thread.is_alive():     
-            messagebox.showinfo(title='Info', message="Job is Running")
-            # if self.job_sub_page.scratch_space < self.
+    def _on_check_job_status_local(self):   
+
+        self._on_check_file_status_local()
+        given_scratch_space_limit=self.job_sub_page.scratch_space.get()
+        print(type(given_scratch_space_limit))
+        current_simulation_size=self.task.submit_local.project_size_GB
+
+        if self.job_sub_page.submit_thread.is_alive():                 
+            messagebox.showinfo(title='Info', message=f"Job is Running !! \n\n Simulation Size: {current_simulation_size:.3f} GB")
+            if given_scratch_space_limit < current_simulation_size:
+                messagebox.showinfo(title='Info', message="Simulation Size Exceeded given space limit")
+            else:
+                pass
         else:
             messagebox.showinfo(title='Info', message="No Job Found")
-        frequency=self.job_sub_page.track_freq.get()
-        self.main_window.after(int(frequency),self._on_check_job_status_local)
-
         
+        self._track_job_progress()
+
     def _track_job_progress(self):
                 
         """ update the label every x minutes """
         print('_track_job_progress')
-        list_of_functions=[self._on_check_job_status_local,self._on_check_file_status_local]
-
+        
         duration_in_mi=self.job_sub_page.track_time.get()
         frequency=self.job_sub_page.track_freq.get()
-
-        print('duration_in_mi,frequency:',duration_in_mi,frequency)
-
-        if (duration_in_mi == 'None' or frequency == 'None'):
-            print('condition 1')
-            messagebox.showinfo(title='Info', message="time no given")
-        else:
-            print('condition 2')
-            # for functions in list_of_functions:
-                # frequency=1000
-                # self.main_window.after(int(frequency),functions)
-            self.main_window.after(int(frequency),self._on_check_job_status_local)
-
         
+        if (duration_in_mi == 'None' or frequency == 'None'):
+            self._on_check_job_status_local
+            messagebox.showinfo(title='Info', message="! For Job Tracking \n Please Enter Tracking Time and frequency")
+        else:
+            frequency=int(frequency)*60000    
+            self.main_window.after(int(frequency),self._on_check_job_status_local)
+                
+    def _stop_job_tracking(self):
+        ...
+
     def selection_changed(self,event):
         selected_file = self.job_sub_page.combobox.get()
         self.selected_file=self.dict_of_files_combobox[selected_file]
