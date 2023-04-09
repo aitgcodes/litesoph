@@ -218,7 +218,7 @@ class TaskController:
         scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
         scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
 
-        if job_id == None:
+        if job_id == 'None':
             messagebox.showinfo(title='Info', message="Enter Job ID first")                  
         else:
             try:
@@ -233,11 +233,40 @@ class TaskController:
         from litesoph.visualization import ls_viz_app
         ls_viz_app.LSVizApp(self.main_window).run()
             
-    def _on_check_job_status_local(self):        
-        if self.job_sub_page.submit_thread.is_alive(): 
-            messagebox.showinfo(title='Info', message="Job is Running")
+    def _on_check_job_status_local(self):   
+
+        self._on_check_file_status_local()
+        given_scratch_space_limit=self.job_sub_page.scratch_space.get()
+        current_simulation_size=self.task.submit_local.project_size_GB
+
+        if self.job_sub_page.submit_thread.is_alive():                 
+            messagebox.showinfo(title='Info', message=f"Job is Running !! \n\n Simulation Size: {current_simulation_size:.3f} GB")
+            if given_scratch_space_limit < current_simulation_size:
+                messagebox.showinfo(title='Info', message="Simulation Size Exceeded given space limit")
+            else:
+                pass
         else:
             messagebox.showinfo(title='Info', message="No Job Found")
+        
+        self._track_job_progress_local()
+
+    def _track_job_progress_local(self):
+                
+        """ update the label every x minutes """
+                
+        duration_in_mi=self.job_sub_page.track_time.get()
+        frequency=self.job_sub_page.track_freq.get()
+        
+        if (duration_in_mi == 'None' or frequency == 'None'):
+            self._on_check_job_status_local
+            messagebox.showinfo(title='Info', message="! For Job Tracking \n Please Enter Tracking Time and frequency")
+        else:
+            frequency=int(frequency)*60000    
+            self.main_window.after(int(frequency),self._on_check_job_status_local)
+                
+    def _stop_job_tracking_local(self):
+        self.main_window.after_cancel(self.main_window)
+        ...
 
     def selection_changed(self,event):
         selected_file = self.job_sub_page.combobox.get()
@@ -315,14 +344,38 @@ class TaskController:
         self.job_sub_page.download_specific_file_button.config(state='active')
         self.job_sub_page.view_file_button.config(state='active')
         # self.job_sub_page.plot_file_button.config(state='active')
-        messagebox.showinfo(title='Info', message=f'Project Size: {self.task.submit_network.project_size_GB:.2f} GB')
+        
+    def _on_check_job_status_remote(self):   
 
-    def _on_check_job_status_remote(self):
+        self._on_check_file_status_remote()
+        given_scratch_space_limit=self.job_sub_page.scratch_space.get()
+        current_simulation_size=self.task.submit_network.project_size_GB
+
         try:
             job_status=self.task.submit_network.get_job_status_remote()    
-            messagebox.showinfo(title='Info', message=job_status)   
+            messagebox.showinfo(title='Info', message=f'{job_status} !! \n\n Simulation Size: {self.task.submit_network.project_size_GB:.2f} GB')   
+            if given_scratch_space_limit < current_simulation_size:
+                messagebox.showinfo(title='Info', message="Simulation Size Exceeded given space limit")
+            else:
+                pass
         except TaskFailed:
             messagebox.showinfo(title='Info', message='error')   
+        
+        self._track_job_progress_remote()
+    
+    def _track_job_progress_remote(self):
+                
+        """ update the label every x minutes """
+        
+        duration_in_mi=self.job_sub_page.track_time.get()
+        frequency=self.job_sub_page.track_freq.get()
+        
+        if (duration_in_mi == 'None' or frequency == 'None'):
+            self._on_check_job_status_remote
+            messagebox.showinfo(title='Info', message="! For Job Tracking \n Please Enter Tracking Time and frequency")
+        else:
+            frequency=int(frequency)*60000    
+            self.main_window.after(int(frequency),self._on_check_job_status_remote)
         
     def _on_kill_job_remote(self):
     
@@ -331,7 +384,7 @@ class TaskController:
         scheduler_stat_cmd=self.job_sub_page.sub_stat_command.get()
         scheduler_kill_cmd=self.job_sub_page.sub_kill_command.get()
 
-        if job_id == None:
+        if job_id == 'None':
             messagebox.showinfo(title='Info', message="Enter Job ID first")                  
         else:
             try:
@@ -402,7 +455,10 @@ class TaskController:
             messagebox.showerror(title='Error', message="Error occured during plotting", detail= e)
 
     def _run_local(self, np=None):
-        self.job_sub_page.forget_progressbar_status()
+        try:
+            self.job_sub_page.forget_progressbar_status()
+        except: 
+            AttributeError
         
         if np:
             sub_job_type = 0
@@ -457,7 +513,10 @@ class TaskController:
         self.view_panel.insert_text(log_txt, 'disabled')
 
     def _run_network(self):
-        self.job_sub_page.forget_progressbar_status()
+        try:
+            self.job_sub_page.forget_progressbar_status()
+        except: 
+            AttributeError
 
         try:
             self.task.check_prerequisite()

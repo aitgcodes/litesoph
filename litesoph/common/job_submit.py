@@ -114,7 +114,17 @@ class SubmitLocal:
         cmd_filesize=f'find {self.project_dir}  -type f -exec du --human {{}} + | sort --human --reverse'
         result=execute_cmd_local(cmd_filesize,self.project_dir)
         error=result[cmd_filesize]['error']    
-        message=result[cmd_filesize]['output']            
+        message=result[cmd_filesize]['output']  
+
+        cmd_project_size=f'cd {self.project_dir}; du -s'
+
+        result= execute_cmd_local(cmd_project_size,self.project_dir)  
+        error=result[cmd_project_size]['error']    
+        message=result[cmd_project_size]['output']
+
+        project_size= [int(s) for s in message.split() if s.isdigit()]
+        self.project_size_GB=project_size[0]/(1024*1024)
+    
         return (error, message)
     
     def generate_list_of_files_local(self):
@@ -129,8 +139,8 @@ class SubmitLocal:
         from litesoph.common.lfm_database import lfm_file_info_dict
         lfm_file_info=lfm_file_info_dict()
         file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
-        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file']})        
-        files_list=list(files_dict.keys())
+        # files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file']})        
+        files_list=list(file_info_dict.keys())
         return files_list        
 
     def view_specific_file_local(self,file):
@@ -300,7 +310,7 @@ class SubmitNetwork:
             job_status="SSH session not active"
 
         return job_status
-   
+
     def kill_job_remote(self,job_id,scheduler,scheduler_stat_cmd,scheduler_kill_cmd):
         """
         kill the running job at remote
@@ -328,8 +338,8 @@ class SubmitNetwork:
         from litesoph.common.lfm_database import lfm_file_info_dict
         lfm_file_info=lfm_file_info_dict()
         file_info_dict=create_file_info(read_file_info_list(listOfFiles_path),lfm_file_info)        
-        files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file','script_generated_outfile']})        
-        files_list=list(files_dict.keys())
+        # files_dict=filter_dict(file_info_dict,{'file_type':['input_file','property_file','script_generated_outfile']})        
+        files_list=list(file_info_dict.keys())
         return files_list        
 
     def download_specific_file_remote(self,file_path,priority1_files_dict):
