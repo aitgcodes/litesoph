@@ -871,8 +871,14 @@ class JobSubPage(ttk.Frame):
         self.sub_job_type = tk.IntVar()
         self.password_option = tk.IntVar()
         self.job_id = tk.StringVar()
-        self.job_id.set(None)    
-
+        self.job_id.set(None) 
+        self.scratch_space= tk.IntVar()
+        self.scratch_space.set(500)  
+        self.track_time= tk.StringVar()
+        self.track_time.set(None)  
+        self.track_freq= tk.StringVar()
+        self.track_freq.set(None)  
+        
         self.sub_job_type.trace_add(['write'], self._sub_command_option)
         self.sub_command.set('bash')
         self.processors.set(1)
@@ -975,16 +981,49 @@ class JobSubPage(ttk.Frame):
         runtime query for local job submit
         """
         self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])
+
         
-        self.job_status_button = tk.Button(self.monitor_job_frame, text="Check Job Status",activebackground="#78d6ff",command=check_job_status)
+        scratch_space_label = tk.Label(self.monitor_job_frame, text= "Scratch Space (GB)", bg='gray', fg='black')
+        scratch_space_label['font'] = myfont()
+        scratch_space_label.grid(row=0,column=0,sticky='nsew', padx=2, pady=4)
+
+        scratch_space_entry = tk.Entry(self.monitor_job_frame,textvariable=self.scratch_space, width=20)
+        scratch_space_entry['font'] = myfont()
+        scratch_space_entry.grid(row=0,column=1,sticky='nsew', padx=2, pady=4)
+
+        track_duration_label = tk.Label(self.monitor_job_frame, text= "Tracking Time (Min)", bg='gray', fg='black')
+        track_duration_label['font'] = myfont()
+        track_duration_label.grid(row=1,column=0,sticky='nsew', padx=2, pady=4)
+
+        track_duration_entry = tk.Entry(self.monitor_job_frame,textvariable= self.track_time, width=20)
+        track_duration_entry['font'] = myfont()
+        track_duration_entry.grid(row=1,column=1,sticky='nsew', padx=2, pady=4)
+
+        track_freq_label = tk.Label(self.monitor_job_frame, text= "Tracking Frequency (Min)", bg='gray', fg='black')
+        track_freq_label['font'] = myfont()
+        track_freq_label.grid(row=2,column=0,sticky='nsew', padx=2, pady=4)
+
+        track_freq_entry = tk.Entry(self.monitor_job_frame,textvariable= self.track_freq, width=20)
+        track_freq_entry['font'] = myfont()
+        track_freq_entry.grid(row=2,column=1,sticky='nsew', padx=2, pady=4)
+        
+        self.job_status_button = tk.Button(self.monitor_job_frame, text="Track Job Status",activebackground="#78d6ff",command=check_job_status)
         self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=2, column=0,sticky='nsew', padx=2, pady=4)
+        self.job_status_button.grid(row=2, column=2,sticky='nsew', padx=2, pady=4)
+
+        job_id_label = tk.Label(self.monitor_job_frame, text= "Job ID", bg='gray', fg='black')
+        job_id_label['font'] = myfont()
+        job_id_label.grid(row=4,column=0,sticky='nsew', padx=2, pady=4)
+
+        job_id_entry = tk.Entry(self.monitor_job_frame,textvariable= self.job_id, width=20)
+        job_id_entry['font'] = myfont()
+        job_id_entry.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
 
         self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_local)
         self.job_kill_button['font'] = myfont()
-        self.job_kill_button.grid(row=2, column=1,sticky='nsew', padx=2, pady=4)
+        self.job_kill_button.grid(row=4, column=2,sticky='nsew', padx=2, pady=4)
 
-        self.job_track_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
+        self.job_track_button = tk.Button(self.monitor_file_frame, text="Refresh",activebackground="#78d6ff",command=check_file_status)
         self.job_track_button['font'] = myfont()
         self.job_track_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
         
@@ -1014,25 +1053,53 @@ class JobSubPage(ttk.Frame):
         runtime query for remote job submit
         """
         
-        self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])   
+        self.destroy_frame_elements([self.monitor_job_frame,self.monitor_file_frame])  
+
+        scratch_space_label = tk.Label(self.monitor_job_frame, text= "Scratch Space (GB)", bg='gray', fg='black')
+        scratch_space_label['font'] = myfont()
+        scratch_space_label.grid(row=0,column=0,sticky='nsew', padx=2, pady=4)
+
+        scratch_space_entry = tk.Entry(self.monitor_job_frame,textvariable=self.scratch_space, width=20)
+        scratch_space_entry['font'] = myfont()
+        scratch_space_entry.grid(row=0,column=1,sticky='nsew', padx=2, pady=4)
+
+        track_duration_label = tk.Label(self.monitor_job_frame, text= "Tracking Time (Min)", bg='gray', fg='black')
+        track_duration_label['font'] = myfont()
+        track_duration_label.grid(row=1,column=0,sticky='nsew', padx=2, pady=4)
+
+        track_duration_entry = tk.Entry(self.monitor_job_frame,textvariable= self.track_time, width=20)
+        track_duration_entry['font'] = myfont()
+        track_duration_entry.grid(row=1,column=1,sticky='nsew', padx=2, pady=4)
+
+        track_freq_label = tk.Label(self.monitor_job_frame, text= "Tracking Frequency (Min)", bg='gray', fg='black')
+        track_freq_label['font'] = myfont()
+        track_freq_label.grid(row=2,column=0,sticky='nsew', padx=2, pady=4)
+
+        track_freq_entry = tk.Entry(self.monitor_job_frame,textvariable= self.track_freq, width=20)
+        track_freq_entry['font'] = myfont()
+        track_freq_entry.grid(row=2,column=1,sticky='nsew', padx=2, pady=4)
+        
+        self.job_status_button = tk.Button(self.monitor_job_frame, text="Track Job Status",activebackground="#78d6ff",command=check_job_status)
+        self.job_status_button['font'] = myfont()
+        self.job_status_button.grid(row=2, column=2,sticky='nsew', padx=2, pady=4)
 
         job_id_label = tk.Label(self.monitor_job_frame, text= "Job ID", bg='gray', fg='black')
         job_id_label['font'] = myfont()
-        job_id_label.grid(row=2,column=0,sticky='nsew', padx=2, pady=4)
+        job_id_label.grid(row=4,column=0,sticky='nsew', padx=2, pady=4)
 
         job_id_entry = tk.Entry(self.monitor_job_frame,textvariable= self.job_id, width=20)
         job_id_entry['font'] = myfont()
-        job_id_entry.grid(row=2,column=1,sticky='nsew', padx=2, pady=4)
+        job_id_entry.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
 
-        self.job_status_button = tk.Button(self.monitor_job_frame, text="Job Status",activebackground="#78d6ff",command=check_job_status)
-        self.job_status_button['font'] = myfont()
-        self.job_status_button.grid(row=3, column=0,sticky='nsew', padx=2, pady=4)
+        # self.job_status_button = tk.Button(self.monitor_job_frame, text="Job Status",activebackground="#78d6ff",command=check_job_status)
+        # self.job_status_button['font'] = myfont()
+        # self.job_status_button.grid(row=4, column=0,sticky='nsew', padx=2, pady=4)
 
         self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_remote)
         self.job_kill_button['font'] = myfont()
-        self.job_kill_button.grid(row=3, column=1,sticky='nsew', padx=2, pady=4)
+        self.job_kill_button.grid(row=4, column=2,sticky='nsew', padx=2, pady=4)
 
-        self.file_status_button = tk.Button(self.monitor_file_frame, text="Track Files",activebackground="#78d6ff",command=check_file_status)
+        self.file_status_button = tk.Button(self.monitor_file_frame, text="Refresh",activebackground="#78d6ff",command=check_file_status)
         self.file_status_button['font'] = myfont()
         self.file_status_button.grid(row=2, column=0, sticky='nsew', padx=2, pady=4)
 

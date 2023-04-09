@@ -15,7 +15,7 @@ from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spec
 import numpy as np
 from litesoph.post_processing.mo_population import create_states_index
 from litesoph.engines.nwchem.task_data import nwchem_gs_param_data, nwchem_xc_map
-
+from .task_data import nwchem_xc_map
 
 nwchem_data = {
 'ground_state' : {'inp':'nwchem/GS/gs.nwi',
@@ -343,7 +343,7 @@ def format_gs_param(gen_dict:dict) -> dict:
     xc = gen_dict.get('xc')
     if xc not in param_data['xc']['values']:
         raise InputError('Unkown xc: {xc}')
-    gs_input['dft']['xc'] = xc
+    gs_input['dft']['xc'] = copy.deepcopy(nwchem_xc_map.get(xc))
 
     basis = gen_dict.get('basis')
     if basis not in param_data['basis']['values']:
