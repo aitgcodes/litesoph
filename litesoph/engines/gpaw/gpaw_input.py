@@ -341,9 +341,10 @@ def assemable_rt(**kwargs):
  
     else:   
         template = delta_kick_template.format(**kwargs)
-        lines = template.splitlines()
-        lines[6] = ''
-        template = '\n'.join(lines)
+        if restart:
+            lines = template.splitlines()
+            lines[6] = ''
+            template = '\n'.join(lines)
 
     tlines = template.splitlines()
     
