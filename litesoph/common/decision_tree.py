@@ -14,13 +14,16 @@ engine_data_base = {
     "octopus": octopus_data
 }   
 
+#TODO: workflows should be referenced using workflow_db class 
+# instead of directly using string.
 workflow_compatibility = {
     "task_mode":ls_integrated_engines,
     "spectrum": ls_integrated_engines,
     "averaged_spectrum": ls_integrated_engines,
     "kohn_sham_decomposition": ["octopus","gpaw",],
     "mo_population_tracking": ls_integrated_engines,
-    "masking":["gpaw"]
+    "masking":["gpaw"],
+    "pump_probe": ls_integrated_engines
     }
 
 xc_hybrid = ["B3LYP", "PBE0","CAMY-B3LYP","CAM-B3LYP",

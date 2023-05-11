@@ -95,7 +95,8 @@ class ComputeAvgSpectrum(BaseNwchemTask):
     def copmute_average(self):
         spec_data = []
         time_data = []
-        for i, file in enumerate(self.spectrum_files):
+        for i, spec_file in enumerate(self.spectrum_files):
+            file = self.project_dir / spec_file
             data = np.loadtxt(file)
             time_data.append(data[:,0])
             spec_data.append(data[:,1])

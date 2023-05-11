@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from typing import Any, Dict
 from litesoph.common.data_sturcture.data_types import DataTypes as  DT
-from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs
+from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs, fs_to_au
 from litesoph.pre_processing.laser_design import laser_design, GaussianPulse, DeltaPulse
 from litesoph.common.utils import get_pol_list
 

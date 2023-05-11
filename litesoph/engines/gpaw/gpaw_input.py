@@ -322,6 +322,10 @@ def add_import_line(lines, import_str):
     if import_str not in lines:
         lines.insert(0, import_str)
 
+def add_import_line(lines, import_str):
+    if import_str not in lines:
+        lines.insert(0, import_str)
+
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
     laser = kwargs.pop('laser', None)

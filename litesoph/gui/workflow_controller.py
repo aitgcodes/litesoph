@@ -26,8 +26,8 @@ task_view_map={
     tt.COMPUTE_AVERAGED_SPECTRUM: v.PlotSpectraPage,
     tt.TCM: v.TcmPage, 
     tt.MO_POPULATION: v.PopulationPage,
-    tt.MASKING: design.MaskingPage
-    # tt.MASKING: v.MaskingPage,
+    tt.MASKING: design.MaskingPage,
+    tt.COMPUTE_TAS: v.PumpProbePostProcessPage        
 }
 
 class WorkflowController:
@@ -256,10 +256,10 @@ def get_task_controller( task_view, workflow_controller, app) -> TaskController:
         task_controller = td_page.TDPageController
     elif task_view == design.MaskingPage:
         task_controller = masking_controller.MaskingPageController
-    # elif task_view == v.MaskingPage:
-        # task_controller = MaskingPageController
     elif task_view in [v.PlotSpectraPage, v.TcmPage, v.PopulationPage]:
         task_controller = PostProcessTaskController
+    elif task_view == v.PumpProbePostProcessPage:
+        task_controller = ctrl.PumpProbePostProcessController
     else:
         task_controller = TaskController
         

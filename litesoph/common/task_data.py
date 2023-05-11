@@ -10,7 +10,7 @@ class TaskTypes(str, Enum):
     TCM: str = 'tcm'
     MO_POPULATION: str = 'mo_population'
     MASKING: str = 'masking'
-
+    COMPUTE_TAS: str = 'compute_tas'
 
 class TaskParamDB:
 

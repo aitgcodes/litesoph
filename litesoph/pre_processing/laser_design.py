@@ -22,19 +22,20 @@ from litesoph.utilities.units import as_to_au, eV_to_au, fs_to_eV, au_to_fs
 # print("pulse centre :", t0)
 
 def laser_design(inval, tin, fwhm):
+    """ Calculates half-width and centre of the pulse in time space
+    \n given inval: Relative strength at initial time
+    \n tin(in au): Time origin
+    \n fwhm(in eV): Full Width Half Maximum"""
+
     import math
-    # tin = 0.0 
     fwhm = fwhm*eV_to_au
-    #loginval = (-1)*(math.log(float(inval)/float(strength)))
     tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of au
     t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(math.log(10)*inval)  # in units of au
     
-    #tau_0 = tau_0*0.2418                              # converted from fms to eV
-    #tau_0 = fs_to_eV/tau_0                           # converted from fms to eV
     tau_0 = tau_0
     laser = {}
     
-    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                     
+    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                   
     laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of au
     return(laser)
 
@@ -193,3 +194,100 @@ class DeltaPulse:
                 strength_array[i] = self.s0
                 break
         return strength_array
+
+class Laser(object):
+    def __init__(self):
+        pass
+
+    def strength(self, time):
+        return 0.0
+
+    def derivative(self, time):
+        return 0.0
+
+    def fourier(self, omega):
+        return 0.0
+
+    def write(self, fname, time_t):
+        """
+        Write the values of the pulse to a file.
+
+        Parameters
+        ----------
+        fname
+            filename
+        time_t
+            times in attoseconds
+        """
+
+        time_t = time_t * as_to_au
+        strength_t = self.strength(time_t)
+        derivative_t = self.derivative(time_t)
+        fmt = '%12.6f %20.10e %20.10e'
+        header = '{:^10} {:^20} {:^20}'.format('time', 'strength',
+                                               'derivative')
+        np.savetxt(fname, np.stack((time_t, strength_t, derivative_t)).T,
+                   fmt=fmt, header=header)
+
+
+
+class GaussianDeltaPulse(Laser):
+    r"""
+    Laser pulse with Gaussian envelope:
+
+    .. math::
+
+        g(t) = s_0  \exp(-\sigma^2 (t - t_0)^2 / 2)
+
+
+    Parameters
+    ----------
+    strength: float
+        value of :math:`s_0` in atomic units
+    time0: float
+        value of :math:`t_0` in attoseconds
+    
+    
+    
+    """
+
+    def __init__(self, strength, time0,  sigma=200, 
+                 stoptime=np.inf):
+        self.dict = dict(name='GaussianDeltaPulse',
+                         strength=strength,
+                         time0=time0,
+  
+                         )
+        self.s0 = strength
+        self.t0 = time0 * as_to_au
+        
+        self.sigma = sigma * eV_to_au
+        self.stoptime = stoptime * as_to_au
+        
+
+    def strength(self, t):
+        
+        s = self.s0 * np.exp(-0.5 * self.sigma**2 * (t - self.t0)**2)
+        
+        flt = t < self.stoptime
+
+        return s * flt
+
+    def derivative(self, t):
+        
+        dt = t - self.t0
+        s = self.s0 * np.exp(-0.5 * self.sigma**2 * dt**2)
+        
+        return s
+
+    def fourier(self, omega):
+        
+        s = (self.s0 * np.sqrt(np.pi / 2) / self.sigma *
+             np.exp(-0.5 * (omega - self.omega0)**2 / self.sigma**2) *
+             np.exp(1.0j * self.t0 * omega))
+        if self.sincos == 'sin':
+            s *= 1.0j
+        return s
+
+    def todict(self):
+        return self.dict

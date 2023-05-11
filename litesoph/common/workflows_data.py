@@ -13,6 +13,7 @@ class WorkflowTypes(str, Enum):
     KOHN_SHAM_DECOMPOSITION: str = 'kohn_sham_decomposition'
     MO_POPULATION_TRACKING: str = 'mo_population_tracking'
     MASKING: str = 'masking'
+    PUMP_PROBE: str = 'pump_probe'
 
 
 
@@ -189,5 +190,47 @@ predefined_workflow = {
                             '1' : '0',
                             '2' : '1'}
     },
+    "pump_probe": {
+        "name": "Pump Probe", 
+        "blocks": [{'name' : 'Ground State',
+                    'store_same_task_type': True,
+                    'task_type': tt.GROUND_STATE
+                    }, 
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    }, 
+                    {'name':'Compute Spectrum',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_SPECTRUM
+                    },
+                    {'name':'RT TDDFT',
+                    'store_same_task_type': True,
+                    'task_type': tt.RT_TDDFT
+                    },
+                    {'name':'Compute TAS',
+                    'store_same_task_type': True,
+                    'task_type': tt.COMPUTE_TAS
+                    },
+                    {'name': 'End'}],
+        "task_sequence" : [step(0 ,0 , tt.GROUND_STATE),
+                    step(1, 1, tt.RT_TDDFT,{
+                                            'properties':['spectrum'],
+                                            }),
+                    step(2, 2, tt.COMPUTE_SPECTRUM),
+                    step(3 ,3 ,tt.RT_TDDFT,{
+                                        'properties':['spectrum'],
+                                                }, 
+                                                {
+                                                'laser': True
+                                                }),
+                    step(4 ,4 ,tt.COMPUTE_TAS)],
+        
+        "dependency_map": {'0' : None,
+                            '1' : '0',
+                            '2' : '1',
+                            '3' : '0',
+                            '4' : '3'}
+    }
 }
 

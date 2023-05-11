@@ -1,3 +1,4 @@
+import copy
 import tkinter as tk
 
 from tkinter import ttk
@@ -847,8 +848,7 @@ class PopulationPage(View):
 
 class JobSubPage(ttk.Frame):
     """ Creates widgets for JobSub Page"""
-
-    def __init__(self, parent,*args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent,*args, **kwargs)
         
         self.parent = parent
@@ -1126,6 +1126,7 @@ class JobSubPage(ttk.Frame):
 
         self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'disable')
 
+
     def show_run_local(self,
                         generate_job_script: callable,
                         save_job_script: callable,
@@ -1224,14 +1225,14 @@ class JobSubPage(ttk.Frame):
         user_name_entry.grid(row=4, column=1,sticky='nsew', padx=2, pady=4)
 
         values = [0, 1]
-        txt=["With Password", "Without Password"]
+        txt=["With Password", "Password-less ssh"]
         command = [lambda:[set_state(self.password_entry, 'normal')],
-                lambda:[set_state(self.password_entry, 'normal')]]
+                lambda:[set_state(self.password_entry, 'disabled')]]
                 
         for (text, value, cmd) in zip(txt,values,command):            
             tk.Radiobutton(self.sub_job_frame,  text=text,  variable=self.password_option, font=myfont2(),
              justify='left',value=value,command=cmd).grid(row=value+5, column=0, ipady=5, sticky='w')
-        
+ 
         # password_label = tk.Label(self.sub_job_frame, text= "Password", bg='gray', fg='black')
         # password_label['font'] = myfont()
         # password_label.grid(row=5,column=0,sticky='nsew', padx=2, pady=4)
@@ -1317,10 +1318,9 @@ class JobSubPage(ttk.Frame):
         self.run_button.config(state=state)
 
     def get_password_option(self):
-        password_enabled = False
         if self.password_option.get() == 1:
-            password_enabled = True
-        return password_enabled
+            return True
+        return False
 
     def get_network_dict(self):
 
@@ -1333,7 +1333,6 @@ class JobSubPage(ttk.Frame):
           'remote_path':self.rpath.get(),
           'passwordless_ssh':self.get_password_option()
             } 
-
         return network_job_dict
 
 ####### popup filemenu #########
@@ -1516,13 +1515,19 @@ class GroundStatePage(View):
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
+        # self.button_clear = tk.Button(self.save_button_frame, text="Clear", activebackground="#78d6ff", command=lambda: self.clear_button())
+        # self.button_clear['font'] = myFont
+        # self.button_clear.grid(row=0, column=2, padx=3, pady=3,sticky='nsew')
+
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
-        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.button_view.grid(row=0, column=3,padx=3, pady=3,sticky='nsew')
+        # self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
         
         self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
-        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.button_save.grid(row=0, column=5, padx=3, pady=3,sticky='nsew')
+        # self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
@@ -1537,7 +1542,10 @@ class GroundStatePage(View):
 
     def back_button(self):
         return
-        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE) 
+        self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
+    
+    def clear_button(self):
+        self.event_generate(f'<<Clear{self.task_name}Script>>')
     
     def generate_input_button(self):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
@@ -1746,6 +1754,125 @@ class TimeDependentPage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def save_button(self):
-        self.event_generate(f'<<Save{self.task_name}Script>>')
-    
+        self.event_generate(f'<<Save{self.task_name}Script>>')    
 
+class PumpProbePostProcessPage(View):
+    
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        
+        self._default_var = {
+            'damping' : ['float', 0],
+            'padding' : ['int', 0],
+            'delay_min' : ['float'],
+            'delay_max' :['float'],
+            'freq_min':['float'],
+            'freq_max':['float'],
+        }
+
+        self._var = var_define(self._default_var)
+
+        self.strength_frame = self.input_param_frame 
+        self.contour_frame = self.property_frame
+        self.button_frame = self.save_button_frame
+
+        # self.add_job_frame(self.submit_button_frame, self.task_name)        
+
+        self.heading = tk.Label(self.strength_frame,text="LITESOPH Pump-Probe Post-Processing", fg='blue')
+        self.heading['font'] = myfont()
+        # self.heading.pack()
+        self.heading.grid(row=0, column=0, padx=2, pady=4)
+        
+        self.label_calc_strength = tk.Label(self.strength_frame, text= "Calculation of Oscillator Strength:",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_calc_strength['font'] = label_design['font']
+        self.label_calc_strength.grid(row=1, column=0, padx=2, pady=4, sticky='w')   
+
+        self.sub_frame_strength = ttk.Frame(self.strength_frame)
+        self.sub_frame_strength.grid(row=2, column=0, sticky='nsew', columnspan=4)     
+
+        self.label_damp = tk.Label(self.sub_frame_strength,text="Damping:",fg="black")
+        self.label_damp['font'] = label_design['font']
+        self.label_damp.grid(row=2, column=0, padx=2, pady=4, sticky='we' )
+
+        self.entry_damp = tk.Entry(self.sub_frame_strength,textvariable =self._var['damping'])
+        self.entry_damp['font'] = label_design['font']
+        self.entry_damp.grid(row=2, column=1, padx=2, pady=4, sticky='we')
+
+        self.label_pad = tk.Label(self.sub_frame_strength,text="Padding:",fg="black")
+        self.label_pad['font'] = label_design['font']
+        self.label_pad.grid(row=3, column=0, padx=2, pady=4, sticky='we')
+
+        self.entry_pad = tk.Entry(self.sub_frame_strength,textvariable =self._var['padding'])
+        self.entry_pad['font'] = label_design['font']
+        self.entry_pad.grid(row=3, column=1, padx=2, pady=4, sticky='we')
+
+        self.button_compute = tk.Button(self.sub_frame_strength,text="Compute")
+        self.button_compute['font'] = label_design['font']
+        self.button_compute.grid(row=3, column=2, padx=2, pady=4, sticky='we')
+
+        #---------------------------------------------------------------------------------------------------
+        self.label_contour = tk.Label(self.contour_frame, text= "2D Contour Plot Parameters:",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_contour['font'] = label_design['font']
+        self.label_contour.grid(row=0, column=0, padx=2, pady=4, sticky='w')  
+
+        self.frame_limit = ttk.Frame(self.contour_frame)
+        self.frame_limit.grid(row=1, column=0, sticky='nsew', columnspan=4)
+
+        self.label_min = tk.Label(self.frame_limit,text="Minimum",fg="black")
+        self.label_min['font'] = label_design['font']
+        self.label_min.grid(row=0, column=1, sticky='w', padx=5, pady=5)
+        
+        self.label_max = tk.Label(self.frame_limit,text="Maximum",fg="black")
+        self.label_max['font'] = label_design['font']
+        self.label_max.grid(row=0, column=2, sticky='w', padx=5, pady=5)        
+
+        # Delay range inputs
+        self.label_delay = tk.Label(self.frame_limit,text="Delay Time range(in fs):",fg="black")
+        self.label_delay['font'] = label_design['font']
+        self.label_delay.grid(row=1, column=0, sticky='w', padx=5, pady=5)        
+
+        self.entry_delay_min = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['delay_min'], from_=0, to=1, increment=0.01)
+        self.entry_delay_min['font'] = label_design['font']
+        self.entry_delay_min.grid(row=1, column=1, padx=5, pady=5) 
+
+        self.entry_delay_max = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['delay_max'], from_=0, to=1, increment=0.01)
+        self.entry_delay_max['font'] = label_design['font']
+        self.entry_delay_max.grid(row=1, column=2, padx=5, pady=5) 
+        
+        # Frequency range inputs
+        self.label_freq = tk.Label(self.frame_limit,text="Frequency range (in eV):",fg="black")
+        self.label_freq['font'] = label_design['font']
+        self.label_freq.grid(row=2, column=0, sticky='w', padx=5, pady=5)        
+
+        self.entry_freq_min = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['freq_min'], from_=0, to=1, increment=0.01)
+        self.entry_freq_min['font'] = label_design['font']
+        self.entry_freq_min.grid(row=2, column=1, padx=5, pady=5) 
+
+        self.entry_freq_max = ttk.Spinbox(self.frame_limit, width=5, textvariable=self._var['freq_max'], from_=0, to=1, increment=0.01)
+        self.entry_freq_max['font'] = label_design['font']
+        self.entry_freq_max.grid(row=2, column=2, padx=5, pady=5) 
+
+        self.button_plot = tk.Button(self.frame_limit, text="Plot")
+        self.button_plot['font'] = myfont()
+        self.button_plot.grid(row=2, column=3, padx=3, pady=6)       
+        
+        # Adding Buttons
+        self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button['font'] = myfont()
+        self.back_button.grid(row=0, column=0, padx=3, pady=6)  
+    
+    def set_parameters(self, default_values:dict):
+        for key, value in self._var.items():
+            if key in default_values.keys():
+                self._var[key].set(value)
+
+
+    def get_parameters(self):
+        return {'damping': self._var['damping'].get(),
+                'padding': self._var['padding'].get()}
+
+    def get_plot_parameters(self):
+        return {'delay_min': self._var['delay_min'].get(),
+                'delay_max': self._var['delay_max'].get(),
+                'freq_min' : self._var['freq_min'].get(),
+                'freq_max' : self._var['freq_max'].get()}

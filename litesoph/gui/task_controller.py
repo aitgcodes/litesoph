@@ -11,6 +11,7 @@ from litesoph.common import models as m
 from litesoph.gui.models.gs_model import choose_engine
 from litesoph.common.decision_tree import EngineDecisionError
 from litesoph.gui.utils import dict2string
+from litesoph.gui.models import inputs as inp
 
 
 class TaskController:
@@ -655,6 +656,4 @@ class PostProcessTaskController(TaskController):
         self.task_info.state.input = 'done'
         self.task_info.engine_param.update(self.task.user_input)
         self._run_local(np=1)
-
-
 
