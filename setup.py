@@ -7,11 +7,12 @@ from pathlib import Path
 from setuptools import setup, find_packages
 
 
-python_requires = '>=3.7'
+python_requires = '>=3.7, <3.11'
 requirements = [
     'click>=8.0.3',
     'matplotlib','numpy','ase',
-    'paramiko', 'scp', 'pexpect','pygubu'
+    'paramiko', 'scp', 'pexpect','pygubu',
+    'pillow<=9.5.0'
 ]
 
 setup_requirements = []
@@ -33,5 +34,5 @@ setup(name = 'litesoph',
     packages=find_packages(),
     package_data={'litesoph.gui.images':['*.png','*.jpg','*.xbm'], 'litesoph.gui':['*.ui']},
     setup_requires=setup_requirements,
-    
+
 )
