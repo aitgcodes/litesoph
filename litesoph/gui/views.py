@@ -484,7 +484,8 @@ class PlotSpectraPage(View):
         #self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
         #self.button_frame.grid(row=1, column=0, sticky='nsew')
 
-        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
+        #self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0, padx=3, pady=6)
 
@@ -560,7 +561,8 @@ class TcmPage(View):
         # self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
         # self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
-        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
+        # self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda: self.back_button())
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0)
 
@@ -673,7 +675,7 @@ class TcmPage(View):
             freq = freq.strip()
             self.freq_list.append(float(freq))
         return(self.freq_list)   
-    
+
     def get_parameters(self):
         engine = self.engine_name.get()    
        #TODO: The engine information should be abstracted from this module.
@@ -812,7 +814,8 @@ class PopulationPage(View):
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=4, column=2, sticky='we', padx=25)
 
-        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", state="disabled")
+        #self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
 
@@ -927,6 +930,7 @@ class JobSubPage(ttk.Frame):
         self.back2task['font'] = myfont()
         self.back2task.pack(side= tk.LEFT)
 
+        #self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",state="disabled")
         self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff")
         self.back2main['font'] = myfont()
         self.back2main.pack(side= tk.RIGHT)
@@ -1496,6 +1500,7 @@ class CreateWorkflowPage(tk.Toplevel):
 class GroundStatePage(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
+
         super().__init__(parent, *args, **kwargs)
         from litesoph.gui.design.template import InputFrame
         from litesoph.gui.models.inputs import gs_input, gs_visible_default
@@ -1511,7 +1516,8 @@ class GroundStatePage(View):
         self.trace_variables()
         
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
-        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
+        ##self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
@@ -1541,8 +1547,9 @@ class GroundStatePage(View):
         hide_message(self.label_msg)
 
     def back_button(self):
-        return
+        #return
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
+        #self.event_generate('<<SHOW_WORK_MANAGER_PAGE>>')
     
     def clear_button(self):
         self.event_generate(f'<<Clear{self.task_name}Script>>')
@@ -1680,7 +1687,7 @@ class TimeDependentPage(View):
 
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
 
-        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
@@ -1857,6 +1864,7 @@ class PumpProbePostProcessPage(View):
         self.button_plot.grid(row=2, column=3, padx=3, pady=6)       
         
         # Adding Buttons
+        #self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",state="disabled")
         self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
         self.back_button.grid(row=0, column=0, padx=3, pady=6)  

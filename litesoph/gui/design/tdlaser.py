@@ -155,7 +155,8 @@ class TDPage(View):
 
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
 
-        self.button_back = tk.Button(self.save_button_frame, text="Back to main page", activebackground="#78d6ff", command=lambda: self.back_button())
+        self.button_back = tk.Button(self.save_button_frame, text="Back to main page", activebackground="#78d6ff", state="disabled")
+        #self.button_back = tk.Button(self.save_button_frame, text="Back to main page", activebackground="#78d6ff", command=lambda: self.back_button())
         self.button_back['font'] = myFont
         self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
