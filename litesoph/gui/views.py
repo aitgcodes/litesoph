@@ -431,7 +431,8 @@ class PlotSpectraPage(View):
         self._default_var = {
             'del_e' : ['float', 0.05],
             'e_max' : ['float', 30.0],
-            'e_min' : ['float']
+            'e_min' : ['float'],
+            'width' : ['float', 0.1]
         }
 
         self._var = var_define(self._default_var)
@@ -480,6 +481,13 @@ class PlotSpectraPage(View):
         self.entry_emax['font'] = label_design['font']
         self.entry_emax.grid(row=4, column=1, padx=2, pady=4, sticky='nsew')
 
+        self.label_emax = tk.Label(self.Frame1,text="width (in eV)",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_emax['font'] = label_design['font']
+        self.label_emax.grid(row=5, column=0, padx=2, pady=4, sticky='nsew')
+
+        self.entry_emax = tk.Entry(self.Frame1,textvariable =self._var['width'])
+        self.entry_emax['font'] = label_design['font']
+        self.entry_emax.grid(row=5, column=1, padx=2, pady=4, sticky='nsew')
 
         #self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
         #self.button_frame.grid(row=1, column=0, sticky='nsew')
@@ -517,7 +525,8 @@ class PlotSpectraPage(View):
         plot_dict = {
             'delta_e':self._var['del_e'].get(),
             'e_max':self._var['e_max'].get(),
-            'e_min': self._var['e_min'].get()       
+            'e_min':self._var['e_min'].get(),
+            'width':self._var['width'].get()
         }
         return plot_dict            
 

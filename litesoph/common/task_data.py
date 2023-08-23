@@ -54,7 +54,8 @@ template_rt_tddft_parameters = {
 template_compute_spectrum_parameters = {
             'delta_e': 0.05,
             'e_max':30.0,
-            'e_min': 0.0,       
+            'e_min': 0.0, 
+            'width': 0.1,      
         }
 
 task_dependencies_map = {
