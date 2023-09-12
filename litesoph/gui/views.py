@@ -492,10 +492,10 @@ class PlotSpectraPage(View):
         #self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
         #self.button_frame.grid(row=1, column=0, sticky='nsew')
 
-        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
+        #self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
         #self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0, padx=3, pady=6)
+        #self.back_button['font'] = myfont()
+        #self.back_button.grid(row=0, column=0, padx=3, pady=6)
 
     def add_job_frame(self, parent, task_name, r:int=0, c:int=0):  
         """  Adds submit job buttons to View1"""
@@ -570,10 +570,10 @@ class TcmPage(View):
         # self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
         # self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
-        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
-        # self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda: self.back_button())
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0)
+        # self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
+        ## self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda: self.back_button())
+        # self.back_button['font'] = myfont()
+        # self.back_button.grid(row=0, column=0)
 
         #self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
         self.select_ksd_frame(self.frame_inp)
@@ -823,10 +823,10 @@ class PopulationPage(View):
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=4, column=2, sticky='we', padx=25)
 
-        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", state="disabled")
-        #self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
+        #self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", state="disabled")
+        ##self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        #self.back_button['font'] = myfont()
+        #self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
 
         # add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=1)
 
@@ -1525,10 +1525,10 @@ class GroundStatePage(View):
         self.trace_variables()
         
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
-        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
+        #self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
         ##self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
-        self.button_back['font'] = myFont
-        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+        #self.button_back['font'] = myFont
+        #self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
         # self.button_clear = tk.Button(self.save_button_frame, text="Clear", activebackground="#78d6ff", command=lambda: self.clear_button())
         # self.button_clear['font'] = myFont
@@ -1696,9 +1696,9 @@ class TimeDependentPage(View):
 
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
 
-        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
-        self.button_back['font'] = myFont
-        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+       #self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
+       #self.button_back['font'] = myFont
+       #self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
@@ -1874,9 +1874,9 @@ class PumpProbePostProcessPage(View):
         
         # Adding Buttons
         #self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",state="disabled")
-        self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0, padx=3, pady=6)  
+        #self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        #self.back_button['font'] = myfont()
+        #self.back_button.grid(row=0, column=0, padx=3, pady=6)  
     
     def set_parameters(self, default_values:dict):
         for key, value in self._var.items():
