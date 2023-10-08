@@ -431,7 +431,8 @@ class PlotSpectraPage(View):
         self._default_var = {
             'del_e' : ['float', 0.05],
             'e_max' : ['float', 30.0],
-            'e_min' : ['float']
+            'e_min' : ['float'],
+            'width' : ['float', 0.1]
         }
 
         self._var = var_define(self._default_var)
@@ -480,13 +481,21 @@ class PlotSpectraPage(View):
         self.entry_emax['font'] = label_design['font']
         self.entry_emax.grid(row=4, column=1, padx=2, pady=4, sticky='nsew')
 
+        self.label_emax = tk.Label(self.Frame1,text="width (in eV)",bg= label_design['bg'],fg=label_design['fg'])
+        self.label_emax['font'] = label_design['font']
+        self.label_emax.grid(row=5, column=0, padx=2, pady=4, sticky='nsew')
+
+        self.entry_emax = tk.Entry(self.Frame1,textvariable =self._var['width'])
+        self.entry_emax['font'] = label_design['font']
+        self.entry_emax.grid(row=5, column=1, padx=2, pady=4, sticky='nsew')
 
         #self.button_frame = ttk.Frame(self, borderwidth=2, relief='groove')
         #self.button_frame.grid(row=1, column=0, sticky='nsew')
 
-        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0, padx=3, pady=6)
+        #self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
+        #self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        #self.back_button['font'] = myfont()
+        #self.back_button.grid(row=0, column=0, padx=3, pady=6)
 
     def add_job_frame(self, parent, task_name, r:int=0, c:int=0):  
         """  Adds submit job buttons to View1"""
@@ -516,7 +525,8 @@ class PlotSpectraPage(View):
         plot_dict = {
             'delta_e':self._var['del_e'].get(),
             'e_max':self._var['e_max'].get(),
-            'e_min': self._var['e_min'].get()       
+            'e_min':self._var['e_min'].get(),
+            'width':self._var['width'].get()
         }
         return plot_dict            
 
@@ -560,9 +570,10 @@ class TcmPage(View):
         # self.frame_inp = ttk.Frame(self.Frame1, borderwidth=2)
         # self.frame_inp.grid(row=1,column=0, sticky='nsew')           
 
-        self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0)
+        # self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",state="disabled")
+        ## self.back_button = tk.Button(self.save_button_frame, text="Back",activebackground="#78d6ff",command=lambda: self.back_button())
+        # self.back_button['font'] = myfont()
+        # self.back_button.grid(row=0, column=0)
 
         #self.engine_name.trace_add(['write'], lambda *_:self.select_ksd_frame(self.frame_inp))
         self.select_ksd_frame(self.frame_inp)
@@ -673,7 +684,7 @@ class TcmPage(View):
             freq = freq.strip()
             self.freq_list.append(float(freq))
         return(self.freq_list)   
-    
+
     def get_parameters(self):
         engine = self.engine_name.get()    
        #TODO: The engine information should be abstracted from this module.
@@ -812,9 +823,10 @@ class PopulationPage(View):
         self.plot_button['font'] = myfont()
         self.plot_button.grid(row=4, column=2, sticky='we', padx=25)
 
-        self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
+        #self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", state="disabled")
+        ##self.back_button = tk.Button(self.Frame_button1, text="Back ",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        #self.back_button['font'] = myfont()
+        #self.back_button.grid(row=0, column=0, padx=10, sticky='nswe')
 
         # add_job_frame(self, self.SubFrame3,self.task_name, row= 0, column=1)
 
@@ -927,6 +939,7 @@ class JobSubPage(ttk.Frame):
         self.back2task['font'] = myfont()
         self.back2task.pack(side= tk.LEFT)
 
+        #self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff",state="disabled")
         self.back2main = tk.Button(self.frame_button, text="Back to main page",activebackground="#78d6ff")
         self.back2main['font'] = myfont()
         self.back2main.pack(side= tk.RIGHT)
@@ -1496,6 +1509,7 @@ class CreateWorkflowPage(tk.Toplevel):
 class GroundStatePage(View):
     
     def __init__(self, parent, engine, task_name, *args, **kwargs):
+
         super().__init__(parent, *args, **kwargs)
         from litesoph.gui.design.template import InputFrame
         from litesoph.gui.models.inputs import gs_input, gs_visible_default
@@ -1511,9 +1525,10 @@ class GroundStatePage(View):
         self.trace_variables()
         
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
-        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
-        self.button_back['font'] = myFont
-        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+        #self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
+        ##self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
+        #self.button_back['font'] = myFont
+        #self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
         # self.button_clear = tk.Button(self.save_button_frame, text="Clear", activebackground="#78d6ff", command=lambda: self.clear_button())
         # self.button_clear['font'] = myFont
@@ -1541,8 +1556,9 @@ class GroundStatePage(View):
         hide_message(self.label_msg)
 
     def back_button(self):
-        return
+        #return
         self.event_generate(actions.SHOW_WORK_MANAGER_PAGE)
+        #self.event_generate('<<SHOW_WORK_MANAGER_PAGE>>')
     
     def clear_button(self):
         self.event_generate(f'<<Clear{self.task_name}Script>>')
@@ -1680,9 +1696,9 @@ class TimeDependentPage(View):
 
         add_job_frame(self, self.submit_button_frame, task_name, column=1)
 
-        self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
-        self.button_back['font'] = myFont
-        self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
+       #self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
+       #self.button_back['font'] = myFont
+       #self.button_back.grid(row=0, column=1, padx=3, pady=3,sticky='nsew')
 
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
@@ -1857,9 +1873,10 @@ class PumpProbePostProcessPage(View):
         self.button_plot.grid(row=2, column=3, padx=3, pady=6)       
         
         # Adding Buttons
-        self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
-        self.back_button['font'] = myfont()
-        self.back_button.grid(row=0, column=0, padx=3, pady=6)  
+        #self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",state="disabled")
+        #self.back_button = tk.Button(self.button_frame, text="Back",activebackground="#78d6ff",command=lambda:self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
+        #self.back_button['font'] = myfont()
+        #self.back_button.grid(row=0, column=0, padx=3, pady=6)  
     
     def set_parameters(self, default_values:dict):
         for key, value in self._var.items():

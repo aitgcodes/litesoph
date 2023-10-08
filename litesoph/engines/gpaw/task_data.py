@@ -71,7 +71,8 @@ def get_compute_spec_param():
     return{
             'delta_e': 0.05,
             'e_max':30.0,
-            'e_min': 0.0,       
+            'e_min': 0.0, 
+            'width': 0.1,      
         }
 
 

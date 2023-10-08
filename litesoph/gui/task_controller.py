@@ -179,7 +179,7 @@ class TaskController:
                                             self._on_view_specific_file_local,
                                             self._on_plot_file_local)
 
-        self.job_sub_page.set_run_button_state('disable')        
+        self.job_sub_page.set_run_button_state('disable')       
         self.job_sub_page.tkraise()
 
     def _on_check_file_status_local(self):
