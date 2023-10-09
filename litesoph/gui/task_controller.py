@@ -642,7 +642,7 @@ class PostProcessTaskController(TaskController):
         self.task_view = self.app.show_frame(task_view, self.task_info.engine, self.task_info.name)        
         self.task_view.submit_button.config(command = self._run_task_serial)
         self.task_view.plot_button.config(command = self._on_plot_button)
-        self.task_view.back_button.config(command= self.workflow_controller.show_workmanager_page)
+        #self.task_view.back_button.config(command= self.workflow_controller.show_workmanager_page)
            
         if hasattr(self.task_view, 'set_parameters'):
             self.task_view.set_parameters(copy.deepcopy(self.task_info.param))
