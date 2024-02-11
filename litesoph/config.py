@@ -2,7 +2,7 @@ import os
 import subprocess
 import pathlib
 from configparser import ConfigParser, NoOptionError, NoSectionError
-
+import platform
 user_data_dir = pathlib.Path.home() / ".litesoph"
 config_file = user_data_dir / "lsconfig.ini"
 
@@ -25,7 +25,12 @@ def get_path(name):
     - str: The full path to the executable if found; None otherwise.
     """
     print(f"Checking for {name}...")
-    p = subprocess.run(['which', name], capture_output=True, text=True)
+    if platform.system().lower() == 'windows':
+        command = 'where'
+    else:
+        command = 'which'
+
+    p = subprocess.run([command, name], capture_output=True, text=True)
     if p.stdout and p.returncode == 0:
         path = p.stdout.strip()
         print(f"Found {name} in {path}")
