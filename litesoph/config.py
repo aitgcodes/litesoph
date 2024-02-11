@@ -16,7 +16,7 @@ sections = {
 
 def get_path(name):
     """
-    Attempts to find the path of a given executable using the 'which' command.
+    Attempts to find the path of a given executable using the 'which' command in linux and mac, and 'where' command in windows
 
     Parameters:
     - name (str): The name of the executable to find.
