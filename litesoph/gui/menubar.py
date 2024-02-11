@@ -65,7 +65,7 @@ from litesoph.gui import actions
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-
+import webbrowser
 
 class GenericMainMenu(tk.Menu):
   """The Application's main menu"""
@@ -143,7 +143,7 @@ class GenericMainMenu(tk.Menu):
 
   def _add_webpage(self, menu):
     menu.add_command(
-      label='Webpage', command=self.show_about,
+      label='Webpage', command=self.show_webpage,
       #image=self.icons.get('about'), compound=tk.LEFT
     )
 
@@ -204,23 +204,18 @@ class GenericMainMenu(tk.Menu):
   def show_about(self):
     """Show the about dialog"""
 
-    about_message = ''
+    about_message = 'Hello World'
     about_detail = ()
     
     messagebox.showinfo(
       title='About', message=about_message, detail=about_detail
     )
   
-  
-  def show_about(self):
-    """Show the about dialog"""
+  def show_webpage(self):
+    '''Shows the webpage'''
+    url = 'https://aitgcodes.github.io/litesoph-website/'
+    webbrowser.open(url)
 
-    about_message = ''
-    about_detail = ()
-    
-    messagebox.showinfo(
-      title='About', message=about_message, detail=about_detail
-    )
 
   @staticmethod
   def _on_theme_change(*_):
