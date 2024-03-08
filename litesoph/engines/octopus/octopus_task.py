@@ -88,14 +88,13 @@ class OctopusTask(Task):
         self.user_input = self.params
 
         self.validate_task_param()
-        self.setup_task(self.user_input) 
+        self.setup_task(self.user_input)
     
     def validate_task_param(self):
         """Engine level validation of the input dict for the task
         \n
         """
-
-        self.restart = self.params.get('restart', False)    
+        self.restart = self.params.get('restart', False)
         name = self.task_info.name
         if name == tt.RT_TDDFT:
             from litesoph.engines.octopus.format_oct import calc_td_range
@@ -149,7 +148,7 @@ class OctopusTask(Task):
         # Only needed for Octopus simulation
         # Specific to Octopus interfaced tasks
         self.input_filename = 'inp'
-        self.task_input_filename = self.task_data.get('task_inp', 'inp')       
+        self.task_input_filename = self.task_data.get('task_inp', 'inp')
         geom_fname = self.user_input.get('geom_fname','coordinate.xyz')
         self.geom_file = '../' + str(geom_fname)
         self.geom_fpath = str(self.wf_dir / str(geom_fname))
@@ -443,7 +442,7 @@ class OctopusTask(Task):
 
     def plot(self,**kwargs):
         """Method related to plot in post-processing"""
-        from litesoph.visualization.plot_spectrum import plot_spectrum,plot_multiple_column
+        from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum_octo_polarized
 
         if self.task_name == tt.COMPUTE_SPECTRUM:
             energy_min = self.task_info.param['e_min']
@@ -451,7 +450,9 @@ class OctopusTask(Task):
             spec_file = self.task_data['spectra_file'][0]
             file = self.task_dir / str(spec_file)
             img = file.parent / f"spectrum.png"
-            plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)", xlimit=(float(energy_min), float(energy_max)))
+            # Plot function automatically checks for Polarization and acts accordingly!
+            # By default singlet is passed
+            plot_spectrum_octo_polarized(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)", xlimit=(float(energy_min), float(energy_max)))
             return        
 
         if self.task_name == tt.TCM: 
@@ -542,7 +543,7 @@ class OctAveragedSpectrum(OctopusTask):
     """Added Post-Processing Class to compute Averaged Spectrum"""
 
     def validate_task_param(self):
-        pass
+        self.restart = False
 
     def pre_run(self):
         """Gets dependent tasks info and defines class variables"""

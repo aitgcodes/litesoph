@@ -1,5 +1,6 @@
 from pathlib import Path
 import numpy as np
+import matplotlib.pyplot as plt
 
 def plot(fname,image):
 
@@ -22,25 +23,71 @@ def plot(fname,image):
     plt.tight_layout()
     plt.savefig('spec.png')
 
-def plot_spectrum(filename,imgfile,row:int, column:int, xlabel:str, ylabel:str, xlimit=(0.0, 30.0)):  
-    """ Shows the plot"""
-            
-    import numpy as np
-    import matplotlib.pyplot as plt
-    data_ej = np.loadtxt(filename) 
+def plot_spectrum(filename, imgfile, row:int, y_column:int, xlabel:str, ylabel:str, xlimit=(0.0, 30.0)):
+    """Plots the sum and difference of two columns vs another column, with the option to plot just one column if second_y_column is not provided."""
+    
+    # Load the data
+    data = np.loadtxt(filename)
+
     plt.figure(figsize=(8, 6))
-    ax = plt.subplot(1, 1, 1) 
-    ax.plot(data_ej[:, row], data_ej[:, column], 'k')                           
+    ax = plt.subplot(1, 1, 1)
+
+    ax.plot(data[:, row], data[:, y_column], label='Singlet', color='k')
+
+    # Styling and labels
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.legend()
     plt.tight_layout()
     plt.xlim(xlimit[0], xlimit[1])
+    
+    # Save and show the plot
     plt.savefig(imgfile)
-    plt.show()      
+    plt.show()
+
+def plot_spectrum_octo_polarized(filename, imgfile, row:int, y_column:int, xlabel:str, ylabel:str, xlimit=(0.0, 30.0)):
+    """Plots the sum and difference of two columns vs another column, with the option to plot just one column if second_y_column is not provided."""
+    
+    # Load the data
+    data = np.loadtxt(filename)
+    
+    plt.figure(figsize=(8, 6))
+    ax = plt.subplot(1, 1, 1)
+
+    isPolarized = True if data.shape[1] == 9 else False
+    
+    if isPolarized:
+        # Plot the sum and difference if we are plotting both singlet and triplet
+        # The Strength Functions are stored at column 7 and 8
+        sum_data = data[:, 7] + data[:, 8]
+        diff_data = data[:, 7] - data[:, 8]
+        ax.plot(data[:, row], sum_data, label='Singlet', color='blue')
+        ax.plot(data[:, row], diff_data, label='Triplet', color='red')
+    else:
+        # Plot only the first column if second_y_column is not provided
+        ax.plot(data[:, row], data[:, y_column], label='Singlet', color='k')
+
+    # Styling and labels
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.tight_layout()
+    plt.xlim(xlimit[0], xlimit[1])
+    
+    # Save and show the plot
+    plt.savefig(imgfile)
+    plt.show()
+
+
+     
 
 def plot_multiple_column(data_array, column_list, row_range=(1,1), **kwargs):
     import numpy as np
