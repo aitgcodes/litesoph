@@ -11,6 +11,7 @@ from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
 from litesoph.common.utils import get_new_directory
 from litesoph.engines.octopus.format_oct import get_gs_dict, get_oct_kw_dict
+from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum_octo_polarized
 
 
 engine_log_dir = 'octopus/log'
@@ -442,7 +443,6 @@ class OctopusTask(Task):
 
     def plot(self,**kwargs):
         """Method related to plot in post-processing"""
-        from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum_octo_polarized
 
         if self.task_name == tt.COMPUTE_SPECTRUM:
             energy_min = self.task_info.param['e_min']
@@ -557,21 +557,11 @@ class OctAveragedSpectrum(OctopusTask):
                 self.spectrum_files.append(spec_file_path)
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
 
-        # For using oct-propagation_spectrum ultility for multiploes
-        # for i, td_task in enumerate(self.dependent_tasks):
-        #     td_info = td_task
-        #     if td_info:
-        #         oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
-        #         td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
-        #         shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
-        #         shutil.move(src=td_folder_path+'/multipoles',
-        #                dst= td_folder_path+'/multipoles'+str(i+1))
-        
     def update_added_task_info(self):
         """Modified to store output files"""
 
         self.task_info.output['spectra_file'] = []
-        for spec_file in self.task_data.get('spectra_file'):
+        for spec_file in self.task_data.get('spectra_file', []):
             spectra_fpath = str(Path(self.task_dir).relative_to(self.wf_dir) / spec_file)
             self.task_info.output['spectra_file'].append(spectra_fpath)
 
@@ -579,41 +569,83 @@ class OctAveragedSpectrum(OctopusTask):
         self.set_dir()
         self.pre_run()
         self.update_task_info()
-                
+
     def prepare_input(self):
-        """Modifies the same method in Task class\n
+        """Modifies the same method in Task class
         Creates/writes input and job script"""
 
         self.create_task_dir()
         self.compute_avg_spectra()
     
     def compute_avg_spectra(self):
-        """Computes average of spectra data"""
-
-        spec_data = []
+        """Computes average or differential of spectra data based on polarization"""
+        
         time_data = []
+        data_1 = np.loadtxt(self.spectrum_files[0])
+        self.isPolarized = True if data_1.shape[1] == 9 else False
+
+        if self.isPolarized:
+            polarized_data_sum = []
+            polarized_data_diff = []
+        else:
+            spec_data = []
+
         for i, file in enumerate(self.spectrum_files):
             data = np.loadtxt(file)
-            time_data.append(data[:,0])
-            spec_data.append(data[:,4])
+            time_data.append(data[:, 0])
 
-        spec_data = np.column_stack(tuple(spec_data))
-        averaged_data = np.average(spec_data, axis=1)
-        spec_avg_data = np.column_stack((time_data[0], averaged_data))
-        with open(self.averaged_spec_file, 'ab') as f:
-            np.savetxt(f, np.array(spec_avg_data))
+            if self.isPolarized:
+                sum_data = data[:, 7] + data[:, 8]  # Sum of 8th and 9th columns
+                diff_data = data[:, 7] - data[:, 8] # Difference of 8th and 9th columns
+                polarized_data_sum.append(sum_data)
+                polarized_data_diff.append(diff_data)
+            else:
+                spec_data.append(data[:, 4])  # Default to 5th column for non-polarized data
 
-    def plot(self,**kwargs):
-        """Method related to plot in average spectrum"""
+        if self.isPolarized:
+            # Handling polarized data
+            sum_data_stacked = np.column_stack(tuple(polarized_data_sum))
+            diff_data_stacked = np.column_stack(tuple(polarized_data_diff))
+            averaged_sum_data = np.average(sum_data_stacked, axis=1)
+            averaged_diff_data = np.average(diff_data_stacked, axis=1)
+            spec_avg_data = np.column_stack((time_data[0], averaged_sum_data, averaged_diff_data))
 
+            # Plot sum and diff data
+            # self.plot(data_type='sum')
+            # self.plot(data_type='difference')
+        else:
+            # Handling default non-polarized data
+            spec_data = np.column_stack(tuple(spec_data))
+            averaged_data = np.average(spec_data, axis=1)
+            spec_avg_data = np.column_stack((time_data[0], averaged_data))
+        np.savetxt(self.averaged_spec_file, spec_avg_data)
+
+
+    def plot(self, data_type='average', **kwargs):
+        """Method to plot average, summed, or subtracted spectrum based on polarization status."""
         from litesoph.visualization.plot_spectrum import plot_spectrum
+
         energy_min = self.task_info.param['e_min']
         energy_max = self.task_info.param['e_max']
-        img = self.averaged_spec_file.parent / f"avg_spectrum.png"
-        plot_spectrum(self.averaged_spec_file,img, 0, 1,
-                        "Energy (in eV)", "Strength(in /eV)", 
-                        xlimit=(float(energy_min), float(energy_max)))
-        return    
+
+        # Determine the file to plot and title based on data_type
+        if data_type == 'sum':
+            data_file = self.averaged_spec_file.with_name(f"{self.averaged_spec_file.stem}_sum.dat")
+            plot_title = "Summed Polarized Spectrum"
+        elif data_type == 'difference':
+            data_file = self.averaged_spec_file.with_name(f"{self.averaged_spec_file.stem}_diff.dat")
+            plot_title = "Differential Polarized Spectrum"
+        else:  # Default to 'average'
+            data_file = self.averaged_spec_file
+            plot_title = "Average Spectrum"
+
+        # Plotting
+        spec_file = data_file.with_suffix('.png')
+        if self.isPolarized:
+            plot_spectrum(data_file, spec_file, 0, [1, 2], "Energy (in eV)", "Strength (in /eV)", xlimit=(float(energy_min), float(energy_max)), legends = ["Singlet", "Triplet"])
+        else:
+            plot_spectrum(data_file, spec_file, 0, 1, "Energy (in eV)", "Strength (in /eV)", xlimit=(float(energy_min), float(energy_max)), legends = ["Singlet"])
+
 
 class PumpProbePostpro(OctopusTask):
 

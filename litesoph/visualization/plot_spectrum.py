@@ -23,7 +23,7 @@ def plot(fname,image):
     plt.tight_layout()
     plt.savefig('spec.png')
 
-def plot_spectrum(filename, imgfile, row:int, y_column:int, xlabel:str, ylabel:str, xlimit=(0.0, 30.0)):
+def plot_spectrum(filename, imgfile, row:int, y_column:int | list[int], xlabel:str, ylabel:str, xlimit=(0.0, 30.0), legends:list[str] = []):
     """Plots the sum and difference of two columns vs another column, with the option to plot just one column if second_y_column is not provided."""
     
     # Load the data
@@ -31,8 +31,12 @@ def plot_spectrum(filename, imgfile, row:int, y_column:int, xlabel:str, ylabel:s
 
     plt.figure(figsize=(8, 6))
     ax = plt.subplot(1, 1, 1)
+    y_column = [y_column] if isinstance(y_column, int) else y_column
+    while len(legends) < len(y_column):
+        legends.append(None)
 
-    ax.plot(data[:, row], data[:, y_column], label='Singlet', color='k')
+    for i in range(len(y_column)):
+        ax.plot(data[:, row], data[:, y_column[i]], label=legends[i])
 
     # Styling and labels
     ax.spines['right'].set_visible(False)
