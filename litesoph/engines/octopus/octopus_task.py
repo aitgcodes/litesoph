@@ -190,7 +190,7 @@ class OctopusTask(Task):
             return
 
         elif self.task_name in self.added_post_processing_tasks:            
-            td_info = self.dependent_tasks[1]
+            td_info = self.dependent_tasks[0]
             if td_info:
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
                 td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
@@ -536,6 +536,7 @@ class OctopusTask(Task):
                 
                 calc_population_diff(homo_index=below_homo,infile=population_file, outfile=population_diff_file)
             self.task_info.job_info.job_returncode = 0
+            self.task_info.job_info.output = ''
         except Exception:
             self.task_info.job_info.job_returncode = 1
 
