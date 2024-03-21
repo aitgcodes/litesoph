@@ -29,11 +29,7 @@ default_param =  {
         'hund': False,
         'maxiter': 333,
         'idiotproof': True,
-        'symmetry': {'point_group': True,
-                     'time_reversal': True,
-                     'symmorphic': True,
-                     'tolerance': 1e-7,
-                     'do_not_symmetrize_the_density': None},  # deprecated
+        'symmetry': {'point_group': False},  # deprecated
         'convergence': {'energy': 0.0005,  # eV / electron
                         'density': 1.0e-4,
                         'eigenstates': 4.0e-8,  # eV^2

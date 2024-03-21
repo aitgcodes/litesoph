@@ -22,7 +22,7 @@ class LSManager:
     This class is responsible for creating and managing all the projects in 
     the litesoph. All the data generated from the project is stored in the 
     project_info which is serialized into json format and written to the project_data file
-    in the ./litesoph directory, which is in the project directory."""
+    in the .litesoph directory, which is in the project directory."""
 
     def __init__(self) -> None:
         self.project_data_file_relative_path = PROJECT_DATA_FILE_RELATIVE_PATH

@@ -239,6 +239,13 @@ class ProjectController:
                 # self.workflow_navigation_view.clear()
         else:
             workflow_type = get_workflow_type(workflow_type)
+
+        # global gs_visible_default
+        # from litesoph.gui.models.inputs import gs_visible_default
+        # if param['multiplicity'] == 3:
+        #     gs_visible_default['spin'] = False
+        # else:
+        #     gs_visible_default['spin'] = True
             
         if workflow_info.name:
             workflow_controller = self._get_workflow_controller(workflow_info.name)
