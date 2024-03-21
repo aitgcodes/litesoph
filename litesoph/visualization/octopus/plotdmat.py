@@ -101,16 +101,19 @@ def read_dmat(fp):
 def plot_slice_dmatw(eo,eu,dmatw,w0,fnm):
 
 	(nx, ny) = dmatw.shape
-
+	ny=max(ny,2)
+	nx=max(nx,2)
+	dnx, dny = nx - dmatw.shape[0], ny - dmatw.shape[1]
+	dmatw = np.pad(dmatw, [(dnx, 0), (0, dny)])
 	xlist=np.linspace(-nx+1,0,nx)
 	ylist=np.linspace(1,ny,ny)
 	X,Y = np.meshgrid(xlist,ylist)
 
-	xmin = -nx
-	xmax = 1.0
+	xmin = -nx+1
+	xmax = 0.0
 	
-	ymin = 0.0
-	ymax = ny+1
+	ymin = 1.0
+	ymax = ny
 
 	fname1=fnm+".png"
 	
@@ -131,10 +134,12 @@ def plot_slice_dmatw(eo,eu,dmatw,w0,fnm):
 	plt.xlabel('Occupied states')
 	plt.ylabel('Unoccupied states')
 	plt.xlim(xmin,xmax)
+	plt.xticks(xlist)
 	plt.ylim(ymin,ymax)
+	plt.yticks(ylist)
 	#plt.show()
 	plt.savefig(fname1)
-	plt.show() 	
+	plt.show()
 
 	return fname1
 
@@ -184,8 +189,6 @@ def plot_slice_dmatw_en(eo,eu,dmatw,w0,fnm,sig,ne,xylim):
 	fname1=fnm+".png"
 
 	Z=np.zeros((ne,ne), dtype=float)
-
-	file_z = open('tcm_z.dat', 'w')
 
 	for i in range(ne):
 		for j in range(ne):
@@ -312,7 +315,7 @@ else:
 		if w[it] >= wmin and w[it] <= wmax:
 			dmat_tot[:,:] += (dmat[it,:,:])
 			ntot += 1
-	#dmat_tot =  dmat_tot/float(ntot)
+	dmat_tot =  dmat_tot/float(ntot)
 	w0 = (wmax+wmin)/2.0
 	f1 = fpref+"_"+str(w0)
 	fn = plot_slice_dmatw_en(eo,eu,dmat_tot,w0,f1,sigma,nev,xylim)
