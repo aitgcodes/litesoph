@@ -12,7 +12,7 @@ engine_data_base = {
     "nwchem": nwchem_data,
     "gpaw": gpaw_data,
     "octopus": octopus_data
-}   
+}
 
 #TODO: workflows should be referenced using workflow_db class 
 # instead of directly using string.
