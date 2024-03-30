@@ -23,7 +23,7 @@ def plot(fname,image):
     plt.tight_layout()
     plt.savefig('spec.png')
 
-def plot_spectrum(filename, imgfile, row:int, y_column:int | list[int], xlabel:str, ylabel:str, xlimit=(0.0, 30.0), legends:list[str] = []):
+def plot_spectrum(filename, imgfile, row:int, y_column, xlabel:str, ylabel:str, xlimit=(0.0, 30.0), legends:list[str] = []):
     """Plots the sum and difference of two columns vs another column, with the option to plot just one column if second_y_column is not provided."""
     
     # Load the data
