@@ -204,7 +204,7 @@ class GenericMainMenu(tk.Menu):
   def show_about(self):
     """Show the about dialog"""
 
-    about_message = 'Hello World'
+    about_message = "Layer Integrated Toolkit and Engine for Simulations of Photo-induced Phenomena\n" + "Website: https://aitgcodes.github.io/litesoph-website/"
     about_detail = ()
     
     messagebox.showinfo(
