@@ -16,8 +16,6 @@ from litesoph.gui.workflow_controller import WorkflowController, WorkflowModeCon
 from litesoph.common.project_manager import ProjectManager, WorkflowSetupError
 from litesoph.common.data_sturcture.data_classes import ProjectInfo
 from litesoph.common.workflows_data import predefined_workflow
-import logging
-logging.basicConfig(level=logging.DEBUG, filename='project_controller.log', format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class ProjectController:
@@ -146,20 +144,14 @@ class ProjectController:
 
     def update_branch_point_entry(self, *_):
         source_workflow = self.workflow_create_window.get_value('source_wf')
-        if not source_workflow:  # Add a check for empty source_workflow
-            logging.debug("No source workflow selected.")
+        if not source_workflow:
             return
 
         source_workflow = source_workflow.split(':')
-        if len(source_workflow) < 2:  # Ensure the split operation yields the expected parts
-            logging.error("Source workflow format is incorrect.")
+        if len(source_workflow) < 2:
             return
 
-        try:
-            source_workflow_info = self.project_manager.get_workflow_info(source_workflow[1].strip())
-        except Exception as e:  # Catch exceptions when retrieving workflow info
-            logging.error(f"Unable to retrieve workflow info: {e}")
-            return
+        source_workflow_info = self.project_manager.get_workflow_info(source_workflow[1].strip())
 
         branch_points = []
         for i, block in enumerate(source_workflow_info.steps):
@@ -169,7 +161,6 @@ class ProjectController:
             self.workflow_create_window.entry_branch_pt['values'] = branch_points
             self.workflow_create_window.entry_branch_pt.current(0)
         else:
-            logging.debug("Branch points list is empty.")
             self.workflow_create_window.entry_branch_pt['values'] = []  # Clear values if branch_points is empty
 
     
