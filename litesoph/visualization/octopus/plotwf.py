@@ -26,43 +26,57 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import copy
+import argparse
 from cubehandler import cubeio
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="""
+    This script creates cube files consisting of the transition densities at the input frequencies (wmin to wmax) from 
+    the KS wavefunctions in cube format stored in <fpref> and the frequency dependent density matrix read from 
+    "dmatw.dat" in the working directory.""")
+    parser.add_argument("fpref", type=str, help="Path of the cube files")
+    parser.add_argument("wmin", type=float, help="Minimum frequency")
+    parser.add_argument("wmax", type=float, help="Maximum frequency")
+    parser.add_argument("-i", "--integrate", action="store_true", help="Compute the total transition density over frequencies")
+    parser.add_argument("-s", "--specific", nargs=2, type=int, help="Compute the contribution from the iocc --> iuocc excitation", metavar=('iocc', 'iuocc'))
+    parser.add_argument("-a", "--angstrom", action="store_true", help="Convert cube file data to bohr from angstroms")
+    return parser.parse_args()
 
 fname = sys.argv[1]
 wmin = float(sys.argv[2])
 wmax = float(sys.argv[3])
 
 #### Methods used by main code ###########
-
-def get_input_params(strx):
-
-	tint = False
-	tspec = False
-	tang = False
-	iocc = 0
-	iuocc = 0
-
-	fname = strx[1].strip()
-	wmin = float(strx[2])
-	wmax = float(strx[3])
-
-	if len(strx) > 4:
-		if "-i" in strx[4:]:
-			tint = True
-		if "-s" in strx[4:]:
-			tspec = True
-			i = 4
-			for item in strx[4:]:
-				if item == "-s":
-					break
-				i += 1
-			iocc = int(sys.argv[i+1])
-			iuocc = int(sys.argv[i+2])
-		if "-a" in strx[4:]:
-			tang = True
-
-	return (fname, wmin, wmax, tint, tspec, tang, iocc, iuocc)
-
+#
+#def get_input_params(strx):
+#
+#	tint = False
+#	tspec = False
+#	tang = False
+#	iocc = 0
+#	iuocc = 0
+#
+#	fname = strx[1].strip()
+#	wmin = float(strx[2])
+#	wmax = float(strx[3])
+#
+#	if len(strx) > 4:
+#		if "-i" in strx[4:]:
+#			tint = True
+#		if "-s" in strx[4:]:
+#			tspec = True
+#			i = 4
+#			for item in strx[4:]:
+#				if item == "-s":
+#					break
+#				i += 1
+#			iocc = int(sys.argv[i+1])
+#			iuocc = int(sys.argv[i+2])
+#		if "-a" in strx[4:]:
+#			tang = True
+#
+#	return (fname, wmin, wmax, tint, tspec, tang, iocc, iuocc)
+#
 def read_dmat(fp):
 
        lines=fp.readlines()
@@ -117,8 +131,29 @@ def cal_chden(den,wo,wu,nx,ny,nz,io,iu):
 
 #### Main code begins ########
 
-(fpref, wmin, wmax, tint, tspec, tang, iocc, iuocc) = get_input_params(sys.argv)
-print fpref, wmin, wmax, tint, tspec, tang, iocc, iuocc
+args = parse_arguments()
+
+fname = sys.argv[1]
+wmin = args.wmin
+wmax = args.wmax
+
+# After calling parse_arguments, which returns 'args'
+args = parse_arguments()
+
+# Accessing arguments directly
+fpref = args.fpref
+wmin = args.wmin
+wmax = args.wmax
+tint = args.integrate
+tspec = args.specific is not None  # This checks if the specific flag was used
+tang = args.angstrom
+
+# If 'specific' was used, unpack the values; otherwise, set them to None or a default
+if tspec:
+    iocc, iuocc = args.specific
+else:
+    iocc = None
+    iuocc = None
 
 fp=file("dmatw.dat","r")
 (w, dmat, nocc, eo, eu) = read_dmat(fp)
