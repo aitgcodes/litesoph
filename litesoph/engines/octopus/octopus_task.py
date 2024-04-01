@@ -190,7 +190,7 @@ class OctopusTask(Task):
             return
 
         elif self.task_name in self.added_post_processing_tasks:            
-            td_info = self.dependent_tasks[0]
+            td_info = self.dependent_tasks[1]
             if td_info:
                 oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
                 td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
