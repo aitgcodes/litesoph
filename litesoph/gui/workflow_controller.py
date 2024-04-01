@@ -204,14 +204,14 @@ class WorkflowModeController(WorkflowController):
     def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
         # self.workmanager_page = self.project_controller.workmanager_page
-        self.app.proceed_button.config(command= self.next_task)
+        self.app.proceed_button.config(command= self.next_task, state = 'disabled')
         self.start_task()        
         
 
     def show_workmanager_page(self, *_):
         self.workmanager_page._var['select_wf_option'].set(value=1)
         self.workmanager_page.tkraise()
-        self.app.proceed_button.config(command= self.next_task)
+        self.app.proceed_button.config(command= self.next_task, state = 'disabled')
     
 
     def start_task(self, *_):
