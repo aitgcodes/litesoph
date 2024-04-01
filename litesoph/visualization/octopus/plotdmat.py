@@ -22,7 +22,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import copy
-import argparse
+
 #### Methods used by main code ###########
 
 def get_input_params(strx):	
@@ -54,23 +54,7 @@ def get_input_params(strx):
 			nev = int(sys.argv[i+1]) 
 	print(tint)		 
 	return(fname, wmin, wmax,xylim, tint, sigma, nev)			                 
-
-'''def parse_arguments():
-    parser = argparse.ArgumentParser(description="""
-    This script creates a contour plot depicting the KS decomposition
-    of the spectrum of the system. Optionally, it also plots an average
-    of the KS decomposition over frequencies in the range wmin to wmax.""")
-    
-    parser.add_argument("fname", type=str, help="Filename to read KS decomposed strength function from.")
-    parser.add_argument("wmin", type=float, help="Minimum frequency for the plot.")
-    parser.add_argument("wmax", type=float, help="Maximum frequency for the plot.")
-    parser.add_argument("-i", "--integrate", action="store_true", help="Plot an average over frequencies.")
-    parser.add_argument("-s", "--sigma", type=float, default=0.1, help="Gaussian width for the energy-energy plots.")
-    parser.add_argument("-ne", "--nev", type=int, default=51, help="Number of energy intervals for the plots.")
-    parser.add_argument("-x", "--xylim", type=float, default=5.0, help="Limits for the x and y axes in the plots.")
-
-    return parser.parse_args() '''
-
+                                
 def read_dmat(fp):
 	lines=fp.readlines()
 	arr1 = lines[0].strip().split()
@@ -113,38 +97,23 @@ def read_dmat(fp):
 				
 	return (t, dmat, nocc, eocc, euocc)
 
-'''def read_dmat(fname):
-    with open(fname, "r") as fp:
-        lines = fp.readlines()
 
-    nt, nocc, nx, ny = [int(val) for val in lines[0].strip().split()]
-    ehomo = float(lines[1].strip().split()[nx-1])
-    eocc = [float(val)-ehomo for val in lines[1].strip().split()]
-    euocc = [float(val)-ehomo for val in lines[2].strip().split()]
-
-    t = []
-    dmat = np.zeros((nt, nx, ny), dtype=float)
-    for it, line in enumerate(lines[3:]):
-        parts = line.strip().split()
-        t.append(float(parts[0]))
-        dmat[it] = np.array(parts[1:]).reshape(nx, ny).astype(float)
-    
-    return t, dmat, nocc, eocc, euocc'''
-	           
-                        
 def plot_slice_dmatw(eo,eu,dmatw,w0,fnm):
 
 	(nx, ny) = dmatw.shape
-
+	ny=max(ny,2)
+	nx=max(nx,2)
+	dnx, dny = nx - dmatw.shape[0], ny - dmatw.shape[1]
+	dmatw = np.pad(dmatw, [(dnx, 0), (0, dny)])
 	xlist=np.linspace(-nx+1,0,nx)
 	ylist=np.linspace(1,ny,ny)
 	X,Y = np.meshgrid(xlist,ylist)
 
-	xmin = -nx
-	xmax = 1.0
+	xmin = -nx+1
+	xmax = 0.0
 	
-	ymin = 0.0
-	ymax = ny+1
+	ymin = 1.0
+	ymax = ny
 
 	fname1=fnm+".png"
 	
@@ -165,10 +134,12 @@ def plot_slice_dmatw(eo,eu,dmatw,w0,fnm):
 	plt.xlabel('Occupied states')
 	plt.ylabel('Unoccupied states')
 	plt.xlim(xmin,xmax)
+	plt.xticks(xlist)
 	plt.ylim(ymin,ymax)
+	plt.yticks(ylist)
 	#plt.show()
 	plt.savefig(fname1)
-	plt.show() 	
+	plt.show()
 
 	return fname1
 
@@ -218,8 +189,6 @@ def plot_slice_dmatw_en(eo,eu,dmatw,w0,fnm,sig,ne,xylim):
 	fname1=fnm+".png"
 
 	Z=np.zeros((ne,ne), dtype=float)
-
-	file_z = open('tcm_z.dat', 'w')
 
 	for i in range(ne):
 		for j in range(ne):
@@ -346,7 +315,7 @@ else:
 		if w[it] >= wmin and w[it] <= wmax:
 			dmat_tot[:,:] += (dmat[it,:,:])
 			ntot += 1
-	#dmat_tot =  dmat_tot/float(ntot)
+	dmat_tot =  dmat_tot/float(ntot)
 	w0 = (wmax+wmin)/2.0
 	f1 = fpref+"_"+str(w0)
 	fn = plot_slice_dmatw_en(eo,eu,dmat_tot,w0,f1,sigma,nev,xylim)
@@ -354,24 +323,3 @@ else:
 	f1 = f1+"_idx"
 	fn = plot_slice_dmatw(eo,eu,dmat_tot,w[it],f1)
 	print(fn)
-'''
-if __name__ == "__main__":
-    args = parse_arguments()
-
-    # Extract the file prefix.
-    fpref = '.'.join(args.fname.split('.')[:-1])
-
-    # Read the data matrix.
-    w, dmat, nocc, eocc, euocc = read_dmat(args.fname)
-
-    if not args.integrate:
-        for it, freq in enumerate(w):
-            if args.wmin <= freq <= args.wmax:
-                fn = plot_slice_dmatw_en(eocc, euocc, dmat[it,:,:], freq, f"{fpref}_{freq}", args.sigma, args.nev, args.xylim)
-                print(fn)
-    else:
-        dmat_tot = np.mean(dmat[(w >= args.wmin) & (w <= args.wmax)], axis=0)
-        w0 = (args.wmax + args.wmin) / 2.0
-        fn = plot_slice_dmatw_en(eocc, euocc, dmat_tot, w0, f"{fpref}_avg_{w0}", args.sigma, args.nev, args.xylim)
-        print(fn)'''
-

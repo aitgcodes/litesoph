@@ -503,7 +503,7 @@ class TaskController:
             self.view_panel.insert_text(output, 'disabled')
             self.app.proceed_button.config(state='active')
             messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
-                
+
     def _on_out_local_view_button(self, *_):
 
         try:
