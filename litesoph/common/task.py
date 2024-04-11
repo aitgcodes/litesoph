@@ -124,8 +124,8 @@ class Task:
     
     def create_input(self):
 
-        self.task_info.state.input_created = True
         self.create_template()
+        self.task_info.state.input_created = True
 
     def save_input(self):
         self.task_info.state.input_saved = True
