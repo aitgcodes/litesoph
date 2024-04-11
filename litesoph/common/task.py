@@ -97,6 +97,8 @@ class Task:
         mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
         self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
         self.python_path = self.lsconfig['programs'].get('python', 'python')
+        self.submit_local = None
+        self.submit_network = None
     
     def reset_lsconfig(self, lsconfig):
         self.engine_path = lsconfig['engine'].get(self.engine_name , self.engine_name)
