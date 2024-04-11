@@ -234,7 +234,7 @@ class WorkflowModeController(WorkflowController):
 
     
     def next_task(self):
-
+        self.app.proceed_button.config(state = 'disabled')
         try:
             self.workflow_manager.next()
         except TaskSetupError as e:
