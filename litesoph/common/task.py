@@ -120,7 +120,14 @@ class Task:
     @abstractmethod
     def write_input(self):
         """This method creates engine directory and task directory and writes 
-        the engine input to a file."""        
+        the engine input to a file."""   
+
+# TODO: Implement check output method.
+    # @abstractmethod
+    # def check_output(self) -> bool:
+    #     """This method checks the output of the calculation and returns True if 
+    #     the calculation is successful, otherwise raises an exception.""":
+             
     
     def create_input(self):
 

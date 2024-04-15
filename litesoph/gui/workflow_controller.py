@@ -245,6 +245,8 @@ class WorkflowModeController(WorkflowController):
             if not is_job_completed:
                 messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the server.")
                 return
+        # TODO: Check if the task output is valid or not?
+        # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
         self.app.proceed_button.config(state = 'disabled')
         try:
             self.workflow_manager.next()
