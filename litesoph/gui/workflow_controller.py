@@ -234,6 +234,12 @@ class WorkflowModeController(WorkflowController):
 
     
     def next_task(self):
+        # Make it False so that you can queue multiple jobs.
+        PG_PROCEED = True
+        if self.task_controller.task.submit_network and PG_PROCEED:
+            if not self.task_controller.task.submit_network.check_job_status():
+                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the server.")
+                return
         self.app.proceed_button.config(state = 'disabled')
         try:
             self.workflow_manager.next()

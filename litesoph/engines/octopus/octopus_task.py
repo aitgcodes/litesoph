@@ -350,7 +350,7 @@ class OctopusTask(Task):
         inp_filepath = self.wf_dir / str(self.task_info.input['engine_input']['path'])
 
         self.create_task_dir()             
-        self.octopus.write_input(self.template)  
+        self.octopus.write_input(self.task_info.input['engine_input']['data'])  
         shutil.copy(inp_filepath, self.task_dir / 'inp')      
 
     def create_task_dir(self):
