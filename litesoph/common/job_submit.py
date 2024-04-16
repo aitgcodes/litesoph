@@ -96,7 +96,7 @@ class SubmitLocal:
         self.task_info.job_info.output = result[cmd]['output']
         self.task_info.job_info.error = result[cmd]['error']
 
-    def get_job_status_local(self,job_id):   
+    def get_job_status_local(self, job_id):   
         """
         get the running status of submitted job at remote
         """
@@ -106,6 +106,15 @@ class SubmitLocal:
         error=result[cmd_check_running_process]['error']    
         message=result[cmd_check_running_process]['output']         
         return (error, message)
+
+    def check_job_status(self) -> bool:
+        """returns true if the job is completed in remote machine"""
+        # rpath = pathlib.Path(self.remote_path) / self.task.network_done_file.relative_to(self.project_dir.parent)
+        # return self.network_sub.check_file(str(rpath))        
+        job_id=self.task_info.uuid
+        job_done_file = self.task.task_dir / f"Done_{job_id}"
+        job_done_status = job_done_file.exists()
+        return job_done_status
     
     def get_fileinfo_local(self):   
         """

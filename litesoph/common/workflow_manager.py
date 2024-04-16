@@ -374,8 +374,13 @@ class WorkflowManager:
 
         clone_workflow.engine = copy.deepcopy(self.engine)
 
+        new_branch_point = 0
+        branch_point_init= branch_point
         for block in self.steps:
             clone_workflow.steps.append(block.clone())
+            if branch_point_init:
+                new_branch_point += len(block.task_uuids)
+                branch_point_init -= 1
 
         previous_container = None
         for _, container in enumerate(self.containers):
@@ -417,7 +422,7 @@ class WorkflowManager:
                     index = self.get_container_index(dtask)
                     clone_workflow.dependencies_map[ctask_info.uuid].append(clone_workflow.containers[index].task_uuid)
 
-        clone_workflow.current_step.insert(0, branch_point)
+        clone_workflow.current_step.insert(0, new_branch_point)
 
         return clone_workflow
             
