@@ -26,6 +26,7 @@ from litesoph.gui.views import StartPage
 from litesoph.gui import actions
 from litesoph.common.task import Task, TaskFailed
 from litesoph.gui.navigation import ProjectTreeNavigation
+from litesoph import about_litesoph
 
 
 TITLE_FONT = ("Helvetica", 18, "bold")
@@ -158,6 +159,7 @@ class GUIAPP:
         start_page = StartPage(self.input_frame)
         start_page.button_create_project.config(command= self.create_project_window)
         start_page.button_open_project.config(command= self._on_open_project)
+        start_page.button_about_litesoph.config(command= about_litesoph)
         start_page.grid(row=0, column=0, sticky='NSEW')
 
     def show_frame(self, frame,*args, **kwargs):
