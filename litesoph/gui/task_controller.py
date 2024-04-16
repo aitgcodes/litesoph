@@ -573,7 +573,7 @@ class TaskController:
             output=self.task.task_info.job_info.submit_output
             self.view_panel.insert_text(output, 'disabled')
             self.app.proceed_button.config(state='active')
-            messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.job_info.submit_output}")
+            messagebox.showinfo(title= "Well done!", message='Job submitted successfully!', detail = f"output:{self.task.task_info.job_info.submit_output}")
             
     def _get_remote_output(self):
         self.task.submit_network.download_output_files()
