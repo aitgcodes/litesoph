@@ -3,6 +3,7 @@ from tkinter import ttk                  # importing ttk which is used for styli
 from tkinter import messagebox
 from litesoph.gui import actions
 
+from litesoph import __version__
 
 
 
@@ -204,7 +205,7 @@ class GenericMainMenu(tk.Menu):
   def show_about(self):
     """Show the about dialog"""
 
-    about_message = "Layer Integrated Toolkit and Engine for Simulations of Photo-induced Phenomena\n" + "Website: https://aitgcodes.github.io/litesoph-website/"
+    about_message = "Layer Integrated Toolkit and Engine for Simulations of Photo-induced Phenomena\n" + f"Version: {__version__}"
     about_detail = ()
     
     messagebox.showinfo(
