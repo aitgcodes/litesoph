@@ -79,12 +79,13 @@ gs_input ={
                 # or k.get("basis_type:extra","") == "gaussian"
         },
         "spin": {
-               "tab":"Basic",
+                "tab":"Basic",
                 "group": "theory level",
                 "text": "Spin Polarisation",
                 "help": None,
                 "widget": Combobox,
-                "values": ["unpolarized", "polarized"]
+                "values": ["polarized", "unpolarized"],
+                "default": "polarized"
         },
 
         "spacing": {

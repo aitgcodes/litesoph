@@ -1,5 +1,7 @@
 .pyc
 
+**/*.log
+
 __pycache__
 
 build

@@ -345,12 +345,15 @@ def format_gs_input(gen_dict: dict) -> dict:
     if box != 'parallelepiped' and box is not None:
         raise InputError(f"Boxshape: {box} not compatable with gpaw.")
 
-    box_dim = gen_dict.get('box_dm')
+    box_dim = gen_dict.get('box_dim')
     if box_dim:
-        pass
-
-    vacuum = gen_dict.get('vacuum', 6)
-    gs_dict.update({'vacuum': vacuum})
+        gs_dict.update({'box_dim' : True})
+        gs_dict.update({'vacuum' : None}) # Vacuum can't be used in box dimensions?
+        gs_dict.update(box_dim)
+    else:
+        gs_dict.update({'box_dim' : False})
+        vacuum = gen_dict.get('vacuum', 6)
+        gs_dict.update({'vacuum': vacuum})
 
     spacing = gen_dict.get('spacing', 0.3)
     gs_dict.update({'h': spacing})

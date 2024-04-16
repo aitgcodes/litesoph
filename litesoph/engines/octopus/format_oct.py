@@ -131,9 +131,9 @@ def get_box_dim(geom_file,_boxshape:str,_from_vacuum=False, **kwargs):
             _sim_box = {
             "BoxShape":{"name":_boxshape,
                         "param":{'LSize':[[
-                                str(box_dict.get("box length_x")/2)+'*angstrom',
-                                str(box_dict.get("box length_y")/2)+'*angstrom',
-                                str(box_dict.get("box length_z")/2)+'*angstrom']]}}} 
+                                str(box_dict.get("box_length_x")/2)+'*angstrom',
+                                str(box_dict.get("box_length_y")/2)+'*angstrom',
+                                str(box_dict.get("box_length_z")/2)+'*angstrom']]}}} 
             return _sim_box                 
 
 def get_xc_pseudo(xc_str:str):

@@ -97,6 +97,8 @@ class Task:
         mpi_path = self.lsconfig['mpi'].get('mpirun', 'mpirun')
         self.mpi_path = self.lsconfig['mpi'].get(f'{self.engine_name}_mpi', mpi_path)
         self.python_path = self.lsconfig['programs'].get('python', 'python')
+        self.submit_local = None
+        self.submit_network = None
     
     def reset_lsconfig(self, lsconfig):
         self.engine_path = lsconfig['engine'].get(self.engine_name , self.engine_name)
@@ -118,12 +120,19 @@ class Task:
     @abstractmethod
     def write_input(self):
         """This method creates engine directory and task directory and writes 
-        the engine input to a file."""        
+        the engine input to a file."""   
+
+# TODO: Implement check output method.
+    # @abstractmethod
+    # def check_output(self) -> bool:
+    #     """This method checks the output of the calculation and returns True if 
+    #     the calculation is successful, otherwise raises an exception.""":
+             
     
     def create_input(self):
 
-        self.task_info.state.input_created = True
         self.create_template()
+        self.task_info.state.input_created = True
 
     def save_input(self):
         self.task_info.state.input_saved = True
@@ -236,7 +245,7 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
                         module_load_block : str = None,
                         extra_block : str = None) -> str:
     job_script_first_line = "#!/bin/bash"
-    remote_job_script_last_line = f"touch Done_{job_id}"
+    remote_job_script_last_line = "## DO NOT REMOVE LINE BELOW\n" + f"touch Done_{job_id}"
     
     job_script = [job_script_first_line]
     
@@ -248,7 +257,7 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
 
     if cd_path:
         job_script.append(f'cd {cd_path};')
-        job_script.append(f'touch Start_{job_id}')
+        job_script.append("## DO NOT REMOVE LINE BELOW\n" + f'touch Start_{job_id}')
         
     if engine_cmd:
         if np > 1:

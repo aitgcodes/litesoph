@@ -29,11 +29,7 @@ default_param =  {
         'hund': False,
         'maxiter': 333,
         'idiotproof': True,
-        'symmetry': {'point_group': True,
-                     'time_reversal': True,
-                     'symmorphic': True,
-                     'tolerance': 1e-7,
-                     'do_not_symmetrize_the_density': None},  # deprecated
+        'symmetry': {'point_group': False},
         'convergence': {'energy': 0.0005,  # eV / electron
                         'density': 1.0e-4,
                         'eigenstates': 4.0e-8,  # eV^2
@@ -43,14 +39,25 @@ default_param =  {
         'dtype': None}  # deprecated
 
 
-gs_template = """
+gs_template = ("""
 from ase.io import read, write
 from gpaw import GPAW
 from numpy import inf
 
 # Molecule or nanostructure
 atoms = read('{geometry}')
-atoms.center(vacuum={vacuum})
+""",
+
+# Use when Box Dimensions are provided
+"""
+atoms.set_cell(({box_length_x}, {box_length_y}, {box_length_z}))
+atoms.center()
+""",
+
+# Else this code
+"atoms.center(vacuum={vacuum})\n",
+
+"""
 
 #Ground-state calculation
 calc = GPAW(
@@ -75,15 +82,21 @@ calc = GPAW(
 atoms.calc = calc
 energy = atoms.get_potential_energy()
 calc.write('{gpw_out}', mode='all')
-"""
+""")
+
+gs_template_with_box_dim = gs_template[0] + gs_template[1] + gs_template[3]
+gs_template = gs_template[0] + gs_template[2] + gs_template[3]
 
 def formate_gs(kwargs):
     
     gs_dict = copy.deepcopy(default_param)
     gs_dict.update(kwargs)
-    template = copy.deepcopy(gs_template)
+    if gs_dict.get('box_dim', None):
+        template = copy.deepcopy(gs_template_with_box_dim)
+    else:
+        template = copy.deepcopy(gs_template)
     restart = kwargs.get('restart', False)
-    
+
     if restart:
         tlines = template.splitlines()
         tlines.insert(11, "restart ='{gpw_out}',")
