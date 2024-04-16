@@ -237,9 +237,9 @@ class WorkflowModeController(WorkflowController):
         # Make it False so that you can queue multiple jobs.
         PG_PROCEED = False
         if hasattr(self.task_controller.task, 'submit_network'):
-            is_remote_job_done = PG_PROCEED or (self.task_controller.job_sub_page.sub_job_type.get() == 1 and self.task_controller.task.submit_network.check_job_status())
+            is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
             if not is_remote_job_done:
-                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the server.")
+                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
                 return
         # TODO: Check if the task output is valid or not?
         # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
