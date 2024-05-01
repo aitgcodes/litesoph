@@ -77,20 +77,20 @@ def check_properties_dependencies(task_name, task) -> tuple:
         if laser:
             return (False, "spectrum only works with delta kick.")
         if "spectrum" not in task.param['properties']:
-            return (False, "spectrum was not choosen in TD simulation")
+            return (False, "spectrum was not chosen in TD simulation")
 
     if task_name == TaskTypes.TCM:
         if 'ksd' not in task.param['properties']:
-            return (False, "ksd was not choosen in TD simulation")
+            return (False, "ksd was not chosen in TD simulation")
 
     if task_name == TaskTypes.MO_POPULATION:
         if "mo_population" not in task.param['properties']:
-            return (False, "mo_population was not choosen in TD simulation")
+            return (False, "mo_population was not chosen in TD simulation")
 
     if task_name == TaskTypes.MASKING:
         laser = task.param.get('laser', None)
         masking = task.param.get('masking', None)
         if not laser or not masking:
-            return (False, "masking was not choosen in TD simulation")
+            return (False, "masking was not chosen in TD simulation")
 
     return (True, '')

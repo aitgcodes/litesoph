@@ -125,7 +125,7 @@ class WorkflowController:
 
         self.task_controller = get_task_controller(task_view, self, self.app)
         self.task_controller.set_task(self.workflow_manager, task_view)
-        self.app.proceed_button.config(state = 'disabled')
+        self.app.proceed_button.config(command = self.show_workmanager_page, state = 'disabled')
 
     def _get_task(self) -> Union[tuple, None]:
 
