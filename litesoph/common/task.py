@@ -260,7 +260,7 @@ def assemable_job_cmd(job_id: str= '', engine_cmd:str = None, np: int =1, cd_pat
         job_script.append("## DO NOT REMOVE LINE BELOW\n" + f'touch Start_{job_id}')
         
     if engine_cmd:
-        if np > 1:
+        if np and np > 1:
             if not mpi_path:
                 mpi_path = 'mpirun'
             job_script.append(f'{mpi_path} -np {np:d} {engine_cmd}')

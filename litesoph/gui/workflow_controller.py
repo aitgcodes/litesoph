@@ -53,36 +53,58 @@ class WorkflowController:
         self.app.proceed_button.config(command= self.start_task, state = 'normal')
     
     def get_task_dependencies(self, task_name):
-        
-        #TODO: Function needs to be reimplemented to get only the uuids of 
-        # dependent tasks
+
         dependencies_data = task_dependencies_map.get(task_name)
         if not dependencies_data:
             return list()
-
+    
         dependent_tasks = []
         for task in dependencies_data:
             if isinstance(task, str):
-                dependent_tasks.append(task)
+                task_list = self.workflow_manager.get_taskinfo(task)
+                for task_info in task_list:
+                    if check_task_completion(task_info):
+                        dependent_tasks.append(task_info)
+                        break
+                else:
+                    messagebox.showwarning(message = f"Dependent task:{task} not done")
             elif isinstance(task, dict):
-                dependent_tasks.extend([key for key  in task.keys()])
+                for task_name in task.keys():
+                    task_list = self.workflow_manager.get_taskinfo(task_name)
+                    for task_info in task_list:
+                        check, msg = check_properties_dependencies(task_name, task_info)
+                        if check_task_completion(task_info) and check:
+                            dependent_tasks.append(task_info)
+                            break
+                    else:
+                        messagebox.showwarning(message = f"Dependent task:{task} not done" + '\n' + msg if task_list else '')
 
-        task_list = self.workflow_manager.get_taskinfo(dependent_tasks[0])
+        return [task.uuid for task in dependent_tasks]
+
+        # dependent_tasks = []
+        # for task in dependencies_data:
+        #     if isinstance(task, str):
+        #         dependent_tasks.append(task)
+        #     elif isinstance(task, dict):
+        #         dependent_tasks.extend([key for key  in task.keys()])
+
+        # completed_task_list =[]
+        # for dependent_task in dependent_tasks:
+        #     task_list = self.workflow_manager.get_taskinfo(dependent_task)
+            
+        #     for task_info in task_list:
+        #         if check_task_completion(task_info):
+        #             completed_task_list.append(task_info)
+
+        #     if not completed_task_list:
+        #         messagebox.showwarning(message = f"Dependent task:{dependent_task} not done")
+
+        # check, msg = check_properties_dependencies(task_name, completed_task_list)
+        # if not check:
+        #     messagebox.showerror(message=msg)
         
-        completed_task_list =[]
-        for task_info in task_list:
-            if check_task_completion(task_info):
-                completed_task_list.append(task_info)
-
-        if not completed_task_list:
-            messagebox.showwarning(message = f"Dependent task:{dependent_tasks} not done")
-
-        check, msg = check_properties_dependencies(task_name, completed_task_list[0])
-        if not check:
-            messagebox.showerror(message=msg)
-        
-        tasks_uuids= [task_info.uuid for task_info in completed_task_list]
-        return tasks_uuids
+        # tasks_uuids= [task_info.uuid for task_info in completed_task_list]
+        # return tasks_uuids
 
     def start_task(self, *_):
         

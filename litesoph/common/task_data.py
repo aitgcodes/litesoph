@@ -63,7 +63,7 @@ task_dependencies_map = {
     TaskTypes.RT_TDDFT: [TaskTypes.GROUND_STATE],
     TaskTypes.COMPUTE_SPECTRUM: [{TaskTypes.RT_TDDFT:{'delta_kick': True,
                             "spectrum" : True}}],
-    TaskTypes.TCM: [{TaskTypes.RT_TDDFT: {"ksd": True}}],
+    TaskTypes.TCM: [TaskTypes.GROUND_STATE, {TaskTypes.RT_TDDFT: {"ksd": True}}],
     TaskTypes.MO_POPULATION: [{TaskTypes.RT_TDDFT: {"mo_population": True}}],
     TaskTypes.MASKING: [{TaskTypes.RT_TDDFT: {"laser": True,
                             "masking": True}}]
