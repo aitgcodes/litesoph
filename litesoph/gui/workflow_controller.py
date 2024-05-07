@@ -62,22 +62,22 @@ class WorkflowController:
         for task in dependencies_data:
             if isinstance(task, str):
                 task_list = self.workflow_manager.get_taskinfo(task)
-                for task_info in task_list:
+                for task_info in task_list[::-1]: # Prefer the most recent task
                     if check_task_completion(task_info):
                         dependent_tasks.append(task_info)
                         break
                 else:
                     messagebox.showwarning(message = f"Dependent task:{task} not done")
             elif isinstance(task, dict):
-                for task_name in task.keys():
-                    task_list = self.workflow_manager.get_taskinfo(task_name)
-                    for task_info in task_list:
+                for task_s in task.keys():
+                    task_list = self.workflow_manager.get_taskinfo(task_s)
+                    for task_info in task_list[::-1]:
                         check, msg = check_properties_dependencies(task_name, task_info)
                         if check_task_completion(task_info) and check:
                             dependent_tasks.append(task_info)
                             break
                     else:
-                        messagebox.showwarning(message = f"Dependent task:{task} not done" + '\n' + msg if task_list else '')
+                        messagebox.showwarning(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
 
         return [task.uuid for task in dependent_tasks]
 

@@ -64,7 +64,7 @@ task_dependencies_map = {
     TaskTypes.COMPUTE_SPECTRUM: [{TaskTypes.RT_TDDFT:{'delta_kick': True,
                             "spectrum" : True}}],
     TaskTypes.TCM: [TaskTypes.GROUND_STATE, {TaskTypes.RT_TDDFT: {"ksd": True}}],
-    TaskTypes.MO_POPULATION: [{TaskTypes.RT_TDDFT: {"mo_population": True}}],
+    TaskTypes.MO_POPULATION: [TaskTypes.GROUND_STATE, {TaskTypes.RT_TDDFT: {"mo_population": True}}],
     TaskTypes.MASKING: [{TaskTypes.RT_TDDFT: {"laser": True,
                             "masking": True}}]
 }
@@ -89,8 +89,8 @@ def check_properties_dependencies(task_name, task) -> tuple:
 
     if task_name == TaskTypes.MASKING:
         laser = task.param.get('laser', None)
-        masking = task.param.get('masking', None)
-        if not laser or not masking:
+        # masking = task.param.get('masking', None)
+        if not laser:
             return (False, "masking was not chosen in TD simulation")
 
     return (True, '')
