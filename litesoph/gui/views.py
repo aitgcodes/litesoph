@@ -1046,6 +1046,7 @@ class JobSubPage(ttk.Frame):
         # self.job_status_button['font'] = myfont()
         # self.job_status_button.grid(row=4, column=0,sticky='nsew', padx=2, pady=4)
 
+        # TODO: Kill button not working
         self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_remote, state='disabled')
         self.job_kill_button['font'] = myfont()
         self.job_kill_button.grid(row=4, column=2,sticky='nsew', padx=2, pady=4)
