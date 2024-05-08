@@ -8,6 +8,7 @@ from litesoph.gui.design import maskingpage
 class MaskingPageController(TaskController):
 
     def set_task(self, workflow_manager: WorkflowManager, task_view: tk.Frame):
+        self.app.proceed_button.config(state = 'enabled')
         self.workflow_manager = workflow_manager
         self.task_info = workflow_manager.current_task_info
         self.task_name = self.task_info.name
@@ -20,7 +21,7 @@ class MaskingPageController(TaskController):
         except TaskSetupError as e:
             messagebox.showerror("Error", str(e))
             return
-            
+        
         r_list = self.get_region_tags()
         self.task_view = self.app.show_frame(task_view, self.task_info.engine, 
                             self.task_info.name, region_tags = r_list)

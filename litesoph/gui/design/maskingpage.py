@@ -76,20 +76,20 @@ class MaskingPage(View):
             tk.Radiobutton(self.axis_frame, text=text, variable=self.axis_var, font=myfont2(),
                 justify='left',value=value).grid(row=0, column=value+1, ipady=5, sticky='w')
 
-        self.checkbox_envelope = tk.Checkbutton(self.Frame_dm, text="With envelope from Hilbert Transform", variable= self.envelope_var, font=myfont(), onvalue=1)
-        self.checkbox_envelope.grid(row=3, column=0, ipady=5, sticky='w')
-        
-        self.plot_button = tk.Button(self.Frame_dm, text="Plot", activebackground="#78d6ff", command= lambda : self.event_generate(f'<<Plot{self.task_name}>>'))
-        self.plot_button['font'] = myfont()
-        self.plot_button.grid(row=3, column=1) 
-
         self.label_title_energy_coupling = tk.Label(self.Frame_energy_coupling,text="Calculation of Energy Transfer Coupling Constant", fg='blue')
         self.label_title_energy_coupling['font'] = myfont()
-        self.label_title_energy_coupling.grid(row=0, column=0, padx=5, pady=10)   
+        self.label_title_energy_coupling.grid(row=1, column=0, padx=5, pady=10)
 
         self.energy_coupling_button = tk.Button(self.Frame_energy_coupling, text="Compute", activebackground="#78d6ff", command= lambda : self.event_generate(f'<<SubLocal{self.task_name}>>'))
         self.energy_coupling_button['font'] = myfont()
-        self.energy_coupling_button.grid(row=3, column=2) 
+        self.energy_coupling_button.grid(row=1, column=1)
+
+        self.checkbox_envelope = tk.Checkbutton(self.Frame_energy_coupling, text="With envelope from Hilbert Transform", variable= self.envelope_var, font=myfont(), onvalue=1)
+        self.checkbox_envelope.grid(row=2, column=0, ipady=5, sticky='w')
+        
+        self.plot_button = tk.Button(self.Frame_energy_coupling, text="Plot", activebackground="#78d6ff", command= lambda : self.event_generate(f'<<Plot{self.task_name}>>'))
+        self.plot_button['font'] = myfont()
+        self.plot_button.grid(row=2, column=1)
 
         self.back_button = tk.Button(self.Frame_button1, text="Back",activebackground="#78d6ff", command=lambda : self.event_generate(actions.SHOW_WORK_MANAGER_PAGE))
         self.back_button['font'] = myfont()
