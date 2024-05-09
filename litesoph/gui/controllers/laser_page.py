@@ -32,7 +32,7 @@ class LaserDesignController:
         self.main_window.bind_all('<<AddLaser>>', self._on_add_laser)
         self.main_window.bind_all('<<EditLaser>>', self._on_edit_laser)
         self.main_window.bind_all('<<RemoveLaser>>', self._on_remove_laser)
-        self.main_window.bind_all('<<PlotLaser>>', self._on_plottting)
+        self.main_window.bind_all('<<PlotLaser>>', self._on_plotting)
         self.main_window.bind_all('<<SelectLaser&UpdateView>>', self._on_select_laser)
 
         # Collecting exp_type from td_data passed from TDPage
@@ -61,20 +61,20 @@ class LaserDesignController:
    
     def _on_add_laser(self, *_):  
         """On add laser button:
-        \n Checks the validation for time-origin for state-preparation/pump-probe laser inputss
+        \n Checks the validation for time-origin for state-preparation/pump-probe laser inputs
         \n Proceeds to append the lasers
         """
         # GUI inputs for laser page
         laser_gui_inp = self.view.inp.get_values()
 
-        # TODO: Filter out the dict to modify the message
+        laser_gui_inp = {k : laser_gui_inp[k] for k in laser_gui_inp if laser_gui_inp[k] is not None}
         add_check = messagebox.askokcancel(title="Laser to be added", message=dict2string(laser_gui_inp))
         if add_check:
             self.add_lasers_and_update_tree()
         else:
-            pass              
+            pass
 
-    def add_lasers_and_update_tree(self, index=None):    
+    def add_lasers_and_update_tree(self, index=None):
         # GUI inputs for laser page
         laser_gui_inp = self.view.get_parameters()
         # Laser design model
@@ -203,7 +203,7 @@ class LaserDesignController:
             self.laser_plot_view.entry_delay.grid()
             # self.laser_plot_view.widget_frame.grid()
 
-    def _on_plottting(self, *_):
+    def _on_plotting(self, *_):
         """ On Plotting Button: Shows toplevel for plotting
         and updates the binding"""
 

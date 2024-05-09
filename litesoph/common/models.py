@@ -81,7 +81,9 @@ class OctopusModel:
             'charge': {'type':DT.integer,'min': None, 'max': None, 'default_value': 0},
             'maxiter' : {'type':DT.integer,'min': None, 'max': None, 'default_value': 300},
             'shape' :{'type':DT.string, 'values':["parallelepiped","minimum", "sphere", "cylinder"], 'default_value':'parallelepiped'},
-            'spinpol' :{'type':DT.string, 'values':['polarized', 'unpolarized'], 'default_value':'polarized'},
+            # TODO: Polarization temporarily blocked
+            # 'spinpol' :{'type':DT.string, 'values':['unpolarized', 'polarized'], 'default_value':'unpolarized'},
+            'spinpol' :{'type':DT.string, 'values':['unpolarized'], 'default_value':'unpolarized'},
             'multip' : {'type':DT.integer, 'min': None, 'max': None, 'default_value': 1},
             'h' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},            
             'lx' : {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 12},

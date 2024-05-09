@@ -376,7 +376,7 @@ class OctopusTask(Task):
             lines_str = None       
         return lines_str
 
-    def create_job_script(self, np=1, remote_path=None):
+    def create_job_script(self, np=None, remote_path=None):
         
         job_script = super().create_job_script()  
         ofilename = Path(self.task_info.output['txt_out']).relative_to('octopus')

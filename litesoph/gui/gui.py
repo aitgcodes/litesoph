@@ -1,13 +1,11 @@
-from tkinter import ttk                  # importing ttk which is used for styling widgets.
-from tkinter import filedialog           # importing filedialog which is used for opening windows to read files.
+from tkinter import ttk
+from tkinter import filedialog
 from tkinter import messagebox
 
-from typing import OrderedDict                        # importing subprocess to run command line jobs as in terminal.
+from typing import OrderedDict
 import tkinter as tk
 import pygubu
 
-import os
-import platform
 import pathlib 
 
 

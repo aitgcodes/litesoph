@@ -1,3 +1,4 @@
+from litesoph.utilities.units import as_to_au
 
 ground_state_map = {    
     "basis":{
@@ -137,7 +138,7 @@ def update_laser_defaults(laser_default:dict):
 
     pump_probe_tag = laser_default.get('tag')
     laser_type = laser_default.get('type')
-    time_origin = laser_default.get('tin') # in au
+    time_origin = laser_default.get('tin') / as_to_au
     strength = laser_default.get('strength')
     if pump_probe_tag is not None:
         gui_default_dict.update({'pump-probe_tag': pump_probe_tag})

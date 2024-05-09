@@ -84,8 +84,10 @@ gs_input ={
                 "text": "Spin Polarisation",
                 "help": None,
                 "widget": Combobox,
-                "values": ["polarized", "unpolarized"],
-                "default": "polarized"
+                # TODO: Polarization temporarily blocked
+                # "values": ["unpolarized", "polarized"],
+                "values": ["unpolarized"],
+                "default": "unpolarized"
         },
 
         "spacing": {
