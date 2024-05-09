@@ -39,7 +39,7 @@ class MaskingPage(View):
         self.axis_var = tk.IntVar(value=0)
         self.region_var = tk.IntVar(value=0)
         self.plot_region = tk.StringVar()
-        self.envelope_var = tk.IntVar(value=0)
+        self.envelope_var = tk.BooleanVar()
         self.focus_var = tk.BooleanVar()
 
         self.Frame_dm = ttk.Frame(self.SubFrame1)
