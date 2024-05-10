@@ -128,8 +128,6 @@ class TaskController:
         task.save_input()
         if task.task_name == tt.GROUND_STATE:
             self.status_engine.set(self.engine)
-            #TODO: disable/freeze the inputs
-            #self.task_view.inp.freeze_widgets(state='disabled')
         view.set_sub_button_state('active')
         view.set_label_msg('saved')
     
