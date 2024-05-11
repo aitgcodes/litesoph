@@ -184,7 +184,7 @@ class TDPageController(TaskController):
                 delays.insert(0, 'No Probe')
                 self.task_view.inp.widget["delay_values"].config(values= delays)
                 self.task_view.inp.widget["delay_values"].config(state = 'disabled')
-                self.task_view.inp.widget["delay_values"].current(0)                    
+                self.task_view.inp.widget["delay_values"].current(0)
                 self.task_view.label_delay_entry.grid_remove()
                 self.add_task(delays[1:])
 
