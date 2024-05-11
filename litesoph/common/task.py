@@ -127,7 +127,6 @@ class Task:
     # def check_output(self) -> bool:
     #     """This method checks the output of the calculation and returns True if 
     #     the calculation is successful, otherwise raises an exception.""":
-             
     
     def create_input(self):
 
@@ -292,11 +291,3 @@ def pbs_job_script(name):
 cd $PBS_O_WORKDIR
    """
     return head_job_script
-
-
-
-
-
-
-  
-

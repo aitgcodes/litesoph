@@ -682,15 +682,15 @@ class PumpProbePostpro(OctopusTask):
 
             gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
             delay=self.dependent_tasks[i].param.get('delay')             
-            
+
             out_spectrum_file= Path(self.only_task_dirpath) /f'spec_delay_{delay}.dat'                   
             self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
             out_standard_dm_file= Path(self.project_dir.parent/self.only_workflow_dirpath/self.only_task_dirpath) /f'dm_delay_{delay}.dat'            
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
 
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
-            damping_var= None if damping is None else damping 
-            padding_var= None if padding is None else padding 
+            damping_var= damping 
+            padding_var= padding 
 
             spec_file_path= Path(self.project_dir.parent/self.only_workflow_dirpath)/out_spectrum_file
             photoabsorption_spectrum(out_standard_dm_file,spec_file_path, process_zero=False,damping=damping_var,padding=padding_var)

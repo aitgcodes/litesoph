@@ -31,13 +31,12 @@ def laser_design(inval, tin, fwhm):
     fwhm = fwhm*eV_to_au
     tau_0 = 2.0*math.sqrt(2*math.log(2.0))/float(fwhm)      # in units of au
     t0 = float(tin) + math.sqrt(2.0)*tau_0*math.sqrt(math.log(10)*inval)  # in units of au
-    
-    tau_0 = tau_0
+
     laser = {}
     
     laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                   
     laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of au
-    return(laser)
+    return (laser)
 
 class GaussianPulse:
     r"""
