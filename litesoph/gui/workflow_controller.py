@@ -254,17 +254,22 @@ class WorkflowModeController(WorkflowController):
         self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)
 
-    
-    def next_task(self):
+    def check_pg(self):
         # Make it False so that you can queue multiple jobs.
         PG_PROCEED = False
         if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
             is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
             if not is_remote_job_done:
                 messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
-                return
-        # TODO: Check if the task output is valid or not?
-        # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
+                # TODO: Check if the task output is valid or not?
+                # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
+                return True
+        return False
+
+    def next_task(self):
+        # Make it False so that you can queue multiple jobs.
+        if self.check_pg():
+            return
         self.app.proceed_button.config(state = 'disabled')
         try:
             self.workflow_manager.next()

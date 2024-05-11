@@ -534,7 +534,7 @@ class PumpProbePostpro(GpawTask):
     Step 1: get all the dipole moment files from different td task with corresponding delay from taskinfo
     Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
     Step 3: generate x,y,z data for contour plot from spectrum file and delay data
-    """        
+    """
     def setup_task(self,param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)
