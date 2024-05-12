@@ -172,7 +172,7 @@ class GenericMainMenu(tk.Menu):
     self._add_new_project(self._menus['File'])
     self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
-    self._add_quit(self._menus['File'])
+    # self._add_quit(self._menus['File'])
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -256,7 +256,7 @@ class LinuxMainMenu(GenericMainMenu):
     self._add_new_project(self._menus['File'])
     self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
-    self._add_quit(self._menus['File'])
+    # self._add_quit(self._menus['File'])
 
     # The edit menu
     self._menus['Edit'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -282,7 +282,7 @@ class LinuxMainMenu(GenericMainMenu):
     self._add_webpage(self._menus['Help'])
 
     for label, menu in self._menus.items():
-      self.add_cascade(label=label, menu=menu)
+        self.add_cascade(label=label, menu=menu)
 
 
 class MacOsMainMenu(GenericMainMenu):
