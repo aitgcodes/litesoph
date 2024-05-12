@@ -112,7 +112,7 @@ class WorkflowController:
         if self.task_mode_workflow:
             task_and_view = self._get_task()
             if not task_and_view:
-                return 
+                return
         else:
             if not self.workflow_navigation_view:
                 return
