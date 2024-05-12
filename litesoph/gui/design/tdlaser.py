@@ -162,17 +162,17 @@ class TDPage(View):
 
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
-        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.button_view.grid(row=0, column=3,padx=3, pady=3,sticky='nsew')
         self.button_view.config(state='disabled')
         
         self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
-        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.button_save.grid(row=0, column=5, padx=3, pady=3,sticky='nsew')
         self.button_save.config(state='disabled')
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid(row=0, column=7, sticky='nsew')
 
         self.trace_variables()
 

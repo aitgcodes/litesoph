@@ -297,6 +297,7 @@ class Container:
     env_parameters: Dict[str, Any] = field(default_factory=dict)
     next: Union[str, None] = field(default=None)
     previous: Union[str, None] = field(default=None)
+    cloneable : bool = True
 
     @classmethod
     def from_dict(cls, data: Dict[Any, Any]):
@@ -308,7 +309,8 @@ class Container:
                     parameters = data.get('parameters', dict()),
                     env_parameters = data.get('env_parameters',  dict()),
                     next = data.get('next', None),
-                    previous = data.get('previous', None))
+                    previous = data.get('previous', None),
+                    cloneable = data.get('cloneable', True))
 
     def clone(self, task_uuid, 
                     workflow_uuid):

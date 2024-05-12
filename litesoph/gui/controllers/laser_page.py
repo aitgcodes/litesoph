@@ -311,9 +311,13 @@ def extract_lasers_from_pulses(list_of_pulses:list):
     return lasers 
 
 def add_delay_to_lasers(system_1:dict, system_2:dict, delay:float):
-    """Adds delay between the laser systems and returns the updated ones,\n
-    delay(in au) defined between last laser pulse centre of system 1 and\n
-    first laser pulse centre of system 2"""
+    """
+    Adds delay between the laser systems and returns the updated ones,
+    delay(in au) defined between last laser pulse centre of system 1 and
+    first laser pulse centre of system 2
+
+    Delay should be provided in au
+    """
 
     sys1 = system_1
     sys2 = system_2

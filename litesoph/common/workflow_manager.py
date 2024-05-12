@@ -244,7 +244,7 @@ class WorkflowManager:
                          step_id: int,
                          parameters= dict(),
                          env_parameters= dict(),
-                         dependent_tasks_uuid: Union[str, list]= list()):
+                         dependent_tasks_uuid: Union[str, list]= list(), container_cloneable = False):
         
         """This method adds a task into the workflow.
         
@@ -279,7 +279,8 @@ class WorkflowManager:
                                 task_info.uuid,
                                 self.workflow_info.uuid,
                                 parameters,
-                                env_parameters)
+                                env_parameters,
+                                cloneable = container_cloneable)
         
         if step_id == 0:
             self.containers.append(new_container)
@@ -384,6 +385,8 @@ class WorkflowManager:
 
         previous_container = None
         for _, container in enumerate(self.containers):
+            if not container.cloneable:
+                continue
 
             ctask_info = factory_task_info(container.task_type)
             clone_container = container.clone(ctask_info.uuid,

@@ -901,6 +901,7 @@ class JobSubPage(ttk.Frame):
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
             # self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
             self.enable_disable_buttons([self.download_specific_file_button],'disable')
+        self.job_kill_button.config(state = 'disabled')
 
     def enable_disable_buttons(self,list_of_buttons,state):
         for button in list_of_buttons:
@@ -1486,7 +1487,7 @@ class GroundStatePage(View):
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid(row=0, column=7, sticky='nsew')
         self.label_msg.grid_remove()
 
     def set_label_msg(self,msg):
@@ -1642,15 +1643,15 @@ class TimeDependentPage(View):
 
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
-        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.button_view.grid(row=0, column=3,padx=3, pady=3,sticky='nsew')
         
         self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
-        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.button_save.grid(row=0, column=5, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid(row=0, column=7, sticky='nsew')
         self.label_msg.grid_remove()
 
     def trace_variables(self,*_):

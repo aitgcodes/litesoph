@@ -67,7 +67,8 @@ class WorkflowController:
                         dependent_tasks.append(task_info)
                         break
                 else:
-                    messagebox.showwarning(message = f"Dependent task:{task} not done")
+                    messagebox.showerror("Error", f"Dependent task:{task} not done")
+                    raise TaskSetupError(message = f"Dependent task:{task} not done")
             elif isinstance(task, dict):
                 for task_s in task.keys():
                     task_list = self.workflow_manager.get_taskinfo(task_s)
@@ -77,7 +78,8 @@ class WorkflowController:
                             dependent_tasks.append(task_info)
                             break
                     else:
-                        messagebox.showwarning(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
+                        messagebox.showerror(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
+                        raise TaskSetupError(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
 
         return [task.uuid for task in dependent_tasks]
 
@@ -112,7 +114,7 @@ class WorkflowController:
         if self.task_mode_workflow:
             task_and_view = self._get_task()
             if not task_and_view:
-                return 
+                return
         else:
             if not self.workflow_navigation_view:
                 return
@@ -174,10 +176,10 @@ class WorkflowController:
             return
 
         if self.engine == 'auto-mode' and sub_task != "Ground State":
-            self.app._get_engine()
             if not self.engine:
                 messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
                 return
+            self.app.status_engine.set(self.engine)
 
         if task == "Simulations":
 
@@ -254,17 +256,22 @@ class WorkflowModeController(WorkflowController):
         self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)
 
-    
-    def next_task(self):
+    def check_pg(self):
         # Make it False so that you can queue multiple jobs.
         PG_PROCEED = False
         if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
             is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
             if not is_remote_job_done:
                 messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
-                return
-        # TODO: Check if the task output is valid or not?
-        # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
+                # TODO: Check if the task output is valid or not?
+                # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
+                return True
+        return False
+
+    def next_task(self):
+        # Make it False so that you can queue multiple jobs.
+        if self.check_pg():
+            return
         self.app.proceed_button.config(state = 'disabled')
         try:
             self.workflow_manager.next()
