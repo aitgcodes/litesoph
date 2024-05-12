@@ -124,6 +124,7 @@ class TaskController:
     
     def _on_save_button(self, task:Task, view, *_):
         template = self.view_panel.get_text()
+        self.engine = self.workflow_manager.engine
         task.set_engine_input(template)
         task.save_input()
         if task.task_name == tt.GROUND_STATE:

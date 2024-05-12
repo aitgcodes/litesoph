@@ -901,6 +901,7 @@ class JobSubPage(ttk.Frame):
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
             # self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
             self.enable_disable_buttons([self.download_specific_file_button],'disable')
+        self.job_kill_button.config(state = 'disabled')
 
     def enable_disable_buttons(self,list_of_buttons,state):
         for button in list_of_buttons:

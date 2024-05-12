@@ -67,7 +67,8 @@ class WorkflowController:
                         dependent_tasks.append(task_info)
                         break
                 else:
-                    messagebox.showwarning(message = f"Dependent task:{task} not done")
+                    messagebox.showerror("Error", f"Dependent task:{task} not done")
+                    raise TaskSetupError(message = f"Dependent task:{task} not done")
             elif isinstance(task, dict):
                 for task_s in task.keys():
                     task_list = self.workflow_manager.get_taskinfo(task_s)
@@ -77,7 +78,8 @@ class WorkflowController:
                             dependent_tasks.append(task_info)
                             break
                     else:
-                        messagebox.showwarning(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
+                        messagebox.showerror(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
+                        raise TaskSetupError(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
 
         return [task.uuid for task in dependent_tasks]
 
@@ -174,10 +176,10 @@ class WorkflowController:
             return
 
         if self.engine == 'auto-mode' and sub_task != "Ground State":
-            self.app._get_engine()
             if not self.engine:
                 messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
                 return
+            self.app.status_engine.set(self.engine)
 
         if task == "Simulations":
 

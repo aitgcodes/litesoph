@@ -64,6 +64,7 @@ class GUIAPP:
         self.setup_bottom_panel()
 
         self.status_engine = self.builder.get_variable('cengine_var')
+        self.status_engine.set('')
         
         self.builder.connect_callbacks(self)
 
@@ -124,12 +125,6 @@ class GUIAPP:
         
         self.main_window.wm_title(title)
 
-    def _get_engine(self):
-        return
-        engine = self.ls_manager.get_previous_engine()
-        if engine:
-            self.engine = engine
-            self.status_engine.set(self.engine)
 
     def _refresh_config(self,*_):
         """reads and updates the lsconfig object from lsconfig.ini"""
@@ -197,7 +192,6 @@ class GUIAPP:
         
         self.show_project_summary()
         update_proj_list(path)
-        self._get_engine()
         # self.navigation.create_project(path.name)
         
 
