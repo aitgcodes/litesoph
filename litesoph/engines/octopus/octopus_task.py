@@ -528,7 +528,7 @@ class OctopusTask(Task):
         try:            
             if self.task_name == tt.TCM:
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
-            elif self.task_name == tt.MO_POPULATION:
+            if self.task_name == tt.MO_POPULATION:
                 from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 population_diff_file = self.task_dir/'population_diff.dat'
