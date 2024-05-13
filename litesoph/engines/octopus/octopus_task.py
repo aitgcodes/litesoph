@@ -7,6 +7,7 @@ from typing import Any, List, Dict, Union
 
 from litesoph.common.task import Task, InputError, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.octopus.octopus import Octopus
+from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
 from litesoph.common.utils import get_new_directory
@@ -512,7 +513,7 @@ class OctopusTask(Task):
     def get_ksd_popln(self):
         td_info = self.dependent_tasks[1] 
         if td_info:
-            _axis = td_info.param['polarization']
+            _axis = get_polarization_direction(td_info)
             max_step = td_info.param['number_of_steps']
             output_freq = td_info.param['output_freq']
             nt = int(max_step/output_freq) 
