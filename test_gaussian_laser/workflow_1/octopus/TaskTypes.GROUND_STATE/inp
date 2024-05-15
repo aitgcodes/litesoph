@@ -1,0 +1,19 @@
+FromScratch = yes
+CalculationMode = gs
+XYZCoordinates = "../coordinate.xyz"
+UnitsOutput = ev_angstrom
+ExperimentalFeatures = yes
+Spacing = 0.3*angstrom
+BoxShape = parallelepiped
+%LSize
+ 9.42*angstrom | 8.515*angstrom | 6.0*angstrom
+%
+MaximumIter = 500
+ConvEnergy = 1e-06
+ConvAbsDens = 1e-05
+Smearing = 0.05
+Mixing = 0.3
+SpinComponents = unpolarized
+ExtraStates = 10
+XCFunctional = gga_x_pbe + gga_c_pbe
+PseudopotentialSet = pseudodojo_pbe

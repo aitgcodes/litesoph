@@ -1,6 +1,6 @@
 import copy
 from litesoph.common.task_data import TaskTypes as tt 
-
+import numpy as np
 default_param =  {
         'geometry' : 'coordinate.xyz',
         'mode': 'fd',
@@ -285,7 +285,7 @@ task_map = {
 }
 
 def generate_laser_text(lasers):
-    
+    eps = 1e-6 #lower threshold for time origin, switches to Delta Pulse after that
     lines = ["from gpaw.lcaotddft.laser import GaussianPulse",
             "from gpaw.external import ConstantElectricField",
             ]
@@ -295,13 +295,21 @@ def generate_laser_text(lasers):
     mask_list_line = ['masks = [']
     len_masks = 0
     for i, laser in enumerate(lasers):
-        
+
+        try: 
+            laser['sigma']
+            sigma_freq = 1/np.maximum(laser['sigma'],eps)
+        except:
+            break
         if laser['type'] == 'gaussian':
             import_str = "from gpaw.lcaotddft.laser import GaussianPulse"
-            lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{laser['sigma']}, 'sin')")
+            lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{sigma_freq}, 'sin')")
         elif laser['type'] == 'delta':
             import_str = "from litesoph.pre_processing.laser_design import GaussianDeltaPulse"
-            lines.append(f"pulse_{str(i)} = GaussianDeltaPulse({laser['strength']},{laser['time0']},{laser['sigma']})")
+            if laser['time0'] < eps:
+                lines.append(f"pulse_{str(i)} = DeltaPulse({laser['strength']},{laser['time0']})")
+            else:   
+                lines.append(f"pulse_{str(i)} = GaussianDeltaPulse({laser['strength']},{laser['time0']})")
         
         add_import_line(lines, import_str)
         
