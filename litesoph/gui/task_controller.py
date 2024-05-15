@@ -118,9 +118,9 @@ class TaskController:
         self.view_panel.insert_text(task.template)
     
     def bind_task_events(self):
-        self.main_window.bind_all(f'<<Save{self.task_name}Script>>', lambda _ : self._on_save_button(self.task, self.task_view))
-        self.main_window.bind_all(f'<<SubLocal{self.task_name}>>', self._on_run_local_button)
-        self.main_window.bind_all(f'<<SubNetwork{self.task_name}>>', self._on_run_network_button)
+        self.main_window.bind_all('<<Save'+self.task_name+'Script>>', lambda _ : self._on_save_button(self.task, self.task_view))
+        self.main_window.bind_all('<<SubLocal'+self.task_name+'>>', self._on_run_local_button)
+        self.main_window.bind_all('<<SubNetwork'+self.task_name+'>>', self._on_run_network_button)
     
     def _on_save_button(self, task:Task, view, *_):
         template = self.view_panel.get_text()

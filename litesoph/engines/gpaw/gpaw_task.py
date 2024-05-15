@@ -404,7 +404,10 @@ def update_td_input(param):
                 
             sigma = laser.get('sigma')
             time0 = laser.get('time0')
-            laser['sigma'] = round(autime_to_eV/sigma, 2)
+            if sigma == None:
+                print( )
+            else:
+                laser['sigma'] = round(autime_to_eV/sigma, 2)
             laser['time0'] = round(time0 * au_to_as, 2)
         
         param['laser'] = laser_list

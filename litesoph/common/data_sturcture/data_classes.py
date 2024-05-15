@@ -229,8 +229,8 @@ class TaskInfo(Info):
         if path is not None:
             path = Path(path)
 
-        local_copy_files = data.get('local_copy_list', list())
-        remote_copy_files = data.get('remote_copy_list', list())
+        local_copy_files = data.get('local_copy_files', list())
+        remote_copy_files = data.get('remote_copy_files', list())
         
         job_info = data.get('job_info', JobInfo())
         if isinstance(job_info, dict):

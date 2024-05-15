@@ -208,7 +208,7 @@ class TDPage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def save_button(self):
-        self.event_generate(f'<<Save{self.task_name}Script>>')
+        self.event_generate('<<Save'+self.task_name+'Script>>')
 
     def show_laser_summary(self):
         self.event_generate('<<ViewLaserSummary>>')
