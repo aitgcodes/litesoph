@@ -275,7 +275,7 @@ class GaussianDeltaPulse(Laser):
     def derivative(self, t):
         
         dt = t - self.t0
-        s = self.s0 * np.exp(-0.5 * self.sigma**2 * dt**2)
+        s = -(self.sigma)^2*dt*self.s0 * np.exp(-0.5 * self.sigma**2 * dt**2)
         
         return s
 

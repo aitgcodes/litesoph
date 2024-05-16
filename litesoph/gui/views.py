@@ -1508,7 +1508,7 @@ class GroundStatePage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def save_button(self):
-        self.event_generate(f'<<Save{self.task_name}Script>>')  
+        self.event_generate('<<Save'+self.task_name+'Script>>')  
 
     #---------------------------------View Specific trace functions----------------------------------------------------------------    
 
@@ -1711,7 +1711,7 @@ class TimeDependentPage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def save_button(self):
-        self.event_generate(f'<<Save{self.task_name}Script>>')    
+        self.event_generate('<<Save'+self.task_name+'Script>>')    
 
 class PumpProbePostProcessPage(View):
     

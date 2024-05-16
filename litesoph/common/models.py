@@ -7,7 +7,7 @@ import numpy as np
 from typing import Any, Dict
 from litesoph.common.data_sturcture.data_types import DataTypes as  DT
 from litesoph.utilities.units import autime_to_eV, au_to_as, as_to_au, au_to_fs, fs_to_au
-from litesoph.pre_processing.laser_design import laser_design, GaussianPulse, DeltaPulse
+from litesoph.pre_processing.laser_design import laser_design, GaussianPulse, DeltaPulse, GaussianDeltaPulse
 from litesoph.common.utils import get_pol_list
 
 @dataclass
@@ -223,7 +223,7 @@ class LaserDesignPlotModel:
 
             # Calculates fwhm/sigma(in time) and pulse centre/time0(in time)
             # creates gaussian pulse with given inval,fwhm value 
-            l_design = laser_design(inval,t_in,fwhm_eV)
+            l_design = laser_design(inval, t_in , fwhm_eV)
 
             l_design.update(
                 {'type': 'gaussian', 
@@ -231,8 +231,7 @@ class LaserDesignPlotModel:
                 'frequency': freq_eV,
                 'strength': strength_au,
                 'polarization': pol_list
-                })
-                
+                })   
             # Unit conversion required for Pulse creation
             sigma_eV = round(autime_to_eV/l_design['sigma'], 2)
             time0_fs = round(l_design['time0']*au_to_fs,2) 
@@ -246,17 +245,20 @@ class LaserDesignPlotModel:
             # Collecting parameter specific to Delta
             time0=t_in*au_to_as
 
+
             # DeltaPulse
+            
             pulse = DeltaPulse(strength= strength_au,
             time0= time0, total_time=self.laser_profile_time)
-
-            l_design={
+            
+            l_design = {}
+            l_design.update({
             'type': 'delta',
             'tag': tag, 
             "strength": strength_au,
             "time0": round(time0*as_to_au,2),
             'polarization': pol_list
-            } 
+            }) 
 
         pulse.laser_input = laser_param                   
         pulse.laser_design = l_design
@@ -299,8 +301,8 @@ def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
         if laser.get('type') == "delta": 
             time0 = laser.get('time0')*au_to_as
             pulse = DeltaPulse(strength= laser.get('strength'),
-                                time0 = time0,  
-                                total_time=laser_profile_time)
+                                    time0 = time0,  
+                                    total_time=laser_profile_time)
             strength_value = pulse.strength()
 
         if laser.get('type') == "gaussian": 

@@ -68,7 +68,7 @@ class WorkflowController:
                         break
                 else:
                     messagebox.showerror("Error", f"Dependent task:{task} not done")
-                    raise TaskSetupError(message = f"Dependent task:{task} not done")
+                    raise TaskSetupError(f"Dependent task:{task} not done")
             elif isinstance(task, dict):
                 for task_s in task.keys():
                     task_list = self.workflow_manager.get_taskinfo(task_s)
@@ -79,7 +79,7 @@ class WorkflowController:
                             break
                     else:
                         messagebox.showerror(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
-                        raise TaskSetupError(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
+                        raise TaskSetupError(f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
 
         return [task.uuid for task in dependent_tasks]
 

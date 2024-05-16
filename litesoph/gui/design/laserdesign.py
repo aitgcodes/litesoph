@@ -354,14 +354,25 @@ class LaserDesignPage(View):
         elif laser_type == "Delta Pulse":
             l_type = "delta"
         
-        laser_input = {
-            "type": l_type,
-            "inval" :  input_dict.get("log_val"),
-            "strength": input_dict.get("laser_strength"),  
-            "fwhm" :input_dict.get("fwhm"),
-            "frequency" :  input_dict.get("freq"),
-            'polarization': pol_var
-        }
+        if l_type == 'gaussian':
+            laser_input = {
+                "type": l_type,
+                "inval" :  input_dict.get("log_val"),
+                "strength": input_dict.get("laser_strength"),  
+                "fwhm" :input_dict.get("fwhm"),
+                "frequency" :  input_dict.get("freq"),
+                'polarization': pol_var
+            }
+        
+        else:  #only for delta_pulse 
+            laser_input = {
+                "type": l_type,
+                "inval" :  input_dict.get("log_val"),
+                "strength": input_dict.get("delta_strength"),  
+                "fwhm" :2000,
+                "frequency" :  0.002,
+                'polarization': pol_var
+            }
 
         if tag_var is not None:
             laser_input["tag"] = tag_var

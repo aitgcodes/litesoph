@@ -7,6 +7,7 @@ from typing import Any, List, Dict, Union
 
 from litesoph.common.task import Task, InputError, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.octopus.octopus import Octopus
+# from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
 from litesoph.common.utils import get_new_directory
@@ -512,6 +513,7 @@ class OctopusTask(Task):
     def get_ksd_popln(self):
         td_info = self.dependent_tasks[1] 
         if td_info:
+            # _axis = get_polarization_direction(td_info)
             _axis = td_info.param['polarization']
             max_step = td_info.param['number_of_steps']
             output_freq = td_info.param['output_freq']
@@ -528,7 +530,7 @@ class OctopusTask(Task):
         try:            
             if self.task_name == tt.TCM:
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
-            elif self.task_name == tt.MO_POPULATION:
+            if self.task_name == tt.MO_POPULATION:
                 from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 population_diff_file = self.task_dir/'population_diff.dat'
