@@ -101,7 +101,7 @@ laser_td_input = {
         "mo_population": {
                 "tab":"Properties",
                 "group": "Observables to extract",
-                "text": "Population Correlation",
+                "text": "Population Tracking",
                 "help": None,
                 "widget": Checkbutton,
                 "default": False

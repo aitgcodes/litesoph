@@ -163,8 +163,8 @@ pol_list2dir = [([1,0,0], 1),
 property_dict = {
     "default": ["energy", "multipoles"],
     "ksd": ["td_occup"],
-    "mo_population": ["td_occup"],
-    "induced_density" : ["density"]}
+    "mo_population": ["td_occup"]}
+    #"induced_density" : ["density"]}
 
 td_output = ["energy", "multipoles","td_occup"]
 output_dict = {

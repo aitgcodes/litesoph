@@ -72,6 +72,11 @@ class TDPageController(TaskController):
                 "field_type": "Electric Field",
                 "exp_type": "State Preparation",
             }
+        elif self.workflow_manager.workflow_info._name == wt.MO_POPULATION_TRACKING:
+            wf_dict = {
+                "field_type": "Electric Field",
+                "exp_type": "State Preparation",
+            }
         return wf_dict
     
     def set_laser_design_bool(self, bool:bool):
