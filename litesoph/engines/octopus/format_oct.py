@@ -125,7 +125,7 @@ def get_box_dim(geom_file,_boxshape:str,_from_vacuum=False, **kwargs):
             _sim_box = {
             "BoxShape":{"name":_boxshape,
                         "param":{'Radius':str(box_dict.get("radius"))+'*angstrom',
-                                'Xlength':str(box_dict.get("cylinder length")/2)+'*angstrom'}}}
+                                'Xlength':str(box_dict.get("cylinder_length")/2)+'*angstrom'}}}
             return _sim_box 
         elif _boxshape == 'parallelepiped':
             _sim_box = {
