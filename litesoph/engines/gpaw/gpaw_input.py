@@ -10,13 +10,14 @@ default_param =  {
         'h': None,  # Angstrom
         'gpts': None,
         'kpts': [(0.0, 0.0, 0.0)],
-        'nbands': None,
+        'extra_states': 0,
         'charge': 0,
         'setups': {},
         'basis': {},
         'spinpol': None,
         'filter': None,
-        'mixer': None,
+        'smearing' : None,
+        'mixing': None,
         'eigensolver': None,
         'background_charge': None,
         'experimental': {'reuse_wfs_method': 'paw',
@@ -41,7 +42,7 @@ default_param =  {
 
 gs_template = ("""
 from ase.io import read, write
-from gpaw import GPAW
+from gpaw import GPAW, Mixer
 from numpy import inf
 
 # Molecule or nanostructure
@@ -58,6 +59,14 @@ atoms.center()
 "atoms.center(vacuum={vacuum})\n",
 
 """
+initial_calc = GPAW(mode='{mode}', xc='{xc}', txt='no_of_electrons.out')
+atoms.set_calculator(initial_calc)
+atoms.get_potential_energy()
+
+occupied_bands = initial_calc.get_number_of_electrons() / 2  # Non-spin-polarized
+occupied_bands = int(occupied_bands)
+unoccupied_bands = {extra_states}
+total_bands = occupied_bands + unoccupied_bands
 
 #Ground-state calculation
 calc = GPAW(
@@ -67,13 +76,13 @@ calc = GPAW(
     h={h},  # Angstrom
     gpts={gpts},
     kpts={kpts},
-    nbands= {nbands},
+    nbands= total_bands,
     charge= {charge},
     setups= {setups},
     basis={basis},
     spinpol= {spinpol},
     filter={filter},
-    mixer={mixer},
+    mixer=Mixer(beta = {mixing}),
     hund={hund},
     maxiter={maxiter},
     symmetry={symmetry},  

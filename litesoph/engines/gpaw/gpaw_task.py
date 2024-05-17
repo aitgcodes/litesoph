@@ -323,6 +323,11 @@ def format_gs_input(gen_dict: dict) -> dict:
         raise InputError(f"Undefined basis_type: {mode}")
 
     gs_dict.update({'mode': mode})
+
+    gs_dict['mixing'] = gen_dict.get('mixing', None)
+    gs_dict['smearing'] = gen_dict.get('smearing', None)
+
+    gs_dict['extra_states'] = gen_dict.get('bands', 0)
     
     if mode == 'lcao':
         basis = gen_dict.get('basis')
@@ -375,8 +380,9 @@ def format_gs_input(gen_dict: dict) -> dict:
     gs_dict['convergence']['energy'] = energy_conv
     gs_dict['convergence']['density'] = density_conv
     
-    smearing_func = gen_dict.get('smearing_fun', '')
-    smearing_width = gen_dict.get('smearing_width', 0.0)
+    # TODO: Implement input of smearing functions
+    smearing_func = gen_dict.get('smearing_fun', 'fermi-dirac')
+    smearing_width = float(gen_dict.get('smearing', 0.0))
 
     if smearing_func not in param_data['smearing_fun']['values']:
         raise InputError(f'Unkown smearing function: {smearing_func}')
