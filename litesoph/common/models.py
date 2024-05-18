@@ -128,7 +128,7 @@ class LaserDesignModel:
         range = self.user_input['total_time']
         self.range = range*1e3
         self.freq = self.user_input['frequency']
-        self.strength = self.user_input['strength']    
+        self.strength = self.user_input['strength']
 
     def create_pulse(self):
         """ creates gaussian pulse with given inval,fwhm value """
@@ -289,21 +289,20 @@ class LaserDesignPlotModel:
 # ---------------------------Helper Methods for multiple laser pulses---------------------------
 
 def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
-    """Plots multiple lasers,\n
-    laser_profile_time(in fs): total time"""
+    """laser_profile_time(in fs): total time"""
 
     laser_sets = list_of_laser_params
-    laser_profile_time_as = laser_profile_time*1e3    
+    laser_profile_time_as = laser_profile_time*1e3
     time_array = np.arange(laser_profile_time_as)
-    laser_strengths = []   
+    laser_strengths = []
 
     for i,laser in enumerate(laser_sets):                     
         if laser.get('type') == "delta": 
             time0 = laser.get('time0')*au_to_as
             pulse = DeltaPulse(strength= laser.get('strength'),
-                                    time0 = time0,  
+                                    time0 = time0,
                                     total_time=laser_profile_time)
-            strength_value = pulse.strength()
+            strength_value = pulse.strength(time_array*as_to_au)
 
         if laser.get('type') == "gaussian": 
             time0 = laser.get('time0')*au_to_as                 
@@ -317,7 +316,7 @@ def get_time_strength(list_of_laser_params:list, laser_profile_time:float):
             strength_value = pulse.strength(time_array*as_to_au)
 
         laser_strengths.append(strength_value) 
-    return (time_array,laser_strengths)      
+    return (time_array,laser_strengths)
 
 def write_lasers(fname, time_t, laser_strengths:list):
     """

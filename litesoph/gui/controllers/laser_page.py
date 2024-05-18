@@ -278,13 +278,14 @@ class LaserDesignController:
     def create_laser_file(self, fname='laser.dat'):
         'Writes designed laser data to file'
         from litesoph.common.models import write_lasers
-        from litesoph.utilities.units import as_to_au, au_to_fs, fs_to_au
+        from litesoph.utilities.units import as_to_au, au_to_fs
         lasers = []
         for laser_system in self.laser_info.data.keys():
             _lasers = self.extract_laser_param_from_system(laser_system)
             lasers.extend(_lasers)
         (time_arr, list_strength_arr) = m.get_time_strength(list_of_laser_params=lasers,
-                                                laser_profile_time= self.total_time*as_to_au*au_to_fs)    
+            laser_profile_time= self.total_time*as_to_au*au_to_fs
+        )
         write_lasers(fname, time_t=time_arr*as_to_au, laser_strengths=list_strength_arr)
 
 def get_laser_labels(laser_defined = False, num_lasers:int= 0):

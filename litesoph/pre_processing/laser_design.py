@@ -171,28 +171,49 @@ class GaussianPulse:
 class DeltaPulse:
     """ strength :au, time0: as, total_time:fs
         """
-    def __init__(self, strength, time0,total_time:float,stoptime=np.inf):
+    def __init__(self, strength, time0,total_time:float = None,stoptime = np.inf):
         self.dict = dict(name='DeltaLaser',
                          strength=strength,
                          time0=time0)
         
         self.name = "delta"
         self.s0 = strength
-        self.t0 = time0 
+        self.t0 = time0 * as_to_au
         self.stoptime = stoptime * as_to_au
         self.total_time = total_time
 
-    def strength(self):
-        time_array = np.arange(self.total_time*1e3)        
-        strength_array = np.full_like(time_array, 0.0)
+    def strength(self, t):
+        """
+        Return the value of the pulse :math:`δ(t)`.
 
-        for i in range(len(time_array)):
-            time_array[i]
-            delta = time_array[i]- self.t0
-            if abs(delta) == 0:
-                strength_array[i] = self.s0
-                break
-        return strength_array
+        Parameters
+        ----------
+        t
+            time in atomic units
+
+        Returns
+        -------
+        The value of the pulse.
+        """
+        # time_array = np.arange(self.total_time*1e3)
+        # strength_array = np.full_like(time_array, 0.0)
+
+        # for i in range(len(time_array)):
+        #     time_array[i]
+        #     delta = time_array[i]- self.t0
+        #     if abs(delta) == 0:
+        #         strength_array[i] = self.s0
+        #         break
+        # return strength_array
+
+        if hasattr(t, "__iter__"):
+            return (np.abs(np.array(t) - self.t0) <= 1e-5).astype(int) * self.s0
+
+        return self.s0 if t == self.t0 else 0
+    
+    def todict(self):
+        return self.dict
+
 
 class Laser(object):
     def __init__(self):
