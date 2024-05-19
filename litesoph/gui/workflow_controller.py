@@ -192,8 +192,14 @@ class WorkflowController:
                     if task_view == "<<event>>":
                         messagebox.showinfo(title="Info", message="Option not Implemented")
                         return
-                    else:
-                        return (tt.RT_TDDFT, task_view)
+                    if laser == 'Multiple Pulse':
+                        check = messagebox.askokcancel(
+                            "Warning", "Post processing for engine other than GPAW is not implemented yet."\
+                            + "\nDo you still wish to proceed?"
+                        )
+                        if not check:
+                            return
+                    return (tt.RT_TDDFT, task_view)
             return
 
         if sub_task  == "Ground State":

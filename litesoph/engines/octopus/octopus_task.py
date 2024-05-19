@@ -513,8 +513,9 @@ class OctopusTask(Task):
     def get_ksd_popln(self):
         td_info = self.dependent_tasks[1] 
         if td_info:
-            # _axis = get_polarization_direction(td_info)
-            _axis = td_info.param['polarization']
+            _axis = td_info.param.get('polarization')
+            if not _axis:
+                _axis = td_info.param['laser'][0]['polarization']
             max_step = td_info.param['number_of_steps']
             output_freq = td_info.param['output_freq']
             nt = int(max_step/output_freq) 

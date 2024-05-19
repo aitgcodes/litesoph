@@ -34,8 +34,8 @@ def laser_design(inval, tin, fwhm):
 
     laser = {}
     
-    laser['sigma'] = round(tau_0, 2)   # rounded to 2 decimal in units of au                   
-    laser['time0'] = round(t0, 2)      # rounded to 2 decimal in units of au
+    laser['sigma'] = tau_0                   
+    laser['time0'] = t0
     return (laser)
 
 class GaussianPulse:
@@ -210,7 +210,7 @@ class DeltaPulse:
             return (np.abs(np.array(t) - self.t0) <= 1e-5).astype(int) * self.s0
 
         return self.s0 if t == self.t0 else 0
-    
+
     def todict(self):
         return self.dict
 

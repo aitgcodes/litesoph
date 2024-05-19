@@ -264,7 +264,39 @@ def get_td_dict(inp_dict):
             laser_type = laser_inp.get("type")
             pol_list = laser_inp.get('polarization')    
 
-            if laser_type != "delta":
+            if laser_type == "delta":
+                # Get dict for delta pulse
+                # pol_list = laser_inp.get('polarization') 
+                # if isinstance(pol_list, list):      
+                #     for item in pol_list2dir:
+                #         if item[0] == pol_list:
+                #             pol_dir = item[1]
+                # _dict2update.update({
+                #     "TDDeltaStrength": laser_inp.get('strength'),
+                #     "TDPolarizationDirection": pol_dir,
+                #     "TDDeltaKickTime":laser_inp.get('time0'),
+                # })
+                laser_str = "laser"+str(i)
+                laser_inp['sigma'] = .001
+                # laser_inp['frequency']
+                td_functions_list.append(
+                    get_td_function(
+                        laser_dict = laser_inp,
+                        laser_type = laser_type,
+                        td_function_name = laser_str
+                    )
+                )
+                td_ext_field = ['electric_field',
+                            pol_list[0],pol_list[1],pol_list[2],
+                            '0'+"*eV",
+                            str('"'+laser_str+'"')
+                            ]
+                td_ext_fields_list.append(td_ext_field)
+                _dict2update.update({
+                    'TDFunctions': td_functions_list,
+                    'TDExternalFields': td_ext_fields_list
+                        })
+            else:
                 # for laser other than delta pulse
                 # Construct the td_functions, ext fields block
                 laser_str = "laser"+str(i)
@@ -282,18 +314,6 @@ def get_td_dict(inp_dict):
                     'TDFunctions': td_functions_list,
                     'TDExternalFields': td_ext_fields_list
                         })
-            else:
-                # Get dict for delta pulse
-                pol_list = laser_inp.get('polarization') 
-                if isinstance(pol_list, list):      
-                    for item in pol_list2dir:
-                        if item[0] == pol_list:
-                            pol_dir = item[1]
-                _dict2update.update({
-                    "TDDeltaStrength": laser_inp.get('strength'),
-                    "TDPolarizationDirection": pol_dir,
-                    "TDDeltaKickTime":laser_inp.get('time0'),
-                })
     else:
         # Delta Kick for spectrum calculation
         pol_list = inp_dict.pop('polarization')
@@ -310,7 +330,8 @@ def get_td_dict(inp_dict):
 
 def get_td_function(laser_dict:dict,laser_type:str,td_function_name:str = "envelope_gauss"):
     laser_td_function_map = {
-        "gaussian": "tdf_gaussian"
+        "gaussian": "tdf_gaussian",
+        "delta"   : "tdf_gaussian" # Currently using gaussian as delta pulse
     }
     # td_function block for gaussian pulse
     td_func = [str('"'+td_function_name+'"'),
