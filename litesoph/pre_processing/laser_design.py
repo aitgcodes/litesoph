@@ -209,7 +209,7 @@ class DeltaPulse:
         if hasattr(t, "__iter__"):
             return (np.abs(np.array(t) - self.t0) <= 1e-5).astype(int) * self.s0
 
-        return self.s0 if t == self.t0 else 0
+        return self.s0 if abs(t - self.t0) <= 1e-5 else 0
 
     def todict(self):
         return self.dict
