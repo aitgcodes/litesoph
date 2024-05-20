@@ -45,9 +45,23 @@ class WorkflowController:
         self.task_mode_workflow = self.workflow_manager.task_mode
         self.workmanager_page = self.project_controller.workmanager_page
         self.start_task()        
-        
+
+    def check_pg(self):
+        # Make it False so that you can queue multiple jobs.
+        # Chnage to True under parental guidance only
+        PG_PROCEED = False
+        if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
+            is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
+            if not is_remote_job_done:
+                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
+                # TODO: Check if the task output is valid or not?
+                # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
+                return True
+        return False
 
     def show_workmanager_page(self, *_):
+        if hasattr(self, 'task_controller') and self.check_pg():
+            return
         try:
             self.task_controller.task.post_run()
         except:
@@ -269,18 +283,6 @@ class WorkflowModeController(WorkflowController):
         block_id = self.workflow_manager.current_container.block_id
         self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)
-
-    def check_pg(self):
-        # Make it False so that you can queue multiple jobs.
-        PG_PROCEED = False
-        if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
-            is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
-            if not is_remote_job_done:
-                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
-                # TODO: Check if the task output is valid or not?
-                # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
-                return True
-        return False
 
     def next_task(self):
         # Make it False so that you can queue multiple jobs.
