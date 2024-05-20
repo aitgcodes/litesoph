@@ -20,7 +20,7 @@ class ComputeSpectrum(BaseNwchemTask):
         self.network_done_file = self.task_dir / 'Done'
 
         outfile = self.directory / self.dependent_tasks[0].output.get('txt_out')
-        
+
         self.nwchem = NWChem(outfile=outfile, 
                         label=label, directory=self.task_dir)
 

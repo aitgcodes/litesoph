@@ -100,8 +100,9 @@ class GenericMainMenu(tk.Menu):
     menu.add_command(
       label='Select file…', command=self._event('<<FileSelect>>'),
       #image=self.icons.get('file'), compound=tk.LEFT
+    )
 
-  )
+
   def _add_new_Workflow(self, menu):
 
         menu.add_command(
@@ -121,7 +122,7 @@ class GenericMainMenu(tk.Menu):
     menu.add_command(
       label='Open Project…', command=self._event('<<OpenExistingProject>>'),
       #image=self.icons.get('file'), compound=tk.LEFT
-  )
+    )
 
   def _add_quit(self, menu):
     menu.add_command(
@@ -149,19 +150,19 @@ class GenericMainMenu(tk.Menu):
     )
 
   def start_submit_thread(self,job):      
-        import threading
-          
-        self.submit_thread = threading.Thread(target=job)
-        self.submit_thread.daemon = True        
-        # self.progressbar.start()
-        self.submit_thread.start()
-        # self.after(20, self.check_submit_thread)
+    import threading
+        
+    self.submit_thread = threading.Thread(target=job)
+    self.submit_thread.daemon = True        
+    # self.progressbar.start()
+    self.submit_thread.start()
+    # self.after(20, self.check_submit_thread)
 
   def _open_ls_viz(self, menu):
 
-        menu.add_command(
-        label='Visualization', command=lambda:self.start_submit_thread( self._event(actions.OPEN_LS_VIZ)),
-        #image=self.icons.get('file'), compound=tk.LEFT
+    menu.add_command(
+      label='Visualization', command=lambda:self.start_submit_thread( self._event(actions.OPEN_LS_VIZ)),
+      #image=self.icons.get('file'), compound=tk.LEFT
     )
 
   def _build_menu(self):
@@ -171,7 +172,7 @@ class GenericMainMenu(tk.Menu):
     self._add_new_project(self._menus['File'])
     self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
-    self._add_quit(self._menus['File'])
+    # self._add_quit(self._menus['File'])
 
     #Tools menu
     self._menus['Tools'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -255,7 +256,7 @@ class LinuxMainMenu(GenericMainMenu):
     self._add_new_project(self._menus['File'])
     self._add_open_project(self._menus['File'])
     self._menus['File'].add_separator()
-    self._add_quit(self._menus['File'])
+    # self._add_quit(self._menus['File'])
 
     # The edit menu
     self._menus['Edit'] = tk.Menu(self, tearoff=False, **self.styles)
@@ -274,13 +275,14 @@ class LinuxMainMenu(GenericMainMenu):
     self._menus['Go'] = tk.Menu(self, tearoff=False, **self.styles)
     self._add_refresh_config(self._menus['Go'])
 
+
     # The help menu
     self._menus['Help'] = tk.Menu(self, tearoff=False, **self.styles)
     self._add_about(self._menus['Help'])
     self._add_webpage(self._menus['Help'])
 
     for label, menu in self._menus.items():
-      self.add_cascade(label=label, menu=menu)
+        self.add_cascade(label=label, menu=menu)
 
 
 class MacOsMainMenu(GenericMainMenu):

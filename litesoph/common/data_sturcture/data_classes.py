@@ -229,8 +229,8 @@ class TaskInfo(Info):
         if path is not None:
             path = Path(path)
 
-        local_copy_files = data.get('local_copy_list', list())
-        remote_copy_files = data.get('remote_copy_list', list())
+        local_copy_files = data.get('local_copy_files', list())
+        remote_copy_files = data.get('remote_copy_files', list())
         
         job_info = data.get('job_info', JobInfo())
         if isinstance(job_info, dict):
@@ -297,6 +297,7 @@ class Container:
     env_parameters: Dict[str, Any] = field(default_factory=dict)
     next: Union[str, None] = field(default=None)
     previous: Union[str, None] = field(default=None)
+    cloneable : bool = True
 
     @classmethod
     def from_dict(cls, data: Dict[Any, Any]):
@@ -308,7 +309,8 @@ class Container:
                     parameters = data.get('parameters', dict()),
                     env_parameters = data.get('env_parameters',  dict()),
                     next = data.get('next', None),
-                    previous = data.get('previous', None))
+                    previous = data.get('previous', None),
+                    cloneable = data.get('cloneable', True))
 
     def clone(self, task_uuid, 
                     workflow_uuid):

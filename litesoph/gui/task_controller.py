@@ -118,18 +118,17 @@ class TaskController:
         self.view_panel.insert_text(task.template)
     
     def bind_task_events(self):
-        self.main_window.bind_all(f'<<Save{self.task_name}Script>>', lambda _ : self._on_save_button(self.task, self.task_view))
-        self.main_window.bind_all(f'<<SubLocal{self.task_name}>>', self._on_run_local_button)
-        self.main_window.bind_all(f'<<SubNetwork{self.task_name}>>', self._on_run_network_button)
+        self.main_window.bind_all('<<Save'+self.task_name+'Script>>', lambda _ : self._on_save_button(self.task, self.task_view))
+        self.main_window.bind_all('<<SubLocal'+self.task_name+'>>', self._on_run_local_button)
+        self.main_window.bind_all('<<SubNetwork'+self.task_name+'>>', self._on_run_network_button)
     
     def _on_save_button(self, task:Task, view, *_):
         template = self.view_panel.get_text()
+        self.engine = self.workflow_manager.engine
         task.set_engine_input(template)
         task.save_input()
         if task.task_name == tt.GROUND_STATE:
             self.status_engine.set(self.engine)
-            #TODO: disable/freeze the inputs
-            #self.task_view.inp.freeze_widgets(state='disabled')
         view.set_sub_button_state('active')
         view.set_label_msg('saved')
     
@@ -573,7 +572,7 @@ class TaskController:
             output=self.task.task_info.job_info.submit_output
             self.view_panel.insert_text(output, 'disabled')
             self.app.proceed_button.config(state='active')
-            messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.job_info.submit_output}")
+            messagebox.showinfo(title= "Well done!", message='Job submitted successfully!', detail = f"output:{self.task.task_info.job_info.submit_output}")
             
     def _get_remote_output(self):
         self.task.submit_network.download_output_files()

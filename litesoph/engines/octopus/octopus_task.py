@@ -7,6 +7,7 @@ from typing import Any, List, Dict, Union
 
 from litesoph.common.task import Task, InputError, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.octopus.octopus import Octopus
+# from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
 from litesoph.common.utils import get_new_directory
@@ -376,7 +377,7 @@ class OctopusTask(Task):
             lines_str = None       
         return lines_str
 
-    def create_job_script(self, np=1, remote_path=None):
+    def create_job_script(self, np=None, remote_path=None):
         
         job_script = super().create_job_script()  
         ofilename = Path(self.task_info.output['txt_out']).relative_to('octopus')
@@ -512,7 +513,9 @@ class OctopusTask(Task):
     def get_ksd_popln(self):
         td_info = self.dependent_tasks[1] 
         if td_info:
-            _axis = td_info.param['polarization']
+            _axis = td_info.param.get('polarization')
+            if not _axis:
+                _axis = td_info.param['laser'][0]['polarization']
             max_step = td_info.param['number_of_steps']
             output_freq = td_info.param['output_freq']
             nt = int(max_step/output_freq) 
@@ -528,7 +531,7 @@ class OctopusTask(Task):
         try:            
             if self.task_name == tt.TCM:
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
-            elif self.task_name == tt.MO_POPULATION:
+            if self.task_name == tt.MO_POPULATION:
                 from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 population_diff_file = self.task_dir/'population_diff.dat'
@@ -682,15 +685,15 @@ class PumpProbePostpro(OctopusTask):
 
             gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
             delay=self.dependent_tasks[i].param.get('delay')             
-            
+
             out_spectrum_file= Path(self.only_task_dirpath) /f'spec_delay_{delay}.dat'                   
             self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
             out_standard_dm_file= Path(self.project_dir.parent/self.only_workflow_dirpath/self.only_task_dirpath) /f'dm_delay_{delay}.dat'            
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
 
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
-            damping_var= None if damping is None else damping 
-            padding_var= None if padding is None else padding 
+            damping_var= damping 
+            padding_var= padding 
 
             spec_file_path= Path(self.project_dir.parent/self.only_workflow_dirpath)/out_spectrum_file
             photoabsorption_spectrum(out_standard_dm_file,spec_file_path, process_zero=False,damping=damping_var,padding=padding_var)

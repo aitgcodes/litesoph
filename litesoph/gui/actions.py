@@ -11,7 +11,6 @@
 # SHOW_MASKING_PAGE = SHOW_PAGE_EVENT.format(MASKING)
 
 
-
 GET_MOLECULE = '<<GetMolecule>>'
 VISUALIZE_MOLECULE = '<<VisualizeMolecule>>'
 CREATE_NEW_PROJECT = '<<CreateNewProject>>' 

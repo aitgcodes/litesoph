@@ -15,6 +15,7 @@ from litesoph.gui import design
 from litesoph.gui.controllers.laser_page import (LaserDesignController, 
                                                 extract_lasers_from_pulses,
                                                 add_delay_to_lasers)
+from litesoph.utilities.units import as_to_au
 
 
 class TDPageController(TaskController):
@@ -67,6 +68,11 @@ class TDPageController(TaskController):
                 "exp_type": "Pump-Probe",
             }
         elif self.workflow_manager.workflow_info._name == wt.MASKING:
+            wf_dict = {
+                "field_type": "Electric Field",
+                "exp_type": "State Preparation",
+            }
+        elif self.workflow_manager.workflow_info._name == wt.MO_POPULATION_TRACKING:
             wf_dict = {
                 "field_type": "Electric Field",
                 "exp_type": "State Preparation",
@@ -180,20 +186,20 @@ class TDPageController(TaskController):
                     delays = copy.deepcopy(self.delay_list)
                 else:
                     delays = [0]
-                delays.insert(0, 'No Probe') 
+                delays.insert(0, 'No Probe')
                 self.task_view.inp.widget["delay_values"].config(values= delays)
-                self.task_view.inp.widget["delay_values"].config(state = 'readonly')
-                self.task_view.inp.widget["delay_values"].current(0)                    
+                self.task_view.inp.widget["delay_values"].config(state = 'disabled')
+                self.task_view.inp.widget["delay_values"].current(0)
                 self.task_view.label_delay_entry.grid_remove()
-                self.add_task(delays)
+                self.add_task(delays[1:])
 
         self.task_view.button_view.config(state='active')
         self.task_view.button_save.config(state='active')
         if self.task_view.label_delay_entry:
             self.task_view.label_delay_entry.grid_remove()
 
-        #TODO: freeze required input entries
-        # self.task_view.inp.freeze_widgets(state= 'disabled', input_keys = ["field_type","exp_type"])
+        self.task_view.inp.widget["field_type"].config(state = 'disabled')
+        self.task_view.inp.widget["exp_type"].config(state = 'disabled')
 
     def get_laser_details(self):
         details = []
@@ -222,12 +228,11 @@ class TDPageController(TaskController):
         
         step = step_id+1
         for delay in delays:
-            if delay == 'No Probe':
-                continue
             self.workflow_manager.add_task(self.task_name,
                                             block_id,
                                             step_id=step,
-                                            dependent_tasks_uuid= self.workflow_controller.get_task_dependencies(self.task_name))
+                                            dependent_tasks_uuid= self.workflow_controller.get_task_dependencies(self.task_name),
+                                            container_cloneable = False)
 
             td_task_id = self.workflow_manager.containers[step].task_uuid
             dm_task_id = self.workflow_manager.containers[step+1].task_uuid
@@ -241,6 +246,12 @@ class TDPageController(TaskController):
         self.task_info.param.clear()
         inp_dict = self.task_view.get_parameters()
 
+        if ((inp_dict['time_step'] % 1) > 1e-8):
+            messagebox.showerror(
+                'Error', 'Time step has to be an integer'
+            )
+            return
+
         if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
             lasers = copy.deepcopy(self.laser_data['State Preparation']['lasers'])
             pulses = copy.deepcopy(self.laser_data['State Preparation']['pulses'])
@@ -248,6 +259,16 @@ class TDPageController(TaskController):
             laser_data = []
             for i,laser in enumerate(laser_sets):
                 laser_dict = laser[0]
+                if laser_dict['type'] == 'delta':
+                    # TODO: Please allow floating point time origin for multiple lasers.
+                    # #WeWereToStressedForWorkshop
+                    t0 = laser[1]['tin'] / as_to_au
+                    if ((t0 % 1) > 1e-6):
+                        messagebox.showerror(
+                            'Error', 'Time origin for delta pulse has to be an integer'
+                        )
+                        return
+                    # laser_dict['time0'] = t0
                 laser_dict.update({'mask': lasers[i].get('mask', None)})
                 laser_data.append(laser_dict)  
             inp_dict.update({'laser': laser_data})
@@ -275,7 +296,7 @@ class TDPageController(TaskController):
                 lasers.extend(probe_lasers)
                 pump_data = copy.deepcopy(self.laser_data['Pump'])
                 probe_data = copy.deepcopy(self.laser_data['Probe'])
-                laser_tuple = add_delay_to_lasers(pump_data, probe_data,float(delay))
+                laser_tuple = add_delay_to_lasers(pump_data, probe_data,float(delay * as_to_au * 1000))
 
                 pump_sets = laser_tuple[0]
                 probe_sets = laser_tuple[1]
@@ -311,17 +332,18 @@ class TDPageController(TaskController):
 
     def _on_proceed(self, *_):
         if self.workflow_manager.task_mode:
-           return            
+           return
         if self.task_view.inp.variable['exp_type'].get() == "Pump-Probe":            
             delays = self.delay_list
             if self.current_delay_index == len(delays):
                 self.workflow_controller.next_task()
             else:
+                self.workflow_controller.app.proceed_button.config(state = 'disabled')
                 self.workflow_manager.next()
-                self.task_view.tkraise() 
-                self.task_view.set_sub_button_state('disable')
-                self.task_view.label_msg.grid_remove()               
+                self.task_view.tkraise()
                 self.task_view.inp.widget["delay_values"].set(delays[self.current_delay_index])
+                self.task_view.set_sub_button_state('disable')
+                self.task_view.label_msg.grid_remove()
                 self.current_delay_index += 1
         else:            
             self.workflow_controller.next_task()   
@@ -356,9 +378,7 @@ def validate_laser_defined(laser_data:dict, exp_type:str):
         probe_defined = laser_info.check_laser_exists('Probe')
         if all([pump_defined, probe_defined]):
             check = True
-    if exp_type == "State Preparation":
+    else: # State Preparation
         check = laser_info.check_laser_exists('State Preparation')
 
     return check
-
-

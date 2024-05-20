@@ -14,13 +14,14 @@ class MaskingPageController(TaskController):
         self.engine = self.task_info.engine
         self.task_view = task_view
         self.task = None
+        self.computed = False
 
         try:
             self.task = self.workflow_manager.get_engine_task()
         except TaskSetupError as e:
             messagebox.showerror("Error", str(e))
             return
-            
+        
         r_list = self.get_region_tags()
         self.task_view = self.app.show_frame(task_view, self.task_info.engine, 
                             self.task_info.name, region_tags = r_list)
@@ -40,10 +41,10 @@ class MaskingPageController(TaskController):
         if num_masks > 0:
             for i in range(num_masks):
                 region_i = 'Region '+ str(i+1)
-                region_list.append({'Region': region_i+'(Masked)'})
-                self.region_tags.append(region_i+'(Masked)')
                 region_list.append({'Region': region_i+'(Complement)'})
                 self.region_tags.append(region_i+'(Complement)')
+                region_list.append({'Region': region_i+'(Masked)'})
+                self.region_tags.append(region_i+'(Masked)')
         return region_list
 
     def get_region_id(self, region_var):
@@ -75,10 +76,15 @@ class MaskingPageController(TaskController):
                                         direction=axis, focus = focus_val)
             
             self.view_panel.insert_text(text= txt, state= 'disabled')
+            self.computed = True
         except Exception as e:
             messagebox.showerror(title='Error', message=e)
 
     def _on_plot_dm_file(self, *_):
+        if self.task_view.envelope_var.get() and not self.computed:
+            messagebox.showwarning(title='Uh oh', message='First compute Energy Transfer Coupling Constant')
+            return
+        self.app.proceed_button.config(state = 'active')
         inp_dict = self.task_view.get_parameters()
         plot_region_ids = inp_dict.get('regions')
         axis = inp_dict.get('direction')

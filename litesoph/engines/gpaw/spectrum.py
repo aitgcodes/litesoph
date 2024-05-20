@@ -4,7 +4,7 @@ import copy
 import numpy as np
 from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum
 
-from .gpaw_task import (GpawTask,
+from litesoph.engines.gpaw.gpaw_task import (GpawTask,
                         TaskInfo, 
                         tt, 
                         gpaw_data, 
