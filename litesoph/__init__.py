@@ -7,7 +7,7 @@ from tkinter import messagebox
 
 
 
-__version__ = '1.1'
+__version__ = '1.1 (beta)'
 
 
 def about_litesoph():
