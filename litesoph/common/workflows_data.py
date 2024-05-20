@@ -154,8 +154,8 @@ predefined_workflow = {
                                         'properties':['mo_population'],
                                                 }, 
                                                 {'laser': True}),
-                    step(2 ,2 ,tt.COMPUTE_SPECTRUM),
-                    step(3 ,3 ,tt.MO_POPULATION)],
+                    step(2 ,2 ,tt.MO_POPULATION),
+                    ],
         
         "dependency_map": {'0' : None,
                             '1' : '0',

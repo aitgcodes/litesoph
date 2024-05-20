@@ -507,8 +507,6 @@ class OctopusTask(Task):
             return
         cmd = cmd + ' ' + self.BASH_filename
         self.submit_local.run_job(cmd)
-        if self.check_run_status()[0]:
-            self.post_run()
 
     def get_ksd_popln(self):
         td_info = self.dependent_tasks[1] 

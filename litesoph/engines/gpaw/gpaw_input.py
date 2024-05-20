@@ -59,7 +59,8 @@ atoms.center()
 "atoms.center(vacuum={vacuum})\n",
 
 """
-initial_calc = GPAW(mode='{mode}', xc='{xc}', txt='no_of_electrons.out')
+#This initial_calc is just to compute the no. of electrons. The gs and td will take the params inputted by the user.
+initial_calc = GPAW(mode='lcao', xc='PBE', txt='no_of_electrons.out')
 atoms.set_calculator(initial_calc)
 atoms.get_potential_energy()
 
