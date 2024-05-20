@@ -48,7 +48,7 @@ class WorkflowController:
 
     def check_pg(self):
         # Make it False so that you can queue multiple jobs.
-        # Chnage to True under parental guidance only
+        # Change to True under parental guidance only
         PG_PROCEED = False
         if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
             is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
