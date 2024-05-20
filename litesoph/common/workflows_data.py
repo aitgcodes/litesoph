@@ -139,10 +139,10 @@ predefined_workflow = {
                     'store_same_task_type': True,
                     'task_type': tt.RT_TDDFT
                     }, 
-                    {'name':'Compute Spectrum',
-                    'store_same_task_type': True,
-                    'task_type': tt.COMPUTE_SPECTRUM
-                    },  
+                    # {'name':'Compute Spectrum',
+                    # 'store_same_task_type': True,
+                    # 'task_type': tt.COMPUTE_SPECTRUM
+                    # },  
                     {'name':'Compute MO population',
                     'store_same_task_type': True,
                     'task_type': tt.MO_POPULATION
@@ -151,15 +151,16 @@ predefined_workflow = {
 
         "task_sequence" : [step(0 ,0 , tt.GROUND_STATE),
                     step(1 ,1 ,tt.RT_TDDFT,{
-                                        'properties':['spectrum', 'ksd'],
-                                                } ),
+                                        'properties':['mo_population'],
+                                                }, 
+                                                {'laser': True}),
                     step(2 ,2 ,tt.COMPUTE_SPECTRUM),
                     step(3 ,3 ,tt.MO_POPULATION)],
         
         "dependency_map": {'0' : None,
                             '1' : '0',
-                            '2' : '1',
-                            '3' : ['0', '1']}
+                        #    '2' : '1',
+                            '2' : ['0', '1']}
     },
     "masking": {
         "name": "Masking", 

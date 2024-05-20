@@ -101,20 +101,20 @@ laser_td_input = {
         "mo_population": {
                 "tab":"Properties",
                 "group": "Observables to extract",
-                "text": "Population Correlation",
+                "text": "Population Tracking",
                 "help": None,
                 "widget": Checkbutton,
                 "default": False
                 },
-        "induced_density": {
-                "tab":"Properties",
-                "group": "Observables to extract",
-                "text": "Induced Density",
-                "help": None,
-                "widget": Checkbutton,
-                "default": False
-                },
-        
+        # "induced_density": {
+        #         "tab":"Properties",
+        #         "group": "Observables to extract",
+        #         "text": "Induced Density",
+        #         "help": None,
+        #         "widget": Checkbutton,
+        #         "default": False
+        #         },
+        # TODO: Implement Induced Density
         }
 
 def get_td_laser_w_delay():

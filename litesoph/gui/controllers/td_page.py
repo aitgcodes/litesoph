@@ -72,6 +72,11 @@ class TDPageController(TaskController):
                 "field_type": "Electric Field",
                 "exp_type": "State Preparation",
             }
+        elif self.workflow_manager.workflow_info._name == wt.MO_POPULATION_TRACKING:
+            wf_dict = {
+                "field_type": "Electric Field",
+                "exp_type": "State Preparation",
+            }
         return wf_dict
     
     def set_laser_design_bool(self, bool:bool):
@@ -241,6 +246,12 @@ class TDPageController(TaskController):
         self.task_info.param.clear()
         inp_dict = self.task_view.get_parameters()
 
+        if ((inp_dict['time_step'] % 1) > 1e-8):
+            messagebox.showerror(
+                'Error', 'Time step has to be an integer'
+            )
+            return
+
         if self.task_view.inp.variable['exp_type'].get() == "State Preparation":
             lasers = copy.deepcopy(self.laser_data['State Preparation']['lasers'])
             pulses = copy.deepcopy(self.laser_data['State Preparation']['pulses'])
@@ -248,6 +259,16 @@ class TDPageController(TaskController):
             laser_data = []
             for i,laser in enumerate(laser_sets):
                 laser_dict = laser[0]
+                if laser_dict['type'] == 'delta':
+                    # TODO: Please allow floating point time origin for multiple lasers.
+                    # #WeWereToStressedForWorkshop
+                    t0 = laser[1]['tin'] / as_to_au
+                    if ((t0 % 1) > 1e-6):
+                        messagebox.showerror(
+                            'Error', 'Time origin for delta pulse has to be an integer'
+                        )
+                        return
+                    # laser_dict['time0'] = t0
                 laser_dict.update({'mask': lasers[i].get('mask', None)})
                 laser_data.append(laser_dict)  
             inp_dict.update({'laser': laser_data})

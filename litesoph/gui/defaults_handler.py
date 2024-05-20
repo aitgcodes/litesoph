@@ -156,7 +156,7 @@ def update_laser_defaults(laser_default:dict):
         gui_default_dict.update({"time_origin": time_origin})
 
     # TODO: Remove this condition for strength
-    if laser_type == "Delta":
+    if laser_type == "delta":
        gui_default_dict.update({"delta_strength": strength})
     else:
         gui_default_dict.update({"laser_strength": strength})

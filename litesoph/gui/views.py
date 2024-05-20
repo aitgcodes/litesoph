@@ -140,7 +140,7 @@ class WorkManagerPage(ttk.Frame):
         self.label_multiplicity.grid(row=2, column=0, sticky='w', padx=5,  pady=5)       
 
         self.entry_multiplicity = ttk.Combobox(system_frame,width=6,textvariable=self._var['multiplicity'], state='readonly')
-        self.entry_multiplicity['values'] = [1,3]
+        self.entry_multiplicity['values'] = [1]# [1,3]
         self.entry_multiplicity['font'] = myfont()
         self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
 

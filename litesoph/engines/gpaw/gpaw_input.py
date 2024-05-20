@@ -1,5 +1,5 @@
 import copy
-from litesoph.common.task_data import TaskTypes as tt 
+from litesoph.common.task_data import TaskTypes as tt
 import numpy as np
 default_param =  {
         'geometry' : 'coordinate.xyz',
@@ -10,13 +10,14 @@ default_param =  {
         'h': None,  # Angstrom
         'gpts': None,
         'kpts': [(0.0, 0.0, 0.0)],
-        'nbands': None,
+        'extra_states': 0,
         'charge': 0,
         'setups': {},
         'basis': {},
         'spinpol': None,
         'filter': None,
-        'mixer': None,
+        'smearing' : None,
+        'mixing': None,
         'eigensolver': None,
         'background_charge': None,
         'experimental': {'reuse_wfs_method': 'paw',
@@ -41,7 +42,7 @@ default_param =  {
 
 gs_template = ("""
 from ase.io import read, write
-from gpaw import GPAW
+from gpaw import GPAW, Mixer
 from numpy import inf
 
 # Molecule or nanostructure
@@ -58,6 +59,14 @@ atoms.center()
 "atoms.center(vacuum={vacuum})\n",
 
 """
+initial_calc = GPAW(mode='{mode}', xc='{xc}', txt='no_of_electrons.out')
+atoms.set_calculator(initial_calc)
+atoms.get_potential_energy()
+
+occupied_bands = initial_calc.get_number_of_electrons() / 2  # Non-spin-polarized
+occupied_bands = int(occupied_bands)
+unoccupied_bands = {extra_states}
+total_bands = occupied_bands + unoccupied_bands
 
 #Ground-state calculation
 calc = GPAW(
@@ -67,13 +76,13 @@ calc = GPAW(
     h={h},  # Angstrom
     gpts={gpts},
     kpts={kpts},
-    nbands= {nbands},
+    nbands= total_bands,
     charge= {charge},
     setups= {setups},
     basis={basis},
     spinpol= {spinpol},
     filter={filter},
-    mixer={mixer},
+    mixer=Mixer(beta = {mixing}),
     hund={hund},
     maxiter={maxiter},
     symmetry={symmetry},  
@@ -286,31 +295,32 @@ task_map = {
 
 def generate_laser_text(lasers):
     eps = 1e-6 #lower threshold for time origin, switches to Delta Pulse after that
-    lines = ["from gpaw.lcaotddft.laser import GaussianPulse",
-            "from gpaw.external import ConstantElectricField",
-            ]
-    masked_import_lines = ["from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField",
-                        "from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter"]
+    lines = [
+        "from gpaw.lcaotddft.laser import GaussianPulse",
+        "from gpaw.external import ConstantElectricField"
+    ]
+    masked_import_lines = [
+        "from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField",
+        "from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter"
+    ]
     td_line = ['td_potential = ', '[']
     mask_list_line = ['masks = [']
     len_masks = 0
     for i, laser in enumerate(lasers):
 
-        try: 
+        try:
+            # This try block is for future when implementing different type lasers
             laser['sigma']
             sigma_freq = 1/np.maximum(laser['sigma'],eps)
         except:
-            break
+            pass
         if laser['type'] == 'gaussian':
             import_str = "from gpaw.lcaotddft.laser import GaussianPulse"
             lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{sigma_freq}, 'sin')")
         elif laser['type'] == 'delta':
-            import_str = "from litesoph.pre_processing.laser_design import GaussianDeltaPulse"
-            if laser['time0'] < eps:
-                lines.append(f"pulse_{str(i)} = DeltaPulse({laser['strength']},{laser['time0']})")
-            else:   
-                lines.append(f"pulse_{str(i)} = GaussianDeltaPulse({laser['strength']},{laser['time0']})")
-        
+            import_str = "from litesoph.pre_processing.laser_design import DeltaPulse"
+            lines.append(f"pulse_{str(i)} = DeltaPulse({laser['strength']},{round(laser['time0'])})")
+
         add_import_line(lines, import_str)
         
         # mask dict for each laser
@@ -333,7 +343,6 @@ def generate_laser_text(lasers):
     td_line.append(']')
     td_line = ''.join(td_line)
 
-
     lines.append(mask_list_line)
     lines.append(td_line)
 
@@ -349,19 +358,19 @@ def add_import_line(lines, import_str):
 
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
-    laser = kwargs.pop('laser', None)
-    len_masks = 0    
+    lasers = kwargs.pop('laser', None)
+    len_masks = 0
     restart = kwargs.get('restart', False)
 
-    if laser is not None:        
+    if lasers is not None:        
         # mask as a key in laser dictionary
         template = external_field_template.format(**kwargs) 
         lines = template.splitlines()
         if restart:
             lines.pop(6)
         else:
-            lines[4:4] = generate_laser_text(laser)[0]
-            len_masks = generate_laser_text(laser)[1]
+            lines[4:4] = generate_laser_text(lasers)[0]
+            len_masks = generate_laser_text(lasers)[1]
         template = '\n'.join(lines)
  
     else:   

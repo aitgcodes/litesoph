@@ -3,8 +3,7 @@ from math import pi
 from ase.units import _hbar, _eps0, _me, _e, _c, Bohr, Hartree
 
 _a0 = Bohr * 1e-10
-_autime = _hbar**3 * (4 * pi * _eps0)**2 / (_me * _e**4
-                                            )  # 1 autime ~ 2.42e-17 s
+_autime = _hbar**3 * (4 * pi * _eps0)**2 / (_me * _e**4)  # 1 autime ~ 2.42e-17 s
 
 # Conversion factors
 

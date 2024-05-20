@@ -3,7 +3,7 @@
 ============================
 Engines Interfaced with LITESOPH
 ============================
-`GPAW <https://wiki.fysik.dtu.dk/gpaw/index.html>`_    (version 20.1.0 or later)
+`GPAW <https://wiki.fysik.dtu.dk/gpaw/index.html>`_    (version 22.1.0 and less than 23.7.0)
   `Installation Instruction <https://wiki.fysik.dtu.dk/gpaw/install.html>`_ 
 
 `Octopus <https://octopus-code.org/wiki/Main_Page>`_   (version 11.4)
