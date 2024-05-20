@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""The setup script."""
+"""The setup script"""
 
 import re
 from pathlib import Path

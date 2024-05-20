@@ -36,6 +36,7 @@ class PumpProbePostProcessController(TaskController):
         try:
             self.task.generate_spectrums(**inp_dict)
             self.task.generate_tas_data()
+            self.app.proceed_button.config(state='active')
         except Exception as e:
             messagebox.showerror(title='Error', message=f'{e}')
         else:

@@ -1,5 +1,7 @@
 .pyc
 
+**/*.log
+
 __pycache__
 
 build
@@ -7,3 +9,5 @@ build
 litesoph.egg-info
 
 .vscode
+
+testProjs

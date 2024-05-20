@@ -139,7 +139,8 @@ class WorkManagerPage(ttk.Frame):
         self.label_multiplicity['font'] = myfont()
         self.label_multiplicity.grid(row=2, column=0, sticky='w', padx=5,  pady=5)       
 
-        self.entry_multiplicity = tk.Entry(system_frame,width=6,  textvariable=self._var['multiplicity'])
+        self.entry_multiplicity = ttk.Combobox(system_frame,width=6,textvariable=self._var['multiplicity'], state='readonly')
+        self.entry_multiplicity['values'] = [1]# [1,3]
         self.entry_multiplicity['font'] = myfont()
         self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
 
@@ -254,7 +255,6 @@ class WorkManagerPage(ttk.Frame):
 
         self.show_sub_task_frame(self._task_frame2)
 
-
     def show_sub_task_frame(self,parent):
         
         for widget in parent.winfo_children():
@@ -361,66 +361,7 @@ class WorkManagerPage(ttk.Frame):
             except IndexError:
                 self._var[key].set('')    
 
-class SystemInfoPage(ttk.Frame):
-    
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
 
-        self._default_var = {
-                'charge': ['int', 0],
-                'multiplicity': ['int', 1]
-            }
-        
-        system_frame = ttk.Frame(self)
-        system_frame.grid(row=0, column=0, sticky='nsew')
-
-        self.label_upload_geom = tk.Label(system_frame, text="Upload Geometry",bg=label_design['bg'],fg=label_design['fg'])  
-        self.label_upload_geom['font'] = myfont()
-        self.label_upload_geom.grid(row= 0,column=0, sticky='w', padx=5,  pady=5)       
-
-        self.button_select_geom = tk.Button(system_frame,text="Select",width=6,activebackground="#78d6ff",command=self._get_geometry_file)
-        self.button_select_geom['font'] = myfont()
-        self.button_select_geom.grid(row= 0,column=1, padx=5)       
-
-        self.label_message_upload = tk.Label(system_frame, text='', foreground='red')
-        self.label_message_upload['font'] = myfont()
-        self.label_message_upload.grid(row= 0,column=2, padx=5,  pady=5)       
-        
-        self.button_view = tk.Button(system_frame,text="View",activebackground="#78d6ff",command=self._geom_visual)
-        self.button_view['font'] = myfont()
-        self.button_view.grid(row= 0,column=3)
-
-        self.label_charge = tk.Label(system_frame, text="Charge",bg=label_design['bg'],fg=label_design['fg'])  
-        self.label_charge['font'] = myfont()
-        self.label_charge.grid(row=1,column=0, sticky='w', padx=5,  pady=5)       
-
-        self.entry_charge = tk.Entry(system_frame,width=6, textvariable=self._var['charge'])
-        self.entry_charge['font'] = myfont()
-        self.entry_charge.grid(row=1, column=1, padx=5,  pady=5)
-
-        self.label_multiplicity = tk.Label(system_frame, text="Multiplicity",  bg=label_design['bg'],fg=label_design['fg'])  
-        self.label_multiplicity['font'] = myfont()
-        self.label_multiplicity.grid(row=2, column=0, sticky='w', padx=5,  pady=5)       
-
-        self.entry_multiplicity = tk.Entry(system_frame,width=6,  textvariable=self._var['multiplicity'])
-        self.entry_multiplicity['font'] = myfont()
-        self.entry_multiplicity.grid(row=2, column=1, padx=5,  pady=5)
-
-    def _get_geometry_file(self):
-        self.event_generate(actions.GET_MOLECULE)
-        
-    def _geom_visual(self):
-        self.event_generate(actions.VISUALIZE_MOLECULE)
-
-    def show_upload_label(self):
-        show_message(self.label_message_upload,"Uploaded")
-
-    def get_parameters(self):
-        pass
-
-    def set_parameters(self):
-        pass
- 
 class PlotSpectraPage(View):
 
     def __init__(self, parent, engine,task_name, *args, **kwargs):
@@ -518,7 +459,6 @@ class PlotSpectraPage(View):
 
     def show_plot(self):
         self.event_generate(f"<<Show{self.task_name}Plot>>")
-
 
     def get_parameters(self):
         
@@ -645,7 +585,6 @@ class TcmPage(View):
         self.entry_sigma['font'] = myfont()
         self.entry_sigma.grid(row=6, column=1)
 
-
     def select_ksd_frame(self, parent):
         # engine = self.engine_name.get()
         #TODO: The engine information should be abstracted from this module.
@@ -655,7 +594,6 @@ class TcmPage(View):
             self.add_gpaw_ksd_frame(parent)
         elif self.engine == 'octopus':
             self.add_oct_ksd_frame(parent)    
-
 
     def add_job_frame(self,parent, task_name):  
         """  Adds submit job buttons"""
@@ -963,6 +901,7 @@ class JobSubPage(ttk.Frame):
             self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'normal')
             # self.enable_disable_buttons([self.plot_file_button,self.download_specific_file_button,self.view_file_button],'disable')
             self.enable_disable_buttons([self.download_specific_file_button],'disable')
+        self.job_kill_button.config(state = 'disabled')
 
     def enable_disable_buttons(self,list_of_buttons,state):
         for button in list_of_buttons:
@@ -1032,7 +971,7 @@ class JobSubPage(ttk.Frame):
         job_id_entry['font'] = myfont()
         job_id_entry.grid(row=4,column=1,sticky='nsew', padx=2, pady=4)
 
-        self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_local)
+        self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_local, state='disabled')
         self.job_kill_button['font'] = myfont()
         self.job_kill_button.grid(row=4, column=2,sticky='nsew', padx=2, pady=4)
 
@@ -1108,7 +1047,8 @@ class JobSubPage(ttk.Frame):
         # self.job_status_button['font'] = myfont()
         # self.job_status_button.grid(row=4, column=0,sticky='nsew', padx=2, pady=4)
 
-        self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_remote)
+        # TODO: Kill button not working
+        self.job_kill_button = tk.Button(self.monitor_job_frame, text="Kill Job",activebackground="#78d6ff",command=kill_job_remote, state='disabled')
         self.job_kill_button['font'] = myfont()
         self.job_kill_button.grid(row=4, column=2,sticky='nsew', padx=2, pady=4)
 
@@ -1138,7 +1078,6 @@ class JobSubPage(ttk.Frame):
         # self.plot_file_button.grid(row=5, column=1, sticky='nsew', padx=2, pady=4)
 
         self.enable_disable_frame_elements([self.monitor_job_frame,self.monitor_file_frame],'disable')
-
 
     def show_run_local(self,
                         generate_job_script: callable,
@@ -1521,10 +1460,12 @@ class GroundStatePage(View):
         myFont = font.Font(family='Helvetica', size=10, weight='bold')
 
         self.inp = InputFrame(self.input_param_frame,fields=gs_input,visible_state=gs_visible_default, padx=5, pady=5)
+        if not gs_visible_default['spin']:
+            tk.Label(self.inp, text = "Polarization set to on by default, because multiplicity was 3").pack()
         self.inp.grid(row=0, column=0)
         self.trace_variables()
         
-        add_job_frame(self, self.submit_button_frame, task_name, column=1)
+        add_job_frame(self, self.submit_button_frame, task_name, column=1) #, toPolarize = )
         #self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", state="disabled")
         ##self.button_back = tk.Button(self.save_button_frame, text="Back", activebackground="#78d6ff", command=lambda: self.back_button())
         #self.button_back['font'] = myFont
@@ -1546,7 +1487,7 @@ class GroundStatePage(View):
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid(row=0, column=7, sticky='nsew')
         self.label_msg.grid_remove()
 
     def set_label_msg(self,msg):
@@ -1567,7 +1508,7 @@ class GroundStatePage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def save_button(self):
-        self.event_generate(f'<<Save{self.task_name}Script>>')  
+        self.event_generate('<<Save'+self.task_name+'Script>>')  
 
     #---------------------------------View Specific trace functions----------------------------------------------------------------    
 
@@ -1702,15 +1643,15 @@ class TimeDependentPage(View):
 
         self.button_view = tk.Button(self.save_button_frame, text="Generate Input", activebackground="#78d6ff", command=lambda: self.generate_input_button())
         self.button_view['font'] = myFont
-        self.button_view.grid(row=0, column=2,padx=3, pady=3,sticky='nsew')
+        self.button_view.grid(row=0, column=3,padx=3, pady=3,sticky='nsew')
         
         self.button_save = tk.Button(self.save_button_frame, text="Save Input", activebackground="#78d6ff", command=lambda: self.save_button())
         self.button_save['font'] = myFont
-        self.button_save.grid(row=0, column=4, padx=3, pady=3,sticky='nsew')
+        self.button_save.grid(row=0, column=5, padx=3, pady=3,sticky='nsew')
 
         self.label_msg = tk.Label(self.save_button_frame,text="")
         self.label_msg['font'] = myFont
-        self.label_msg.grid(row=0, column=3, sticky='nsew')
+        self.label_msg.grid(row=0, column=7, sticky='nsew')
         self.label_msg.grid_remove()
 
     def trace_variables(self,*_):
@@ -1770,7 +1711,7 @@ class TimeDependentPage(View):
         self.event_generate(f'<<Generate{self.task_name}Script>>')
 
     def save_button(self):
-        self.event_generate(f'<<Save{self.task_name}Script>>')    
+        self.event_generate('<<Save'+self.task_name+'Script>>')    
 
 class PumpProbePostProcessPage(View):
     
@@ -1882,7 +1823,6 @@ class PumpProbePostProcessPage(View):
         for key, value in self._var.items():
             if key in default_values.keys():
                 self._var[key].set(value)
-
 
     def get_parameters(self):
         return {'damping': self._var['damping'].get(),

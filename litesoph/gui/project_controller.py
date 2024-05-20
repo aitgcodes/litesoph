@@ -144,14 +144,25 @@ class ProjectController:
 
     def update_branch_point_entry(self, *_):
         source_workflow = self.workflow_create_window.get_value('source_wf')
+        if not source_workflow:
+            return
+
         source_workflow = source_workflow.split(':')
+        if len(source_workflow) < 2:
+            return
+
         source_workflow_info = self.project_manager.get_workflow_info(source_workflow[1].strip())
 
         branch_points = []
         for i, block in enumerate(source_workflow_info.steps):
-            branch_points.append(f"{block}: {i}")
-        self.workflow_create_window.entry_branch_pt.config(values= branch_points)
-        self.workflow_create_window.entry_branch_pt.current(0)
+            branch_points.append(f"{block.name}: {i}")  # Ensure block has a 'name' attribute
+
+        if branch_points:  # Check if branch_points is not empty before proceeding
+            self.workflow_create_window.entry_branch_pt['values'] = branch_points
+            self.workflow_create_window.entry_branch_pt.current(0)
+        else:
+            self.workflow_create_window.entry_branch_pt['values'] = []  # Clear values if branch_points is empty
+
     
     def toggle_wf_option(self, *_):
         self.workflow_create_window.toggle_wf_option()
@@ -219,6 +230,13 @@ class ProjectController:
                 # self.workflow_navigation_view.clear()
         else:
             workflow_type = get_workflow_type(workflow_type)
+
+        # global gs_visible_default
+        # from litesoph.gui.models.inputs import gs_visible_default
+        # if param['multiplicity'] == 3:
+        #     gs_visible_default['spin'] = False
+        # else:
+        #     gs_visible_default['spin'] = True
             
         if workflow_info.name:
             workflow_controller = self._get_workflow_controller(workflow_info.name)

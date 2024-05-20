@@ -79,12 +79,15 @@ gs_input ={
                 # or k.get("basis_type:extra","") == "gaussian"
         },
         "spin": {
-               "tab":"Basic",
+                "tab":"Basic",
                 "group": "theory level",
                 "text": "Spin Polarisation",
                 "help": None,
                 "widget": Combobox,
-                "values": ["unpolarized", "polarized"]
+                # TODO: Polarization temporarily blocked
+                # "values": ["unpolarized", "polarized"],
+                "values": ["unpolarized"],
+                "default": "unpolarized"
         },
 
         "spacing": {
@@ -384,14 +387,15 @@ td_delta_input ={
                 "widget": Checkbutton,
                 "default": False
                 },
-        "induced_density": {
-                "tab":"Properties",
-                "group": "Observables to extract",
-                "text": "Induced Density",
-                "help": None,
-                "widget": Checkbutton,
-                "default": False
-                },
+        # "induced_density": {
+        #         "tab":"Properties",
+        #         "group": "Observables to extract",
+        #         "text": "Induced Density",
+        #         "help": None,
+        #         "widget": Checkbutton,
+        #         "default": False
+        #         },
+        # TODO: Implement Induced Density
         # "restart_steps": {
         #         "tab":"Properties",
         #         "group": "Execution Details",

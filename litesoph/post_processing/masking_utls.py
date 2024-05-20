@@ -71,7 +71,7 @@ def timeperiod_by_fourier_transform(input_envelope_data, time_window, directiona
         peak_values = [signal_transformed[i] for i in list_peaks]
 
         freq_max_pos=np.where(signal_transformed == max(peak_values))
-        freq_max=float(freq[freq_max_pos])
+        freq_max=float(freq[freq_max_pos][-1])
 
         # freq = freq[range(int(len(freq)/2))]
         # signal_transformed = signal_transformed[range(int(len(signal_transformed)/2))]
@@ -91,9 +91,9 @@ def timeperiod_by_fourier_transform(input_envelope_data, time_window, directiona
 
 
 def get_direction(direction:list):
-    pol_map = {'0' : 'x', '1' : 'y', '2': 'z'}
+    pol_map = ('x', 'y', 'z')
     index = direction.index(1)
-    return index , pol_map[str(index)]
+    return index , pol_map[index]
 
 #----------------------Dipole Moment extraction------------------------------------------------
 
@@ -179,11 +179,11 @@ class MaskedDipoleAnaylsis:
         else:
             if focus is True:
                 # suffix = '_masked_'+str(region_i)
-                suffix = 'masked_'+str(region_i)
+                suffix = 'mask_complement_'+str(region_i)
                 fname = 'dm.dat_'+suffix
             else:
                 # suffix = '_mask_complement_'+str(region_i)
-                suffix = 'mask_complement_'+str(region_i)
+                suffix = 'masked_'+str(region_i)
                 fname = 'dm.dat_'+suffix
         return fname, suffix    
 

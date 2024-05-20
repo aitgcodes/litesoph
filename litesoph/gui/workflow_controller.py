@@ -53,36 +53,60 @@ class WorkflowController:
         self.app.proceed_button.config(command= self.start_task, state = 'normal')
     
     def get_task_dependencies(self, task_name):
-        
-        #TODO: Function needs to be reimplemented to get only the uuids of 
-        # dependent tasks
+
         dependencies_data = task_dependencies_map.get(task_name)
         if not dependencies_data:
             return list()
-
+    
         dependent_tasks = []
         for task in dependencies_data:
             if isinstance(task, str):
-                dependent_tasks.append(task)
+                task_list = self.workflow_manager.get_taskinfo(task)
+                for task_info in task_list[::-1]: # Prefer the most recent task
+                    if check_task_completion(task_info):
+                        dependent_tasks.append(task_info)
+                        break
+                else:
+                    messagebox.showerror("Error", f"Dependent task:{task} not done")
+                    raise TaskSetupError(f"Dependent task:{task} not done")
             elif isinstance(task, dict):
-                dependent_tasks.extend([key for key  in task.keys()])
+                for task_s in task.keys():
+                    task_list = self.workflow_manager.get_taskinfo(task_s)
+                    for task_info in task_list[::-1]:
+                        check, msg = check_properties_dependencies(task_name, task_info)
+                        if check_task_completion(task_info) and check:
+                            dependent_tasks.append(task_info)
+                            break
+                    else:
+                        messagebox.showerror(message = f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
+                        raise TaskSetupError(f"Dependent task:{task_s} not done" + '\n' + msg if task_list else '')
 
-        task_list = self.workflow_manager.get_taskinfo(dependent_tasks[0])
+        return [task.uuid for task in dependent_tasks]
+
+        # dependent_tasks = []
+        # for task in dependencies_data:
+        #     if isinstance(task, str):
+        #         dependent_tasks.append(task)
+        #     elif isinstance(task, dict):
+        #         dependent_tasks.extend([key for key  in task.keys()])
+
+        # completed_task_list =[]
+        # for dependent_task in dependent_tasks:
+        #     task_list = self.workflow_manager.get_taskinfo(dependent_task)
+            
+        #     for task_info in task_list:
+        #         if check_task_completion(task_info):
+        #             completed_task_list.append(task_info)
+
+        #     if not completed_task_list:
+        #         messagebox.showwarning(message = f"Dependent task:{dependent_task} not done")
+
+        # check, msg = check_properties_dependencies(task_name, completed_task_list)
+        # if not check:
+        #     messagebox.showerror(message=msg)
         
-        completed_task_list =[]
-        for task_info in task_list:
-            if check_task_completion(task_info):
-                completed_task_list.append(task_info)
-
-        if not completed_task_list:
-            messagebox.showwarning(message = f"Dependent task:{dependent_tasks} not done")
-
-        check, msg = check_properties_dependencies(task_name, completed_task_list[0])
-        if not check:
-            messagebox.showerror(message=msg)
-        
-        tasks_uuids= [task_info.uuid for task_info in completed_task_list]
-        return tasks_uuids
+        # tasks_uuids= [task_info.uuid for task_info in completed_task_list]
+        # return tasks_uuids
 
     def start_task(self, *_):
         
@@ -90,7 +114,7 @@ class WorkflowController:
         if self.task_mode_workflow:
             task_and_view = self._get_task()
             if not task_and_view:
-                return 
+                return
         else:
             if not self.workflow_navigation_view:
                 return
@@ -125,7 +149,7 @@ class WorkflowController:
 
         self.task_controller = get_task_controller(task_view, self, self.app)
         self.task_controller.set_task(self.workflow_manager, task_view)
-        self.app.proceed_button.config(state = 'disabled')
+        self.app.proceed_button.config(command = self.show_workmanager_page, state = 'disabled')
 
     def _get_task(self) -> Union[tuple, None]:
 
@@ -152,10 +176,10 @@ class WorkflowController:
             return
 
         if self.engine == 'auto-mode' and sub_task != "Ground State":
-            self.app._get_engine()
             if not self.engine:
                 messagebox.showerror(title= "Error", message="Please perform ground state calculation with any of the engine." )
                 return
+            self.app.status_engine.set(self.engine)
 
         if task == "Simulations":
 
@@ -168,8 +192,14 @@ class WorkflowController:
                     if task_view == "<<event>>":
                         messagebox.showinfo(title="Info", message="Option not Implemented")
                         return
-                    else:
-                        return (tt.RT_TDDFT, task_view)
+                    if laser == 'Multiple Pulse':
+                        check = messagebox.askokcancel(
+                            "Warning", "Post processing for engine other than GPAW is not implemented yet."\
+                            + "\nDo you still wish to proceed?"
+                        )
+                        if not check:
+                            return
+                    return (tt.RT_TDDFT, task_view)
             return
 
         if sub_task  == "Ground State":
@@ -204,14 +234,14 @@ class WorkflowModeController(WorkflowController):
     def start(self, workflow_manager: WorkflowManager):
         self.workflow_manager = workflow_manager
         # self.workmanager_page = self.project_controller.workmanager_page
-        self.app.proceed_button.config(command= self.next_task)
+        self.app.proceed_button.config(command= self.next_task, state = 'disabled')
         self.start_task()        
         
 
     def show_workmanager_page(self, *_):
         self.workmanager_page._var['select_wf_option'].set(value=1)
         self.workmanager_page.tkraise()
-        self.app.proceed_button.config(command= self.next_task)
+        self.app.proceed_button.config(command= self.next_task, state = 'disabled')
     
 
     def start_task(self, *_):
@@ -232,9 +262,23 @@ class WorkflowModeController(WorkflowController):
         self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)
 
-    
-    def next_task(self):
+    def check_pg(self):
+        # Make it False so that you can queue multiple jobs.
+        PG_PROCEED = False
+        if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
+            is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
+            if not is_remote_job_done:
+                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
+                # TODO: Check if the task output is valid or not?
+                # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
+                return True
+        return False
 
+    def next_task(self):
+        # Make it False so that you can queue multiple jobs.
+        if self.check_pg():
+            return
+        self.app.proceed_button.config(state = 'disabled')
         try:
             self.workflow_manager.next()
         except TaskSetupError as e:

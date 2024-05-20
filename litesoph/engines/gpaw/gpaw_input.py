@@ -1,6 +1,6 @@
 import copy
-from litesoph.common.task_data import TaskTypes as tt 
-
+from litesoph.common.task_data import TaskTypes as tt
+import numpy as np
 default_param =  {
         'geometry' : 'coordinate.xyz',
         'mode': 'fd',
@@ -10,13 +10,14 @@ default_param =  {
         'h': None,  # Angstrom
         'gpts': None,
         'kpts': [(0.0, 0.0, 0.0)],
-        'nbands': None,
+        'extra_states': 0,
         'charge': 0,
         'setups': {},
         'basis': {},
         'spinpol': None,
         'filter': None,
-        'mixer': None,
+        'smearing' : None,
+        'mixing': None,
         'eigensolver': None,
         'background_charge': None,
         'experimental': {'reuse_wfs_method': 'paw',
@@ -29,11 +30,7 @@ default_param =  {
         'hund': False,
         'maxiter': 333,
         'idiotproof': True,
-        'symmetry': {'point_group': True,
-                     'time_reversal': True,
-                     'symmorphic': True,
-                     'tolerance': 1e-7,
-                     'do_not_symmetrize_the_density': None},  # deprecated
+        'symmetry': {'point_group': False},
         'convergence': {'energy': 0.0005,  # eV / electron
                         'density': 1.0e-4,
                         'eigenstates': 4.0e-8,  # eV^2
@@ -43,14 +40,33 @@ default_param =  {
         'dtype': None}  # deprecated
 
 
-gs_template = """
+gs_template = ("""
 from ase.io import read, write
-from gpaw import GPAW
+from gpaw import GPAW, Mixer
 from numpy import inf
 
 # Molecule or nanostructure
 atoms = read('{geometry}')
-atoms.center(vacuum={vacuum})
+""",
+
+# Use when Box Dimensions are provided
+"""
+atoms.set_cell(({box_length_x}, {box_length_y}, {box_length_z}))
+atoms.center()
+""",
+
+# Else this code
+"atoms.center(vacuum={vacuum})\n",
+
+"""
+initial_calc = GPAW(mode='{mode}', xc='{xc}', txt='no_of_electrons.out')
+atoms.set_calculator(initial_calc)
+atoms.get_potential_energy()
+
+occupied_bands = initial_calc.get_number_of_electrons() / 2  # Non-spin-polarized
+occupied_bands = int(occupied_bands)
+unoccupied_bands = {extra_states}
+total_bands = occupied_bands + unoccupied_bands
 
 #Ground-state calculation
 calc = GPAW(
@@ -60,13 +76,13 @@ calc = GPAW(
     h={h},  # Angstrom
     gpts={gpts},
     kpts={kpts},
-    nbands= {nbands},
+    nbands= total_bands,
     charge= {charge},
     setups= {setups},
     basis={basis},
     spinpol= {spinpol},
     filter={filter},
-    mixer={mixer},
+    mixer=Mixer(beta = {mixing}),
     hund={hund},
     maxiter={maxiter},
     symmetry={symmetry},  
@@ -75,15 +91,21 @@ calc = GPAW(
 atoms.calc = calc
 energy = atoms.get_potential_energy()
 calc.write('{gpw_out}', mode='all')
-"""
+""")
+
+gs_template_with_box_dim = gs_template[0] + gs_template[1] + gs_template[3]
+gs_template = gs_template[0] + gs_template[2] + gs_template[3]
 
 def formate_gs(kwargs):
     
     gs_dict = copy.deepcopy(default_param)
     gs_dict.update(kwargs)
-    template = copy.deepcopy(gs_template)
+    if gs_dict.get('box_dim', None):
+        template = copy.deepcopy(gs_template_with_box_dim)
+    else:
+        template = copy.deepcopy(gs_template)
     restart = kwargs.get('restart', False)
-    
+
     if restart:
         tlines = template.splitlines()
         tlines.insert(11, "restart ='{gpw_out}',")
@@ -272,24 +294,33 @@ task_map = {
 }
 
 def generate_laser_text(lasers):
-    
-    lines = ["from gpaw.lcaotddft.laser import GaussianPulse",
-            "from gpaw.external import ConstantElectricField",
-            ]
-    masked_import_lines = ["from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField",
-                        "from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter"]
+    eps = 1e-6 #lower threshold for time origin, switches to Delta Pulse after that
+    lines = [
+        "from gpaw.lcaotddft.laser import GaussianPulse",
+        "from gpaw.external import ConstantElectricField"
+    ]
+    masked_import_lines = [
+        "from litesoph.pre_processing.gpaw.external_mask import MaskedElectricField",
+        "from litesoph.pre_processing.gpaw.dipolemomentwriter_mask import DipoleMomentWriter"
+    ]
     td_line = ['td_potential = ', '[']
     mask_list_line = ['masks = [']
     len_masks = 0
     for i, laser in enumerate(lasers):
-        
+
+        try:
+            # This try block is for future when implementing different type lasers
+            laser['sigma']
+            sigma_freq = 1/np.maximum(laser['sigma'],eps)
+        except:
+            pass
         if laser['type'] == 'gaussian':
             import_str = "from gpaw.lcaotddft.laser import GaussianPulse"
-            lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{laser['sigma']}, 'sin')")
+            lines.append(f"pulse_{str(i)} = GaussianPulse({laser['strength']},{laser['time0']},{laser['frequency']},{sigma_freq}, 'sin')")
         elif laser['type'] == 'delta':
-            import_str = "from litesoph.pre_processing.laser_design import GaussianDeltaPulse"
-            lines.append(f"pulse_{str(i)} = GaussianDeltaPulse({laser['strength']},{laser['time0']},{laser['sigma']})")
-        
+            import_str = "from litesoph.pre_processing.laser_design import DeltaPulse"
+            lines.append(f"pulse_{str(i)} = DeltaPulse({laser['strength']},{round(laser['time0'])})")
+
         add_import_line(lines, import_str)
         
         # mask dict for each laser
@@ -312,7 +343,6 @@ def generate_laser_text(lasers):
     td_line.append(']')
     td_line = ''.join(td_line)
 
-
     lines.append(mask_list_line)
     lines.append(td_line)
 
@@ -328,19 +358,19 @@ def add_import_line(lines, import_str):
 
 def assemable_rt(**kwargs):
     tools = kwargs.pop('analysis_tools', None)
-    laser = kwargs.pop('laser', None)
-    len_masks = 0    
+    lasers = kwargs.pop('laser', None)
+    len_masks = 0
     restart = kwargs.get('restart', False)
 
-    if laser is not None:        
+    if lasers is not None:        
         # mask as a key in laser dictionary
         template = external_field_template.format(**kwargs) 
         lines = template.splitlines()
         if restart:
             lines.pop(6)
         else:
-            lines[4:4] = generate_laser_text(laser)[0]
-            len_masks = generate_laser_text(laser)[1]
+            lines[4:4] = generate_laser_text(lasers)[0]
+            len_masks = generate_laser_text(lasers)[1]
         template = '\n'.join(lines)
  
     else:   

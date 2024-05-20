@@ -32,7 +32,7 @@ class LaserDesignController:
         self.main_window.bind_all('<<AddLaser>>', self._on_add_laser)
         self.main_window.bind_all('<<EditLaser>>', self._on_edit_laser)
         self.main_window.bind_all('<<RemoveLaser>>', self._on_remove_laser)
-        self.main_window.bind_all('<<PlotLaser>>', self._on_plottting)
+        self.main_window.bind_all('<<PlotLaser>>', self._on_plotting)
         self.main_window.bind_all('<<SelectLaser&UpdateView>>', self._on_select_laser)
 
         # Collecting exp_type from td_data passed from TDPage
@@ -61,20 +61,20 @@ class LaserDesignController:
    
     def _on_add_laser(self, *_):  
         """On add laser button:
-        \n Checks the validation for time-origin for state-preparation/pump-probe laser inputss
+        \n Checks the validation for time-origin for state-preparation/pump-probe laser inputs
         \n Proceeds to append the lasers
         """
         # GUI inputs for laser page
         laser_gui_inp = self.view.inp.get_values()
 
-        # TODO: Filter out the dict to modify the message
+        laser_gui_inp = {k : laser_gui_inp[k] for k in laser_gui_inp if laser_gui_inp[k] is not None}
         add_check = messagebox.askokcancel(title="Laser to be added", message=dict2string(laser_gui_inp))
         if add_check:
             self.add_lasers_and_update_tree()
         else:
-            pass              
+            pass
 
-    def add_lasers_and_update_tree(self, index=None):    
+    def add_lasers_and_update_tree(self, index=None):
         # GUI inputs for laser page
         laser_gui_inp = self.view.get_parameters()
         # Laser design model
@@ -203,7 +203,7 @@ class LaserDesignController:
             self.laser_plot_view.entry_delay.grid()
             # self.laser_plot_view.widget_frame.grid()
 
-    def _on_plottting(self, *_):
+    def _on_plotting(self, *_):
         """ On Plotting Button: Shows toplevel for plotting
         and updates the binding"""
 
@@ -278,13 +278,14 @@ class LaserDesignController:
     def create_laser_file(self, fname='laser.dat'):
         'Writes designed laser data to file'
         from litesoph.common.models import write_lasers
-        from litesoph.utilities.units import as_to_au, au_to_fs, fs_to_au
+        from litesoph.utilities.units import as_to_au, au_to_fs
         lasers = []
         for laser_system in self.laser_info.data.keys():
             _lasers = self.extract_laser_param_from_system(laser_system)
             lasers.extend(_lasers)
         (time_arr, list_strength_arr) = m.get_time_strength(list_of_laser_params=lasers,
-                                                laser_profile_time= self.total_time*as_to_au*au_to_fs)    
+            laser_profile_time= self.total_time*as_to_au*au_to_fs
+        )
         write_lasers(fname, time_t=time_arr*as_to_au, laser_strengths=list_strength_arr)
 
 def get_laser_labels(laser_defined = False, num_lasers:int= 0):
@@ -311,9 +312,13 @@ def extract_lasers_from_pulses(list_of_pulses:list):
     return lasers 
 
 def add_delay_to_lasers(system_1:dict, system_2:dict, delay:float):
-    """Adds delay between the laser systems and returns the updated ones,\n
-    delay(in au) defined between last laser pulse centre of system 1 and\n
-    first laser pulse centre of system 2"""
+    """
+    Adds delay between the laser systems and returns the updated ones,
+    delay(in au) defined between last laser pulse centre of system 1 and
+    first laser pulse centre of system 2
+
+    Delay should be provided in au
+    """
 
     sys1 = system_1
     sys2 = system_2

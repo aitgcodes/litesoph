@@ -2,8 +2,7 @@ import os
 import subprocess
 import pathlib
 from configparser import ConfigParser, NoOptionError, NoSectionError
-
-import litesoph
+import platform
 
 user_data_dir = pathlib.Path.home() / ".litesoph"
 
@@ -20,7 +19,11 @@ sections = {
 
 def get_path(name):
     print("Checking for {}....".format(name))
-    p = subprocess.run(['which', name], capture_output=True, text=True)
+    if platform.platform().lower() == "windows":
+        command = "where"
+    else:
+        command = "which"
+    p = subprocess.run([command, name], capture_output=True, text=True)
     if p.stdout and p.returncode == 0:
         print("Found {} in {}".format(name, p.stdout.split()[0]))
         return p.stdout.split()[0]

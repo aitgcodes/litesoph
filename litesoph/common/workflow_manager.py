@@ -244,7 +244,7 @@ class WorkflowManager:
                          step_id: int,
                          parameters= dict(),
                          env_parameters= dict(),
-                         dependent_tasks_uuid: Union[str, list]= list()):
+                         dependent_tasks_uuid: Union[str, list]= list(), container_cloneable = False):
         
         """This method adds a task into the workflow.
         
@@ -279,7 +279,8 @@ class WorkflowManager:
                                 task_info.uuid,
                                 self.workflow_info.uuid,
                                 parameters,
-                                env_parameters)
+                                env_parameters,
+                                cloneable = container_cloneable)
         
         if step_id == 0:
             self.containers.append(new_container)
@@ -374,11 +375,18 @@ class WorkflowManager:
 
         clone_workflow.engine = copy.deepcopy(self.engine)
 
+        new_branch_point = 0
+        branch_point_init= branch_point
         for block in self.steps:
             clone_workflow.steps.append(block.clone())
+            if branch_point_init:
+                new_branch_point += len(block.task_uuids)
+                branch_point_init -= 1
 
         previous_container = None
         for _, container in enumerate(self.containers):
+            if not container.cloneable:
+                continue
 
             ctask_info = factory_task_info(container.task_type)
             clone_container = container.clone(ctask_info.uuid,
@@ -417,7 +425,7 @@ class WorkflowManager:
                     index = self.get_container_index(dtask)
                     clone_workflow.dependencies_map[ctask_info.uuid].append(clone_workflow.containers[index].task_uuid)
 
-        clone_workflow.current_step.insert(0, branch_point)
+        clone_workflow.current_step.insert(0, new_branch_point)
 
         return clone_workflow
             

@@ -7,10 +7,12 @@ from typing import Any, List, Dict, Union
 
 from litesoph.common.task import Task, InputError, TaskFailed, TaskNotImplementedError, assemable_job_cmd
 from litesoph.engines.octopus.octopus import Octopus
+# from litesoph.engines.gpaw.gpaw_task import get_polarization_direction
 from litesoph.common.task_data import TaskTypes as tt
 from litesoph.common.data_sturcture.data_classes import TaskInfo 
 from litesoph.common.utils import get_new_directory
 from litesoph.engines.octopus.format_oct import get_gs_dict, get_oct_kw_dict
+from litesoph.visualization.plot_spectrum import plot_multiple_column, plot_spectrum_octo_polarized
 
 
 engine_log_dir = 'octopus/log'
@@ -88,14 +90,13 @@ class OctopusTask(Task):
         self.user_input = self.params
 
         self.validate_task_param()
-        self.setup_task(self.user_input) 
+        self.setup_task(self.user_input)
     
     def validate_task_param(self):
         """Engine level validation of the input dict for the task
         \n
         """
-
-        self.restart = self.params.get('restart', False)    
+        self.restart = self.params.get('restart', False)
         name = self.task_info.name
         if name == tt.RT_TDDFT:
             from litesoph.engines.octopus.format_oct import calc_td_range
@@ -149,7 +150,7 @@ class OctopusTask(Task):
         # Only needed for Octopus simulation
         # Specific to Octopus interfaced tasks
         self.input_filename = 'inp'
-        self.task_input_filename = self.task_data.get('task_inp', 'inp')       
+        self.task_input_filename = self.task_data.get('task_inp', 'inp')
         geom_fname = self.user_input.get('geom_fname','coordinate.xyz')
         self.geom_file = '../' + str(geom_fname)
         self.geom_fpath = str(self.wf_dir / str(geom_fname))
@@ -350,7 +351,7 @@ class OctopusTask(Task):
         inp_filepath = self.wf_dir / str(self.task_info.input['engine_input']['path'])
 
         self.create_task_dir()             
-        self.octopus.write_input(self.template)  
+        self.octopus.write_input(self.task_info.input['engine_input']['data'])  
         shutil.copy(inp_filepath, self.task_dir / 'inp')      
 
     def create_task_dir(self):
@@ -376,7 +377,7 @@ class OctopusTask(Task):
             lines_str = None       
         return lines_str
 
-    def create_job_script(self, np=1, remote_path=None):
+    def create_job_script(self, np=None, remote_path=None):
         
         job_script = super().create_job_script()  
         ofilename = Path(self.task_info.output['txt_out']).relative_to('octopus')
@@ -443,7 +444,6 @@ class OctopusTask(Task):
 
     def plot(self,**kwargs):
         """Method related to plot in post-processing"""
-        from litesoph.visualization.plot_spectrum import plot_spectrum,plot_multiple_column
 
         if self.task_name == tt.COMPUTE_SPECTRUM:
             energy_min = self.task_info.param['e_min']
@@ -451,7 +451,9 @@ class OctopusTask(Task):
             spec_file = self.task_data['spectra_file'][0]
             file = self.task_dir / str(spec_file)
             img = file.parent / f"spectrum.png"
-            plot_spectrum(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)", xlimit=(float(energy_min), float(energy_max)))
+            # Plot function automatically checks for Polarization and acts accordingly!
+            # By default singlet is passed
+            plot_spectrum_octo_polarized(file,img,0, 4, "Energy (in eV)", "Strength(in /eV)", xlimit=(float(energy_min), float(energy_max)))
             return        
 
         if self.task_name == tt.TCM: 
@@ -511,7 +513,9 @@ class OctopusTask(Task):
     def get_ksd_popln(self):
         td_info = self.dependent_tasks[1] 
         if td_info:
-            _axis = td_info.param['polarization']
+            _axis = td_info.param.get('polarization')
+            if not _axis:
+                _axis = td_info.param['laser'][0]['polarization']
             max_step = td_info.param['number_of_steps']
             output_freq = td_info.param['output_freq']
             nt = int(max_step/output_freq) 
@@ -527,7 +531,7 @@ class OctopusTask(Task):
         try:            
             if self.task_name == tt.TCM:
                 self.octopus.compute_ksd(proj=proj_read, out_directory=self.task_dir)
-            elif self.task_name == tt.MO_POPULATION:
+            if self.task_name == tt.MO_POPULATION:
                 from litesoph.post_processing.mo_population import calc_population_diff
                 population_file = self.task_dir/self.task_data.get('population_file')
                 population_diff_file = self.task_dir/'population_diff.dat'
@@ -535,6 +539,7 @@ class OctopusTask(Task):
                 
                 calc_population_diff(homo_index=below_homo,infile=population_file, outfile=population_diff_file)
             self.task_info.job_info.job_returncode = 0
+            self.task_info.job_info.output = ''
         except Exception:
             self.task_info.job_info.job_returncode = 1
 
@@ -542,7 +547,7 @@ class OctAveragedSpectrum(OctopusTask):
     """Added Post-Processing Class to compute Averaged Spectrum"""
 
     def validate_task_param(self):
-        pass
+        self.restart = False
 
     def pre_run(self):
         """Gets dependent tasks info and defines class variables"""
@@ -556,21 +561,11 @@ class OctAveragedSpectrum(OctopusTask):
                 self.spectrum_files.append(spec_file_path)
         self.averaged_spec_file = self.task_dir / 'averaged_spec.dat'
 
-        # For using oct-propagation_spectrum ultility for multiploes
-        # for i, td_task in enumerate(self.dependent_tasks):
-        #     td_info = td_task
-        #     if td_info:
-        #         oct_td_folder_path = str(Path(self.engine_dir) / 'td.general')
-        #         td_folder_path = str(self.wf_dir / Path(td_info.output['task_dir']) / 'td.general')
-        #         shutil.copytree(src=td_folder_path, dst=oct_td_folder_path, dirs_exist_ok=True)
-        #         shutil.move(src=td_folder_path+'/multipoles',
-        #                dst= td_folder_path+'/multipoles'+str(i+1))
-        
     def update_added_task_info(self):
         """Modified to store output files"""
 
         self.task_info.output['spectra_file'] = []
-        for spec_file in self.task_data.get('spectra_file'):
+        for spec_file in self.task_data.get('spectra_file', []):
             spectra_fpath = str(Path(self.task_dir).relative_to(self.wf_dir) / spec_file)
             self.task_info.output['spectra_file'].append(spectra_fpath)
 
@@ -578,41 +573,83 @@ class OctAveragedSpectrum(OctopusTask):
         self.set_dir()
         self.pre_run()
         self.update_task_info()
-                
+
     def prepare_input(self):
-        """Modifies the same method in Task class\n
+        """Modifies the same method in Task class
         Creates/writes input and job script"""
 
         self.create_task_dir()
         self.compute_avg_spectra()
     
     def compute_avg_spectra(self):
-        """Computes average of spectra data"""
-
-        spec_data = []
+        """Computes average or differential of spectra data based on polarization"""
+        
         time_data = []
+        data_1 = np.loadtxt(self.spectrum_files[0])
+        self.isPolarized = True if data_1.shape[1] == 9 else False
+
+        if self.isPolarized:
+            polarized_data_sum = []
+            polarized_data_diff = []
+        else:
+            spec_data = []
+
         for i, file in enumerate(self.spectrum_files):
             data = np.loadtxt(file)
-            time_data.append(data[:,0])
-            spec_data.append(data[:,4])
+            time_data.append(data[:, 0])
 
-        spec_data = np.column_stack(tuple(spec_data))
-        averaged_data = np.average(spec_data, axis=1)
-        spec_avg_data = np.column_stack((time_data[0], averaged_data))
-        with open(self.averaged_spec_file, 'ab') as f:
-            np.savetxt(f, np.array(spec_avg_data))
+            if self.isPolarized:
+                sum_data = data[:, 7] + data[:, 8]  # Sum of 8th and 9th columns
+                diff_data = data[:, 7] - data[:, 8] # Difference of 8th and 9th columns
+                polarized_data_sum.append(sum_data)
+                polarized_data_diff.append(diff_data)
+            else:
+                spec_data.append(data[:, 4])  # Default to 5th column for non-polarized data
 
-    def plot(self,**kwargs):
-        """Method related to plot in average spectrum"""
+        if self.isPolarized:
+            # Handling polarized data
+            sum_data_stacked = np.column_stack(tuple(polarized_data_sum))
+            diff_data_stacked = np.column_stack(tuple(polarized_data_diff))
+            averaged_sum_data = np.average(sum_data_stacked, axis=1)
+            averaged_diff_data = np.average(diff_data_stacked, axis=1)
+            spec_avg_data = np.column_stack((time_data[0], averaged_sum_data, averaged_diff_data))
 
+            # Plot sum and diff data
+            # self.plot(data_type='sum')
+            # self.plot(data_type='difference')
+        else:
+            # Handling default non-polarized data
+            spec_data = np.column_stack(tuple(spec_data))
+            averaged_data = np.average(spec_data, axis=1)
+            spec_avg_data = np.column_stack((time_data[0], averaged_data))
+        np.savetxt(self.averaged_spec_file, spec_avg_data)
+
+
+    def plot(self, data_type='average', **kwargs):
+        """Method to plot average, summed, or subtracted spectrum based on polarization status."""
         from litesoph.visualization.plot_spectrum import plot_spectrum
+
         energy_min = self.task_info.param['e_min']
         energy_max = self.task_info.param['e_max']
-        img = self.averaged_spec_file.parent / f"avg_spectrum.png"
-        plot_spectrum(self.averaged_spec_file,img, 0, 1,
-                        "Energy (in eV)", "Strength(in /eV)", 
-                        xlimit=(float(energy_min), float(energy_max)))
-        return    
+
+        # Determine the file to plot and title based on data_type
+        if data_type == 'sum':
+            data_file = self.averaged_spec_file.with_name(f"{self.averaged_spec_file.stem}_sum.dat")
+            plot_title = "Summed Polarized Spectrum"
+        elif data_type == 'difference':
+            data_file = self.averaged_spec_file.with_name(f"{self.averaged_spec_file.stem}_diff.dat")
+            plot_title = "Differential Polarized Spectrum"
+        else:  # Default to 'average'
+            data_file = self.averaged_spec_file
+            plot_title = "Average Spectrum"
+
+        # Plotting
+        spec_file = data_file.with_suffix('.png')
+        if self.isPolarized:
+            plot_spectrum(data_file, spec_file, 0, [1, 2], "Energy (in eV)", "Strength (in /eV)", xlimit=(float(energy_min), float(energy_max)), legends = ["Singlet", "Triplet"])
+        else:
+            plot_spectrum(data_file, spec_file, 0, 1, "Energy (in eV)", "Strength (in /eV)", xlimit=(float(energy_min), float(energy_max)), legends = ["Singlet"])
+
 
 class PumpProbePostpro(OctopusTask):
 
@@ -648,15 +685,15 @@ class PumpProbePostpro(OctopusTask):
 
             gen_standard_dm_file=self.extract_dm(sim_total_dm, axis_index+1)
             delay=self.dependent_tasks[i].param.get('delay')             
-            
+
             out_spectrum_file= Path(self.only_task_dirpath) /f'spec_delay_{delay}.dat'                   
             self.task_info.output[f'spec_delay_{delay}']=out_spectrum_file             
             out_standard_dm_file= Path(self.project_dir.parent/self.only_workflow_dirpath/self.only_task_dirpath) /f'dm_delay_{delay}.dat'            
             np.savetxt(out_standard_dm_file, gen_standard_dm_file, delimiter='\t', header="time \t dm")
 
             from litesoph.post_processing.spectrum import photoabsorption_spectrum            
-            damping_var= None if damping is None else damping 
-            padding_var= None if padding is None else padding 
+            damping_var= damping 
+            padding_var= padding 
 
             spec_file_path= Path(self.project_dir.parent/self.only_workflow_dirpath)/out_spectrum_file
             photoabsorption_spectrum(out_standard_dm_file,spec_file_path, process_zero=False,damping=damping_var,padding=padding_var)

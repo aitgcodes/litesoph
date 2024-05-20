@@ -323,6 +323,11 @@ def format_gs_input(gen_dict: dict) -> dict:
         raise InputError(f"Undefined basis_type: {mode}")
 
     gs_dict.update({'mode': mode})
+
+    gs_dict['mixing'] = gen_dict.get('mixing', None)
+    gs_dict['smearing'] = gen_dict.get('smearing', None)
+
+    gs_dict['extra_states'] = gen_dict.get('bands', 0)
     
     if mode == 'lcao':
         basis = gen_dict.get('basis')
@@ -345,12 +350,15 @@ def format_gs_input(gen_dict: dict) -> dict:
     if box != 'parallelepiped' and box is not None:
         raise InputError(f"Boxshape: {box} not compatable with gpaw.")
 
-    box_dim = gen_dict.get('box_dm')
+    box_dim = gen_dict.get('box_dim')
     if box_dim:
-        pass
-
-    vacuum = gen_dict.get('vacuum', 6)
-    gs_dict.update({'vacuum': vacuum})
+        gs_dict.update({'box_dim' : True})
+        gs_dict.update({'vacuum' : None}) # Vacuum can't be used in box dimensions?
+        gs_dict.update(box_dim)
+    else:
+        gs_dict.update({'box_dim' : False})
+        vacuum = gen_dict.get('vacuum', 6)
+        gs_dict.update({'vacuum': vacuum})
 
     spacing = gen_dict.get('spacing', 0.3)
     gs_dict.update({'h': spacing})
@@ -372,8 +380,9 @@ def format_gs_input(gen_dict: dict) -> dict:
     gs_dict['convergence']['energy'] = energy_conv
     gs_dict['convergence']['density'] = density_conv
     
-    smearing_func = gen_dict.get('smearing_fun', '')
-    smearing_width = gen_dict.get('smearing_width', 0.0)
+    # TODO: Implement input of smearing functions
+    smearing_func = gen_dict.get('smearing_fun', 'fermi-dirac')
+    smearing_width = float(gen_dict.get('smearing', 0.0))
 
     if smearing_func not in param_data['smearing_fun']['values']:
         raise InputError(f'Unkown smearing function: {smearing_func}')
@@ -401,8 +410,11 @@ def update_td_input(param):
                 
             sigma = laser.get('sigma')
             time0 = laser.get('time0')
-            laser['sigma'] = round(autime_to_eV/sigma, 2)
-            laser['time0'] = round(time0 * au_to_as, 2)
+            if sigma == None:
+                print( )
+            else:
+                laser['sigma'] = autime_to_eV/sigma
+            laser['time0'] = time0 * au_to_as
         
         param['laser'] = laser_list
     
@@ -531,7 +543,7 @@ class PumpProbePostpro(GpawTask):
     Step 1: get all the dipole moment files from different td task with corresponding delay from taskinfo
     Step 2: generate spectrum file from corresponding dmfile and save its information back to taskinfo
     Step 3: generate x,y,z data for contour plot from spectrum file and delay data
-    """        
+    """
     def setup_task(self,param):
         task_dir = self.project_dir / 'gpaw' / self.task_name
         self.task_dir = get_new_directory(task_dir)

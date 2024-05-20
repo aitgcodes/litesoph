@@ -1,4 +1,5 @@
 import tkinter as tk
+import platform
 from tkinter import messagebox
 from litesoph.gui.user_data import get_remote_profile, update_proj_list, update_remote_profile_list
 import copy
@@ -117,18 +118,17 @@ class TaskController:
         self.view_panel.insert_text(task.template)
     
     def bind_task_events(self):
-        self.main_window.bind_all(f'<<Save{self.task_name}Script>>', lambda _ : self._on_save_button(self.task, self.task_view))
-        self.main_window.bind_all(f'<<SubLocal{self.task_name}>>', self._on_run_local_button)
-        self.main_window.bind_all(f'<<SubNetwork{self.task_name}>>', self._on_run_network_button)
+        self.main_window.bind_all('<<Save'+self.task_name+'Script>>', lambda _ : self._on_save_button(self.task, self.task_view))
+        self.main_window.bind_all('<<SubLocal'+self.task_name+'>>', self._on_run_local_button)
+        self.main_window.bind_all('<<SubNetwork'+self.task_name+'>>', self._on_run_network_button)
     
     def _on_save_button(self, task:Task, view, *_):
         template = self.view_panel.get_text()
+        self.engine = self.workflow_manager.engine
         task.set_engine_input(template)
         task.save_input()
         if task.task_name == tt.GROUND_STATE:
             self.status_engine.set(self.engine)
-            #TODO: disable/freeze the inputs
-            #self.task_view.inp.freeze_widgets(state='disabled')
         view.set_sub_button_state('active')
         view.set_label_msg('saved')
     
@@ -460,7 +460,7 @@ class TaskController:
             self.job_sub_page.forget_progressbar_status()
         except: 
             AttributeError
-        
+
         if np:
             sub_job_type = 0
             cmd = 'bash'
@@ -491,18 +491,18 @@ class TaskController:
         except Exception as e:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             return
+        if self.task.task_info.job_info.job_returncode != 0:
+            messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.job_info.error}")
         else:
-            if self.task.task_info.job_info.job_returncode != 0:
-                messagebox.showerror(title = "Error",message=f"Job exited with non-zero return code.", detail = f" Error: {self.task.task_info.job_info.error}")
-            else:
-                try:
-                    self.job_sub_page.change_progressbar_status('Job Done')
-                except:
-                    AttributeError
-                output=self.task.task_info.job_info.output
-                self.view_panel.insert_text(output, 'disabled')
-                messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
-                
+            try:
+                self.job_sub_page.change_progressbar_status('Job Done')
+            except:
+                AttributeError
+            output=self.task.task_info.job_info.output
+            self.view_panel.insert_text(output, 'disabled')
+            self.app.proceed_button.config(state='active')
+            messagebox.showinfo(title= "Well done!", message='Job completed successfully!')
+
     def _on_out_local_view_button(self, *_):
 
         try:
@@ -562,17 +562,17 @@ class TaskController:
             messagebox.showerror(title = "Error",message=f'There was an error when trying to run the job', detail = f'{e}')
             self.job_sub_page.set_run_button_state('active')
             return
+        if self.task.task_info.job_info.submit_returncode != 0:
+            messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.job_info.submit_error}")
         else:
-            if self.task.task_info.job_info.submit_returncode != 0:
-                messagebox.showerror(title = "Error",message=f"Error occured during job submission.", detail = f" Error: {self.task.task_info.job_info.submit_error}")
-            else:
-                try:
-                    self.job_sub_page.change_progressbar_status('Job Done')
-                except:
-                    AttributeError
-                output=self.task.task_info.job_info.submit_output
-                self.view_panel.insert_text(output, 'disabled')
-                messagebox.showinfo(title= "Well done!", message='Job Completed successfully!', detail = f"output:{self.task.task_info.job_info.submit_output}")
+            try:
+                self.job_sub_page.change_progressbar_status('Job Done')
+            except:
+                AttributeError
+            output=self.task.task_info.job_info.submit_output
+            self.view_panel.insert_text(output, 'disabled')
+            self.app.proceed_button.config(state='active')
+            messagebox.showinfo(title= "Well done!", message='Job submitted successfully!', detail = f"output:{self.task.task_info.job_info.submit_output}")
             
     def _get_remote_output(self):
         self.task.submit_network.download_output_files()

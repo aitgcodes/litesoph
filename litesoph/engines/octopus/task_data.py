@@ -26,7 +26,9 @@ ground_state = {
     "basis_type": {'type':DT.string, 'values':['fd'], 'default_value': 'fd'},  
     "basis": None,  
     "bands": {'type':DT.integer, 'min': None, 'max': None, 'default_value': 0},
-    "spin": {'type':DT.string, 'values':['unpolarized', 'polarized'], 'default_value':'unpolarized'},
+    # TODO: Polarization temporarily blocked
+    # "spin": {'type':DT.string, 'values':['unpolarized', 'polarized'], 'default_value':'unpolarized'},
+    "spin": {'type':DT.string, 'values':['unpolarized'], 'default_value':'unpolarized'},
     "spacing": {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 0.3},
     "vacuum": {'type':DT.decimal, 'min': None, 'max': None, 'default_value': 6},
     "boxshape": {'type':DT.string, 'values':["parallelepiped", "sphere", "cylinder","minimum"], 'default_value':"minimum"},
