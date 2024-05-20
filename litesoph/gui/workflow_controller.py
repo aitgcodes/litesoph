@@ -48,6 +48,14 @@ class WorkflowController:
         
 
     def show_workmanager_page(self, *_):
+        try:
+            self.task_controller.task.post_run()
+        except:
+            messagebox.showwarning(
+                title = "Warning",
+                message = "There was some error running post run tasks for current task."+
+                "Possiblity that some output files couldn't be copyied to task folder."
+            )
         self.workmanager_page._var['select_wf_option'].set(value=2)
         self.workmanager_page.tkraise()
         self.app.proceed_button.config(command= self.start_task, state = 'normal')
@@ -279,6 +287,14 @@ class WorkflowModeController(WorkflowController):
         if self.check_pg():
             return
         self.app.proceed_button.config(state = 'disabled')
+        try:
+            self.task_controller.task.post_run()
+        except:
+            messagebox.showwarning(
+                title = "Warning",
+                message = "There was some error running post run tasks for current task."+
+                "Possiblity that some output files couldn't be copyied to task folder."
+            )
         try:
             self.workflow_manager.next()
         except TaskSetupError as e:
