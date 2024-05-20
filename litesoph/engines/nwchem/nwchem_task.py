@@ -196,7 +196,6 @@ class NwchemTask(BaseNwchemTask):
             param['basis'] =self.dependent_tasks[0].engine_param.get('basis')
             update_td_param(param)
 
-        
         self.task_info.input['engine_input']['path'] = str(self.task_dir.relative_to(self.directory) / self.infile)
         
         self.nwchem = NWChem(infile= self.infile, outfile=self.outfile, 
@@ -372,8 +371,8 @@ def update_td_param(param):
     lasers = param.pop('laser', None)
     masking = param.pop('masking', None)
     
-    param['rt_tddft'] = {'tmax': round(num_step * time_step * as_to_au,2),
-                        'dt': round(time_step * as_to_au, 2),
+    param['rt_tddft'] = {'tmax': num_step * time_step * as_to_au,
+                        'dt': time_step * as_to_au,
                         'print':out_print(properties)}
 
     if restart:
