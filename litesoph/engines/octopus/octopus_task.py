@@ -445,6 +445,8 @@ class OctopusTask(Task):
     def plot(self,**kwargs):
         """Method related to plot in post-processing"""
 
+        self.post_run()
+
         if self.task_name == tt.COMPUTE_SPECTRUM:
             energy_min = self.task_info.param['e_min']
             energy_max = self.task_info.param['e_max']
@@ -507,8 +509,6 @@ class OctopusTask(Task):
             return
         cmd = cmd + ' ' + self.BASH_filename
         self.submit_local.run_job(cmd)
-        if self.check_run_status()[0]:
-            self.post_run()
 
     def get_ksd_popln(self):
         td_info = self.dependent_tasks[1] 
@@ -628,6 +628,7 @@ class OctAveragedSpectrum(OctopusTask):
     def plot(self, data_type='average', **kwargs):
         """Method to plot average, summed, or subtracted spectrum based on polarization status."""
         from litesoph.visualization.plot_spectrum import plot_spectrum
+        self.post_run()
 
         energy_min = self.task_info.param['e_min']
         energy_max = self.task_info.param['e_max']
@@ -716,7 +717,8 @@ class PumpProbePostpro(OctopusTask):
         delay_list,spectrum_data_list=get_spectrums_delays(self.task_info,self.dependent_tasks,self.project_dir,self.only_workflow_dirpath)
         prepare_tas_data(spectrum_data_list,delay_list,contour_x_data_file,contour_y_data_file,contour_z_data_file)
 
-    def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):     
+    def plot(self,delay_min=None,delay_max=None,freq_min=None,freq_max=None):
+        self.post_run()
         from litesoph.visualization.plot_spectrum import contour_plot
         x_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_x_data')))
         y_data = np.loadtxt(self.project_dir.parent /self.only_workflow_dirpath/ (self.task_info.output.get('contour_y_data')))
