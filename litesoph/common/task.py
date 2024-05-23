@@ -191,7 +191,14 @@ class Task:
     def connect_to_network(self, *args, **kwargs):
         self.submit_network = SubmitNetwork(self, *args, **kwargs)
     
-    def run_job_network():
+    def run_job_network(self,):
+        pass
+
+    def post_run(self,):
+        """
+        Called at the end of the task when proceed button is pressed.
+        Usually to copy engine files to task directory, write the code here.
+        """
         pass
     
     def read_log(self, file):

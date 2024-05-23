@@ -45,9 +45,31 @@ class WorkflowController:
         self.task_mode_workflow = self.workflow_manager.task_mode
         self.workmanager_page = self.project_controller.workmanager_page
         self.start_task()        
-        
+
+    def check_pg(self):
+        # Make it False so that you can queue multiple jobs.
+        # Change to True under parental guidance only
+        PG_PROCEED = False
+        if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
+            is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
+            if not is_remote_job_done:
+                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
+                # TODO: Check if the task output is valid or not?
+                # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
+                return True
+        return False
 
     def show_workmanager_page(self, *_):
+        if hasattr(self, 'task_controller') and self.check_pg():
+            return
+        try:
+            self.task_controller.task.post_run()
+        except:
+            messagebox.showwarning(
+                title = "Warning",
+                message = "There was some error running post run tasks for current task."+
+                "Possiblity that some output files couldn't be copyied to task folder."
+            )
         self.workmanager_page._var['select_wf_option'].set(value=2)
         self.workmanager_page.tkraise()
         self.app.proceed_button.config(command= self.start_task, state = 'normal')
@@ -262,23 +284,20 @@ class WorkflowModeController(WorkflowController):
         self.workflow_navigation_view.start(block_id)
         self.task_controller.set_task(self.workflow_manager, task_view)
 
-    def check_pg(self):
-        # Make it False so that you can queue multiple jobs.
-        PG_PROCEED = False
-        if hasattr(self.task_controller.task, 'submit_network') and self.task_controller.task.submit_network is not None:
-            is_remote_job_done = PG_PROCEED or (self.task_controller.task.submit_network.check_job_status())
-            if not is_remote_job_done:
-                messagebox.showwarning(title='Warning', message="The task has not yet completed. Please wait for the task to complete on the remote machine.")
-                # TODO: Check if the task output is valid or not?
-                # messagebox.showerror(title= 'Error', message = "Task output is not valid.")
-                return True
-        return False
-
     def next_task(self):
         # Make it False so that you can queue multiple jobs.
         if self.check_pg():
             return
         self.app.proceed_button.config(state = 'disabled')
+
+        try:
+            self.task_controller.task.post_run()
+        except:
+            messagebox.showwarning(
+                title = "Warning",
+                message = "There was some error running post run tasks for current task."+
+                "Possiblity that some output files couldn't be copyied to task folder."
+            )
         try:
             self.workflow_manager.next()
         except TaskSetupError as e:
