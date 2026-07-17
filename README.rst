@@ -1,3 +1,5 @@
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.21415179.svg
+   :target: https://doi.org/10.5281/zenodo.21415179
 ============================
  LITESOPH
 ============================
@@ -83,4 +85,11 @@ To start gui application, run:
 
   $ litesoph gui
 
+How to cite
+===========
+
+If you use LITESOPH in your research, please cite:
+
+Srinivasan, V., et al. (2024). LITESOPH v1.1. Zenodo.
+https://doi.org/10.5281/zenodo.21415179
 
